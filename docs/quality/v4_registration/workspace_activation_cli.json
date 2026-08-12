@@ -1,0 +1,5 @@
+{
+  "command": "workspace",
+  "module": "traffictwin.workspace_activation.cli:app",
+  "help": "Local real-workspace activation wizard"
+}

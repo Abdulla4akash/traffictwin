@@ -61,6 +61,17 @@ class UiPage(StrEnum):
     SETTINGS = "Settings"
     ABOUT = "About"
     RESOURCE_STRATEGY_EXPLORER = "Resource Strategy Explorer"
+    STUDY_WORKSPACE = "Study Workspace"
+    EVIDENCE_ADMISSION_INBOX = "Evidence Admission Inbox"
+    METRIC_CONTRACT_REGISTRY = "Metric Contract Registry"
+    CALIBRATION_WORKBENCH = "Calibration Workbench"
+    BASELINE_REGISTRY = "Baseline Registry"
+    STUDY_ACCRUAL_MONITOR = "Study Accrual Monitor"
+    REPRODUCIBILITY_REPLAY = "Reproducibility Replay"
+    CONTRACT_DRAFTING_ASSISTANT = "Contract Drafting Assistant"
+    EVENT_SCENARIO_BRIDGE = "Event-to-Scenario Bridge"
+    MULTIOBJECTIVE_TRADEOFF = "Multi-Objective Trade-Off Explorer"
+    WORKSPACE_ACTIVATION = "Workspace Activation"
 
 
 PAGE_DESCRIPTIONS: dict[UiPage, str] = {
@@ -178,6 +189,47 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.RESOURCE_STRATEGY_EXPLORER: (
         "Inspect admitted or explicitly synthetic resource-strategy studies "
         "across traffic/VEC policies with matched-cohort comparison."
+    ),
+    UiPage.STUDY_WORKSPACE: (
+        "Reference and explain existing research artifacts with derived lifecycle and lineage."
+    ),
+    UiPage.EVIDENCE_ADMISSION_INBOX: (
+        "Human review queue between validated artifacts and preregistered evidence attachment, "
+        "where validation alone never admits evidence."
+    ),
+    UiPage.METRIC_CONTRACT_REGISTRY: (
+        "Define and validate closed metadata contracts for custom metrics without executable code."
+    ),
+    UiPage.CALIBRATION_WORKBENCH: (
+        "Read-only, descriptive comparison of admitted observed evidence with simulation "
+        "candidates using half-open windows, fingerprint binding, and weighted normalized error."
+    ),
+    UiPage.BASELINE_REGISTRY: (
+        "Declare and promote the exact artifact that is the current baseline for a purpose "
+        "through explicit review."
+    ),
+    UiPage.STUDY_ACCRUAL_MONITOR: (
+        "Deterministic monitor showing how collected and reviewed evidence compares with the "
+        "frozen preregistered plan over time."
+    ),
+    UiPage.REPRODUCIBILITY_REPLAY: (
+        "Replay verified capsule artifacts via allowlisted deterministic adapters and emit "
+        "receipt with fingerprint comparison."
+    ),
+    UiPage.CONTRACT_DRAFTING_ASSISTANT: (
+        "Profiles 2-20 local tabular samples and drafts a reviewable source data contract "
+        "(draft-only, no freeze)."
+    ),
+    UiPage.EVENT_SCENARIO_BRIDGE: (
+        "Deterministic unexecuted bridge from a declared authored event to four reviewable "
+        "handoffs."
+    ),
+    UiPage.MULTIOBJECTIVE_TRADEOFF: (
+        "Pareto/constraint explorer showing the descriptive non-dominated frontier across "
+        "compatible policy arms under declared metrics and hard constraints."
+    ),
+    UiPage.WORKSPACE_ACTIVATION: (
+        "Preview-first, confirmation-gated local activation for a real TrafficTwin workspace."
     ),
 }
 

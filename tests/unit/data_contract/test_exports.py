@@ -88,7 +88,15 @@ def test_fingerprint_portability(tmp_path: Path) -> None:
     assert frozen.fingerprint == create_frozen_version(contract).fingerprint
 
 
-def test_secret_redaction_in_csv_export() -> None:
+def test_secret_field_names_are_preserved_and_flagged_in_csv_export() -> None:
+    """Field names are identity: preserved verbatim, flagged for privacy review.
+
+    The earlier ``[REDACTED_SECRET_FIELD]`` placeholder collapsed every
+    secret-looking field to one identifier, so two distinct fields became
+    indistinguishable in the very report meant to describe them per field.
+    The product-wide policy (shared with the Contract Drafting Assistant)
+    keeps the exact name and signals ``PRIVACY_REVIEW_REQUIRED`` explicitly.
+    """
     contract = SourceDataContract(
         source_id="src1",
         contract_version="1.0.0",
@@ -124,8 +132,11 @@ def test_secret_redaction_in_csv_export() -> None:
         fingerprint="c" * 64,
     )
     csv_text = export_drift_csv(report)
-    assert "[REDACTED_SECRET_FIELD]" in csv_text
-    assert "api_key_secret" not in csv_text
+    assert "[REDACTED_SECRET_FIELD]" not in csv_text
+    assert "api_key_secret" in csv_text
+    header, row = csv_text.strip().splitlines()[:2]
+    assert header.split(",")[-1] == "privacy_review"
+    assert row.split(",")[-1] == "PRIVACY_REVIEW_REQUIRED"
 
 
 def test_formula_safe_csv_export() -> None:
@@ -187,7 +198,7 @@ def test_formula_safe_csv_export() -> None:
     # Ensure ordinary csv still parses
     reader = csv.reader(io.StringIO(csv_text))
     rows = list(reader)
-    assert rows[0] == ["field_name", "severity", "code", "message"]
+    assert rows[0] == ["field_name", "severity", "code", "message", "privacy_review"]
     # Find the row for safe
     safe_row = next(r for r in rows if "safe" in r[0])
     assert safe_row[3] == "hello"

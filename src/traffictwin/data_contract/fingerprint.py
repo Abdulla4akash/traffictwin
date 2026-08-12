@@ -102,13 +102,6 @@ def is_secret_field_name(name: str) -> bool:
     return any(sub in lower for sub in _SECRET_FIELD_SUBSTRINGS)
 
 
-def redact_field_name(name: str) -> str:
-    """Redact secret-looking field names for portable previews."""
-    if is_secret_field_name(name):
-        return "[REDACTED_SECRET_FIELD]"
-    return name
-
-
 def redact_value(value: str | None) -> str | None:
     """Redact secret-looking values."""
     if value is None:

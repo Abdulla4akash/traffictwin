@@ -1,0 +1,10 @@
+{
+  "enum_name": "CONTRACT_DRAFTING_ASSISTANT",
+  "label": "Contract Drafting Assistant",
+  "url": "contract-drafting",
+  "script": "app_pages/contract_drafting.py",
+  "renderer": "traffictwin.ui.pages.contract_drafting:render",
+  "group": "Build & run",
+  "description": "Profiles 2-20 local tabular samples and drafts a reviewable source data contract (draft-only, no freeze).",
+  "icon": "description"
+}

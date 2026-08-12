@@ -123,6 +123,17 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
         UiPage.SETTINGS: ("Advanced", "settings"),
         UiPage.ABOUT: ("Advanced", "about"),
         UiPage.RESOURCE_STRATEGY_EXPLORER: ("Compare & test", "resource-strategy"),
+        UiPage.STUDY_WORKSPACE: ("Build & run", "study-workspace"),
+        UiPage.METRIC_CONTRACT_REGISTRY: ("Build & run", "metric-contracts"),
+        UiPage.CONTRACT_DRAFTING_ASSISTANT: ("Build & run", "contract-drafting"),
+        UiPage.EVENT_SCENARIO_BRIDGE: ("Build & run", "event-scenario-bridge"),
+        UiPage.STUDY_ACCRUAL_MONITOR: ("Results", "study-accrual"),
+        UiPage.CALIBRATION_WORKBENCH: ("Compare & test", "calibration"),
+        UiPage.MULTIOBJECTIVE_TRADEOFF: ("Compare & test", "tradeoff-explorer"),
+        UiPage.EVIDENCE_ADMISSION_INBOX: ("Evidence & reports", "evidence-admission"),
+        UiPage.BASELINE_REGISTRY: ("Evidence & reports", "baseline-registry"),
+        UiPage.REPRODUCIBILITY_REPLAY: ("Evidence & reports", "reproducibility-replay"),
+        UiPage.WORKSPACE_ACTIVATION: ("Advanced", "workspace-activation"),
     }
 
     assert {spec.page: (spec.group, spec.url_path) for spec in V07_PAGE_SPECS} == expected

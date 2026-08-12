@@ -1,0 +1,10 @@
+{
+  "enum_name": "MULTIOBJECTIVE_TRADEOFF",
+  "label": "Multi-Objective Trade-Off Explorer",
+  "url": "tradeoff-explorer",
+  "script": "app_pages/tradeoff_explorer.py",
+  "renderer": "traffictwin.ui.pages.tradeoff_explorer:render",
+  "group": "Compare & test",
+  "description": "Pareto/constraint explorer showing the descriptive non-dominated frontier across compatible policy arms under declared metrics and hard constraints.",
+  "icon": "compare_arrows"
+}
