@@ -18,13 +18,19 @@ AppTest in a *different* pytest process.
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+from tests.support.subprocess_isolation import posix_spawn_run
 
-def _run_probe_subprocess(probe_source: str) -> subprocess.CompletedProcess[str]:
+# Process-isolation flag for M-E: when False, falls back to fork-based
+# subprocess.run (i.e. the unsafe f0c24a8 path) to prove the mechanism is
+# load-bearing.
+USE_POSIX_SPAWN = True
+
+
+def _run_probe_subprocess(probe_source: str) -> object:  # type: ignore[no-untyped-def]  # noqa: ANN202 - SpawnResult is sufficient
     """Create a temp probe under ``tests/`` and run it via the real guard."""
     repo_root = Path(__file__).resolve().parents[2]
     fd, probe_path_str = tempfile.mkstemp(
@@ -51,7 +57,11 @@ def _run_probe_subprocess(probe_source: str) -> subprocess.CompletedProcess[str]
             "-p",
             "no:cacheprovider",
         ]
-        result = subprocess.run(  # noqa: S603 - trusted local probe file
+        if USE_POSIX_SPAWN:
+            return posix_spawn_run(cmd, cwd=str(repo_root), env=env, timeout=60)
+        import subprocess  # noqa: S603 - fallback for M-E
+
+        return subprocess.run(  # noqa: S603 - fallback for M-E
             cmd,
             cwd=str(repo_root),
             capture_output=True,
@@ -61,7 +71,6 @@ def _run_probe_subprocess(probe_source: str) -> subprocess.CompletedProcess[str]
             stdin=subprocess.DEVNULL,
             start_new_session=True,
         )
-        return result
     finally:
         import contextlib
 
@@ -69,7 +78,7 @@ def _run_probe_subprocess(probe_source: str) -> subprocess.CompletedProcess[str]
             probe_path.unlink()
 
 
-def _run_probe_subprocess_error_warnings(probe_source: str) -> subprocess.CompletedProcess[str]:
+def _run_probe_subprocess_error_warnings(probe_source: str) -> object:  # type: ignore[no-untyped-def]  # noqa: ANN202 - SpawnResult
     """Like ``_run_probe_subprocess`` but with ``-W error::pytest.PytestWarning``."""
     repo_root = Path(__file__).resolve().parents[2]
     fd, probe_path_str = tempfile.mkstemp(
@@ -96,7 +105,11 @@ def _run_probe_subprocess_error_warnings(probe_source: str) -> subprocess.Comple
             "-p",
             "no:cacheprovider",
         ]
-        result = subprocess.run(  # noqa: S603 - trusted local probe file
+        if USE_POSIX_SPAWN:
+            return posix_spawn_run(cmd, cwd=str(repo_root), env=env, timeout=60)
+        import subprocess  # noqa: S603 - fallback for M-E
+
+        return subprocess.run(  # noqa: S603 - fallback for M-E
             cmd,
             cwd=str(repo_root),
             capture_output=True,
@@ -106,7 +119,6 @@ def _run_probe_subprocess_error_warnings(probe_source: str) -> subprocess.Comple
             stdin=subprocess.DEVNULL,
             start_new_session=True,
         )
-        return result
     finally:
         import contextlib
 

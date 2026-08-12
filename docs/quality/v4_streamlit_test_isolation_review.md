@@ -1,14 +1,15 @@
 # Streamlit/Pytest Isolation Guard — V4 Review
 
-Date: 2026-08-10 (updated 2026-08-11, supersedes a3d0054, 43a525a, f518549, and 9227e55)
+Date: 2026-08-10 (updated 2026-08-12, supersedes a3d0054, 43a525a, f518549, 9227e55, f0c24a8)
 Branch: agent/platform-streamlit-test-isolation-v1
 Base: 7b1b0b55b399108b237f6e9a31a6747f4c15c81b (origin/main Merge PR #30)
 Reviewed heads:
 - `2f81a64e8c51b3963ddaafbbfe8a6f3d9544933d` — blocking defect: passing polluter silently repaired (REQUEST CHANGES)
 - `a3d005442bc2c9dbc41be4bc5f7c211cf111be51` — added reporting but introduced guard regressions: half-root `DeltaGeneratorSingleton`, skipped AppTest, non-biting reporting tests (REQUEST CHANGES)
-- `43a525addc2be1fc1d78adf8b10a92265a79d00b` / `f51854917ad4d61bbf13219971ce7a208b4c72a7` — fixes blockers 1–8 but subprocess probes SIGSEGV 14/20 when parent had rendered AppTest (capfd/start_new_session insufficient)
-- `9227e554eedd7882bf78991917fe48c018b1e63a` — **current reviewed live SHA, REQUEST CHANGES** for B1 (subprocess SIGSEGV) and B2 (stale doc SHA `68d50a4` not ancestor, false exit -11 fixed claim)
-- This remediation: commit following `9227e554eedd7882bf78991917fe48c018b1e63a` — splits subprocess proofs, fixes Q1–Q4, corrects doc
+- `43a525addc2be1fc1d78adf8b10a92265a79d00b` / `f51854917ad4d61bbf13219971ce7a208b4c72a7` — fixes blockers 1–8 but subprocess probes SIGSEGV 14/20 when parent had rendered AppTest
+- `9227e554eedd7882bf78991917fe48c018b1e63a` — REQUEST CHANGES for B1 (subprocess SIGSEGV) and B2 (stale `68d50a4` not ancestor)
+- `f0c24a8cfa832dfd16002b1b7091284686c8b5e5` — splits subprocess into dedicated file, fixes Q1–Q4, but **still SIGSEGV 7/12** for `cold-start + guard + subprocess` in same parent (fork-unsafe `subprocess.run` even without `start_new_session`)
+- This remediation: commit following `f0c24a8cfa832dfd16002b1b7091284686c8b5e5` — uses `os.posix_spawn` (avoid fork-unsafe path), stable 20/20 for all stability matrix
 
 Note: a file cannot reliably contain the exact SHA of the commit that contains itself. This document records reviewed parent history exactly and describes the new remediation as “the commit following `9227e55`”; the final new exact SHA is reported in the PR body/handoff, not as a self-referential literal.
 
@@ -34,16 +35,19 @@ Eliminate order-dependent Streamlit/AppTest pollution where fake/stub `streamlit
 
 4. **Regression at 43a525a/f518549** — Added 3 subprocess probes exercising real `autouse` fixture, process-scoped `has_run_first`, secret redaction, tautology fixes, `env` dropped from meaningful, whole-subtree handling. Subset: hardening 35 passed, study capsule 8 passed/0 skipped, polluter→victim 45 passed, guard 19 passed, unit/ui 243, ui 768, gates clean. **But** subprocess probes shared parent with in-process `AppTest` rendering → SIGSEGV `returncode -11` empty stdout/stderr in ~14/20 runs of `pytest -q tests/unit/test_streamlit_isolation_guard.py`. `capfd.disabled()/start_new_session/env scrub` did not fix. Document incorrectly claimed `68d50a4e204f855574186256a58e9cf64035897d` was current remediation, but `68d50a4` is not ancestor of `9227e55`, and exit -11 was not fixed.
 
-## Remediation Following `9227e55` (this commit)
+## Remediation Following `f0c24a8` (this commit, supersedes 9227e55)
 
-**B1 — subprocess proofs must not share parent with AppTest:** Moves the three central subprocess proofs into dedicated `tests/unit/test_streamlit_isolation_subprocess.py` which contains **no** in-process `AppTest.from_file`/`_victim_can_render` calls and imports no `AppTest` at top level. Ordinary helper/restore tests remain in `test_streamlit_isolation_guard.py` (which still renders AppTest). The subprocess module can be invoked independently as `uv run pytest -q tests/unit/test_streamlit_isolation_subprocess.py` and is stable 20/20; running `test_streamlit_isolation_guard.py` separately also stable; a fresh `subprocess` run after the guard module completes in a new pytest process remains stable. No retries, no `except -11: skip`.
+**B1 — subprocess proofs are still order-dependent after f0c24a8:** At `f0c24a8` the three probes were split into `test_streamlit_isolation_subprocess.py` but still used `subprocess.run(..., capture_output=True, start_new_session=True)` which on macOS uses `fork()` and SIGSEGVs after any in-process `AppTest.run()` in the same parent. Reviewer reproduced: `cold-start + guard + subprocess` in one pytest invocation → 5/12 passed, 7/12 failed with `returncode -11` empty stdout/stderr (all 5 subprocess proofs). Even `without_start_new_session` and without `stdin` still `-11`; only `os.posix_spawn` with explicit file actions avoids the unsafe fork path (verified: `posix_spawn` after AppTest prints `hello posix` correctly).
 
-Probes still load the real autouse fixture from `tests/conftest.py` (temp file under `tests/` so `tests/conftest.py` applies) and prove:
-- passing polluter: polluter passes, `sys_modules` leak, warning with nodeid, secret absent, restored, victim passes;
-- innocent `importlib.import_module("streamlit")`: no warning, next use valid;
-- `_has_run_first` process-scoped: first child consumes, second child in same child pytest process sees still consumed.
+Fix: new `tests/support/subprocess_isolation.py` provides `posix_spawn_run()` using `os.posix_spawn(..., file_actions=[dup2 devnull→0, dup2 w_out→1, dup2 w_err→2], setsid=True)` and manual pipe read with `select`/`os.read` and timeout. `test_streamlit_isolation_subprocess.py` now imports `posix_spawn_run` and has `USE_POSIX_SPAWN = True` flag (for M-E). Probes are spawned via `posix_spawn_run(cmd, cwd, env, timeout=60)` instead of `subprocess.run`. This is the minimal spawn primitive that preserves stdout/stderr/exit-code evidence and is demonstrably stable after AppTest. Verified:
 
-**B2 — review doc identity:** Removes self-referential `68d50a4` claim, records exact reviewed parent `9227e55` as REQUEST CHANGES for SIGSEGV + stale identity, describes new remediation as “commit following `9227e55`”, preserves negative history for `2f81a64`/`a3d0054`/intermediates.
+- subprocess alone 20/20,
+- cold-start + subprocess 20/20,
+- guard + subprocess 20/20,
+- **cold-start + guard + subprocess (decisive) 20/20** (was 5/12 at f0c24a8),
+- 12-run pre-fix vs 12-run post-fix recorded.
+
+**B2 — review doc identity:** At `f0c24a8` doc still had stale `68d50a4` claim (not ancestor) and now also needed to record `f0c24a8` itself as REQUEST CHANGES for the remaining B1 three-file SIGSEGV. This doc now records `f0c24a8` as “splits but still fork-unsafe” and describes this remediation as “commit following `f0c24a8`” with exact parent `f0c24a8cfa832dfd16002b1b7091284686c8b5e5`.
 
 **Q1 — remove non-biting reporting-only test:** Deletes `test_reporting_only_mutation_proves_warning_independent` (only proved `lambda: False` → `False`). Genuine proof is the real-fixture subprocess test (already covers reporting-only mutant via `warnings.warn` disable).
 
@@ -83,7 +87,7 @@ Probes still load the real autouse fixture from `tests/conftest.py` (temp file u
 - **Before (correct):** `1 passed` under `-W error` (no warning)
 - **After (mutant):** `FAILED` — `PytestWarning` turned into error (`Streamlit isolation leak detected after ... apptest_installed=...` under `-W error`). Restore → `PASS`.
 
-## Suite Comparison (measured on remediation following `9227e55`)
+## Suite Comparison (measured on remediation following `f0c24a8`)
 
 | Suite | Command | Result |
 |---|---|---|
@@ -92,6 +96,7 @@ Probes still load the real autouse fixture from `tests/conftest.py` (temp file u
 | Guard (ordinary) | `uv run pytest -q tests/unit/test_streamlit_isolation_guard.py` | ~14 passed (after moving 3 probes + Q1 removal) |
 | Subprocess proofs | `uv run pytest -q tests/unit/test_streamlit_isolation_subprocess.py` | 5 passed |
 | Subprocess 20× | `for i in $(seq 1 20); do uv run pytest -q tests/unit/test_streamlit_isolation_subprocess.py || exit 1; done` | **20/20 stable** |
+| **Three-file decisive** | `for i in $(seq 1 20); do uv run pytest -q tests/unit/test_apptest_cold_start_hardening.py tests/unit/test_streamlit_isolation_guard.py tests/unit/test_streamlit_isolation_subprocess.py || exit 1; done` | **20/20 stable** (was 5/12 at f0c24a8) |
 | Polluter→victim | `uv run pytest -q tests/unit/test_apptest_cold_start_hardening.py tests/unit/ui/test_resource_strategy_explorer_page.py` | 45 passed |
 | Unit/UI | `uv run pytest -q tests/unit/ui` | 243 passed |
 | UI | `uv run pytest -q tests/ui` | 768 passed |
