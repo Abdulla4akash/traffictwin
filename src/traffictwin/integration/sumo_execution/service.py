@@ -11,9 +11,11 @@ accepts arbitrary executables or flags, or claims scenario realism.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import os
 import re
+import select
 import shutil
 import signal
 import subprocess
@@ -174,18 +176,110 @@ def _discover_executable() -> Path | None:
     return Path(located)
 
 
-def _probe_version(executable: Path) -> str | None:
-    try:
+def _spawn_capture_output(argv: list[str], timeout_s: float) -> tuple[str, str]:
+    """Run a fixed argv via ``os.posix_spawn`` and capture stdout/stderr.
+
+    The version probe renders inside Streamlit pages, and Streamlit AppTest
+    leaves the parent process threaded in a way that makes ``fork()`` — the
+    path ``subprocess.run`` takes on macOS with ``close_fds=True`` — crash
+    the forked child with SIGSEGV before ``exec``. The child's death is
+    silent in the parent (``returncode=-11``, empty output), so the probe
+    quietly reports "no parseable version" while a hidden fatal error lands
+    on stderr. ``posix_spawn`` never forks the interpreter, so it stays safe
+    after AppTest. Semantics preserved from the ``subprocess.run`` call:
+    exact argv, no shell, inherited cwd and environment, captured
+    stdout/stderr, bounded timeout (raises ``subprocess.TimeoutExpired``
+    after killing and reaping the child), and no zombie or fd leak on any
+    reachable path.
+    """
+
+    if not hasattr(os, "posix_spawn"):  # pragma: no cover - non-POSIX fallback
         result = subprocess.run(  # noqa: S603 - fixed read-only argv, never a shell
-            [str(executable), "--version"],
+            argv,
             check=False,
             capture_output=True,
             text=True,
-            timeout=_VERSION_PROBE_TIMEOUT_S,
+            timeout=timeout_s,
+        )
+        return result.stdout, result.stderr
+
+    out_read, out_write = os.pipe()
+    err_read, err_write = os.pipe()
+    devnull = os.open(os.devnull, os.O_RDONLY)
+    pid = -1
+    chunks: dict[int, list[bytes]] = {out_read: [], err_read: []}
+    try:
+        for fd in (devnull, out_write, err_write):
+            os.set_inheritable(fd, True)
+        pid = os.posix_spawn(
+            argv[0],
+            argv,
+            dict(os.environ),
+            file_actions=[
+                (os.POSIX_SPAWN_DUP2, devnull, 0),
+                (os.POSIX_SPAWN_DUP2, out_write, 1),
+                (os.POSIX_SPAWN_DUP2, err_write, 2),
+                (os.POSIX_SPAWN_CLOSE, out_read),
+                (os.POSIX_SPAWN_CLOSE, err_read),
+            ],
+        )
+        # The child owns duplicates of these now; the parent must close its
+        # copies or the pipes never reach EOF.
+        for fd in (devnull, out_write, err_write):
+            os.close(fd)
+        devnull = out_write = err_write = -1
+
+        deadline = time.monotonic() + timeout_s
+        open_fds = {fd for fd in chunks}
+        while open_fds:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(argv, timeout_s)
+            ready, _, _ = select.select(sorted(open_fds), [], [], remaining)
+            if not ready:
+                raise subprocess.TimeoutExpired(argv, timeout_s)
+            for fd in ready:
+                data = os.read(fd, 65536)
+                if data:
+                    chunks[fd].append(data)
+                else:
+                    open_fds.discard(fd)
+
+        # Both streams hit EOF; reap within the same deadline so a child
+        # that closed its outputs but lingers cannot block the probe.
+        while True:
+            waited_pid, status = os.waitpid(pid, os.WNOHANG)
+            if waited_pid == pid:
+                pid = -1
+                break
+            if time.monotonic() >= deadline:
+                raise subprocess.TimeoutExpired(argv, timeout_s)
+            time.sleep(0.01)
+    finally:
+        if pid > 0:
+            with contextlib.suppress(OSError):
+                os.kill(pid, signal.SIGKILL)
+            with contextlib.suppress(OSError):
+                os.waitpid(pid, 0)
+        for fd in (out_read, err_read, out_write, err_write, devnull):
+            if fd >= 0:
+                with contextlib.suppress(OSError):
+                    os.close(fd)
+
+    stdout = b"".join(chunks[out_read]).decode(errors="replace")
+    stderr = b"".join(chunks[err_read]).decode(errors="replace")
+    return stdout, stderr
+
+
+def _probe_version(executable: Path) -> str | None:
+    try:
+        stdout, stderr = _spawn_capture_output(
+            [str(executable), "--version"],
+            _VERSION_PROBE_TIMEOUT_S,
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
-    for token_source in (result.stdout, result.stderr):
+    for token_source in (stdout, stderr):
         for line in token_source.splitlines():
             lowered = line.lower()
             if "sumo" not in lowered:
