@@ -1,0 +1,10 @@
+{
+  "enum_name": "WORKSPACE_ACTIVATION",
+  "label": "Workspace Activation",
+  "url": "workspace-activation",
+  "script": "app_pages/workspace_activation.py",
+  "renderer": "traffictwin.ui.pages.workspace_activation:render",
+  "group": "Settings",
+  "description": "Preview-first, confirmation-gated local activation for a real TrafficTwin workspace.",
+  "icon": "material-settings"
+}
