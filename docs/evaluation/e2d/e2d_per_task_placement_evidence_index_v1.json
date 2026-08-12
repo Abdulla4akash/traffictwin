@@ -1,0 +1,41 @@
+{
+  "documents": [
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2d/docs/evaluation/e2d/e2d_per_task_placement_robustness_validation_v1.json",
+      "sha256": "0e3f27cdec9d13ec8e340bf1d83b3afcd127e90d7bdcf316bc2a2b2738fd313f"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2d/docs/evaluation/e2d/e2d_per_task_placement_robustness_comparison_v1.json",
+      "sha256": "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2d/docs/evaluation/e2d/e2d_per_task_placement_mechanism_summary_v1.json",
+      "sha256": "4975ab8792242a56c241d6513e7e49bcdfa5117ab462bcb6b9bb3c5d2a5e5410"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2d/docs/evaluation/e2d/e2d_per_task_placement_report_2026-08-11.md",
+      "sha256": "8583503f817e159e74e20a8d0b3d72b281280984a2bbfac84b8e31786af8308e"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2d/docs/evaluation/e2d/e2d_per_task_placement_supervisor_summary_2026-08-11.md",
+      "sha256": "2ccbbcd1b9bacaba09eee59265bc481118dab17f3bf025f314e07f7907596e6a"
+    }
+  ],
+  "failed_retries_or_discarded_evidence": [],
+  "manifest": {
+    "path": "/Users/akashx/AntigravityTest/traffictwin-e2d/docs/evaluation/e2d/e2d_per_task_placement_robustness_manifest_v1.json",
+    "sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+  },
+  "raw_bytes_before_root_index": 853500054,
+  "raw_checksum_ledger": {
+    "member_count": 218,
+    "path": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1/checksums.sha256",
+    "sha256": "eb5de7ce1eea202fee4d08d28bf7f4e38888b24709550cfc78dca71b16b250ca"
+  },
+  "raw_evidence_index": {
+    "path": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1/raw_evidence_index.json",
+    "sha256": "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7"
+  },
+  "raw_root": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1",
+  "schema_version": "e2d_per_task_placement_evidence_index_v1"
+}

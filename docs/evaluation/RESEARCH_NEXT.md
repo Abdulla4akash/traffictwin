@@ -2,12 +2,9 @@
 
 **Status date:** 2026-08-11
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1, E2, E2b and E2c are closed; E2d remains scientifically unexecuted after a
-pre-trace orchestration stop, and its corrected global replay → smoke → full package awaits fresh
-exact independent review
-**Execution authority:** none; the first approval is superseded, and no trace process may run until
-independent Claude returns a fresh exact `APPROVE` for the corrected TrafficTwin head, unchanged
-vec_env candidate head and corrected frozen manifest SHA-256
+**Current phase:** E1, E2, E2b, E2c and E2d are closed; E2d completed its bounded four-draw
+construct-validity study and now awaits independent post-run evidence review
+**Execution authority:** none; E2d grants no automatic follow-on experiment authority
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -231,9 +228,42 @@ establishes:
 - E2d corrected manifest SHA-256:
   `f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740`; it preserves the
   superseded receipt identity and binds a new immutable `claude_review_verdict_v2.json` path;
-- E2d pre-run boundary: only synthetic fixture/unit probes are complete; no Manchester replay,
-  smoke or full E2d cell may run before fresh exact independent approval of the corrected frozen
-  identities;
+- E2d corrected-package review: Claude returned exact `APPROVE` for TrafficTwin
+  `095e0c1fbd5307b60722cac2be89ae480911e7df`, unchanged vec_env
+  `2f63706f46319433a2ba3af1df97afd0e56a95d1` and corrected manifest SHA-256
+  `f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740`; the distinct v2 receipt
+  is retained beside, and does not overwrite, the superseded historical receipt;
+- E2d execution status: all eight ordered existing-mode replay probes, all eight globally ordered
+  `per_task_dla` smokes and all four serial 3,600-step cells passed; no run failed, stopped or was
+  retried, and all task accounting, path reconciliation, V2I-work conservation, vehicle-work
+  conservation and matched task/fleet/actor identity gates passed;
+- E2d primary raw `per_task_dla - ingress_dla` offered-attainment differences for fleet seeds 1–4
+  were `[+0.004636732564, +0.005867285642, +0.005071796666, +0.005509919752]`; all four were
+  positive;
+- E2d primary summary: mean `+0.005271433656`, sample SD `0.000533733895`, SE
+  `0.000266866947`, and two-sided 95% Student-t interval with three degrees of freedom
+  `[+0.004422143925, +0.006120723387]`;
+- E2d primary decision: `directional_advantage_for_per_task_placement_within_bounded_draws`;
+  within these four matched incident draws, per-task sequential least-busy placement exceeded
+  strongest-link under the shared deadline-feasibility rule, indicating that the inherited
+  common-target-per-substep convention was an important mechanism in E2c's negative direction,
+  without proving it was the sole cause;
+- E2d secondary raw `per_task_dla - dla` offered-attainment differences were
+  `[+0.026733767536, +0.026386419821, +0.026519179758, +0.026335411251]`; the separately labelled
+  mean was `+0.026493694591` and interval `[+0.026210763951, +0.026776625232]`;
+- E2d mechanism observation: `per_task_dla` admitted 667,085–667,720 V2I tasks per draw, forwarded
+  600,181–601,402 (shares `0.899437272`–`0.900926840`), used all ten RSUs and produced execution-
+  share ranges `0.000705579`–`0.001386630`; the recorded per-substep target switching confirms the
+  new mode did not reproduce inherited common-target dispatch, without inferring unrecorded queue
+  state;
+- E2d compute/storage: the four accepted full cells used 24,419.7 evaluator seconds; the complete
+  campaign used 24,911.7 evaluator seconds (6.9199 hours), raw evidence before the root index used
+  853,500,054 bytes, and the immutable root checksum ledger contains 218 members;
+- E2d remains bounded to four matched provisional `uk2030` fleet draws, evaluator seed 0, one
+  Manchester incident hour, one 2.5x/6,220-task cap, fixed 1x service, zero-cost backhaul, the
+  inherited backlog-only gate and a frozen actor that neither observes RSU load nor selects the
+  execution RSU; it provides no task-level, equivalence, universal least-busy, physical-return,
+  deployment, Manchester-wide or population-wide claim;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -242,37 +272,35 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Fresh independent exact-head review of the corrected E2d pre-run package.**
+**Independent post-run evidence review of the exact E2d final head.**
 
-The corrected exact E2d contract is the
-[E2d manifest](e2d/e2d_per_task_placement_robustness_manifest_v1.json), with its SHA-256 sidecar.
-The [decision record](e2d/e2d_per_task_placement_robustness_decision_record_2026-08-11.md) freezes
-the source-level terminology, candidate ordering, tie-breaking, causal workload update, inherited
-three-iteration mapping, estimands and claims. Review must cover the complete TrafficTwin and
-vec_env diffs, manifest, synthetic production probes, tests, E2c reuse bindings, runtime/storage
-gates, stop rules and permission boundaries.
+Review the frozen [E2d manifest](e2d/e2d_per_task_placement_robustness_manifest_v1.json),
+[validation](e2d/e2d_per_task_placement_robustness_validation_v1.json),
+[comparison](e2d/e2d_per_task_placement_robustness_comparison_v1.json),
+[mechanism summary](e2d/e2d_per_task_placement_mechanism_summary_v1.json),
+[evidence index](e2d/e2d_per_task_placement_evidence_index_v1.json),
+[full report](e2d/e2d_per_task_placement_report_2026-08-11.md) and
+[supervisor summary](e2d/e2d_per_task_placement_supervisor_summary_2026-08-11.md). Review must bind
+the exact final TrafficTwin head, unchanged vec_env head and frozen manifest SHA, and verify the raw
+root ledger, reused E2c hashes, statistical formulas, mechanism summaries and claim boundaries.
 
 ### Exit condition
 
-The corrected package exits this pre-run gate only when it is committed and pushed with an exact
-review packet. The superseded approval cannot authorise the corrected runner. Trace execution
-remains blocked until the human supplies independent Claude's fresh exact `APPROVE` for the new
-TrafficTwin head, unchanged vec_env head and corrected manifest SHA. `APPROVE_WITH_MINOR_FIXES` is
-not execution authority; any changed head or manifest requires another fresh review.
+E2d exits this final gate only after independent review accepts the exact final evidence head.
+Review findings must be retained honestly. Neither post-run approval nor any other E2d result
+authorises another experiment.
 
 ## What follows after this gate
 
-After fresh exact approval only, the corrected frozen E2d runner may perform eight existing-mode
-ten-step replays, then all eight repeated new-mode ten-step smokes, then four serial
-`per_task_dla` full cells. No full cell may precede global smoke PASS. Nothing follows
-automatically after E2d; successful completion stops for independent post-run evidence review.
+Nothing follows automatically after E2d. Any new backhaul, ordinary-traffic, scaling, stale-state,
+placement, learning, fleet, seed or replication study requires a separate direct researcher
+instruction, predeclaration and review.
 
 ## Explicitly not next
 
 Do not start:
 
-- any E2d trace replay, smoke or full cell before fresh exact independent approval of the
-  corrected identities;
+- any additional E2d replay, smoke, full cell, fleet seed or evaluator seed;
 - any full `ingress_dla` or `dla` rerun, or any `off`/`jsq` run;
 - any fleet seed outside 1–4 or any seed-0 E2d run;
 - P2C or DLA-P2C;
