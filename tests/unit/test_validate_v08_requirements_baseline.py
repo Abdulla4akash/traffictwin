@@ -1,33 +1,36 @@
 """Tests for v08 requirements baseline validator.
 
 Focused gate: validates the six allowed files without launching SUMO/VEC/evaluators.
+Self-contained: recomputes hashes from committed JSON payload fields only;
+no runtime dependency on .harness.
 """
 
 from __future__ import annotations
 
 import copy
-import hashlib
 import json
 import pathlib
 
-import pytest
-
 import scripts.validate_v08_requirements_baseline as validator
-
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 BASELINE_JSON = REPO_ROOT / "docs/closure/v08_alignment/requirements_baseline_v1.json"
 SOURCE_MAP_JSON = REPO_ROOT / "docs/closure/v08_alignment/requirements_source_map.json"
 STATUS_JSON = REPO_ROOT / "docs/closure/v08_alignment/requirements_status_v08.json"
-STAGED_BASELINE = REPO_ROOT / ".harness/context/sources/NEGOTIATED_V1_WHOLE_FILE__canonical_baseline_v1.md"
 
 
 def test_payload_hash_recomputed() -> None:
-    assert validator.compute_payload_hash() == "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595"
+    assert (
+        validator.compute_payload_hash()
+        == "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595"
+    )
 
 
 def test_whole_file_hash_recomputed() -> None:
-    assert validator.compute_whole_hash() == "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2"
+    assert (
+        validator.compute_whole_hash()
+        == "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2"
+    )
 
 
 def test_baseline_json_counts() -> None:
@@ -50,7 +53,9 @@ def test_all_must_have_acceptance_criteria() -> None:
     data = json.loads(BASELINE_JSON.read_text(encoding="utf-8"))
     for r in data["requirements"]:
         if r["priority"] == "MUST":
-            assert isinstance(r["acceptance_criteria"], list) and len(r["acceptance_criteria"]) > 0, r["id"]
+            assert (
+                isinstance(r["acceptance_criteria"], list) and len(r["acceptance_criteria"]) > 0
+            ), r["id"]
 
 
 def test_canonical_quotations_no_drift() -> None:
@@ -83,7 +88,6 @@ def test_conditional_triggers_explicit() -> None:
     for rid in ["TT-REQ-011", "TT-REQ-012", "TT-REQ-013"]:
         assert by_id[rid]["conditional_trigger"] is True, rid
         assert by_id[rid]["conditional_trigger_text"], rid
-    # also check SHOULD/MAY conditionals
     assert by_id["TT-REQ-008"]["conditional_trigger"] is True
     assert by_id["TT-REQ-014"]["conditional_trigger"] is True
 
@@ -122,7 +126,6 @@ def test_must_arithmetic_3_7_1() -> None:
         "TT-REQ-011",
     }
     assert ma["not_applicable_ids"] == ["TT-REQ-013"]
-    # ensure TT-013 NOT_APPLICABLE trigger not observed, not counted as MET
     tt013 = next(r for r in status["requirements"] if r["id"] == "TT-REQ-013")
     assert tt013["status"] == "NOT_APPLICABLE"
     assert tt013["conditional_trigger_observed"] is False
@@ -145,51 +148,46 @@ def test_validator_passes_clean() -> None:
 def test_discriminating_mutation_quotation_fails() -> None:
     baseline = json.loads(BASELINE_JSON.read_text(encoding="utf-8"))
     mutated = copy.deepcopy(baseline)
-    # mutate one canonical quotation byte
     mutated["requirements"][0]["canonical_quotation"] += "x"
-    # write to temp and monkey-patch path
     import tempfile
 
     with tempfile.TemporaryDirectory() as td:
         tmp = pathlib.Path(td) / "mutated.json"
         tmp.write_text(json.dumps(mutated), encoding="utf-8")
         orig = validator.BASELINE_JSON
-        validator.BASELINE_JSON = tmp  # type: ignore[assignment]
+        validator.BASELINE_JSON = tmp
         try:
             errors = validator.validate()
             assert any("drift" in e.lower() or "quotation" in e.lower() for e in errors), errors
         finally:
-            validator.BASELINE_JSON = orig  # type: ignore[assignment]
+            validator.BASELINE_JSON = orig
 
 
 def test_discriminating_mutation_status_fails() -> None:
     status = json.loads(STATUS_JSON.read_text(encoding="utf-8"))
     mutated = copy.deepcopy(status)
-    # promote NOT_APPLICABLE to VERIFIED_MET (prohibited 3+7+0)
     for r in mutated["requirements"]:
         if r["id"] == "TT-REQ-013":
             r["status"] = "VERIFIED_MET"
             r["conditional_trigger_observed"] = True
-    # also adjust arithmetic to hide — validator should still catch vocabulary/trigger mismatch
     import tempfile
 
     with tempfile.TemporaryDirectory() as td:
         tmp = pathlib.Path(td) / "mutated_status.json"
         tmp.write_text(json.dumps(mutated), encoding="utf-8")
         orig = validator.STATUS_JSON
-        validator.STATUS_JSON = tmp  # type: ignore[assignment]
+        validator.STATUS_JSON = tmp
         try:
             errors = validator.validate()
             assert len(errors) > 0, "mutation should fail validation"
             assert any("TT-REQ-013" in e or "3+7+1" in e or "4+7+0" in e for e in errors), errors
         finally:
-            validator.STATUS_JSON = orig  # type: ignore[assignment]
+            validator.STATUS_JSON = orig
 
 
 def test_discriminating_mutation_source_fails() -> None:
     source_map = json.loads(SOURCE_MAP_JSON.read_text(encoding="utf-8"))
     mutated = copy.deepcopy(source_map)
-    # remove S-035
     mutated["sources"] = [s for s in mutated["sources"] if s["id"] != "S-035"]
     import tempfile
 
@@ -197,12 +195,12 @@ def test_discriminating_mutation_source_fails() -> None:
         tmp = pathlib.Path(td) / "mutated_source.json"
         tmp.write_text(json.dumps(mutated), encoding="utf-8")
         orig = validator.SOURCE_MAP_JSON
-        validator.SOURCE_MAP_JSON = tmp  # type: ignore[assignment]
+        validator.SOURCE_MAP_JSON = tmp
         try:
             errors = validator.validate()
             assert any("S-035" in e for e in errors), errors
         finally:
-            validator.SOURCE_MAP_JSON = orig  # type: ignore[assignment]
+            validator.SOURCE_MAP_JSON = orig
 
 
 def test_implementation_target_matches_base() -> None:
@@ -213,6 +211,44 @@ def test_implementation_target_matches_base() -> None:
 def test_external_decisions_present() -> None:
     status = json.loads(STATUS_JSON.read_text(encoding="utf-8"))
     assert len(status["external_decisions"]) >= 5
-    # ensure at least TT-008 and TT-013 decisions present
     reqs_in_ed = {d["requirement"] for d in status["external_decisions"]}
-    assert "TT-REQ-008" in reqs_in_ed or any("TT-REQ-008" in str(d) for d in status["external_decisions"])
+    assert "TT-REQ-008" in reqs_in_ed or any(
+        "TT-REQ-008" in str(d) for d in status["external_decisions"]
+    )
+
+
+def test_self_contained_payload_present() -> None:
+    data = json.loads(BASELINE_JSON.read_text(encoding="utf-8"))
+    assert isinstance(data.get("canonical_payload"), str)
+    assert isinstance(data.get("whole_file_content"), str)
+    import hashlib
+
+    assert (
+        hashlib.sha256(data["canonical_payload"].encode("utf-8")).hexdigest()
+        == "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595"
+    )
+    assert (
+        hashlib.sha256(data["whole_file_content"].encode("utf-8")).hexdigest()
+        == "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2"
+    )
+
+
+def test_byte_drift_via_payload_mutation_fails() -> None:
+    data = json.loads(BASELINE_JSON.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    # Flip one byte in the self-contained payload
+    mutated["canonical_payload"] = mutated["canonical_payload"].replace(
+        "TrafficTwin shall embody", "TrafficTwin shallXembody", 1
+    )
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td) / "mutated_payload.json"
+        tmp.write_text(json.dumps(mutated), encoding="utf-8")
+        orig = validator.BASELINE_JSON
+        validator.BASELINE_JSON = tmp
+        try:
+            errors = validator.validate()
+            assert any("payload hash mismatch" in e for e in errors), errors
+        finally:
+            validator.BASELINE_JSON = orig

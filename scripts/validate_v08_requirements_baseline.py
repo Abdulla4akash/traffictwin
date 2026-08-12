@@ -2,7 +2,7 @@
 """Validate v08 requirements baseline operationalisation.
 
 Checks (acceptance criteria):
-- recomputes canonical payload hash and count
+- recomputes canonical payload hash and count from committed artifact
 - IDs unique
 - all MUSTs have criteria
 - every PARTIALLY_MET has named gap
@@ -11,6 +11,10 @@ Checks (acceptance criteria):
 - baseline quotations no drift
 - conditional triggers explicit
 - MUST arithmetic 3+7+1 and never 3+7+0
+
+Self-contained: recomputes hashes from docs/closure/v08_alignment/
+requirements_baseline_v1.json canonical_payload and whole_file_content
+fields (both committed). No runtime dependency on .harness.
 
 Exit 0 on pass, 1 on failure. Prints details to stdout.
 """
@@ -24,9 +28,6 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-STAGED_BASELINE = (
-    REPO_ROOT / ".harness/context/sources/NEGOTIATED_V1_WHOLE_FILE__canonical_baseline_v1.md"
-)
 BASELINE_JSON = REPO_ROOT / "docs/closure/v08_alignment/requirements_baseline_v1.json"
 SOURCE_MAP_JSON = REPO_ROOT / "docs/closure/v08_alignment/requirements_source_map.json"
 STATUS_JSON = REPO_ROOT / "docs/closure/v08_alignment/requirements_status_v08.json"
@@ -39,23 +40,34 @@ ALLOWED_STATUSES = {"VERIFIED_MET", "PARTIALLY_MET", "NOT_APPLICABLE", "DECISION
 MUST_ALLOWED_STATUSES = {"VERIFIED_MET", "PARTIALLY_MET", "NOT_APPLICABLE"}
 
 
+def _load_baseline_data() -> dict[str, Any]:
+    return json.loads(BASELINE_JSON.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
+
+
+def _canonical_payload_text() -> str:
+    data = _load_baseline_data()
+    payload = data.get("canonical_payload")
+    if not isinstance(payload, str):
+        raise ValueError("baseline JSON missing canonical_payload self-contained field")
+    return payload
+
+
+def _whole_file_text() -> str:
+    data = _load_baseline_data()
+    whole = data.get("whole_file_content")
+    if not isinstance(whole, str):
+        raise ValueError("baseline JSON missing whole_file_content self-contained field")
+    return whole
+
+
 def compute_payload_hash() -> str:
-    text = STAGED_BASELINE.read_text(encoding="utf-8")
-    begin = "<!-- BEGIN CANONICAL PAYLOAD -->"
-    end = "<!-- END CANONICAL PAYLOAD -->"
-    if begin not in text or end not in text:
-        raise ValueError("canonical payload delimiters missing")
-    payload = text.split(begin)[1].split(end)[0]
-    # Spec: after delimiter newline
-    if payload.startswith("\n"):
-        payload = payload[1:]
-    # payload now is exact bytes before END line (no trailing delimiter)
+    payload = _canonical_payload_text()
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def compute_whole_hash() -> str:
-    data = STAGED_BASELINE.read_bytes()
-    return hashlib.sha256(data).hexdigest()
+    whole = _whole_file_text()
+    return hashlib.sha256(whole.encode("utf-8")).hexdigest()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -63,21 +75,15 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def extract_canonical_quotations_from_payload() -> dict[str, str]:
-    """Extract id -> canonical inner wording from staged payload."""
-    text = STAGED_BASELINE.read_text(encoding="utf-8")
-    # Only inspect payload region to avoid drift outside
-    payload = text.split("<!-- BEGIN CANONICAL PAYLOAD -->")[1].split(
-        "<!-- END CANONICAL PAYLOAD -->"
-    )[0]
+    """Extract id -> canonical inner wording from committed payload."""
+    payload = _canonical_payload_text()
     import re
 
-    # Find each TT-REQ block in payload
     pattern = re.compile(r"## (TT-REQ-\d{3}).*?\*\*Canonical wording:\*\*.*?\"(.*?)\"", re.DOTALL)
     out: dict[str, str] = {}
     for m in pattern.finditer(payload):
         rid = m.group(1)
         wording = m.group(2).strip()
-        # Normalise: payload uses exact sentence without surrounding quotes already stripped
         out[rid] = wording
     return out
 
@@ -85,19 +91,28 @@ def extract_canonical_quotations_from_payload() -> dict[str, str]:
 def validate() -> list[str]:
     errors: list[str] = []
 
-    # File existence
-    for p in [STAGED_BASELINE, BASELINE_JSON, SOURCE_MAP_JSON, STATUS_JSON]:
+    # File existence — only the six allowed committed artifacts
+    for p in [BASELINE_JSON, SOURCE_MAP_JSON, STATUS_JSON]:
         if not p.exists():
             errors.append(f"missing required file: {p.relative_to(REPO_ROOT)}")
     if errors:
         return errors
 
-    # Hash checks
-    payload_hash = compute_payload_hash()
-    if payload_hash != EXPECTED_PAYLOAD_SHA:
+    # Hash checks — recomputed from committed JSON fields
+    try:
+        payload_hash = compute_payload_hash()
+    except Exception as e:
+        errors.append(f"payload hash recomputation failed: {e}")
+        payload_hash = ""
+    if payload_hash and payload_hash != EXPECTED_PAYLOAD_SHA:
         errors.append(f"payload hash mismatch: got {payload_hash} expected {EXPECTED_PAYLOAD_SHA}")
-    whole_hash = compute_whole_hash()
-    if whole_hash != EXPECTED_WHOLE_SHA:
+
+    try:
+        whole_hash = compute_whole_hash()
+    except Exception as e:
+        errors.append(f"whole file hash recomputation failed: {e}")
+        whole_hash = ""
+    if whole_hash and whole_hash != EXPECTED_WHOLE_SHA:
         errors.append(f"whole file hash mismatch: got {whole_hash} expected {EXPECTED_WHOLE_SHA}")
 
     baseline = load_json(BASELINE_JSON)
@@ -109,6 +124,11 @@ def validate() -> list[str]:
         errors.append("baseline JSON canonical_payload_sha256 drift")
     if baseline.get("whole_file_sha256") != EXPECTED_WHOLE_SHA:
         errors.append("baseline JSON whole_file_sha256 drift")
+    # Self-contained payload fields must be present
+    if not isinstance(baseline.get("canonical_payload"), str):
+        errors.append("baseline JSON missing canonical_payload self-contained field")
+    if not isinstance(baseline.get("whole_file_content"), str):
+        errors.append("baseline JSON missing whole_file_content self-contained field")
     if baseline.get("total_requirements") != 14:
         errors.append(f"baseline total_requirements !=14 got {baseline.get('total_requirements')}")
     if baseline.get("must_count") != 11:
@@ -137,8 +157,6 @@ def validate() -> list[str]:
             ac = r.get("acceptance_criteria")
             if not isinstance(ac, list) or len(ac) == 0:
                 errors.append(f"{r.get('id')} MUST missing acceptance_criteria")
-        # conditional trigger explicit: check 011,012,013,008,014,009 have conditional_trigger true
-        # Also any requirement with conditional wording should be flagged
         conditional_ids = {
             "TT-REQ-008",
             "TT-REQ-009",
@@ -165,12 +183,11 @@ def validate() -> list[str]:
     if pri_counts.get("MAY", 0) != 1:
         errors.append(f"MAY count !=1 got {pri_counts.get('MAY', 0)}")
 
-    # Canonical quotation drift
+    # Canonical quotation drift — compare JSON vs committed payload
     payload_quotations = extract_canonical_quotations_from_payload()
     for r in reqs:
         rid = r.get("id")
         json_q = r.get("canonical_quotation", "").strip()
-        # The frozen payload stores sentence without surrounding quotes; json should match exactly
         expected_q = payload_quotations.get(rid)
         if expected_q is None:
             errors.append(f"{rid} quotation not found in payload")
@@ -180,7 +197,6 @@ def validate() -> list[str]:
             )
 
     # Source resolution
-    # Build resolvable source ids from source_map
     resolvable: set[str] = set()
     for s in source_map.get("sources", []):
         sid = s.get("id")
@@ -190,17 +206,13 @@ def validate() -> list[str]:
         sid = s.get("id")
         if sid:
             resolvable.add(sid)
-    # Also frozen refs not needed but ensure primary ids present
     for r in reqs:
         for sid in r.get("source_basis", []):
-            # Handle S-035 campaign key variant
             base_sid = sid.split()[0] if " " in sid else sid
-            # Allow S-035 with suffix
             if sid.startswith("S-035"):
                 base_sid = "S-035"
             if base_sid not in resolvable:
                 errors.append(f"{r.get('id')} source {sid} not resolvable in source_map")
-            # Also handle S- prefix check
             if base_sid not in resolvable:
                 errors.append(f"{r.get('id')} source {base_sid} missing from source_map")
 
@@ -222,8 +234,6 @@ def validate() -> list[str]:
                 f"source_map {sid} sha256 mismatch got {entry.get('sha256')} expected {sha}"
             )
 
-    # Check S-035 campaign key not using SRC-011 alone
-    # Ensure S-035 entry has campaign_key and does not rely on SRC-011
     s035 = source_by_id.get("S-035")
     if s035 is None:
         errors.append("source_map missing S-035")
@@ -258,11 +268,9 @@ def validate() -> list[str]:
                 errors.append(f"{r.get('id')} PARTIALLY_MET missing named gap")
         if st == "VERIFIED_MET":  # noqa: SIM102
             if r.get("gap_id") is not None and r.get("gap_id") not in (None, ""):  # noqa: SIM102
-                # allow null gap for verified
                 if r.get("gap_id"):
                     errors.append(f"{r.get('id')} VERIFIED_MET must not have gap_id")
         if st == "NOT_APPLICABLE":
-            # Must be TT-REQ-013 only for MUST
             if r.get("id") != "TT-REQ-013":
                 errors.append(f"NOT_APPLICABLE only allowed for TT-REQ-013 got {r.get('id')}")
             if r.get("conditional_trigger_observed") is not False:
@@ -288,7 +296,6 @@ def validate() -> list[str]:
         errors.append(f"must_arithmetic partially_met !=7 got {must_arith.get('partially_met')}")
     if must_arith.get("not_applicable_trigger_not_observed") != 1:
         errors.append("must_arithmetic not_applicable !=1")
-    # Check sets match
     if set(must_arith.get("verified_met_ids", [])) != {"TT-REQ-006", "TT-REQ-010", "TT-REQ-012"}:
         errors.append(f"verified_met_ids mismatch got {must_arith.get('verified_met_ids')}")
     if set(must_arith.get("partially_met_ids", [])) != {
@@ -303,8 +310,6 @@ def validate() -> list[str]:
         errors.append(f"partially_met_ids mismatch got {must_arith.get('partially_met_ids')}")
     if must_arith.get("not_applicable_ids") != ["TT-REQ-013"]:
         errors.append(f"not_applicable_ids mismatch got {must_arith.get('not_applicable_ids')}")
-    # Prohibit 3+7+0 as claimed valid arithmetic: ensure no field asserts 3+7+0=11 as the true count
-    # The string "3+7+0" may appear in explanatory notes about what is prohibited; check only the must_arith check field  # noqa: E501  # noqa: E501
     check_field = must_arith.get("check", "")
     if (
         "3+7+0=11" in check_field
@@ -313,11 +318,9 @@ def validate() -> list[str]:
     ):
         errors.append("prohibited 3+7+0 arithmetic asserted as valid")
 
-    # Also check status file payload hash matches
     if status.get("baseline_payload_sha256") != EXPECTED_PAYLOAD_SHA:
         errors.append("status baseline_payload_sha256 drift")
 
-    # Check external decisions present
     ext = status.get("external_decisions", [])
     if not isinstance(ext, list) or len(ext) < 5:
         errors.append(
