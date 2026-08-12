@@ -463,13 +463,17 @@ def test_synthetic_fixture_clears_non_empty_path_input() -> None:
 
 
 def test_app_pages_wrapper_is_direct_and_no_fallback() -> None:
-    """B5: wrapper must be direct renderer without blanket fallback."""
+    """B5 intent, registered form: no swallowed exception, no fallback config.
+
+    The wrapper was pinned as a direct ``render(load_ui_config())`` call while
+    the page was unregistered. V4 final integration registered the page, so
+    the wrapper now takes the one central runtime path every registered page
+    uses (``run_page_script``), which loads the real config via
+    ``load_ui_config()`` and propagates renderer exceptions unchanged. The
+    B5 guarantees this test protects are unchanged; only the wrapper form is.
+    """
     source = Path("src/traffictwin/ui/app_pages/study_workspace.py").read_text(encoding="utf-8")
-    assert "from traffictwin.ui.pages.study_workspace import render" in source
-    assert "from traffictwin.ui.state import load_ui_config" in source
-    assert "render(load_ui_config())" in source
-    assert "UiPage" not in source
-    assert "run_page_script" not in source
+    assert "run_page_script(UiPage.STUDY_WORKSPACE)" in source
     assert "except Exception" not in source
     assert "UiConfig()" not in source  # no fallback UiConfig()
 
@@ -514,13 +518,14 @@ def test_wrapper_does_not_swallow_renderer_exception(monkeypatch: pytest.MonkeyP
     except Exception as exc:  # noqa: BLE001
         pytest.skip(f"AppTest not available: {exc}")
 
-    # Patch the underlying render to raise
-    import traffictwin.ui.pages.study_workspace as pages_mod
+    # Patch the registered renderer entry the central runtime dispatches to.
+    from traffictwin.ui.labels import UiPage
+    from traffictwin.ui.page_runtime import PAGE_RENDERERS
 
     def _failing_render(_config: object) -> None:  # noqa: ANN001
         raise RuntimeError("synthetic renderer failure for test")
 
-    monkeypatch.setattr(pages_mod, "render", _failing_render)
+    monkeypatch.setitem(PAGE_RENDERERS, UiPage.STUDY_WORKSPACE, _failing_render)
     app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
     app.session_state["_v07_navigation_active"] = False
     result = app.run(timeout=30)
