@@ -252,3 +252,131 @@ def test_byte_drift_via_payload_mutation_fails() -> None:
             assert any("payload hash mismatch" in e for e in errors), errors
         finally:
             validator.BASELINE_JSON = orig
+
+
+def test_source_class_mutation_fails() -> None:
+    """Changing any S-001..S-034 class must fail validator (register fidelity)."""
+    source_map = json.loads(SOURCE_MAP_JSON.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(source_map)
+    # Mutate S-013 from C to D (and S-031 from E to D) — both should be detected
+    for s in mutated["sources"]:
+        if s["id"] == "S-013":
+            s["class"] = "D"
+    for s in mutated["extended_index"]:
+        if s["id"] == "S-031":
+            s["class"] = "D"
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td) / "mutated_class.json"
+        tmp.write_text(json.dumps(mutated), encoding="utf-8")
+        orig = validator.SOURCE_MAP_JSON
+        validator.SOURCE_MAP_JSON = tmp
+        try:
+            errors = validator.validate()
+            assert any("S-013" in e and "class mismatch" in e for e in errors), errors
+            assert any("S-031" in e for e in errors), errors
+        finally:
+            validator.SOURCE_MAP_JSON = orig
+
+
+def test_s011_s012_swap_fails() -> None:
+    """Swapping S-011 and S-012 descriptions must fail."""
+    source_map = json.loads(SOURCE_MAP_JSON.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(source_map)
+    s011 = next(s for s in mutated["sources"] if s["id"] == "S-011")
+    s012 = next(s for s in mutated["sources"] if s["id"] == "S-012")
+    # Swap descriptions and notes
+    s011["description"], s012["description"] = s012["description"], s011["description"]
+    s011["original_path"], s012["original_path"] = s012["original_path"], s011["original_path"]
+    s011_note = s011.get("note")
+    s012_note = s012.get("note")
+    if s011_note is not None or s012_note is not None:
+        s011["note"], s012["note"] = s012_note, s011_note
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td) / "mutated_swap.json"
+        tmp.write_text(json.dumps(mutated), encoding="utf-8")
+        orig = validator.SOURCE_MAP_JSON
+        validator.SOURCE_MAP_JSON = tmp
+        try:
+            errors = validator.validate()
+            assert any("S-011" in e for e in errors), errors
+            assert any("S-012" in e for e in errors), errors
+        finally:
+            validator.SOURCE_MAP_JSON = orig
+
+
+def test_s017_s018_promotion_fails() -> None:
+    """Promoting S-017/S-018 from D to B/C must fail (cannot support MUST as B/C)."""
+    source_map = json.loads(SOURCE_MAP_JSON.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(source_map)
+    for s in mutated["sources"]:
+        if s["id"] in ("S-017", "S-018"):
+            s["class"] = "B"
+            s["standing"] = "PROVIDER_CONDITIONS"
+            s["description"] = "Promoted provider confirmation"
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td) / "mutated_promote.json"
+        tmp.write_text(json.dumps(mutated), encoding="utf-8")
+        orig = validator.SOURCE_MAP_JSON
+        validator.SOURCE_MAP_JSON = tmp
+        try:
+            errors = validator.validate()
+            assert any("S-017" in e for e in errors), errors
+            assert any("S-018" in e for e in errors), errors
+        finally:
+            validator.SOURCE_MAP_JSON = orig
+
+
+def test_s035_overlay_only_on_s012() -> None:
+    """S-035 supersession attached to S-011 instead of S-012 must fail."""
+    source_map = json.loads(SOURCE_MAP_JSON.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(source_map)
+    s011 = next(s for s in mutated["sources"] if s["id"] == "S-011")
+    s012 = next(s for s in mutated["sources"] if s["id"] == "S-012")
+    # Move S-035 note from S-012 to S-011
+    s011["note"] = s012.get("note")
+    s012.pop("note", None)
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td) / "mutated_overlay.json"
+        tmp.write_text(json.dumps(mutated), encoding="utf-8")
+        orig = validator.SOURCE_MAP_JSON
+        validator.SOURCE_MAP_JSON = tmp
+        try:
+            errors = validator.validate()
+            assert any("S-011" in e or "S-012" in e for e in errors), errors
+        finally:
+            validator.SOURCE_MAP_JSON = orig
+
+
+def test_s002_handbook_conflation_fails() -> None:
+    """Binding S-002 to handbook excerpt / S-004 path must fail."""
+    source_map = json.loads(SOURCE_MAP_JSON.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(source_map)
+    for s in mutated["sources"]:
+        if s["id"] == "S-002":
+            s["description"] = "Programme handbook excerpt — assessment/process duties"
+            s["original_path"] = (  # noqa: E501
+                "/Users/akashx/Downloads/diss_mat/SoE PGT Handbook - Appendices (MSc Advanced Computer Science).pdf (subset)"  # noqa: E501
+            )
+            s["staged_path"] = (  # noqa: E501
+                ".harness/context/sources/S-004__SoE PGT Handbook - Appendices (MSc Advanced Computer Science).pdf"  # noqa: E501
+            )
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td) / "mutated_s002.json"
+        tmp.write_text(json.dumps(mutated), encoding="utf-8")
+        orig = validator.SOURCE_MAP_JSON
+        validator.SOURCE_MAP_JSON = tmp
+        try:
+            errors = validator.validate()
+            assert any("S-002" in e for e in errors), errors
+        finally:
+            validator.SOURCE_MAP_JSON = orig

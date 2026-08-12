@@ -244,6 +244,233 @@ def validate() -> list[str]:
             )
         if s035.get("standing") != "DIRECT_SUPERVISOR_SOURCE_BODY":
             errors.append("S-035 standing must be DIRECT_SUPERVISOR_SOURCE_BODY")
+        # S-035 must narrowly supersede S-012 only, not S-011
+        note_lower = (s035.get("note") or "").lower()
+        if (
+            "s-012" not in note_lower
+            and "s012" not in note_lower
+            and "overlapping" not in note_lower
+        ):
+            errors.append("S-035 note must declare narrow supersession of S-012 overlapping body")
+        if "s-011" in note_lower and "s-012" not in note_lower:
+            errors.append("S-035 must not supersede S-011; only S-012 overlapping body")
+
+    # Exact S-001..S-034 register fidelity
+    # SHA 7ce9b43250d8b72e3c1aa9e0bbbc369b251bf7b7aedcae39ea8ed8cdda860d24
+    # Derived independently from /Users/akashx/TrafficTwinAudit/source_index.md
+    expected_classes: dict[str, str] = {  # noqa: N806
+        "S-001": "A",
+        "S-002": "A",
+        "S-003": "A",
+        "S-004": "A",
+        "S-005": "A",
+        "S-006": "B",
+        "S-007": "B",
+        "S-008": "C",
+        "S-009": "C",
+        "S-010": "C",
+        "S-011": "C",
+        "S-012": "C",
+        "S-013": "C",
+        "S-014": "C",
+        "S-015": "D",
+        "S-016": "D",
+        "S-017": "D",
+        "S-018": "D",
+        "S-019": "D",
+        "S-020": "D",
+        "S-021": "D",
+        "S-022": "D",
+        "S-023": "D",
+        "S-024": "D",
+        "S-025": "D",
+        "S-026": "D",
+        "S-027": "D",
+        "S-028": "D",
+        "S-029": "E",
+        "S-030": "E",
+        "S-031": "E",
+        "S-032": "E",
+        "S-033": "E",
+        "S-034": "E",
+    }
+    # Minimal identity anchors to prevent swapping or misbinding; derived from register titles
+    expected_identity_substr: dict[str, str] = {  # noqa: N806
+        "S-001": "Project 237",
+        "S-002": "COMP60060",
+        "S-003": "Rubric",
+        "S-004": "Handbook",
+        "S-005": "National Highways",
+        "S-006": "TfGM",
+        "S-007": "Q&A",
+        "S-008": "Meeting 1",
+        "S-009": "Meeting 2",
+        "S-010": "Meeting 3",
+        "S-011": "Meeting 4",
+        "S-012": "Sandra email",
+        "S-013": "Randy email",
+        "S-014": "producer data/publication permission",
+        "S-015": "Randy Meeting 1",
+        "S-016": "Randy Meeting 2",
+        "S-017": "TfGM data-access request",
+        "S-018": "NTIS",
+        "S-019": "disruption",
+        "S-020": "v0.4",
+        "S-021": "30 July",
+        "S-022": "Data Platform",
+        "S-023": "Questions for Sandra",
+        "S-024": "Week 4",
+        "S-025": "Product Design V2",
+        "S-026": "PR #11",
+        "S-027": "Dissertation skeleton",
+        "S-028": "requirement matrix",
+        "S-029": "OffloadLens v0.1",
+        "S-030": "OffloadLens v0.2",
+        "S-031": "v0.5",
+        "S-032": "v0.6",
+        "S-033": "v0.7",
+        "S-034": "code-permission",
+    }
+    # Build combined class map from both sources and extended_index
+    combined_class: dict[str, str] = {}
+    combined_entry: dict[str, dict[str, object]] = {}
+    for s in source_map.get("sources", []):
+        sid = s.get("id")
+        if sid:
+            combined_class[sid] = s.get("class") or ""
+            combined_entry[sid] = s
+    for s in source_map.get("extended_index", []):
+        sid = s.get("id")
+        if sid and sid not in combined_class:
+            combined_class[sid] = s.get("class") or ""
+            combined_entry[sid] = s
+        elif sid:
+            # If duplicated, keep sources entry but validate class consistency
+            if s.get("class") != combined_class.get(sid):
+                errors.append(f"{sid} class inconsistent between sources and extended_index")
+
+    # Total counts must be A5/B2/C7/D14/E6
+    from collections import Counter as _Counter
+
+    actual_counts = _Counter(combined_class.get(k, "") for k in expected_classes)
+    if actual_counts.get("A", 0) != 5:
+        errors.append(f"register count A !=5 got {actual_counts.get('A', 0)}")
+    if actual_counts.get("B", 0) != 2:
+        errors.append(f"register count B !=2 got {actual_counts.get('B', 0)}")
+    if actual_counts.get("C", 0) != 7:
+        errors.append(f"register count C !=7 got {actual_counts.get('C', 0)}")
+    if actual_counts.get("D", 0) != 14:
+        errors.append(f"register count D !=14 got {actual_counts.get('D', 0)}")
+    if actual_counts.get("E", 0) != 6:
+        errors.append(f"register count E !=6 got {actual_counts.get('E', 0)}")
+
+    for sid, exp_class in expected_classes.items():
+        actual = combined_class.get(sid)
+        if actual is None:
+            errors.append(f"register missing {sid}")
+        elif actual != exp_class:
+            errors.append(
+                f"{sid} class mismatch: got {actual} expected {exp_class} (SHA-verified register)"
+            )
+
+    # Identity fidelity checks for entries that have description/original_path
+    for sid, substr in expected_identity_substr.items():
+        entry = combined_entry.get(sid)
+        if entry is None:
+            continue
+        # For sources we have rich fields; extended_index has class only
+        desc = entry.get("description") or ""
+        orig = entry.get("original_path") or ""
+        combined_text = f"{desc} {orig}".lower()
+        # extended_index lacking desc -> skip identity, class verified
+        if not desc and not orig:  # noqa: E501
+            continue
+        if substr.lower() not in combined_text:
+            # Special handling: S-002 must not be handbook excerpt
+            if sid == "S-002" and "comp60060" not in combined_text:
+                errors.append(
+                    f"{sid} identity mismatch: expected COMP60060 project guidelines, got {desc!r} / {orig!r}"  # noqa: E501
+                )
+            elif sid != "S-002":
+                errors.append(
+                    f"{sid} identity mismatch: expected substring {substr!r} not in description/original_path"  # noqa: E501
+                )
+
+    # S-002 must not share S-004's staged_path and must point to COMP60060 file, not handbook
+    s002 = source_by_id.get("S-002")
+    if s002 is not None:
+        s002_orig = s002.get("original_path") or ""
+        s002_staged = s002.get("staged_path")
+        s004_staged = source_by_id.get("S-004", {}).get("staged_path")
+        if "COMP60060" not in s002_orig:
+            errors.append(f"S-002 original_path must contain COMP60060, got {s002_orig!r}")
+        if "Handbook - Appendices" in s002_orig and "COMP60060" not in s002_orig:
+            errors.append("S-002 must not be bound to handbook PDF; must be COMP60060 guidelines")
+        if s002_staged is not None and s002_staged == s004_staged:
+            errors.append("S-002 staged_path must not reuse S-004 handbook staged_path")
+        desc002 = (s002.get("description") or "").lower()
+        if "programme handbook excerpt" in desc002:
+            errors.append("S-002 description must not claim programme handbook excerpt")
+
+    # S-011/S-012 swap detection: S-011 must be Meeting 4, S-012 must be Sandra email
+    s011 = source_by_id.get("S-011")
+    s012 = source_by_id.get("S-012")
+    if s011 is not None:
+        d011 = ((s011.get("description") or "") + " " + (s011.get("original_path") or "")).lower()
+        if "meeting 4" not in d011:
+            errors.append(
+                f"S-011 must be Supervisor Meeting 4 notes, got {s011.get('description')!r}"
+            )
+        if "sandra" in d011 and "email" in d011 and "meeting" not in d011:
+            errors.append("S-011 appears swapped with S-012: S-011 should not be Sandra email")
+        # S-011 must NOT carry S-035 supersession note
+        note011 = (s011.get("note") or "").lower()
+        if "s-035" in note011 and "supersede" in note011:
+            errors.append("S-035 narrow supersession must attach only to S-012, not S-011")
+    if s012 is not None:
+        d012 = ((s012.get("description") or "") + " " + (s012.get("original_path") or "")).lower()
+        if "sandra" not in d012 or "email" not in d012:
+            errors.append(
+                f"S-012 must be relayed Sandra 4 August email, got {s012.get('description')!r}"
+            )
+        if "meeting 4" in d012 and "sandra" not in d012:
+            errors.append("S-012 appears swapped with S-011: S-012 should not be Meeting 4 notes")
+        note012 = (s012.get("note") or "").lower()
+        if "s-035" not in note012 or "supersede" not in note012:
+            errors.append(
+                "S-012 must carry note that S-035 narrowly supersedes overlapping body content only"
+            )
+
+    # S-017/S-018 class D and descriptions must be outgoing requests, not provider confirmations
+    for sid in ("S-017", "S-018"):
+        ent = source_by_id.get(sid)
+        if ent is not None:
+            if ent.get("class") != "D":
+                errors.append(f"{sid} must be Class D (outgoing request), got {ent.get('class')!r}")
+            d = ((ent.get("description") or "") + " " + (ent.get("note") or "")).lower()
+            if "provider" in d and "confirmation" in d and "outgoing" not in d:
+                errors.append(
+                    f"{sid} description must indicate outgoing student request, not provider confirmation"  # noqa: E501
+                )
+            # Must not be B/C evidence for MUST
+            if ent.get("class") in ("B", "C", "B/C"):
+                errors.append(
+                    f"{sid} cannot be B/C; it is D and cannot support MUST as B/C evidence"  # noqa: E501
+                )
+            # Check specific identity
+            if sid == "S-017" and "tfgm" not in d:
+                errors.append(
+                    f"S-017 description must reference TfGM request, got {ent.get('description')!r}"
+                )
+            if sid == "S-018" and "ntis" not in d and "national highways" not in d:
+                errors.append(
+                    f"S-018 description must reference National Highways NTIS request, got {ent.get('description')!r}"  # noqa: E501
+                )
+            standing = ent.get("standing")
+            if standing == "PROVIDER_CONDITIONS":  # noqa: SIM102
+                errors.append(  # noqa: E501
+                    f"{sid} standing must not be PROVIDER_CONDITIONS; it is an outgoing proposal"
+                )
 
     # Status validation
     status_reqs = status.get("requirements", [])

@@ -3,11 +3,11 @@
   "campaign": "v08-requirements-closure",
   "generated_from": ".harness/context/source_map.json and canonical_baseline_v1.md Included source record",
   "freeze_timestamp": "2026-08-12T15:29:03Z",
-  "notes": "SOURCE-DERIVED FACT entries use exact SHAs from .harness/context/source_map.json. Class C/D/E entries without primary artifact retain standing and are marked sha256 null or provisional. S-035 uses campaign key S-035 / SANDRA-DIRECT-BODY-2026-08-04 with exact path .harness/context/sources/S-035__sandra-direct-email.md and SHA 08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed. Never use ambiguous bare identifier SRC-011. Every source ID referenced in requirements_baseline_v1.json must resolve here — validator enforces.",
+  "notes": "SOURCE-DERIVED FACT entries use exact SHAs from .harness/context/source_map.json. Class C/D/E entries without primary artifact retain standing and are marked sha256 null or provisional. S-035 uses campaign key S-035 / SANDRA-DIRECT-BODY-2026-08-04 with exact path .harness/context/sources/S-035__sandra-direct-email.md and SHA 08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed. Never use ambiguous bare identifier SRC-011. Every source ID referenced in requirements_baseline_v1.json must resolve here — validator enforces. Register fidelity pinned to AUDIT_SOURCE_INDEX SHA 7ce9b43250d8b72e3c1aa9e0bbbc369b251bf7b7aedcae39ea8ed8cdda860d24: A5/B2/C7/D14/E6.",
   "sources": [
     {
       "id": "S-001",
-      "description": "Primary Project 237 brief — only authoritative substantive product scope",
+      "description": "Official Project 237 brief — only authoritative substantive product scope",
       "original_path": "/Users/akashx/Desktop/AML/SPAX/SPA Notes/Project.pdf",
       "staged_path": ".harness/context/sources/S-001__Project.pdf",
       "sha256": "d2940e257e455de3f6694d59d66c4d3661471c732618700ad34b4d65240597b0",
@@ -17,14 +17,14 @@
     },
     {
       "id": "S-002",
-      "description": "Programme handbook excerpt — assessment/process duties, ethics conditional",
-      "original_path": "/Users/akashx/Downloads/diss_mat/SoE PGT Handbook - Appendices (MSc Advanced Computer Science).pdf (subset)",
-      "staged_path": ".harness/context/sources/S-004__SoE PGT Handbook - Appendices (MSc Advanced Computer Science).pdf",
+      "description": "COMP60060 project guidelines — official module/project guidance, not programme-handbook excerpt",
+      "original_path": "/Users/akashx/Downloads/diss_mat/COMP60060 (PGT Projects) -- Guidelines for Students 2025-26.pdf",
+      "staged_path": null,
       "sha256": null,
       "standing": "ASSESSMENT_PROCESS_SOURCE",
       "class": "A",
       "fact_classification": "SOURCE-DERIVED FACT",
-      "note": "S-002 shares file with S-004 handbook; see S-004 SHA df504ec76271f2cb4b2fa34be1f53f55d1363e65d4352456f856a92178d3da82 for the PDF container"
+      "note": "Distinct from S-004 handbook PDF (S-004 SHA df504ec76271f2cb4b2fa34be1f53f55d1363e65d4352456f856a92178d3da82); do not conflate or invent accessible staged copy"
     },
     {
       "id": "S-003",
@@ -48,19 +48,19 @@
     },
     {
       "id": "S-005",
-      "description": "National Highways portal access and licence terms — attribution required, not data delivery",
-      "original_path": "TrafficTwinAudit source_index S-005 (portal correspondence)",
+      "description": "National Highways Digital Lab activation and licence — portal access and licence terms, attribution required",
+      "original_path": "TrafficTwinAudit source_index S-005 (portal correspondence) — Gmail 19f91df1b0fe9837",
       "staged_path": null,
       "sha256": null,
       "standing": "PROVIDER_CONDITIONS",
       "class": "A",
       "fact_classification": "SOURCE-DERIVED FACT",
-      "note": "Provider-licence source; establishes access path and licence, not delivery/integration"
+      "note": "Provider-licence source; establishes access path and licence, not delivery/integration of measured feeds"
     },
     {
       "id": "S-006",
-      "description": "TfGM conditional access path — academic-email/tutor-copy required, acknowledgement",
-      "original_path": "TrafficTwinAudit source_index S-006 (TfGM correspondence)",
+      "description": "TfGM response to academic traffic-data request — conditional access path, academic-email/tutor-copy required",
+      "original_path": "TrafficTwinAudit source_index S-006 (TfGM correspondence) — Gmail 19fc69bc8f3e53e8",
       "staged_path": null,
       "sha256": null,
       "standing": "PROVIDER_CONDITIONS",
@@ -81,8 +81,8 @@
     },
     {
       "id": "S-008",
-      "description": "Meeting 1 — platform as possibility, complex non-trivial scenarios demanded",
-      "original_path": "TrafficTwinAudit source_index S-008 (meeting notes)",
+      "description": "Supervisor Meeting 1 notes — platform as possibility, complex non-trivial scenarios demanded",
+      "original_path": "/Users/akashx/Downloads/diss_mat/supervisor_meeting_1 notes.md",
       "staged_path": null,
       "sha256": null,
       "standing": "UNCONFIRMED_NOTE",
@@ -91,8 +91,8 @@
     },
     {
       "id": "S-009",
-      "description": "Meeting 2 — Manchester app candidate, offloading vs journey-time prediction undecided",
-      "original_path": "TrafficTwinAudit source_index S-009 (meeting notes)",
+      "description": "Supervisor Meeting 2 notes — Manchester app candidate, offloading vs journey-time prediction undecided",
+      "original_path": "/Users/akashx/Downloads/diss_mat/supervisor_meeting 2.txt",
       "staged_path": null,
       "sha256": null,
       "standing": "UNCONFIRMED_NOTE",
@@ -101,8 +101,8 @@
     },
     {
       "id": "S-010",
-      "description": "Meeting 3 — prioritised scientific explanation/validation, platform demoted to small extension if time permits",
-      "original_path": "TrafficTwinAudit source_index S-010 (meeting notes)",
+      "description": "Supervisor Meeting 3 notes — prioritised scientific explanation/validation, platform demoted to small extension if time permits",
+      "original_path": "/Users/akashx/Downloads/diss_mat/sandra meeting 3.md",
       "staged_path": null,
       "sha256": null,
       "standing": "UNCONFIRMED_NOTE",
@@ -111,19 +111,8 @@
     },
     {
       "id": "S-011",
-      "description": "Paraphrase of missing 4 August Sandra email — comparative deterministic vs learned RSU load management",
-      "original_path": "TrafficTwinAudit source_index S-011 (paraphrase, primary Outlook unavailable)",
-      "staged_path": null,
-      "sha256": null,
-      "standing": "UNCONFIRMED_NOTE",
-      "class": "C",
-      "fact_classification": "PROVISIONAL WORDING",
-      "note": "Class C/provisional; do not infer inaccessible Outlook content; S-035 supersedes overlapping body content only"
-    },
-    {
-      "id": "S-012",
-      "description": "Meeting 4 notes — comparative RSU study and conditions for better performance",
-      "original_path": "TrafficTwinAudit source_index S-012 (meeting notes)",
+      "description": "Supervisor Meeting 4 notes — dynamic RSU scheduling, deterministic vs DRL comparison direction",
+      "original_path": "/Users/akashx/Downloads/diss_mat/meeting 4.md",
       "staged_path": null,
       "sha256": null,
       "standing": "UNCONFIRMED_NOTE",
@@ -131,29 +120,40 @@
       "fact_classification": "PROVISIONAL WORDING"
     },
     {
-      "id": "S-013",
-      "description": "Decision-history/exclusion basis — detailed controller ideas remain suggestions",
-      "original_path": "TrafficTwinAudit source_index S-013",
+      "id": "S-012",
+      "description": "Relayed Sandra email of 4 August 2026 — paraphrase of inaccessible Outlook thread 'Week 4 progress: a confirmed finding overnight, and two scoping questions'",
+      "original_path": "/Users/akashx/AntigravityTest/diss/SUPERVISOR_RESEARCH_DIRECTION.md",
       "staged_path": null,
       "sha256": null,
-      "standing": "DECISION_HISTORY",
-      "class": "D",
-      "fact_classification": "INFERENCE"
+      "standing": "UNCONFIRMED_NOTE",
+      "class": "C",
+      "fact_classification": "PROVISIONAL WORDING",
+      "note": "Class C/provisional; do not infer inaccessible Outlook content; S-035 (SANDRA-DIRECT-BODY-2026-08-04) narrowly supersedes overlapping body content only"
+    },
+    {
+      "id": "S-013",
+      "description": "Relayed Randy email of 7 August 2026 — paraphrase of inaccessible email, MAPPO observation ablation and scaling proposals",
+      "original_path": "/Users/akashx/AntigravityTest/diss/docs/randy_email_research_analysis_2026-08-07.md",
+      "staged_path": null,
+      "sha256": null,
+      "standing": "UNCONFIRMED_NOTE",
+      "class": "C",
+      "fact_classification": "PROVISIONAL WORDING"
     },
     {
       "id": "S-014",
-      "description": "Decision-history — excluded platform expansion",
-      "original_path": "TrafficTwinAudit source_index S-014",
+      "description": "Relayed written producer data/publication permission — owner-attested written permission covering code, data, publication (exact wording not inspected)",
+      "original_path": "docs/integration/randy_data_and_publication_permission_20260729.md",
       "staged_path": null,
       "sha256": null,
-      "standing": "DECISION_HISTORY",
-      "class": "D",
-      "fact_classification": "INFERENCE"
+      "standing": "UNCONFIRMED_NOTE",
+      "class": "C",
+      "fact_classification": "PROVISIONAL WORDING"
     },
     {
       "id": "S-015",
-      "description": "Randy proposal — monitoring/dashboard/explainability conditioned on Sandra approval",
-      "original_path": "TrafficTwinAudit source_index S-015",
+      "description": "Randy Meeting 1 notes — monitoring/dashboard/explainability proposal conditioned on Sandra approval",
+      "original_path": "/Users/akashx/Downloads/diss_mat/randy meeting 1.txt",
       "staged_path": null,
       "sha256": null,
       "standing": "PROPOSAL_IDEA",
@@ -162,8 +162,8 @@
     },
     {
       "id": "S-016",
-      "description": "Randy proposal — resource-advice ideas conditioned on Sandra approval",
-      "original_path": "TrafficTwinAudit source_index S-016",
+      "description": "Randy Meeting 2 notes — resource-monitoring / Vec resource monitoring proposal conditioned on Sandra approval",
+      "original_path": "/Users/akashx/Downloads/diss_mat/randy meeting 2.txt",
       "staged_path": null,
       "sha256": null,
       "standing": "PROPOSAL_IDEA",
@@ -172,33 +172,25 @@
     },
     {
       "id": "S-017",
-      "description": "National Highways follow-up — portal access confirmed, measured feed not delivered",
-      "original_path": "TrafficTwinAudit source_index S-017",
+      "description": "Abdulla's TfGM data-access request — outgoing student data proposal, not provider confirmation",
+      "original_path": "TrafficTwinAudit source_index S-017 — Gmail thread 19fc4a7fd6073a94 (Academic Data Access Request — Greater Manchester SCOOT/UTC)",
       "staged_path": null,
       "sha256": null,
-      "standing": "PROVIDER_CONDITIONS",
-      "class": "B/C",
-      "fact_classification": "SOURCE-DERIVED FACT"
+      "standing": "PROPOSAL_IDEA",
+      "class": "D",
+      "fact_classification": "SOURCE-DERIVED FACT",
+      "note": "Outgoing request only; cannot establish supervisor-agreed product scope or support MUST as B/C evidence; superseded/modified by S-006"
     },
     {
       "id": "S-018",
-      "description": "TfGM follow-up — conditional availability, not proven delivery",
-      "original_path": "TrafficTwinAudit source_index S-018",
+      "description": "Abdulla's National Highways NTIS request — outgoing student request for DATEX II measured feeds, no substantive reply",
+      "original_path": "TrafficTwinAudit source_index S-018 — Gmail thread 19fc4a6971fe338a (Request for Academic Access to NTIS DATEX II)",
       "staged_path": null,
       "sha256": null,
-      "standing": "PROVIDER_CONDITIONS",
-      "class": "B/C",
-      "fact_classification": "SOURCE-DERIVED FACT"
-    },
-    {
-      "id": "S-023",
-      "description": "Unresolved permission/evaluation route — formal vs informal user evaluation never settled",
-      "original_path": "TrafficTwinAudit source_index S-023",
-      "staged_path": null,
-      "sha256": null,
-      "standing": "UNRESOLVED_DECISION",
-      "class": "E",
-      "fact_classification": "EXTERNAL DECISION REQUIRED"
+      "standing": "PROPOSAL_IDEA",
+      "class": "D",
+      "fact_classification": "SOURCE-DERIVED FACT",
+      "note": "Outgoing request only; unresolved; cannot support MUST as B/C evidence"
     },
     {
       "id": "S-035",
@@ -210,26 +202,91 @@
       "class": "B",
       "campaign_key": "S-035 / SANDRA-DIRECT-BODY-2026-08-04",
       "fact_classification": "SOURCE-DERIVED FACT",
-      "note": "Verbatim body only; does not establish timestamp, message-id, transport headers, or Outlook provenance. Supersedes SRC-010 for overlapping body content only. Supports RSU queue/waiting-room capacity (not compute), fail-fast accounting, no current RSU load awareness in vehicle policy, disproportionate load at congested RSUs, and three requested investigations A/B/C. Do not infer missing email metadata or convert investigations into mandatory assessed implementations. Exact SHA verified against .harness/context/source_map.json."
+      "note": "Verbatim body only; does not establish timestamp, message-id, transport headers, or Outlook provenance. Narrowly supersedes S-012 for overlapping body content only. Supports RSU queue/waiting-room capacity (not compute), fail-fast accounting, no current RSU load awareness in vehicle policy, disproportionate load at congested RSUs, and three requested investigations A/B/C. Do not infer missing email metadata or convert investigations into mandatory assessed implementations. Exact SHA verified against .harness/context/source_map.json."
     }
   ],
   "additional_sources_indexed": "S-019 through S-034 are cited in Included source record as decision-history/exclusion/unresolved-permission basis; they are recorded in canonical_baseline_v1.md Included source record and do not establish active MUST requirements. They are listed below as resolvable IDs to prevent source-inflation claims.",
   "extended_index": [
-    {"id": "S-019", "standing": "DECISION_HISTORY", "class": "D"},
-    {"id": "S-020", "standing": "DECISION_HISTORY", "class": "D"},
-    {"id": "S-021", "standing": "OWNER_CHOICE_NO_SIGNOFF", "class": "D"},
-    {"id": "S-022", "standing": "OWNER_DESIGN_NO_SIGNOFF", "class": "D"},
-    {"id": "S-024", "standing": "DECISION_HISTORY", "class": "E"},
-    {"id": "S-025", "standing": "OWNER_DESIGN_NO_SIGNOFF", "class": "D"},
-    {"id": "S-026", "standing": "OWNER_DESIGN_NO_SIGNOFF", "class": "D"},
-    {"id": "S-027", "standing": "DECISION_HISTORY", "class": "E"},
-    {"id": "S-028", "standing": "DECISION_HISTORY", "class": "E"},
-    {"id": "S-029", "standing": "DECISION_HISTORY", "class": "E"},
-    {"id": "S-030", "standing": "DECISION_HISTORY", "class": "E"},
-    {"id": "S-031", "standing": "DECISION_HISTORY", "class": "D"},
-    {"id": "S-032", "standing": "DECISION_HISTORY", "class": "D"},
-    {"id": "S-033", "standing": "DECISION_HISTORY", "class": "D"},
-    {"id": "S-034", "standing": "DECISION_HISTORY", "class": "D"}
+    {
+      "id": "S-019",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-020",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-021",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-022",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-023",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-024",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-025",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-026",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-027",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-028",
+      "standing": "PROPOSAL_IDEA",
+      "class": "D"
+    },
+    {
+      "id": "S-029",
+      "standing": "SUPERSEDED_REJECTED",
+      "class": "E"
+    },
+    {
+      "id": "S-030",
+      "standing": "SUPERSEDED_REJECTED",
+      "class": "E"
+    },
+    {
+      "id": "S-031",
+      "standing": "SUPERSEDED_REJECTED",
+      "class": "E"
+    },
+    {
+      "id": "S-032",
+      "standing": "SUPERSEDED_REJECTED",
+      "class": "E"
+    },
+    {
+      "id": "S-033",
+      "standing": "SUPERSEDED_REJECTED",
+      "class": "E"
+    },
+    {
+      "id": "S-034",
+      "standing": "SUPERSEDED_REJECTED",
+      "class": "E"
+    }
   ],
   "frozen_baseline_refs": {
     "FINAL_AUDIT": {
