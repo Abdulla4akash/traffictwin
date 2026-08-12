@@ -471,6 +471,155 @@ def validate() -> None:
                     "results.json mechanism_bindings.e2c_imbalance contains unsupported old range"
                 )
 
+    # === Lane 07 source-standing regression guards (S-007, S-035, TT-REQ-008, congested-road) ===
+    # 1. S-007 must not be credited with broadcast/microsecond feasibility wording
+    # S-007 standing is waiting-room-not-compute only.
+    s007_idx = summary_text.find("S-007")
+    if s007_idx != -1:
+        # examine only the S-007 standing sentence (up to next standing tag or double newline)
+        next_tag = summary_text.find("[", s007_idx + 5)
+        if next_tag == -1:
+            next_tag = s007_idx + 500
+        window_s007 = summary_text[s007_idx:next_tag].lower()
+        if "broadcast" in window_s007 or "microsecond" in window_s007 or "obsolete" in window_s007:
+            errors.append(
+                "summary.md S-007 incorrectly credited with broadcast/microsecond feasibility wording; S-007 standing is waiting-room-not-compute only"  # noqa: E501
+            )
+        # Also catch any S-007 tag that contains broadcast in same bracketed tag
+        # Search for "[SOURCE-DERIVED FACT — S-007" containing broadcast before closing bracket
+        for tag_start in ["[SOURCE-DERIVED FACT — S-007", "[SOURCE-DERIVED FACT — S-007"]:
+            idx = summary_text.find(tag_start)
+            if idx != -1:
+                tag_end = summary_text.find("]", idx)
+                if tag_end != -1:
+                    tag_content = summary_text[idx : tag_end + 1].lower()
+                    if "broadcast" in tag_content or "microsecond" in tag_content:
+                        errors.append(
+                            "summary.md S-007 tag must not contain broadcast/microsecond wording"
+                        )
+
+    # 2. Hedged S-035 motivation must remain provisional, not promoted to fact/verified/mandatory
+    if "as it seems to be the case" not in summary_text:
+        errors.append(
+            "summary.md missing hedged provisional wording 'as it seems to be the case' for S-035 broadcast/current-load motivation"  # noqa: E501
+        )
+    # S-035 hedged phrase must be accompanied by provisional standing and correct SHA
+    if "as it seems to be the case" in summary_text:
+        hedged_idx = summary_text.find("as it seems to be the case")
+        hedged_window = summary_text[max(0, hedged_idx - 600) : hedged_idx + 600]
+        hedged_lower = hedged_window.lower()
+        if "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed" not in hedged_window:
+            errors.append(
+                "summary.md hedged S-035 motivation must cite SANDRA-DIRECT-BODY SHA 08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed"  # noqa: E501
+            )
+        if "provisional" not in hedged_lower and "inference" not in hedged_lower:
+            errors.append(
+                "summary.md hedged S-035 motivation must be tagged PROVISIONAL WORDING or INFERENCE, not fact"  # noqa: E501
+            )
+        # Must not be promoted to SOURCE-DERIVED FACT or IMPLEMENTATION-VERIFIED in same window
+        if (
+            "[SOURCE-DERIVED FACT" in hedged_window
+            and "as it seems to be the case" in hedged_window
+        ):
+            # Allow the earlier S-035 infrastructure problem SOURCE-DERIVED FACT window to be separate;  # noqa: E501
+            # the hedged window should be provisional, not source-derived fact
+            # If the hedged window itself contains a SOURCE-DERIVED FACT tag, it is promotion
+            # Check that the nearest tag before hedged phrase is not SOURCE-DERIVED FACT
+            tag_before = hedged_window.rfind("[SOURCE-DERIVED FACT")
+            prov_before = hedged_window.rfind("[PROVISIONAL")
+            inf_before = hedged_window.rfind("[INFERENCE")
+            # If SOURCE-DERIVED FACT is closer than provisional/inference, promotion occurred
+            if tag_before != -1 and tag_before > max(prov_before, inf_before):
+                errors.append(
+                    "summary.md hedged S-035 motivation promoted to SOURCE-DERIVED FACT (must remain provisional hedged wording)"  # noqa: E501
+                )
+        if "[IMPLEMENTATION-VERIFIED" in hedged_window:
+            errors.append("summary.md hedged S-035 motivation must not be IMPLEMENTATION-VERIFIED")
+        # Must not claim mandatory deliverable without negated provisional qualification
+        # Allow negated form "does not ... mandatory deliverable" or "not a mandatory"
+        lower_hedged = hedged_window.lower()
+        if "mandatory" in lower_hedged and (  # noqa: E501
+            "does not" not in lower_hedged
+            and "not a mandatory" not in lower_hedged
+            and "not by itself" not in lower_hedged
+        ):
+            errors.append(
+                "summary.md hedged S-035 motivation must not be presented as mandatory deliverable"  # noqa: E501
+            )
+    # Global promotion checks: S-035 broadcast must not be SOURCE-DERIVED FACT
+    for needle in ["[SOURCE-DERIVED FACT — S-035", "[SOURCE-DERIVED FACT — S-035 /"]:
+        # Find all occurrences; if any window around them contains broadcast, fail
+        pos = 0
+        while True:
+            found = summary_text.find(needle, pos)
+            if found == -1:
+                break
+            w = summary_text[found : found + 900].lower()
+            # The legitimate S-035 SOURCE-DERIVED FACT is the infrastructure load problem sentence  # noqa: E501
+            # It must not contain broadcast/current-load hedged motivation as fact
+            if "broadcast" in w and "as it seems to be the case" not in w:
+                # Check if window is infrastructure problem — skip  # noqa: E501
+                errors.append(
+                    "summary.md S-035 broadcast/current-load motivation must not be tagged SOURCE-DERIVED FACT; use hedged provisional wording"  # noqa: E501
+                )
+                break
+            pos = found + len(needle)
+
+    # 3. TT-REQ-008 must be SOURCE-DERIVED FACT with both SHAs  # noqa: E501
+    if "[IMPLEMENTATION-VERIFIED FACT — Negotiated Version 1 TT-REQ-008]" in summary_text:
+        errors.append(
+            "summary.md TT-REQ-008 incorrectly tagged IMPLEMENTATION-VERIFIED; must be SOURCE-DERIVED FACT from Negotiated Version 1"  # noqa: E501
+        )
+    if "TT-REQ-008" in summary_text:
+        if "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2" not in summary_text:
+            errors.append(
+                "summary.md TT-REQ-008 must cite Negotiated Version 1 whole-file SHA 732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2"  # noqa: E501
+            )
+        if "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595" not in summary_text:
+            errors.append(
+                "summary.md TT-REQ-008 must cite canonical payload SHA 58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595"  # noqa: E501
+            )
+        # TT-REQ-008 line must be SOURCE-DERIVED FACT
+        ttreq_idx = summary_text.find("TT-REQ-008")
+        window_tt = summary_text[max(0, ttreq_idx - 500) : ttreq_idx + 500]
+        if "SOURCE-DERIVED FACT" not in window_tt:
+            errors.append(
+                "summary.md TT-REQ-008 must be tagged SOURCE-DERIVED FACT from Negotiated Version 1"
+            )
+        if "NEGOTIATED VERSION 1" not in window_tt.upper():
+            errors.append("summary.md TT-REQ-008 must reference Negotiated Version 1")
+
+    # 4. Congested-road RSU locus must not be presented as RESEARCH-EVIDENCE FACT without mapping
+    lower_summary = summary_text.lower()
+    if "concentrated on congested-road" in lower_summary:
+        errors.append(
+            "summary.md unsupported 'max deviation concentrated on congested-road RSUs' claim; admitted artifacts contain no road-congestion mapping for indexed RSUs"  # noqa: E501
+        )
+    if "max deviation concentrated" in lower_summary:
+        errors.append(
+            "summary.md contains unsupported 'max deviation concentrated' congested-road locus claim"  # noqa: E501
+        )
+    # If congested-road appears in E2c mechanism paragraph  # noqa: E501
+    # Check E2c mechanism section
+    e2c_idx = summary_text.find("E2c execution imbalance")
+    if e2c_idx != -1:
+        e2c_window = summary_text[e2c_idx : e2c_idx + 1200]
+        e2c_lower = e2c_window.lower()
+        if "congested-road" in e2c_lower:
+            if "no road-congestion mapping" not in e2c_lower or "inference" not in e2c_lower:
+                errors.append(
+                    "summary.md congested-road RSU attribution in E2c mechanism must be explicitly tagged INFERENCE with disclaimer that admitted artifacts contain no road-congestion mapping"  # noqa: E501
+                )
+            if (
+                "RESEARCH-EVIDENCE FACT" in e2c_window
+                and "congested-road" in e2c_lower
+                and "[INFERENCE" not in e2c_window
+            ):  # noqa: E501
+                # If same window claims research fact for congested-road locus without inference disclaimer  # noqa: E501
+                errors.append(
+                    "summary.md congested-road RSU attribution presented as RESEARCH-EVIDENCE FACT; must be removed or tagged INFERENCE with no-mapping disclaimer"  # noqa: E501
+                )
+
     # Check index standing fields
     for eid, ent in index.get("evidence_identities", {}).items():
         if "sha256" not in ent or not ent["sha256"]:

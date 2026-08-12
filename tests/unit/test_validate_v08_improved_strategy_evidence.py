@@ -187,6 +187,103 @@ def test_validator_rejects_json_csv_value_mismatch() -> None:
         assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"
 
 
+def test_validator_rejects_s007_broadcast_misattribution() -> None:
+    """Discriminating: S-007 must not be credited with broadcast/microsecond wording."""
+    summary = ROOT / "docs/closure/v08_alignment/improved_strategy_evidence_summary.md"
+    original = summary.read_text()
+    try:
+        mutated = original.replace(
+            "[SOURCE-DERIVED FACT — S-007, Randy Q&A] RSU queue/waiting-room capacity is an administrative control, not compute power.",  # noqa: E501
+            "[SOURCE-DERIVED FACT — S-007, Randy Q&A] RSU queue/waiting-room capacity is an administrative control, not compute power; RSU broadcast of load is infeasible because data becomes obsolete within microseconds under concurrent execution.",  # noqa: E501
+        )
+        summary.write_text(mutated)
+        result = run_validator()
+        assert result.returncode != 0, (
+            f"validator should fail on S-007 broadcast misattribution, got pass: {result.stdout}"
+        )
+        stderr = result.stderr + result.stdout
+        assert "S-007" in stderr and (
+            "broadcast" in stderr.lower() or "microsecond" in stderr.lower()
+        ), f"S-007 misattribution should mention S-007/broadcast: {stderr}"
+    finally:
+        summary.write_text(original)
+        restored = run_validator()
+        assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"
+
+
+def test_validator_rejects_s035_hedged_promoted_to_fact() -> None:
+    """Discriminating: hedged S-035 motivation promoted to SOURCE-DERIVED FACT / implementation verification / mandatory deliverable must fail."""  # noqa: E501
+    summary = ROOT / "docs/closure/v08_alignment/improved_strategy_evidence_summary.md"
+    original = summary.read_text()
+    try:
+        # Promote hedged provisional wording to SOURCE-DERIVED FACT
+        mutated = original.replace(
+            "[PROVISIONAL WORDING — hedged motivation in S-035 / SANDRA-DIRECT-BODY-2026-08-04, SHA-256 `08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed`] The direct Sandra body motivates current-load / broadcast awareness only as hedged provisional wording — “as it seems to be the case” — and does not by itself establish broadcast feasibility, capacity infeasibility, or a mandatory deliverable.",  # noqa: E501
+            "[SOURCE-DERIVED FACT — S-035 / SANDRA-DIRECT-BODY-2026-08-04, SHA-256 `08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed`] RSU broadcast of load is infeasible and is a mandatory deliverable.",  # noqa: E501
+        )
+        summary.write_text(mutated)
+        result = run_validator()
+        assert result.returncode != 0, (
+            f"validator should fail on S-035 promotion to fact, got pass: {result.stdout}"
+        )
+        stderr = result.stderr + result.stdout
+        assert "S-035" in stderr or "provisional" in stderr.lower() or "hedged" in stderr.lower(), (
+            f"S-035 promotion should mention S-035/hedged/provisional: {stderr}"
+        )
+    finally:
+        summary.write_text(original)
+        restored = run_validator()
+        assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"
+
+
+def test_validator_rejects_tt_req_008_implementation_verified() -> None:
+    """Discriminating: TT-REQ-008 incorrectly tagged IMPLEMENTATION-VERIFIED must fail."""
+    summary = ROOT / "docs/closure/v08_alignment/improved_strategy_evidence_summary.md"
+    original = summary.read_text()
+    try:
+        mutated = original.replace(
+            "[SOURCE-DERIVED FACT — Negotiated Version 1, whole-file SHA-256 `732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2`, canonical payload SHA-256 `58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595`] TT-REQ-008: Comparative infrastructure-side RSU load management is SHOULD",  # noqa: E501
+            "[IMPLEMENTATION-VERIFIED FACT — Negotiated Version 1 TT-REQ-008] Comparative infrastructure-side RSU load management is SHOULD",  # noqa: E501
+        )
+        summary.write_text(mutated)
+        result = run_validator()
+        assert result.returncode != 0, (
+            f"validator should fail on TT-REQ-008 implementation-verified mis-tag, got pass: {result.stdout}"  # noqa: E501
+        )
+        stderr = result.stderr + result.stdout
+        assert "TT-REQ-008" in stderr and "IMPLEMENTATION-VERIFIED" in stderr, (
+            f"TT-REQ-008 mis-tag should mention TT-REQ-008/IMPLEMENTATION-VERIFIED: {stderr}"
+        )
+    finally:
+        summary.write_text(original)
+        restored = run_validator()
+        assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"
+
+
+def test_validator_rejects_congested_road_fact_attribution() -> None:
+    """Discriminating: unsupported congested-road RSU locus presented as RESEARCH-EVIDENCE FACT must fail."""  # noqa: E501
+    summary = ROOT / "docs/closure/v08_alignment/improved_strategy_evidence_summary.md"
+    original = summary.read_text()
+    try:
+        mutated = original.replace(
+            "and `dla` (common-target) execution-share range 0.237–0.242. [INFERENCE — per-RSU execution-share arrays show the largest deviations on a subset of RSUs; admitted artifacts contain no road-congestion mapping for indexed RSUs, so no congested-road locus is claimed]",  # noqa: E501
+            "and `dla` (common-target) execution-share range 0.237–0.242 (max deviation concentrated on congested-road RSUs).",  # noqa: E501
+        )
+        summary.write_text(mutated)
+        result = run_validator()
+        assert result.returncode != 0, (
+            f"validator should fail on congested-road fact attribution, got pass: {result.stdout}"
+        )
+        stderr = result.stderr + result.stdout
+        assert "congested-road" in stderr.lower() or "concentrated" in stderr.lower(), (
+            f"congested-road attribution should mention congested-road/concentrated: {stderr}"
+        )
+    finally:
+        summary.write_text(original)
+        restored = run_validator()
+        assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"
+
+
 def test_validator_rejects_json_csv_artifact_mismatch_via_join() -> None:
     """Discriminating: JSON/CSV artifact_path join mismatch must fail even for non-E2b pinned rows."""  # noqa: E501
     original_csv = FIGURE_CSV.read_text()
