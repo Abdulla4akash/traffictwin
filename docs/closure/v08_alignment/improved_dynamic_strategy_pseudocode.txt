@@ -1,0 +1,114 @@
+# Per-task sequential least-busy feasible RSU placement — deterministic pseudocode
+# Fingerprint: af128cf0826cd03ea85c29b71edb1385dd7523a1086626a4ebb4015f982abce4
+# Contract: docs/closure/v08_alignment/improved_dynamic_strategy_contract.json
+# Identity: per_task_dla is DETERMINISTIC; MAPPO actor does NOT select execution RSU.
+# Deadline gate is mandatory: effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]
+# Gate formula (validator exact): effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]
+# See markdown contract for source-honesty labels and E2d bound.
+
+CONSTANTS:
+  RSU_COUNT = 10
+  PADDED_FLEET_WIDTH = 2488
+  ITERATIONS = 3
+  SERVICE_MULTIPLIER_E2D = 1.0
+  TASK_DEADLINE_MS : dict[task_type -> int]   # per-type threshold
+
+INPUTS (live at task substep entry):
+  rb : vector[RSU_COUNT] of rsu_busy_ms (ms remaining service work)
+  rl : vector[RSU_COUNT] of rsu_load (admitted task counts)
+  ingress_quality : vector[PADDED_FLEET_WIDTH]  # positive means eligible
+  v2i_candidate_exists : vector[PADDED_FLEET_WIDTH] of bool
+  task_type_of : vector[PADDED_FLEET_WIDTH] -> task_type
+
+STATE INITIALISATION (per task substep):
+  effective_busy_ms <- copy(rb)     # temporary; starts from live state
+  effective_load    <- copy(rl)     # temporary; starts from live state
+  selected_targets  <- array[PADDED_FLEET_WIDTH] = -1
+  admissions        <- array[PADDED_FLEET_WIDTH] = UNDECIDED  # enums: ADMITTED / UNAVAILABLE / GATE_REJECTED / CAP_REJECTED
+  execution_rsu     <- array[PADDED_FLEET_WIDTH] = -1         # -1 means rejected
+  is_forwarded      <- array[PADDED_FLEET_WIDTH] = false
+
+# Reconciliation wrapper: repeat the complete causal pass idempotently.
+# Each iteration restarts from identical live rb/rl; state never accumulates across passes.
+# This preserves the inherited 3-iteration setting; first pass is already self-consistent
+# because rejected work never reserves, so iterations are idempotent.
+
+procedure PER_TASK_SEQUENTIAL_LEAST_BUSY_PLACEMENT(rb, rl):
+  # Outer idempotent loop — implements E2d reconciliation clause.
+  for iteration in 1..ITERATIONS:
+    effective_busy_ms <- copy(rb)
+    effective_load    <- copy(rl)
+    for task_substep in ascending_task_substep_order:
+      for vehicle_slot in ascending_padded_slot_order(0 .. PADDED_FLEET_WIDTH-1):
+        i = index(task_substep, vehicle_slot)     # candidate position
+        if not v2i_candidate_exists[i]:
+          admissions[i]       <- UNAVAILABLE
+          selected_targets[i] <- -1
+          execution_rsu[i]    <- -1
+          is_forwarded[i]     <- false
+          continue            # no temporary state change
+
+        # 1. RECOMPUTE least-busy target for THIS candidate (per-task, not per-substep)
+        #    Deterministic tie-break: lowest RSU index on exact tie.
+        #    VIOLATION if replaced by single argmin per substep (common-target mutant).
+        selected = argmin(effective_busy_ms)      # jnp.argmin semantics: lowest index on tie
+        selected_targets[i] <- selected
+
+        # 2. Ingress eligibility (post-selection, checks strongest-link quality)
+        if ingress_quality[i] <= 0:
+          admissions[i]    <- UNAVAILABLE
+          execution_rsu[i] <- -1
+          is_forwarded[i]  <- false
+          continue            # no temporary state change
+
+        # 3. Cap-at-entry eligibility (live cap check, gate-before-cap precedence)
+        if not cap_allows(selected, effective_load):   # cap uses live in-batch accounting
+          # Gate precedence: gate is checked next; if gate also fails, gate rejection wins.
+          # Implementation order in E2d: check gate before cap, so gate rejection takes precedence.
+          # This stanza models the same outcome: gate check follows before final cap branch.
+          pass   # fall through to gate check
+
+        # 4. Strict backlog deadline gate — MANDATORY; removal is mutant removed-gate
+        task_type = task_type_of[i]
+        deadline  = TASK_DEADLINE_MS[task_type]
+        if effective_busy_ms[selected] >= deadline:
+          admissions[i]    <- GATE_REJECTED      # excludes own compute, radio, return, forwarding latency
+          execution_rsu[i] <- -1
+          is_forwarded[i]  <- false
+          continue            # no temporary state change
+
+        # 5. Live in-batch cap (after gate; gate-before-cap precedence enforced)
+        if not cap_allows(selected, effective_load):
+          admissions[i]    <- CAP_REJECTED
+          execution_rsu[i] <- -1
+          is_forwarded[i]  <- false
+          continue            # no temporary state change
+
+        # 6. ADMITTED — immediate reservation update (per-task sequential)
+        #    Add one load unit and EXACT selected RSU service work immediately;
+        #    next candidate in order sees the updated effective_busy_ms.
+        #    Omission of this update is mutant no-reservation.
+        service_work = compute_time_ms(task_type, RSU_TIER_IDX) / SERVICE_MULTIPLIER_E2D
+                     # compute_time_ms via split index 1 of five-way process_agent split; no new RNG
+        admissions[i]    <- ADMITTED
+        execution_rsu[i] <- selected
+        is_forwarded[i]  <- (selected != strongest_link_rsu_of[i])
+
+        effective_busy_ms[selected] <- effective_busy_ms[selected] + service_work
+        effective_load[selected]    <- effective_load[selected] + 1
+
+  # After loop, result is the final iteration's deterministic outcome (idempotent).
+  # Commit admitted work through evaluator's unchanged queue scatter (real_queue_commit):
+  #   scatter is not modelled here; it copies admitted service work into live queues.
+  return (selected_targets, admissions, execution_rsu, is_forwarded)
+
+INVARIANTS (checked by validator):
+  - Placement is deterministic (no RNG, no policy weight, no actor RSU choice).
+  - Actor boundary: MAPPO actor SelectsExecutionRSU == false; placement is downstream infrastructure.
+  - Deadline gate formula exact: effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]; gate excludes own/immediate costs.
+  - Tie-break deterministic: lowest index on exact workload equality. Mutant nondeterministic-tie (random among ties) is defect.
+  - Immediate reservation: admitted state visible to very next candidate; rejected state invisible. Mutant no-reservation is defect.
+  - Forwarding defined as execution_rsu != strongest_link_rsu iff admitted.
+  - Per-task recompute required; per-substep single-argmin is defect. Mutant common-target is defect.
+  - Removed-gate mutant (gate bypassed) is defect. Actor-RSU-credit mutant (actor selects RSU) is defect.
+  - Three-iteration reconciliation is idempotent; state never accumulates across iterations.

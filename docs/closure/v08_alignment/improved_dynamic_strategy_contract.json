@@ -1,0 +1,267 @@
+{
+  "schema_version": "v08_improved_dynamic_strategy_contract_v1",
+  "lane": "06",
+  "feature": "Improved dynamic strategy contract",
+  "campaign": "v08-requirements-closure",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "contract_id": "TT-REQ-008-derived-improved-strategy-E2d-v1",
+  "fingerprint_algo": "sha256_canonical_json_sorted_keys_separators_comma_colon",
+  "identity": {
+    "precise_name": "per-task sequential least-busy feasible RSU placement",
+    "aliases": [
+      "per-task sequential shortest-workload placement",
+      "per_task_dla"
+    ],
+    "is_learned": false,
+    "is_deterministic": true,
+    "deterministic_basis": "recompute argmin(effective_busy_ms) for every admitted candidate with lowest-index tie-break; no RNG draw or key split",
+    "selects_execution_rsu_by_actor": false,
+    "actor_selects_rsu_explanation": "Frozen MAPPO actor emits Local/V2I/V2V intent only; infrastructure deterministic placement selects execution RSU downstream. Conflating actor intent with placement selection is forbidden.",
+    "cli_identity": "per_task_dla",
+    "rsu_lb_flag": "per_task_dla"
+  },
+  "scope_bound": {
+    "bounded_to": "E2d per-task placement robustness evidence only",
+    "not_broadened_beyond": "No claim beyond E2d four matched fleet draws (seeds 1-4) over Manchester incident hour; no universal least-busy or general controller superiority",
+    "source_honesty": "RESEARCH-EVIDENCE FACT bounded by E2d manifest f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+  },
+  "input_state": {
+    "rsu_busy_ms": {
+      "description": "total remaining RSU compute workload in milliseconds of service work",
+      "units": "milliseconds",
+      "semantics": "admitted rsu_compute_ms added, at most 1000 ms drained per simulated second, remainder carried",
+      "source_honesty": "IMPLEMENTATION-VERIFIED FACT at vec_env parent 0e5ed2f79b50011fe0475a5c2069978f9fdd778d"
+    },
+    "rsu_load_count": {
+      "description": "admitted task count load on RSU (incremented by one per admitted task)",
+      "units": "tasks"
+    },
+    "live_vectors": {
+      "description": "live rb/rl vectors at task-substep entry; temporary effective vectors start from these",
+      "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    "candidate_context": {
+      "description": "candidate task type determines TASK_DEADLINE_MS[task_type] threshold; candidate padded vehicle-slot index determines order",
+      "units": "task_type -> deadline ms"
+    },
+    "service_multiplier": {
+      "value": 1.0,
+      "status": "locked in E2d"
+    }
+  },
+  "order": {
+    "candidate_order": "ascending task-substep index, then ascending padded vehicle-slot index",
+    "maximum_padded_fleet_width": 2488,
+    "task_substeps_per_step": "multiple Model-C task substeps per simulated second (exact count from vec_jax task decomposition)",
+    "source_honesty": "IMPLEMENTATION-VERIFIED FACT and RESEARCH-EVIDENCE FACT via E2d manifest selector_contract.candidate_order"
+  },
+  "feasible_set": {
+    "domain": "all configured RSUs",
+    "rsu_count": 10,
+    "identical_to_inherited_dla": true,
+    "reachability_filters_argmin": false,
+    "capacity_filters_argmin": false,
+    "ingress_quality_filters_argmin": false,
+    "post_selection_eligibility": "positive ingress-link quality and selected target below cap at substep entry checked after selection, before admission",
+    "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "load_and_service_work_quantity": {
+    "state_interpretation": "shortest remaining service workload in rsu_busy_ms",
+    "state_units": "milliseconds of RSU compute service work",
+    "selection_metric": "argmin(effective_busy_ms) across all RSUs, recomputed for every candidate",
+    "service_reservation": {
+      "quantity": "exact selected RSU service work for the admitted task",
+      "derivation": "split index 1 from existing five-way process_agent subkey split, evaluated by compute_time_ms(..., RSU_TIER_IDX) divided by selected target service multiplier",
+      "units": "milliseconds",
+      "rng_change": "no new random draw, split or changed key chain",
+      "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+    }
+  },
+  "immediate_reservation_update": {
+    "admitted_update": "add one load unit and exact selected RSU service work to temporary effective vectors immediately after admission; affects next candidate in scan order",
+    "rejected_update": "unavailable, gate-rejected and cap-rejected work changes no temporary state",
+    "visibility": "per-task sequential; each candidate sees all prior admitted reservations in the same substep",
+    "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "deterministic_tie_break": {
+    "rule": "jnp.argmin lowest RSU index on exact workload tie",
+    "is_random": false,
+    "is_nondeterministic": false,
+    "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "admission_interaction": {
+    "steps_in_order": [
+      "a. record selected target for V2I attempt",
+      "b. inherited ingress-radio eligibility (positive ingress-link quality)",
+      "c. strict backlog deadline gate at selected target",
+      "d. live in-batch cap with gate-before-cap outcome precedence",
+      "e. only if admitted commit via unchanged evaluator scatter"
+    ],
+    "deadline_gate": {
+      "formula": "effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]",
+      "is_strict": true,
+      "excludes": [
+        "own compute",
+        "radio transfer",
+        "return transfer",
+        "forwarding latency"
+      ],
+      "is_deadline_aware_feasibility": true,
+      "deadline_aware_means": "backlog-only simulator rule, not confirmed physical result return",
+      "must_not_be_removed": true,
+      "source_honesty": "IMPLEMENTATION-VERIFIED FACT; removing it is forbidden (mutant: removed-gate)"
+    },
+    "cap": {
+      "waiting_room_cap_per_vehicle": 2.5,
+      "resolved_cap_tasks_per_rsu": 6220,
+      "mode": "reject",
+      "overflow_semantics": "immediate terminal rejection without queue entry, retry, fallback or re-forwarding",
+      "queue_semantics": "RSU queue capacity is admission/waiting-room ceiling, not computation power",
+      "precedence": "gate-before-cap",
+      "source_honesty": "SOURCE-DERIVED FACT via S-007 and S-035; IMPLEMENTATION-VERIFIED FACT via sequential/reject"
+    },
+    "reconciliation": {
+      "description": "repeat complete causal pass three times from identical live rb/rl state and use idempotent final result; state never accumulates across passes",
+      "iterations": 3,
+      "is_idempotent": true,
+      "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+    }
+  },
+  "forwarding": {
+    "definition": "true exactly when admitted V2I execution RSU differs from strongest-link ingress RSU",
+    "ingress_remains": "strongest-link RSU",
+    "backhaul_ms_E2d": 0.0,
+    "real_queue_commit": "unchanged admitted-work scatter in evaluator",
+    "rejected_has_execution": -1,
+    "rejected_forwards": false,
+    "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "refusal_taxonomy": {
+    "unavailable": "no positive ingress link or no V2I candidate at slot",
+    "gate_rejected": "deadline gate fails at selected target",
+    "cap_rejected": "live cap rejects at selected target",
+    "all_leave_temporary_state_unchanged": true,
+    "no_retry_or_refallback": true,
+    "source_honesty": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "actor_boundary": {
+    "actor": {
+      "type": "MAPPO",
+      "checkpoint_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "observation_dimensions": 17,
+      "actions": [
+        "Local",
+        "V2I",
+        "V2V"
+      ],
+      "frozen": true,
+      "observes_current_rsu_load": false,
+      "observes_current_rsu_capacity": false,
+      "selects_execution_rsu": false
+    },
+    "actor_emits_only_intent": "V2I offload intent via best available link reasoning; infrastructure decides execution RSU",
+    "placement_is_downstream_deterministic": true,
+    "must_not_credit_actor_with_rsu_selection": true,
+    "source_honesty": "SOURCE-DERIVED FACT via S-035 plus RESEARCH-EVIDENCE FACT via E2d manifest inputs.actor; misattribution is mutant actor-RSU-credit"
+  },
+  "limitations_and_negative_claims": {
+    "fleet_draws": 4,
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "fleet_type": "uk2030 provisional",
+    "scenario": "Manchester incident trace 2024-03-15 20:00-21:00 Europe/London",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "steps": 3600,
+    "evaluator_seed": 0,
+    "seed0_excluded": true,
+    "tasks_not_independent_replicates": true,
+    "replication_unit": "fleet_seed",
+    "orchestration_not_tested": [
+      "physical or Kubernetes deployment",
+      "reactive or static compute scaling",
+      "backhaul sensitivity (frozen at zero)",
+      "stale or aged RSU state",
+      "ordinary-traffic control",
+      "population or Manchester-wide claim",
+      "task-level inference or significance"
+    ],
+    "no_equivalence_or_universal_superiority": true,
+    "no_canonical_jsq_claim": true,
+    "physical_result_return_not_confirmed": true,
+    "source_honesty": "RESEARCH-EVIDENCE FACT and INFERENCE constrained by E2d comparison.json claim_boundaries"
+  },
+  "sandra_direct_body_S035": {
+    "key": "S-035 / SANDRA-DIRECT-BODY-2026-08-04",
+    "sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed",
+    "standing": "DIRECT_SUPERVISOR_SOURCE_BODY supersedes SRC-010 for overlapping body only; does not establish timestamp/headers/provenance",
+    "supports": [
+      "RSU queue/waiting-room capacity rather than compute power (2.5 default to 0.75 tightening)",
+      "plausible fail-fast / rejection-accounting explanation for reduced latency with unchanged deadline attainment",
+      "no explicit current RSU load/capacity awareness in trained vehicle policy",
+      "disproportionate load at congested-road RSUs while farther RSUs may be idle",
+      "infrastructure load management as supervisor-identified problem"
+    ],
+    "requests_investigation_of": [
+      "(A) DRL offloading plus deterministic load balancing (Kubernetes-style), retraining not required",
+      "(B) DRL offloading plus DRL scheduling/load balancing",
+      "(C) DRL offloading plus AI-based infrastructure/resource control"
+    ],
+    "classification": "Each of (A)(B)(C) is a supervisor-identified problem / requested investigation / proposed direction / hypothesised outcome as body supports; none is a mandatory assessed implementation without additional authoritative evidence",
+    "provisional_wording": "All three remain PROVISIONAL WORDING and INFERENCE until independent primary confirmation beyond S-035 body",
+    "tt_req_008_effect": {
+      "status": "PARTIALLY_MET",
+      "confidence_raised": true,
+      "priority": "SHOULD unchanged",
+      "priority_must_not_be_promoted": true,
+      "frozen_baseline_unchanged": true,
+      "baseline_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595"
+    },
+    "must_not": [
+      "present provisional Sandra scope as approved MUST",
+      "infer Outlook metadata or convert requested investigations into mandatory deliverables"
+    ],
+    "source_honesty": "SOURCE-DERIVED FACT for body content; PROVISIONAL WORDING for timing/provenance; EXTERNAL DECISION REQUIRED for final approval of RSU comparison as assessed MUST"
+  },
+  "tt_req_008_alignment": {
+    "existing_vehicle_side": "MAPPO frozen actor selecting Local/V2I/V2V intent via strongest-link reasoning; no RSU load observation",
+    "deterministic_infrastructure": "This per-task sequential least-busy placement (E2d) is one narrow instance of infrastructure deterministic load management; Kubernetes-style label is not claimed for E2d deployment",
+    "learned_infrastructure": "Separately defined learned scheduling/load balancing is not implemented or evidenced in E2d; remains requested investigation (B)",
+    "ai_kubernetes": "AI-based infrastructure control is not implemented or evidenced in E2d; remains requested investigation (C)",
+    "comparison_scope": "E2d compares offered attainment across ingress_dla / dla / per_task_dla within bounded draws; not a full TT-REQ-008 closure",
+    "source_honesty": "INFERENCE bounded by E2d; EXTERNAL DECISION REQUIRED for full TT-REQ-008 confirmation"
+  },
+  "prohibited_claims_absent": [
+    "No broadening beyond E2d evidence",
+    "No presentation of provisional Sandra scope as approved",
+    "No removal of deadline gate",
+    "No conflation of deterministic downstream placement with actor learning",
+    "No compute-power reinterpretation of queue cap",
+    "No universal or Manchester-wide superiority claim"
+  ],
+  "source_honesty_legend": {
+    "SOURCE-DERIVED FACT": "directly in S-001/S-007/S-035 or frozen baseline before E2d",
+    "IMPLEMENTATION-VERIFIED FACT": "verified in exact committed code at stated parent/head SHAs",
+    "RESEARCH-EVIDENCE FACT": "observed in closed E2d records under stated manifest",
+    "INFERENCE": "derivative reasoning constrained by above facts",
+    "PROVISIONAL WORDING": "supervisor-requested direction awaiting independent confirmation",
+    "EXTERNAL DECISION REQUIRED": "cannot be closed without new primary source or authority"
+  },
+  "fingerprint": "af128cf0826cd03ea85c29b71edb1385dd7523a1086626a4ebb4015f982abce4",
+  "fingerprint_payload_keys": [
+    "identity",
+    "input_state",
+    "order",
+    "feasible_set",
+    "load_and_service_work_quantity",
+    "immediate_reservation_update",
+    "deterministic_tie_break",
+    "admission_interaction",
+    "forwarding",
+    "refusal_taxonomy",
+    "actor_boundary"
+  ]
+}
