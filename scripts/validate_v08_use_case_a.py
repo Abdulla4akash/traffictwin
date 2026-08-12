@@ -32,7 +32,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -70,12 +70,86 @@ ALLOWLISTED_V08_LOCATORS = {
 # Regex for src/... references (files or directories) found in markdown/manifest/contract.
 SRC_REF_RE = re.compile(r"src/[A-Za-z0-9_./-]+")
 
-# Expected route per locator — validates route binding, not just file existence.
-EXPECTED_ROUTE_FOR_LOCATOR = {
-    "src/traffictwin/ui/pages/manchester_evidence_hub.py": "/Manchester_Evidence_Hub",
-    "src/traffictwin/ui/pages/manchester_operations.py": "/Manchester_Operations",
-    "src/traffictwin/ui/pages/scenario_builder.py": "/Scenario_Builder",
+# Hand-authored TrafficTwin synthetic-square identity and its three admitted file SHA pins
+# derived from traffictwin.integration.sumo_execution.service._PINNED_INPUTS and
+# traffictwin.integration.sumo_execution.models provenance. The fixture is NOT a
+# netconvert 1.27.1 product; see scenario_synthetic_square/README.md.
+HAND_AUTHOR_IDENTITY = (
+    "Original TrafficTwin-authored synthetic scenario: one edge tracing a 100 m "
+    "square perimeter with six deterministic vehicles. Not derived from Eclipse "
+    "SUMO scenario files."
+)
+HAND_AUTHOR_SHORT = "hand-authored TrafficTwin synthetic-square"
+PINNED_SQUARE_SHAS: dict[str, tuple[str, int]] = {
+    "square.sumocfg": (
+        "f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d",
+        538,
+    ),
+    "square.net.xml": (
+        "9dba208715f894606119533ab3c6d3d95133cabe32a910eecc96fd1a47d52126",
+        1048,
+    ),
+    "square.rou.xml": (
+        "377e955571566c625c82ee43b5c2e63e55a595960a46491dfbb14d540b6ec4a1",
+        1048,
+    ),
 }
+
+
+def _derived_expected_routes() -> dict[str, str]:
+    """Derive expected routes from actual navigation spec objects in navigation_v07.py.
+
+    Parses the exact v0.8 registration in src/traffictwin/ui/navigation_v07.py
+    rather than a circular hard-coded map. The three bindings are:
+      - UiPage.MANCHESTER_EVIDENCE_HUB url_path="manchester-evidence-hub"
+      - MANCHESTER_PAGE_SPEC url_path="manchester" (additive)
+      - UiPage.SCENARIO url_path="scenario-builder"
+    Manchester is routed through app_pages/manchester.py to pages/manchester_operations.render().
+    """
+
+    nav_path = REPO_ROOT / "src/traffictwin/ui/navigation_v07.py"
+    if not nav_path.is_file():
+        print(
+            "VALIDATION FAILED: navigation spec src/traffictwin/ui/navigation_v07.py missing at exact v0.8",  # noqa: E501
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    text = nav_path.read_text(encoding="utf-8")
+    routes: dict[str, str] = {}
+    # Additive spec uses keyword style: script="..." url_path="..."
+    m = re.search(r'script="app_pages/manchester\.py"\s*,\s*\n?\s*url_path="([^"]+)"', text)
+    if m:
+        routes["src/traffictwin/ui/pages/manchester_operations.py"] = f"/{m.group(1)}"
+    # Normative specs use positional style: "app_pages/...", "url_path"
+    m = re.search(r'"app_pages/manchester_evidence_hub\.py"\s*,\s*\n?\s*"([^"]+)"', text)
+    if m:
+        routes["src/traffictwin/ui/pages/manchester_evidence_hub.py"] = f"/{m.group(1)}"
+    m = re.search(r'"app_pages/scenario_builder\.py"\s*,\s*\n?\s*"([^"]+)"', text)
+    if m:
+        routes["src/traffictwin/ui/pages/scenario_builder.py"] = f"/{m.group(1)}"
+    if not routes:
+        print(
+            "VALIDATION FAILED: failed to derive expected routes from navigation spec objects",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    # Enforce the exact v0.8 registration values
+    expected_values = {
+        "src/traffictwin/ui/pages/manchester_evidence_hub.py": "/manchester-evidence-hub",
+        "src/traffictwin/ui/pages/manchester_operations.py": "/manchester",
+        "src/traffictwin/ui/pages/scenario_builder.py": "/scenario-builder",
+    }
+    for locator, expected in expected_values.items():
+        derived = routes.get(locator)
+        if derived != expected:
+            print(
+                f"VALIDATION FAILED: derived route for {locator!r} is {derived!r} but exact v0.8 registration "  # noqa: E501
+                f"requires {expected!r} (navigation_v07 url_path)",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+    return routes
+
 
 # Valid service-module paths that are genuinely reachable at v0.8 and bound to use-case steps.
 # Prevents a merely existing but unrelated path (e.g. home.py) from passing as a service.
@@ -130,9 +204,12 @@ DESIGN_ONLY_AS_IMPLEMENTED_PATTERNS = [
 ]
 
 
-def _fail(msg: str) -> None:
+def _fail(msg: str) -> NoReturn:
     print(f"VALIDATION FAILED: {msg}", file=sys.stderr)
     sys.exit(1)
+
+
+EXPECTED_ROUTE_FOR_LOCATOR = _derived_expected_routes()
 
 
 def _extract_src_refs(text: str) -> list[str]:
@@ -194,12 +271,15 @@ def _validate_cli_and_route_bindings() -> None:
         _fail("CLI src/traffictwin/cli.py does not expose traffictwin bundle subcommand")
     if "evidence_app" not in cli_text or "app.add_typer(evidence_app" not in cli_text:
         _fail("CLI src/traffictwin/cli.py does not expose traffictwin evidence subcommand")
-    # Route / binding check — validate UiPage and page_runtime mappings
+    # Route / binding check — validate UiPage and page_runtime mappings via derived navigation spec
     labels_path = REPO_ROOT / "src/traffictwin/ui/labels.py"
     runtime_path = REPO_ROOT / "src/traffictwin/ui/page_runtime.py"
+    nav_path = REPO_ROOT / "src/traffictwin/ui/navigation_v07.py"
+    manchester_app_path = REPO_ROOT / "src/traffictwin/ui/app_pages/manchester.py"
     if labels_path.is_file() and runtime_path.is_file():
         labels_text = labels_path.read_text(encoding="utf-8")
         runtime_text = runtime_path.read_text(encoding="utf-8")
+        nav_text = nav_path.read_text(encoding="utf-8") if nav_path.is_file() else ""
         if "MANCHESTER_EVIDENCE_HUB" not in labels_text or "SCENARIO" not in labels_text:
             _fail("UiPage labels missing Manchester/Scenario entries for route binding")
         if (
@@ -207,6 +287,58 @@ def _validate_cli_and_route_bindings() -> None:
             or "UiPage.SCENARIO" not in runtime_text
         ):
             _fail("page_runtime missing Manchester Evidence Hub / Scenario Builder route mapping")
+        # Manchester additive route must be registered in navigation_v07.py with exact url_path
+        # Evidence hub and scenario-builder are positional V07PageSpec entries: "manchester-evidence-hub", "scenario-builder"  # noqa: E501
+        # Manchester Operations is additive with keyword style: url_path="manchester", script="app_pages/manchester.py"  # noqa: E501
+        if '"manchester-evidence-hub"' not in nav_text:
+            _fail(
+                'navigation_v07.py missing "manchester-evidence-hub" for '
+                "MANCHESTER_EVIDENCE_HUB (V07PageSpec url_path)"
+            )
+        if '"manchester"' not in nav_text:
+            _fail('navigation_v07.py missing "manchester" for MANCHESTER_PAGE_SPEC')
+        if '"scenario-builder"' not in nav_text:
+            _fail('navigation_v07.py missing "scenario-builder" for SCENARIO')
+        # Also enforce the exact keyword form for additive Manchester
+        if 'url_path="manchester"' not in nav_text:
+            _fail(
+                'navigation_v07.py MANCHESTER_PAGE_SPEC must use url_path="manchester" '
+                "(additive spec)"
+            )
+        if 'script="app_pages/manchester.py"' not in nav_text:
+            _fail(
+                'navigation_v07.py MANCHESTER_PAGE_SPEC must use script="app_pages/manchester.py"'
+            )
+        # Manchester chain: app_pages/manchester.py must delegate to pages/manchester_operations via page_runtime  # noqa: E501
+        if not manchester_app_path.is_file():
+            _fail("Manchester chain missing: src/traffictwin/ui/app_pages/manchester.py not found")
+        app_manchester_text = manchester_app_path.read_text(encoding="utf-8")
+        if "run_manchester_page_script" not in app_manchester_text:
+            _fail(
+                "Manchester chain broken: app_pages/manchester.py must call "
+                "run_manchester_page_script()"
+            )
+        if "manchester_operations" not in runtime_text:
+            _fail(
+                "Manchester chain broken: page_runtime.py must route Manchester through "
+                "app_pages/manchester.py to pages/manchester_operations.render() "
+                "(run_manchester_page_script)"
+            )
+        if 'st.session_state["_active_ui_route"] = "manchester"' not in runtime_text:
+            _fail(
+                'page_runtime run_manchester_page_script must set _active_ui_route to "manchester"'
+            )
+        # Derived routes must match the spec objects
+        derived = _derived_expected_routes()
+        if (
+            derived.get("src/traffictwin/ui/pages/manchester_evidence_hub.py")
+            != "/manchester-evidence-hub"
+        ):
+            _fail("derived route for Manchester Evidence Hub must be /manchester-evidence-hub")
+        if derived.get("src/traffictwin/ui/pages/manchester_operations.py") != "/manchester":
+            _fail("derived route for Manchester Operations must be /manchester")
+        if derived.get("src/traffictwin/ui/pages/scenario_builder.py") != "/scenario-builder":
+            _fail("derived route for Scenario Builder must be /scenario-builder")
     # Service symbol binding for Scenario Builder — prevents unrelated existing file from passing
     sb_path = REPO_ROOT / "src/traffictwin/ui/pages/scenario_builder.py"
     svc_init = REPO_ROOT / "src/traffictwin/ui/services/__init__.py"
@@ -238,6 +370,146 @@ def _validate_cli_and_route_bindings() -> None:
             "ui.services scenario.py does not import from "  # noqa: E501
             "experiments.scenario_mutation (chain broken)"  # noqa: E501
         )
+
+
+def _validate_synthetic_provenance_manifest(manifest: dict[str, Any]) -> None:
+    """Validate hand-authored synthetic-square provenance and forbid false netconvert attribution."""  # noqa: E501
+
+    # Locate synthetic_square_sumo source
+    sources = manifest.get("sources", [])
+    synthetic = next((s for s in sources if s.get("source_id") == "synthetic_square_sumo"), None)
+    if synthetic is None:
+        _fail("manifest missing synthetic_square_sumo source for synthetic-square provenance")
+    fields_to_check = [
+        str(synthetic.get("display_name", "")),
+        str(synthetic.get("provenance", "")),
+        str(synthetic.get("coverage_scope", "")),
+        str(synthetic.get("availability_detail", "")),
+    ]
+    combined = " ".join(fields_to_check)
+    lower = combined.lower()
+    # The hand-authored fixture is NOT a netconvert 1.27.1 product — reintroducing that attribution must fail  # noqa: E501
+    if "netconvert 1.27.1" in combined or "netconvert 1.27" in lower:
+        # Allow the negated form "not netconvert" but the manifest must not claim it IS a netconvert product  # noqa: E501
+        # Our manifest now uses negated phrasing "not netconvert derived" - that is allowed,
+        # but a positive attribution like "(netconvert 1.27.1)" must fail.
+        # Check for the old fabricated pattern: "netconvert 1.27.1" without "not" within 15 chars before  # noqa: E501
+        idx = lower.find("netconvert")
+        window = lower[max(0, idx - 20) : idx + 30]
+        if "not netconvert" not in window and "not a netconvert" not in window:
+            _fail(
+                "manifest synthetic_square_sumo must not attribute hand-authored fixture "
+                "to netconvert 1.27.1 (see scenario_synthetic_square/README.md)"
+            )
+        # Even with "not", the old display_name pattern " (netconvert 1.27.1)" is forbidden
+        if "(netconvert 1.27.1)" in combined:
+            _fail(
+                "manifest synthetic_square_sumo display_name must not be "
+                "'Pinned synthetic SUMO square scenario (netconvert 1.27.1)'; "
+                "use hand-authored TrafficTwin synthetic-square identity"
+            )
+    # Positive netconvert attribution in display_name is explicitly forbidden
+    if (
+        synthetic.get("display_name", "")
+        == "Pinned synthetic SUMO square scenario (netconvert 1.27.1)"
+    ):
+        _fail(
+            "manifest synthetic_square_sumo must not use fabricated netconvert 1.27.1 display_name"
+        )
+    # Must contain hand-authored identity
+    if HAND_AUTHOR_SHORT.lower() not in lower and "trafficwin-authored synthetic" not in lower:
+        _fail(
+            "manifest synthetic_square_sumo must state hand-authored TrafficTwin "
+            "synthetic-square identity (Original TrafficTwin-authored synthetic scenario...)"
+        )
+    if "not derived from eclipse sumo" not in lower:
+        _fail(
+            "manifest synthetic_square_sumo must state not derived from Eclipse SUMO scenario files"
+        )
+    # Must contain the three admitted file SHA pins
+    for fname, (sha, _size) in PINNED_SQUARE_SHAS.items():
+        if sha not in combined:
+            _fail(
+                f"manifest synthetic_square_sumo provenance must include pinned SHA for {fname}: {sha}"  # noqa: E501
+            )
+
+
+def _validate_synthetic_provenance_contract(contract: dict[str, Any]) -> None:
+    inputs = contract.get("inputs", {})
+    # Find SIMULATION_OUTPUT entry containing synthetic_square_sumo
+    sim = None
+    for key, val in inputs.items():
+        if "SIMULATION" in key and isinstance(val, list):
+            for item in val:
+                if "synthetic_square_sumo" in str(item):
+                    sim = str(item)
+                    break
+    if sim is None:
+        _fail("demo_contract inputs must contain synthetic_square_sumo under SIMULATION_OUTPUT")
+    lower = sim.lower()
+    if (
+        "netconvert 1.27.1" in sim
+        and "not netconvert" not in lower
+        and "not a netconvert" not in lower
+    ):
+        _fail("demo_contract synthetic_square_sumo must not claim netconvert 1.27.1 product")
+    if "(netconvert 1.27.1)" in sim:
+        _fail("demo_contract SIMULATION_OUTPUT must not use fabricated netconvert 1.27.1")
+    if HAND_AUTHOR_SHORT.lower() not in lower and "trafficwin-authored synthetic" not in lower:
+        _fail(
+            "demo_contract SIMULATION_OUTPUT must state hand-authored TrafficTwin synthetic-square"
+        )
+    for _, (sha, _size) in PINNED_SQUARE_SHAS.items():
+        if sha not in sim:
+            _fail(f"demo_contract SIMULATION_OUTPUT must include pinned SHA {sha}")
+
+
+def _validate_synthetic_provenance_doc(doc_text: str) -> None:
+    lower = doc_text.lower()
+    # The doc must state hand-authored identity and not present synthetic square as netconvert product  # noqa: E501
+    if "hand-authored traffictwin synthetic-square" not in lower:
+        _fail(
+            "doc missing hand-authored TrafficTwin synthetic-square identity for synthetic square"
+        )
+    if "original traffictwin-authored synthetic scenario" not in lower:
+        _fail("doc missing exact hand-authored identity provenance phrase")
+    if "not derived from eclipse sumo" not in lower:
+        _fail("doc synthetic square must state not derived from Eclipse SUMO scenario files")
+    # Check the three SHA pins are cited
+    for _, (sha, _size) in PINNED_SQUARE_SHAS.items():
+        if sha not in doc_text:
+            _fail(f"doc must cite pinned SHA for synthetic square: {sha}")
+    # The old positive attribution must not appear as the S08 display name
+    if "Pinned synthetic SUMO square scenario (netconvert 1.27.1)" in doc_text:
+        _fail("doc S08 must not use fabricated 'netconvert 1.27.1' display name")
+    # Validate the README.md provenance is correctly referenced
+    readme = (
+        REPO_ROOT / "src/traffictwin/integration/sumo_execution/scenario_synthetic_square/README.md"
+    )
+    if readme.is_file():
+        readme_text = readme.read_text(encoding="utf-8")
+        if "hand-written for this repository" not in readme_text:
+            _fail("scenario_synthetic_square/README.md must state hand-written provenance")
+        if "not derived from the" not in readme_text.lower():
+            _fail(
+                "scenario_synthetic_square/README.md must state not derived from Eclipse SUMO tools/game/square"  # noqa: E501
+            )
+    # Verify the three files actually match pinned SHAs
+    import hashlib
+
+    scenario_dir = (
+        REPO_ROOT / "src/traffictwin/integration/sumo_execution/scenario_synthetic_square"
+    )
+    for fname, (expected_sha, expected_size) in PINNED_SQUARE_SHAS.items():
+        fpath = scenario_dir / fname
+        if not fpath.is_file():
+            _fail(f"synthetic square scenario file missing: {fname}")
+        data = fpath.read_bytes()
+        if len(data) != expected_size:
+            _fail(f"synthetic square file {fname} size {len(data)} != pinned {expected_size}")
+        sha = hashlib.sha256(data).hexdigest()
+        if sha != expected_sha:
+            _fail(f"synthetic square file {fname} SHA {sha} != pinned {expected_sha}")
 
 
 def _validate_markdown_src_refs(doc_text: str) -> None:
@@ -392,6 +664,8 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
                 _validate_src_path_exists(clean, f"manifest source {src['source_id']} provenance")
     # Cross-artifact CLI / route / symbol binding validation
     _validate_cli_and_route_bindings()
+    # Synthetic-square provenance must be hand-authored, not netconvert
+    _validate_synthetic_provenance_manifest(manifest)
     # S-035 / TT-REQ-008 honesty: if present, must not be mandatory, and RSU bulk  # noqa: E501
     # must not be imported. Manifest no longer carries detailed investigations;   # noqa: E501
     # if it does, enforce SHOULD.
@@ -514,6 +788,9 @@ def validate_demo_contract(contract: dict[str, Any], manifest: dict[str, Any]) -
             "demo_contract red_lines must forbid presenting "  # noqa: E501
             "REAL EXTERNAL NON-MANCHESTER DATA as REAL MANCHESTER DATA"  # noqa: E501
         )
+    # Synthetic-square provenance via hand-authored identity and pinned SHAs
+    _validate_synthetic_provenance_contract(contract)
+    _validate_cli_and_route_bindings()
 
 
 def validate_doc(doc_text: str, manifest: dict[str, Any]) -> None:
@@ -603,10 +880,27 @@ def validate_doc(doc_text: str, manifest: dict[str, Any]) -> None:
         _fail("doc missing CLI binding traffictwin doctor")
     if "traffictwin bundle" not in doc_text:
         _fail("doc missing CLI binding traffictwin bundle")
-    # Route strings must appear for each locator
+    # Route strings must appear for each locator (derived from navigation spec objects)
     for loc, expected_route in EXPECTED_ROUTE_FOR_LOCATOR.items():
         if loc in doc_text and expected_route not in doc_text:
             _fail(f"doc missing expected route {expected_route!r} for locator {loc}")
+    # Derived routes must not be the old fabricated capitalised forms
+    for bad in ("/Manchester_Evidence_Hub", "/Manchester_Operations", "/Scenario_Builder"):
+        if bad in doc_text:
+            _fail(
+                f"doc still uses fabricated route {bad!r} — use derived {EXPECTED_ROUTE_FOR_LOCATOR}"  # noqa: E501
+            )
+    # Manchester chain must be stated where Operations appears
+    if "src/traffictwin/ui/pages/manchester_operations.py" in doc_text and (
+        "app_pages/manchester.py" not in doc_text or "run_manchester_page_script" not in doc_text
+    ):
+        _fail(
+            "doc must state Manchester chain: app_pages/manchester.py "
+            '(url_path="manchester") to pages/manchester_operations.render() via page_runtime'
+        )
+    # Synthetic-square provenance — hand-authored identity and pinned SHAs, no false netconvert
+    _validate_synthetic_provenance_doc(doc_text)
+    _validate_cli_and_route_bindings()
 
 
 def main() -> int:

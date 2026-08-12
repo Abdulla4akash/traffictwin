@@ -29,7 +29,7 @@
       "manual_incident_authored (SYNTHETIC DATA — bounded authored incident via Scenario Builder; never observed evidence)"
     ],
     "SIMULATION_OUTPUT": [
-      "synthetic_square_sumo (SIMULATION OUTPUT — pinned synthetic square fixture netconvert 1.27.1; not Manchester observation)"
+      "synthetic_square_sumo (SIMULATION OUTPUT — hand-authored TrafficTwin synthetic-square smoke scenario; Original TrafficTwin-authored synthetic scenario: one edge tracing a 100 m square perimeter with six deterministic vehicles. Not derived from Eclipse SUMO scenario files.; three admitted files pinned: square.sumocfg f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d (538 B), square.net.xml 9dba208715f894606119533ab3c6d3d95133cabe32a910eecc96fd1a47d52126 (1048 B), square.rou.xml 377e955571566c625c82ee43b5c2e63e55a595960a46491dfbb14d540b6ec4a1 (1048 B); not Manchester observation; see src/traffictwin/integration/sumo_execution/scenario_synthetic_square/README.md)"
     ],
     "DESIGN_ONLY_CAPABILITY_explicit_unavailable_must_remain_blocked": [
       "general_live_road_traffic_bods (DESIGN-ONLY CAPABILITY — explicit unavailable input; BODS ceiling is bus-only)",
@@ -42,7 +42,7 @@
       "order": 1,
       "step_id": "S1_inventory",
       "locator": "src/traffictwin/ui/pages/manchester_evidence_hub.py",
-      "route": "/Manchester_Evidence_Hub",
+      "route": "/manchester-evidence-hub",
       "action": "Render Manchester Evidence Hub; capture readiness table and fingerprint (no live retrieval)",
       "expected_output": "Fingerprint derived from typed machine state; blockers list contains BODS_API_KEY / NATIONAL_HIGHWAYS_API_KEY missing when absent; DESIGN-ONLY CAPABILITY sources show UNAVAILABLE/DEFERRED/BLOCKED",
       "acceptance": "All 11 manifest sources appear with exact human evidence standing and none of the DESIGN-ONLY CAPABILITY unavailable sources is shown as REAL MANCHESTER DATA",
@@ -52,7 +52,7 @@
       "order": 2,
       "step_id": "S2_strategic_context",
       "locator": "src/traffictwin/ui/pages/manchester_operations.py",
-      "route": "/Manchester_Operations",
+      "route": "/manchester",
       "service": "src/traffictwin/integration/manchester/national_highways_live.py",
       "action": "Open Manchester Operations and inspect National Highways card/scene (bounded, credential-optional)",
       "expected_output": "When unconfigured: explicit not_ready_credential_missing blocker with no live retrieval; when configured locally: near_live scene labelled REAL EXTERNAL NON-MANCHESTER DATA, strategic-road only, NOT Manchester city-road",
@@ -63,7 +63,7 @@
       "order": 3,
       "step_id": "S3_bus_live_context",
       "locator": "src/traffictwin/ui/pages/manchester_operations.py",
-      "route": "/Manchester_Operations",
+      "route": "/manchester",
       "service": "src/traffictwin/integration/manchester/bods_live.py",
       "action": "Inspect BODS card/scene in Manchester Operations (bounded, bus-only)",
       "expected_output": "Deterministic demo shows no_live placeholder when unconfigured; live_vehicle bus markers with staleness labelling only when locally configured, explicitly NOT general road traffic",
@@ -74,7 +74,7 @@
       "order": 4,
       "step_id": "S4_historical_baselines",
       "locator": "src/traffictwin/ui/pages/manchester_operations.py",
-      "route": "/Manchester_Operations",
+      "route": "/manchester",
       "service": "src/traffictwin/integration/manchester/dft_acquisition.py",
       "action": "Open accepted DfT (REAL MANCHESTER DATA) and WebTRIS (REAL EXTERNAL NON-MANCHESTER DATA) catalogue views offline",
       "expected_output": "Either bounded chart/catalogue rows or honest not_accepted placeholder; WebTRIS historical never labelled near_live",
@@ -85,7 +85,7 @@
       "order": 5,
       "step_id": "S5_synthetic_what_if",
       "locator": "src/traffictwin/ui/pages/scenario_builder.py",
-      "route": "/Scenario_Builder",
+      "route": "/scenario-builder",
       "service": "src/traffictwin/experiments/scenario_mutation.py",
       "action": "Author one bounded SYNTHETIC DATA incident and materialise synthetic bundle over SIMULATION OUTPUT square",
       "expected_output": "Labelled SYNTHETIC DATA bundle with mutation ledger and bundle SHA; metric/diagnostic table labelled SYNTHETIC DATA / SIMULATION OUTPUT",
