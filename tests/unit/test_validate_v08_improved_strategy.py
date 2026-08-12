@@ -7,15 +7,12 @@ The mutation tests use temporary copies (no in-place corruption).
 
 from __future__ import annotations
 
-import copy
 import hashlib
 import json
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-
-import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 JSON_PATH = REPO_ROOT / "docs/closure/v08_alignment/improved_dynamic_strategy_contract.json"
@@ -39,7 +36,7 @@ FINGERPRINT_KEYS = [
 
 
 def _run_validator(*extra_env: tuple[str, str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603 - trusted sys.executable + fixed validator path
         [sys.executable, str(VALIDATOR)],
         capture_output=True,
         text=True,
@@ -69,13 +66,15 @@ def _run_validator_against(tmp_root: Path) -> int:
         (td_path / "scripts").mkdir(parents=True)
         (td_path / "docs/closure/v08_alignment").mkdir(parents=True)
         shutil.copy2(VALIDATOR, td_path / "scripts/validate_v08_improved_strategy.py")
-        for name in ("improved_dynamic_strategy_contract.json",
-                     "improved_dynamic_strategy_contract.md",
-                     "improved_dynamic_strategy_pseudocode.txt"):
+        for name in (
+            "improved_dynamic_strategy_contract.json",
+            "improved_dynamic_strategy_contract.md",
+            "improved_dynamic_strategy_pseudocode.txt",
+        ):
             src = tmp_root / name
             dst = td_path / "docs/closure/v08_alignment" / name
             shutil.copy2(src, dst)
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 - trusted sys.executable + fixed validator path
             [sys.executable, str(td_path / "scripts/validate_v08_improved_strategy.py")],
             capture_output=True,
             text=True,
@@ -92,9 +91,12 @@ def _load_json(path: Path = JSON_PATH) -> dict:
 # Happy path
 # ---------------------------------------------------------------------------
 
+
 def test_validator_passes_on_committed_contract() -> None:
     result = _run_validator()
-    assert result.returncode == 0, f"validator failed:\nSTDOUT:{result.stdout}\nSTDERR:{result.stderr}"
+    assert result.returncode == 0, (
+        f"validator failed:\nSTDOUT:{result.stdout}\nSTDERR:{result.stderr}"
+    )
     assert "OK: fingerprint" in result.stdout
 
 
@@ -102,7 +104,9 @@ def test_fingerprint_determinism() -> None:
     data = _load_json()
     payload = {k: data[k] for k in FINGERPRINT_KEYS}
     h = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     ).hexdigest()
     assert data["fingerprint"] == h
     assert data["fingerprint_payload_keys"] == FINGERPRINT_KEYS
@@ -146,6 +150,7 @@ def test_s035_classification_correct() -> None:
 # Mutant helpers
 # ---------------------------------------------------------------------------
 
+
 def _mutant_setup() -> tuple[Path, dict, str, str]:
     tmp = Path(tempfile.mkdtemp())
     data = _load_json()
@@ -166,18 +171,26 @@ def _write_mutant(tmp: Path, data: dict, md: str, pseudo: str) -> None:
 # Five required semantic mutants — each must be rejected
 # ---------------------------------------------------------------------------
 
+
 def test_mutant_common_target_is_rejected() -> None:
     """Mutant: select one argmin per substep and reuse for all candidates (inherited dla)."""
     tmp, data, md, pseudo = _mutant_setup()
     # Make order describe a common-target scheme and adjust pseudocode accordingly
-    data["order"]["candidate_order"] = "single argmin per task substep, common target for all vehicle slots"
+    data["order"]["candidate_order"] = (
+        "single argmin per task substep, common target for all vehicle slots"
+    )
     # Remove per-task recompute language from pseudocode
-    pseudo = pseudo.replace("RECOMPUTE least-busy target for THIS candidate", "compute single least-busy target per substep")
+    pseudo = pseudo.replace(
+        "RECOMPUTE least-busy target for THIS candidate",
+        "compute single least-busy target per substep",
+    )
     pseudo = pseudo.replace("common-target mutant", "common-target ok")
     # Fix fingerprint to keep hash valid so failure is due to semantic check
     payload = {k: data[k] for k in FINGERPRINT_KEYS}
     data["fingerprint"] = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     ).hexdigest()
     # Update fingerprint in md/pseudo to new hash so fingerprint check passes
     new_h = data["fingerprint"]
@@ -192,13 +205,17 @@ def test_mutant_common_target_is_rejected() -> None:
 def test_mutant_no_reservation_is_rejected() -> None:
     """Mutant: omit immediate reservation update (batch or no update)."""
     tmp, data, md, pseudo = _mutant_setup()
-    data["immediate_reservation_update"]["admitted_update"] = "no immediate update; batch reservations at end of substep"
+    data["immediate_reservation_update"]["admitted_update"] = (
+        "no immediate update; batch reservations at end of substep"
+    )
     pseudo = pseudo.replace("no-reservation mutant", "no-reservation ok")
     # Also make immediate_reservation language not trigger validator failure via alternate phrasing?
     # Validator checks for 'add one load' — our mutant lacks it
     payload = {k: data[k] for k in FINGERPRINT_KEYS}
     data["fingerprint"] = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     ).hexdigest()
     new_h = data["fingerprint"]
     old_h = _load_json()["fingerprint"]
@@ -220,7 +237,9 @@ def test_mutant_actor_rsu_credit_is_rejected() -> None:
     data["actor_boundary"]["actor"]["selects_execution_rsu"] = True
     payload = {k: data[k] for k in FINGERPRINT_KEYS}
     data["fingerprint"] = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     ).hexdigest()
     new_h = data["fingerprint"]
     old_h = _load_json()["fingerprint"]
@@ -243,7 +262,9 @@ def test_mutant_removed_gate_is_rejected() -> None:
     pseudo = pseudo.replace("MANDATORY", "OPTIONAL")
     payload = {k: data[k] for k in FINGERPRINT_KEYS}
     data["fingerprint"] = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     ).hexdigest()
     new_h = data["fingerprint"]
     old_h = _load_json()["fingerprint"]
@@ -264,7 +285,9 @@ def test_mutant_nondeterministic_tie_is_rejected() -> None:
     pseudo = pseudo.replace("nondeterministic-tie mutant", "nondeterministic-tie ok")
     payload = {k: data[k] for k in FINGERPRINT_KEYS}
     data["fingerprint"] = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     ).hexdigest()
     new_h = data["fingerprint"]
     old_h = _load_json()["fingerprint"]

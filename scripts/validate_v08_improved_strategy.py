@@ -13,6 +13,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 JSON_PATH = REPO_ROOT / "docs/closure/v08_alignment/improved_dynamic_strategy_contract.json"
@@ -41,9 +42,11 @@ PROHIBITED_IN_MD_JSON = [
 # We check prohibited claims via targeted phrases rather than single words.
 
 
-def sha_canonical(payload: dict) -> str:
+def sha_canonical(payload: dict[str, Any]) -> str:
     return hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     ).hexdigest()
 
 
@@ -110,7 +113,10 @@ def main() -> int:
     gate = jdata.get("admission_interaction", {}).get("deadline_gate", {}).get("formula", "")
     if gate != gate_formula:
         fail(f"deadline gate formula wrong: {gate!r}", errors)
-    if jdata.get("admission_interaction", {}).get("deadline_gate", {}).get("must_not_be_removed") is not True:
+    if (
+        jdata.get("admission_interaction", {}).get("deadline_gate", {}).get("must_not_be_removed")
+        is not True
+    ):
         fail("deadline gate must_not_be_removed must be true", errors)
     # Pseudocode gate
     if gate_formula not in pseudo_text:
@@ -128,7 +134,8 @@ def main() -> int:
     if "RECOMPUTE" not in pseudo_text.upper() or "RECOMPUTE" not in pseudo_text.upper():
         # pseudocode line check
         pass
-    # Validate pseudocode explicitly mentions per-task recompute and forbids per-substep single argmin
+    # Validate pseudocode explicitly mentions per-task recompute
+    # and forbids per-substep single argmin
     if "for THIS candidate" not in pseudo_text and "for every candidate" not in pseudo_text:
         fail("pseudocode must state per-task recompute", errors)
     if "common-target mutant" not in pseudo_text.lower():
@@ -136,10 +143,13 @@ def main() -> int:
 
     # 6. Immediate reservation
     adm_update = jdata.get("immediate_reservation_update", {}).get("admitted_update", "")
-    if "immediately" not in adm_update.lower() and "immediately after admission" not in adm_update.lower():
-        # alternative: check contains add
-        if "add one load" not in adm_update.lower():
-            fail("immediate_reservation_update.admitted_update must state immediate add", errors)
+    # alternative: check contains add one load if neither immediately phrase present
+    if (
+        "immediately" not in adm_update.lower()
+        and "immediately after admission" not in adm_update.lower()
+        and "add one load" not in adm_update.lower()
+    ):
+        fail("immediate_reservation_update.admitted_update must state immediate add", errors)
     if "no-reservation" not in pseudo_text.lower():
         fail("pseudocode must call out no-reservation mutant", errors)
 
@@ -156,12 +166,16 @@ def main() -> int:
         fail("actor_boundary.must_not_credit_actor_with_rsu_selection must be true", errors)
     if actor.get("placement_is_downstream_deterministic") is not True:
         fail("actor_boundary.placement_is_downstream_deterministic must be true", errors)
-    if "actor-RSU-credit" not in pseudo_text.lower() and "actor-rsu-credit" not in pseudo_text.lower():
+    if (
+        "actor-RSU-credit" not in pseudo_text.lower()
+        and "actor-rsu-credit" not in pseudo_text.lower()
+    ):
         # also accept via validator message but pseudocode should mention
         pass  # optional
     # Check markdown forbids actor-RSU-credit
     if "actor-RSU-credit" not in md_text and "actor selects" not in md_text.lower():
-        # markdown says SelectsExecutionRSU == false already; ensure mutant named in tests not required in md
+        # markdown says SelectsExecutionRSU == false already;
+        # ensure mutant named in tests not required in md
         pass
 
     # 9. S-035 classification honesty
@@ -183,10 +197,13 @@ def main() -> int:
     # 11. Markdown and pseudocode agree: placement not learned
     if "not learned" not in md_text.lower():
         fail("markdown must state not learned", errors)
-    if "not learned" not in pseudo_text.lower() and "is learned" not in pseudo_text.lower():
-        # pseudocode says deterministic not learned
-        if "NOT" not in pseudo_text.upper():
-            fail("pseudocode must state placement not learned", errors)
+    # pseudocode says deterministic not learned
+    if (
+        "not learned" not in pseudo_text.lower()
+        and "is learned" not in pseudo_text.lower()
+        and "NOT" not in pseudo_text.upper()
+    ):
+        fail("pseudocode must state placement not learned", errors)
 
     # 12. Prohibited claims absent in markdown JSON
     # Do not allow "TT-REQ-008 MUST" language
@@ -216,9 +233,18 @@ def main() -> int:
         return 1
 
     print(f"OK: fingerprint {sha_canonical(payload)}")
-    print(f"OK: contract {JSON_PATH.name} + {MD_PATH.name} + {PSEUDO_PATH.name} agree (E2d-bounded, deterministic, gated).")
-    print("OK: mutants correctly characterised (common-target / no-reservation / actor-RSU-credit / removed-gate / nondeterministic-tie).")
-    print("OK: S-035 correctly classified as provisional; TT-REQ-008 SHOULD unchanged; queue semantics correct.")
+    print(
+        f"OK: contract {JSON_PATH.name} + {MD_PATH.name} + {PSEUDO_PATH.name} agree "
+        "(E2d-bounded, deterministic, gated)."
+    )
+    print(
+        "OK: mutants correctly characterised (common-target / no-reservation / "
+        "actor-RSU-credit / removed-gate / nondeterministic-tie)."
+    )
+    print(
+        "OK: S-035 correctly classified as provisional; "
+        "TT-REQ-008 SHOULD unchanged; queue semantics correct."
+    )
     return 0
 
 
