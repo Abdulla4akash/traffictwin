@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import UTC, datetime
+from pathlib import Path
 
 from traffictwin.event_scenario_bridge.models import (
     DeclaredEventReference,
@@ -41,8 +42,8 @@ def test_all_twelve_lane_modules_import_together_without_cycles() -> None:
     import traffictwin.calibration
     import traffictwin.cli
     import traffictwin.contract_drafting
-    import traffictwin.evidence_admission
     import traffictwin.event_scenario_bridge
+    import traffictwin.evidence_admission
     import traffictwin.metric_contract_registry
     import traffictwin.reproducibility_replay
     import traffictwin.study_accrual
@@ -232,7 +233,7 @@ def test_tradeoff_explorer_fails_closed_when_metric_unavailable() -> None:
     assert report.frontier.frontier_arm_ids == ["arm_full"]
 
 
-def test_contract_drafting_handoff_stays_draft_only(tmp_path) -> None:  # noqa: ANN001
+def test_contract_drafting_handoff_stays_draft_only(tmp_path: Path) -> None:
     import csv as _csv
 
     from traffictwin.contract_drafting.service import build_draft_report, prepare_handoff
@@ -286,9 +287,9 @@ def test_event_bridge_handoffs_remain_unexecuted() -> None:
     )
     manifest = build_event_scenario_bridge_manifest(request)
     assert manifest.verify_fingerprint()
-    assert any(
-        finding.finding_id == "bridge-unexecuted" for finding in manifest.findings
-    ), "the bridge must declare itself unexecuted"
+    assert any(finding.finding_id == "bridge-unexecuted" for finding in manifest.findings), (
+        "the bridge must declare itself unexecuted"
+    )
     assert any("no simulation or vec was launched" in lim.lower() for lim in manifest.limitations)
 
 
@@ -341,10 +342,9 @@ def test_baseline_registry_registration_never_promotes() -> None:
 def test_study_accrual_report_is_deterministic_with_admission_style_review() -> None:
     """Accrual must be pure over its inputs — no cached-state shortcut."""
 
+    from tests.integration.test_study_accrual_integration import _frozen_plan
+
     from traffictwin.study_accrual.service import build_accrual_report
-    from tests.integration.test_study_accrual_integration import (  # type: ignore[import-untyped]
-        _frozen_plan,
-    )
 
     plan = _frozen_plan()
     first = build_accrual_report(plan)

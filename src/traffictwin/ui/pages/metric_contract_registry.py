@@ -45,7 +45,7 @@ except Exception:
 def _render_h1() -> None:
     if _HAS_ENUM and render_page_header is not None and UiPage is not None:
         try:
-            render_page_header(UiPage.METRIC_CONTRACT_REGISTRY)  # type: ignore[attr-defined]
+            render_page_header(UiPage.METRIC_CONTRACT_REGISTRY)
             return
         except Exception:  # noqa: S110
             pass

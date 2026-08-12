@@ -230,7 +230,7 @@ def _spawn_capture_output(argv: list[str], timeout_s: float) -> tuple[str, str]:
         devnull = out_write = err_write = -1
 
         deadline = time.monotonic() + timeout_s
-        open_fds = {fd for fd in chunks}
+        open_fds = set(chunks)
         while open_fds:
             remaining = deadline - time.monotonic()
             if remaining <= 0:

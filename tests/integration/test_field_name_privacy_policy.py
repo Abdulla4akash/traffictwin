@@ -130,9 +130,7 @@ def test_formula_injection_protection_survives_the_policy() -> None:
     report = _drift_report(["api_key"])
     report = report.model_copy(
         update={
-            "findings": [
-                report.findings[0].model_copy(update={"message": "=cmd|' /C calc'!A0"})
-            ]
+            "findings": [report.findings[0].model_copy(update={"message": "=cmd|' /C calc'!A0"})]
         }
     )
     csv_text = export_drift_csv(report)
@@ -168,9 +166,7 @@ def test_workbench_and_drafting_assistant_share_one_policy(tmp_path: Path) -> No
         assert _PLACEHOLDER not in surface, "no surface may collapse field identity"
         assert "api_key" in surface and "password" in surface
 
-    flagged = {
-        finding.field_name for finding in report.findings if finding.code == _FLAG
-    }
+    flagged = {finding.field_name for finding in report.findings if finding.code == _FLAG}
     assert {"api_key", "password"}.issubset(flagged)
     assert "speed_kmh" not in flagged
 
