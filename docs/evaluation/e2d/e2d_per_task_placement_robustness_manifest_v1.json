@@ -1,0 +1,476 @@
+{
+  "schema_version": "e2d_per_task_placement_robustness_manifest_v1",
+  "created_utc": "2026-08-11T20:22:13Z",
+  "status": "corrected_predeclared_before_any_e2d_scientific_trace_run",
+  "statistical_status": "matched four-draw construct-validity robustness study; fleet seed is the replication unit and tasks are not independent replicates",
+  "closed_prerequisites": {
+    "e1": {
+      "status": "closed",
+      "checkout": "/Users/akashx/AntigravityTest/diss",
+      "final_commit": "a1423e604078f70c95d4115287d3f0391348becf",
+      "manifest_path": "/Users/akashx/AntigravityTest/diss/docs/evaluation/e1/e1_multidraw_physical_campaign_manifest_v1.json",
+      "manifest_sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d"
+    },
+    "e2": {
+      "status": "closed",
+      "checkout": "/Users/akashx/AntigravityTest/traffictwin-e2",
+      "final_commit": "c05736125a401b8176c53212b3915ec57b95fdc3",
+      "manifest_path": "/Users/akashx/AntigravityTest/traffictwin-e2/docs/evaluation/e2/e2_native_placement_pilot_manifest_v1.json",
+      "manifest_sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+      "raw_root": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1",
+      "root_checksum_path": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/checksums.sha256",
+      "root_checksum_sha256": "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3"
+    },
+    "e2b": {
+      "status": "closed",
+      "checkout": "/Users/akashx/AntigravityTest/traffictwin-e2b",
+      "final_commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "manifest_path": "/Users/akashx/AntigravityTest/traffictwin-e2b/docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json",
+      "manifest_sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+      "raw_root": "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1",
+      "root_checksum_path": "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1/checksums.sha256",
+      "root_checksum_sha256": "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6"
+    },
+    "e2c": {
+      "status": "closed",
+      "checkout": "/Users/akashx/AntigravityTest/traffictwin-e2c",
+      "scientific_execution_commit": "676f132406877bbc6fb92b6c2a08b675571aa9fa",
+      "original_final_scientific_evidence_commit": "715ce2cf1e943951e13586756f07d7432e24fe69",
+      "final_commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+      "manifest_path": "/Users/akashx/AntigravityTest/traffictwin-e2c/docs/evaluation/e2c/e2c_gated_placement_multidraw_manifest_v1.json",
+      "manifest_sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+      "raw_root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1",
+      "root_checksum_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/checksums.sha256",
+      "root_checksum_sha256": "d3f41d2fc21257f16518f62ec2fbbde55243a89d31726c57f1a0171fe7f582d4"
+    }
+  },
+  "repositories": {
+    "traffictwin": {
+      "parent_branch": "agent/e2c-gated-placement-multidraw-v1",
+      "parent_commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+      "candidate_scientific_code_commit": "eb8571810cc0f29c8477b14e15a73d7e3c915f69",
+      "branch": "agent/e2d-per-task-placement-robustness-v1",
+      "remote": "https://github.com/Abdulla4akash/traffictwin.git",
+      "draft_pr_base": "agent/e2c-gated-placement-multidraw-v1",
+      "reviewed_prerun_head_binding": "the exact clean TrafficTwin HEAD containing this immutable manifest must equal the independent Claude APPROVE verdict; a manifest cannot self-reference its containing commit"
+    },
+    "vec_env": {
+      "parent_branch": "agent/e2b-ingress-deadline-admission-v1",
+      "parent_commit": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+      "branch": "agent/e2d-per-task-dla-v1",
+      "candidate_commit": "2f63706f46319433a2ba3af1df97afd0e56a95d1",
+      "remote": "https://github.com/Abdulla4akash/vec_env.git",
+      "evaluator_sha256": "b59c1f07bdea9b19d578df09ae87e39dabeb62ab8885438e7e167a1659e31411",
+      "per_task_helper_sha256": "a6e047265dd09365c0d4029afa76f8cb7caa444883e2f549a4254e3d0b53472a",
+      "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+      "resolved_imported_vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+    },
+    "tos_data": {
+      "commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "modification_allowed": false
+    }
+  },
+  "superseded_prerun_package": {
+    "traffictwin_head": "6443b936064dba2766dcb8dee9146b246bc769bf",
+    "vec_env_head": "2f63706f46319433a2ba3af1df97afd0e56a95d1",
+    "manifest_sha256": "b2d04fa31ae40fb0519ebd019817599be428392bf6b1ee98656740ea509aa420",
+    "claude_verdict": "APPROVE",
+    "claude_receipt_path": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1/independent_review/claude_review_verdict.json",
+    "claude_receipt_sha256": "853756c699386b70a16045e15cf96bf042c8200a3d18de406df44fa0bd03e549",
+    "execution_authority": "revoked_before_trace_launch_due_to_runner_phase-order_mismatch",
+    "trace_replays_started": 0,
+    "new_arm_smokes_started": 0,
+    "full_cells_started": 0,
+    "scientific_output_discarded": false
+  },
+  "paths": {
+    "traffictwin_checkout": "/Users/akashx/AntigravityTest/traffictwin-e2d",
+    "vec_env_checkout": "/Users/akashx/AntigravityTest/vec-env-e2d",
+    "tos_data_checkout": "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd",
+    "evaluator": "/Users/akashx/AntigravityTest/vec-env-e2d/eval/eval_sumo_stage1_mc.py",
+    "per_task_placement_helper": "/Users/akashx/AntigravityTest/vec-env-e2d/eval/e2d_per_task_placement.py",
+    "vec_jax": "/Users/akashx/AntigravityTest/vec-env-e2d/jaxmarl/env/vec_jax.py",
+    "imported_vec_jax_entrypoint": "/Users/akashx/scratch/vec-offloading-jaxmarl-fullport/env/vec_jax.py",
+    "resolved_imported_vec_jax": "/Users/akashx/AntigravityTest/worktrees/vec_env-e0-0f01f4d/jaxmarl/env/vec_jax.py",
+    "runner": "/Users/akashx/AntigravityTest/traffictwin-e2d/scripts/run_e2d_per_task_placement_robustness.py",
+    "validator": "/Users/akashx/AntigravityTest/traffictwin-e2d/scripts/validate_e2d_per_task_placement_robustness.py",
+    "analyzer": "/Users/akashx/AntigravityTest/traffictwin-e2d/scripts/analyze_e2d_per_task_placement_robustness.py"
+  },
+  "traffic_twin_code_hashes_at_candidate_scientific_code_commit": {
+    "runner_sha256": "755e6a2f384ae3f5dde8b1ec0d19830c3fb65cdc94b7307c32ccb7ac2f2783b7",
+    "validator_sha256": "77fe5fefbb3ff05c741b5fc7ea901e94ee70f1b20c136a5a7a034b25ab923f27",
+    "analyzer_sha256": "d31e30c474f6a678b368d7980ebe085510124d672592337d0b2cf211795c79f1"
+  },
+  "inputs": {
+    "scenario": "Manchester incident trace",
+    "date": "2024-03-15",
+    "window_local": "20:00-21:00 Europe/London",
+    "actor": {
+      "path": "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "training_seed": 100,
+      "observation_dimensions": 17,
+      "actions": ["Local", "V2I", "V2V"],
+      "observes_current_rsu_load": false,
+      "selects_execution_rsu": false,
+      "frozen": true
+    },
+    "trace": {
+      "path": "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd/traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    }
+  },
+  "design": {
+    "steps": 3600,
+    "smoke_steps": 10,
+    "padded_fleet_width": 2488,
+    "rsus": 10,
+    "evaluator_seed": 0,
+    "fleet_seeds": [1, 2, 3, 4],
+    "fleet": "uk2030",
+    "fleet_status": "provisional",
+    "arrival_lambda": 1.5,
+    "waiting_room_cap_per_vehicle": 2.5,
+    "resolved_cap_tasks_per_rsu": 6220,
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "rsu_service_multiplier": 1.0,
+    "scaling": "off",
+    "backhaul_ms": 0.0,
+    "replication_unit": "fleet_seed",
+    "seed0_authorised": false
+  },
+  "selector_contract": {
+    "precise_name": "per-task sequential least-busy placement",
+    "state_interpretation": "shortest remaining service workload in rsu_busy_ms",
+    "state_units": "milliseconds of RSU compute service work",
+    "candidate_order": "ascending task-substep index, then ascending padded vehicle-slot index",
+    "target_domain": "all configured RSUs, identical to inherited dla",
+    "tie_breaking": "jnp.argmin lowest RSU index",
+    "initial_state": "temporary effective busy/load vectors start from live rb/rl at the substep",
+    "selection": "recompute argmin(effective_busy_ms) for every candidate",
+    "deadline_gate": "effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]",
+    "deadline_gate_excludes": ["own compute", "radio transfer", "return transfer", "forwarding latency"],
+    "admitted_update": "add one load unit and exact selected RSU service work only after admission",
+    "rejected_update": "unavailable, gate-rejected and cap-rejected work changes no temporary state",
+    "service_reservation": "existing process_agent split index 1, compute_time_ms at RSU tier, divided by selected service multiplier",
+    "reconciliation": "repeat the complete causal pass three times from identical live state and use the idempotent final result; state never accumulates across passes",
+    "real_queue_commit": "unchanged admitted-work scatter in the evaluator",
+    "rng": "no new random draw, split or changed key chain",
+    "output_schema_change": false
+  },
+  "arms": {
+    "ingress_dla": {
+      "role": "reused E2c reference and existing-mode replay only",
+      "rsu_lb": "ingress_dla",
+      "placement": "strongest-link ingress execution",
+      "admission": "inherited deadline-aware gate"
+    },
+    "dla": {
+      "role": "reused E2c reference and existing-mode replay only",
+      "rsu_lb": "dla",
+      "placement": "inherited one-common-target-per-substep least-busy placement",
+      "admission": "inherited deadline-aware gate"
+    },
+    "per_task_dla": {
+      "role": "only new scientific arm",
+      "rsu_lb": "per_task_dla",
+      "placement": "per-task sequential least-busy placement",
+      "admission": "same inherited deadline-aware feasibility formula applied causally at each selected target"
+    }
+  },
+  "existing_mode_replay_order": [
+    {"replay_index": 1, "fleet_seed": 1, "arm": "ingress_dla"},
+    {"replay_index": 2, "fleet_seed": 1, "arm": "dla"},
+    {"replay_index": 3, "fleet_seed": 2, "arm": "ingress_dla"},
+    {"replay_index": 4, "fleet_seed": 2, "arm": "dla"},
+    {"replay_index": 5, "fleet_seed": 3, "arm": "ingress_dla"},
+    {"replay_index": 6, "fleet_seed": 3, "arm": "dla"},
+    {"replay_index": 7, "fleet_seed": 4, "arm": "ingress_dla"},
+    {"replay_index": 8, "fleet_seed": 4, "arm": "dla"}
+  ],
+  "full_cell_order": [
+    {"cell_index": 1, "fleet_seed": 1, "arm": "per_task_dla"},
+    {"cell_index": 2, "fleet_seed": 2, "arm": "per_task_dla"},
+    {"cell_index": 3, "fleet_seed": 3, "arm": "per_task_dla"},
+    {"cell_index": 4, "fleet_seed": 4, "arm": "per_task_dla"}
+  ],
+  "command_template": [
+    "/Users/akashx/AntigravityTest/e0_runtime/vec-jax-0.4.30/bin/python",
+    "/Users/akashx/AntigravityTest/vec-env-e2d/eval/eval_sumo_stage1_mc.py",
+    "--trace", "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd/traces/trace_inc_fullrsu.npz",
+    "--actor", "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+    "--max-steps", "{MAX_STEPS}",
+    "--seed", "0",
+    "--fleet", "uk2030",
+    "--fleet-seed", "{FLEET_SEED}",
+    "--rsu-cap-per-veh", "2.5",
+    "--lambda-arrival", "1.5",
+    "--rsu-service-mult", "1.0",
+    "--rsu-lb", "{ARM}",
+    "--rsu-backhaul-ms", "0.0",
+    "--substep-queue", "sequential",
+    "--substep-queue-iters", "3",
+    "--veh-queue", "conserved",
+    "--rsu-cap-mode", "reject",
+    "--k8s-scale", "off",
+    "--out-json", "{RUN_DIR}/summary.json",
+    "--per-step-out", "{RUN_DIR}/per_step.npz",
+    "--per-task-out", "{RUN_DIR}/per_task.npz"
+  ],
+  "environment": {
+    "id": "macos_arm64_cpu_jax_0_4_30",
+    "platform_system": "Darwin",
+    "platform_machine": "arm64",
+    "python_version": "3.11.15",
+    "python_executable": "/Users/akashx/AntigravityTest/e0_runtime/vec-jax-0.4.30/bin/python",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "packages": {
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "ml_dtypes": "0.5.4",
+      "opt_einsum": "3.4.0",
+      "scipy": "1.17.1"
+    },
+    "backend": "cpu",
+    "devices": ["TFRT_CPU_0"],
+    "jax_enable_x64": false,
+    "concurrency": 1,
+    "variables": {
+      "JAX_PLATFORMS": "cpu",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    }
+  },
+  "path_schema": {
+    "shape": ["T", "KMAX", "N"],
+    "inactive_index_sentinel": -1,
+    "fields": {
+      "task_ingress_rsu": "int16",
+      "task_selected_execution_rsu": "int16",
+      "task_execution_rsu": "int16",
+      "task_forwarded": "bool",
+      "task_forwarding_latency_ms": "float32",
+      "task_v2i_admitted": "bool",
+      "task_outcome": "int8",
+      "task_active": "bool",
+      "task_type": "int8",
+      "task_lat_ms": "float32",
+      "task_met": "bool"
+    }
+  },
+  "e2c_reuse": {
+    "manifest_sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+    "scientific_execution_commit": "676f132406877bbc6fb92b6c2a08b675571aa9fa",
+    "final_reporting_head": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+    "raw_root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1",
+    "root_checksum_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/checksums.sha256",
+    "root_checksum_sha256": "d3f41d2fc21257f16518f62ec2fbbde55243a89d31726c57f1a0171fe7f582d4",
+    "root_checksum_members": 262,
+    "by_seed": {
+      "1": {
+        "ingress_dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/01_seed_1_ingress_dla/smoke/run_1", "summary_sha256": "0f0b5cb4628f763069077e767bcc5003496dbb80463f3a3b0b741b1b5f6179ec", "per_step_sha256": "fb7ab4ace99946f2e4c14bf784dcfdce1130087ca0a1d7a30ec4c21509e8abcf", "per_task_sha256": "318788eefcf8016943b1f671a1e616f21fb7f0d77aa52271fad43178603dfcc5", "checksums_sha256": "ce0d2ed44df32127ac078b4ead5a0cbdc17ba6daf78b051854bf9c54552924f0"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/01_seed_1_ingress_dla/full/run_1", "summary_sha256": "c960e2bfd4d374960d1c67d15578c61ad7a27c971aacec6ff069b84192f1ea9d", "per_step_sha256": "842e1f3e014ce4e8f0912a448ab03f46690467505ea1a03f555036ed1348ac63", "per_task_sha256": "3def68a3904a09a571d93b119075f3c80d9e48af6728362d41bcf6745a87a7ab", "checksums_sha256": "b2d2baf4b61fa89c84b583feb2e25798deed27f515e128a9a7748cef3dd2bb19"}
+        },
+        "dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/02_seed_1_dla/smoke/run_1", "summary_sha256": "f18ed52f8262c0a4fdcfc99dee0abeca16bc028499db17465614df16789966f5", "per_step_sha256": "ae05405f9cece2a569de6d3995ef7fead5df97a2732d23102ee4a647b92236f1", "per_task_sha256": "d2a40a39c4f5676be916341dd6ef87243894fc699cce3c5beadc12e4945dd0c7", "checksums_sha256": "90a671bc97feb76923e0e400bc1f2d563047aebad658c1756a6024ec28947a50"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/02_seed_1_dla/full/run_1", "summary_sha256": "64a384f4ca575a1731e67e1eaa570f7ec9b2c86913337529f01d34e7551c394a", "per_step_sha256": "b11d92f406f2005fe040b81b03cef8480500375bb91b1cfeff30ecf076f89c9b", "per_task_sha256": "3b4ebf9ff8d9ef194a613d7505c10c497403b6333b0562b2ca399ebebd1a9c8f", "checksums_sha256": "d7425f9230a3a810ca29e1092aefb377d7f2adbfc73fcda913501b40c6652383"}
+        }
+      },
+      "2": {
+        "ingress_dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/03_seed_2_ingress_dla/smoke/run_1", "summary_sha256": "f2669bf8a309812c46cc6c3882b0760cd59eb8cf71b4aa77a0fdda6bfe3dfae9", "per_step_sha256": "2fa9a2fe3b091016757d34f4e3d5ea811a798f8649118c6c95f7ba1b8377abd1", "per_task_sha256": "868cde21783578c2b9ca210b0bf5c0c356d175c31c92dd2457ea8bb04c9fa0e6", "checksums_sha256": "011e71cf4ccf1c33ef5cba1bef34a274107c6bcdba10a6b23c49430077e44125"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/03_seed_2_ingress_dla/full/run_1", "summary_sha256": "e925cf2f4a9b912752bb34fd68dbff78c16df5d4749a67b66c872c0ccb7c5e47", "per_step_sha256": "9fce7458bc96802d445923e60a89433f5796e0fe29c8ec72800289987245ed4a", "per_task_sha256": "6ce54e0b270f85df964056cbe10da5594315c8008ef9180dbdbc996b9ca3c0de", "checksums_sha256": "cdd54728119de3b5e4ed024da4d6519cc90c841cb18bed4c11041a7df0ae7e80"}
+        },
+        "dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/04_seed_2_dla/smoke/run_1", "summary_sha256": "a3b7f9a3af9633d03735e1e058133c3d436bfb208b3125a1de309d63cd09debe", "per_step_sha256": "e40dee2f609a3734e9506cb5fd1c59e630554f5fd0ec62b85ad7297767fb8f28", "per_task_sha256": "d882f84115293ef52d6d9ad08d9981be2c2cae2d2b368d09019de230fbdeeb53", "checksums_sha256": "34b4cd2c5fcfd751f945826b21b6dc47b893ccc8cfc24f910e9dbeebb7e518f1"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/04_seed_2_dla/full/run_1", "summary_sha256": "9fc2a8b7b304c30267cc06f0f4a465232ae854ba63688fedfaf6cd1a22fb543e", "per_step_sha256": "7f5324bd027b84dc415e4e5b14ae0a06f98cc15de88ad98843e9b15df1c873d4", "per_task_sha256": "827b830e35c6124208600efab792938f699800f75a05c131b28086423a097f6d", "checksums_sha256": "e1bd59a82dfd5feac79670496b921594b32d3eb55757848f26916d90b7712e6b"}
+        }
+      },
+      "3": {
+        "ingress_dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/05_seed_3_ingress_dla/smoke/run_1", "summary_sha256": "e712d1562a9bcce3552df37fcc00f2ca0ff9e13be6bc69fd52d0be5438289d7d", "per_step_sha256": "0e760f0d14eb3f273bc66668347444a7a64f580e5b7342d0928b11c23b7e3438", "per_task_sha256": "6026b247d8afcfac902e4c1359833e2f1195a137b86139d51b9656044b4d1072", "checksums_sha256": "1468af55ae2213ce5f91f344966e3701045cac9da7aa8f71cb7d35085b7495c8"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/05_seed_3_ingress_dla/full/run_1", "summary_sha256": "23e6c1726e0a2acadd91c6e0d7c70f6e8301dee3bb94cf111fc7a54da44a6814", "per_step_sha256": "41bac036faba786f36d7c9a85ce2b836cfe9762b77cd1c9d0d3b0bf2e74475e7", "per_task_sha256": "24b6d8a86c8c388fb8787c6f236f5d709f29a8483d8322baaf8a36dc23cc09c3", "checksums_sha256": "dc7a936cb7b0ac4b01c7400fb8443f486f7e6b4cc0c0f3763628a1efaa62d902"}
+        },
+        "dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/06_seed_3_dla/smoke/run_1", "summary_sha256": "7b59e447e82f5a89e637ee50eae85c3c00032d490a8aab531988d96d85cb0733", "per_step_sha256": "d1232bbcfb1b1f5c7fc1fb88904db67ae5693ef659ac2a051bd3bfbf40b3995a", "per_task_sha256": "abae0389a1acd9a17d382edecb1d228283dc4039daf3b27e9f1c841c5aef7f15", "checksums_sha256": "b822a0f66d0ec7fea7040cdfae66a3963de1da23876409e23509294ec405a33a"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/06_seed_3_dla/full/run_1", "summary_sha256": "a8765a72308430a4b242365598baa4074dee7bbc523f426c5946deb62abb8c82", "per_step_sha256": "e8216e47d2153676791a4012f70eca43d66fe321832bf6a64c076d133b9eb8d7", "per_task_sha256": "8657f50c32775d14a45921212972a3fae0675adb453eca37d060874c0908af01", "checksums_sha256": "2757bb507527e94c7bc4c47419f81234351bf14abf5ded4e39048ea0dc80f44b"}
+        }
+      },
+      "4": {
+        "ingress_dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/07_seed_4_ingress_dla/smoke/run_1", "summary_sha256": "f916a0e486e19c937cdbd0e742e45a22977c66fe67d3ebc787be3994bddd8469", "per_step_sha256": "721fb545338a0cb78a60e235b0f9dd2adcfdef7c6a8a1d668056ec50e9cdcc88", "per_task_sha256": "a4a40a9d822f04bf7a801207e222ab6978339be9d4854522adf3f43af2974750", "checksums_sha256": "88c29b92e0cf419e1d50a812e59255b65e5843cbeecccd9a30e13cbf0ed556d9"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/07_seed_4_ingress_dla/full/run_1", "summary_sha256": "3601ddb52a2b3aa6bb0795755371c34bd36bb6dddfcca5391687098c1741ccbe", "per_step_sha256": "f6093cad48b2c8cb4976305e6e913eb3c2f17634678b3f883e2aa34ecb744fbd", "per_task_sha256": "28f5fb7ef9cf43ec9318be45671dbc03bba77678f504185843a22ce243a82636", "checksums_sha256": "1965f178d8da0b388f9796e58843d383bf2d6e7108c9705732e221fa52178c5d"}
+        },
+        "dla": {
+          "smoke": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/08_seed_4_dla/smoke/run_1", "summary_sha256": "43a510187d278815552ebf8a7ccad3a64afe8eb4324e5865d795d97b6d022352", "per_step_sha256": "be0a5643ad7a565bf8c6ddf7c0aff505f35975eb33ebcb00d931fe21e4a34a14", "per_task_sha256": "b3f4352669ade2c231968079f04df9a62a9b9ea75c2e8b1a59b5feecc1d81b7d", "checksums_sha256": "0f63de0bb5909de8793577d1b244c1504548673a804b23985cb1de5a38eeaedc"},
+          "full": {"root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/08_seed_4_dla/full/run_1", "summary_sha256": "d63e068080a2d6fc3f13d2b8a83229af8410c011e3cff8634ae08cb8214c22fe", "per_step_sha256": "a522c7c144e7ff4fe144367f39922bb6e537bc6ecb1537a28487757d81236686", "per_task_sha256": "0bd637d85853794b0e5083266c810fa226f776ac209f5bf81a4290d4c160676c", "checksums_sha256": "7ec82b8f1326fccc8de5eaf6f939da71f02fd9ddf5dcef5c56e8e43a6e3ad562"}
+        }
+      }
+    }
+  },
+  "pre_review_evidence": {
+    "scientific_trace_used": false,
+    "synthetic_existing_mode_no_effect": {
+      "path": "/Users/akashx/AntigravityTest/e2d_preflight/e2d-existing-mode-no-effect-v1/validation.json",
+      "sha256": "d085ba48d45b727030d8e5128695a2b84e5144de89a0282ed86d69794c46bb9f",
+      "status": "passed",
+      "modes": ["off", "jsq", "ingress_dla", "dla"]
+    },
+    "synthetic_production_path_probe": {
+      "path": "/Users/akashx/AntigravityTest/e2d_preflight/e2d-per-task-production-probe-v1/validation.json",
+      "sha256": "4a14f0c87e27a81440dced637390df49aafc4a6b3a3d6ca8f968cfdca805b497",
+      "status": "passed"
+    }
+  },
+  "existing_mode_no_effect_contract": {
+    "modes": ["off", "jsq", "ingress_dla", "dla"],
+    "synthetic_parent_candidate_probe_passed": true,
+    "post_approval_trace_replays": 8,
+    "comparison": "matching E2c smoke run 1 for each fleet seed and ingress_dla/dla arm",
+    "exact": "scientific summary excluding wall_s and all existing per-step/per-task arrays in shape, dtype and bytes",
+    "allowed_differences": ["wall-clock time", "source commit identity metadata"]
+  },
+  "cross_arm_contract": {
+    "reference_arms": ["ingress_dla", "dla"],
+    "exact": ["offered count", "task_active", "task_type", "slot_tier", "slot_is_ev", "veh_action", "actor action counts"],
+    "logit_diagnostic": {
+      "field": "veh_actor_logits",
+      "absolute_tolerance": 0.00001,
+      "relative_tolerance": 0.0,
+      "interpretation": "shape and float32 dtype must match; tolerance cannot excuse any action difference and cannot be widened after outcomes"
+    }
+  },
+  "smoke_gate": {
+    "serial_repeats_per_new_cell": 2,
+    "steps": 10,
+    "total_new_arm_runs": 8,
+    "order": [
+      {"smoke_index": 1, "cell_index": 1, "fleet_seed": 1, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 2, "cell_index": 1, "fleet_seed": 1, "arm": "per_task_dla", "repeat": 2},
+      {"smoke_index": 3, "cell_index": 2, "fleet_seed": 2, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 4, "cell_index": 2, "fleet_seed": 2, "arm": "per_task_dla", "repeat": 2},
+      {"smoke_index": 5, "cell_index": 3, "fleet_seed": 3, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 6, "cell_index": 3, "fleet_seed": 3, "arm": "per_task_dla", "repeat": 2},
+      {"smoke_index": 7, "cell_index": 4, "fleet_seed": 4, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 8, "cell_index": 4, "fleet_seed": 4, "arm": "per_task_dla", "repeat": 2}
+    ],
+    "requirements": ["scientific summaries exact excluding wall_s", "all arrays exact in shape, dtype and bytes", "exact task/fleet/action identity against both reused E2c arms", "actor logits within frozen diagnostic tolerance", "task/path/work conservation", "finite values", "no overwrite"]
+  },
+  "execution_phase_interface": {
+    "phase_order": ["existing_mode_replay_gate", "global_new_arm_smoke_gate", "ordered_full_cells"],
+    "replay": {
+      "argument": "--run-replay-gate",
+      "runs": 8,
+      "may_launch_new_arm_smoke": false,
+      "may_launch_full_cell": false
+    },
+    "smoke": {
+      "argument": "--run-smoke-gate",
+      "runs": 8,
+      "requires_global_replay_pass": true,
+      "may_launch_full_cell": false
+    },
+    "full": {
+      "argument": "--full-cell-index {1,2,3,4}",
+      "runs": 4,
+      "requires_global_replay_pass": true,
+      "requires_global_smoke_pass_and_all_eight_valid_smokes": true,
+      "reruns_smoke": false
+    }
+  },
+  "analysis": {
+    "primary_outcome": "deadline-met tasks / all offered tasks",
+    "primary_estimand": "offered attainment(per_task_dla) - offered attainment(ingress_dla)",
+    "secondary_batching_estimand": "offered attainment(per_task_dla) - offered attainment(dla)",
+    "fleet_seeds": [1, 2, 3, 4],
+    "summary": ["four raw paired differences", "negative/zero/positive counts", "mean", "sample SD using n-1", "SE", "two-sided 95% Student-t interval with df=3", "median", "minimum", "maximum"],
+    "primary_decisions": {
+      "interval_below_zero": "directional_deficit_persists_under_per_task_placement_within_bounded_draws",
+      "interval_above_zero": "directional_advantage_for_per_task_placement_within_bounded_draws",
+      "interval_includes_zero": "inconclusive_at_this_replication_size"
+    },
+    "secondary_metrics": ["offered and admitted deadline attainment", "deadline-met count", "total and V2I admitted tasks", "gate/cap rejection", "V2I unavailability", "offered/admitted/deadline-met latency", "energy per offered task", "forwarding count/share", "execution-share range", "maximum execution share", "RSUs with positive execution", "per-RSU selected/execution/gate rejection", "ingress-to-execution matrix"],
+    "per_substep_mechanism": ["active V2I candidates", "unique selected targets", "target switches in deterministic candidate order", "substeps with multiple/one target", "maximum candidates sent to one target"],
+    "task_level_pseudoreplication_allowed": false,
+    "seed0_allowed": false,
+    "equivalence_margin_allowed": false
+  },
+  "outputs": {
+    "raw_root": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1",
+    "no_overwrite": true,
+    "failed_evidence_retained": true,
+    "raw_files_enter_git": false,
+    "checksum_policy": "per-run SHA-256 ledger, immutable replay/cell validation, final raw evidence index and root checksum ledger"
+  },
+  "review_gate": {
+    "required_verdict": "APPROVE",
+    "allowed_verdicts": ["APPROVE", "APPROVE_WITH_MINOR_FIXES", "REQUEST_CHANGES", "BLOCK"],
+    "verdict_path": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1/independent_review/claude_review_verdict_v2.json",
+    "exact_identities": ["TrafficTwin pre-run HEAD", "vec_env candidate commit", "manifest SHA-256"],
+    "trace_run_forbidden_before_exact_approve": true
+  },
+  "compute_and_storage": {
+    "e2c_observed_smoke_runs": 16,
+    "e2c_observed_smoke_wall_seconds": 344.7,
+    "e2c_max_ten_step_wall_seconds": 32.2,
+    "projected_ten_step_wall_seconds": 35.0,
+    "e2c_max_full_wall_seconds": 8901.2,
+    "per_task_runtime_safety_factor": 2.0,
+    "projected_per_task_full_wall_seconds": 17802.4,
+    "projected_total_evaluator_wall_seconds": 71769.6,
+    "projected_total_evaluator_wall_hours": 19.936,
+    "maximum_evaluator_wall_seconds": 108000,
+    "e2c_max_full_output_bytes": 209646344,
+    "projected_per_task_full_output_bytes": 210000000,
+    "projected_ten_step_output_bytes": 700000,
+    "projected_total_output_bytes": 851200000,
+    "minimum_initial_free_bytes": 1702400000,
+    "initial_observed_free_bytes": 260167901184,
+    "free_space_rule": "before every full cell require free bytes at least twice projected remaining raw output",
+    "runtime_rule": "accepted evaluator wall plus conservative remaining projection must not exceed 108000 seconds",
+    "serial_execution_only": true
+  },
+  "stop_rules": [
+    "closed E1/E2/E2b/E2c commit, manifest, reused file or root checksum drift",
+    "manifest changes after first trace replay",
+    "TrafficTwin, vec_env, tos-data, evaluator, helper, vec_jax, actor, trace, Python, package, backend or device identity mismatch",
+    "independent verdict is not exact APPROVE for all frozen identities",
+    "global replay gate is not passed before the global smoke gate",
+    "global smoke gate status or any of its eight declared smoke records is absent, failed or invalid before a full cell",
+    "an existing mode differs in synthetic or post-approval trace replay evidence",
+    "new mode adds RNG, changes actor/action stream, selects a common broadcast target, or updates temporary work for rejection",
+    "repeated smokes differ or task/fleet/action identity differs from reused E2c evidence",
+    "task accounting, path reconciliation, V2I work or vehicle work conservation fails",
+    "rejected work executes/forwards, silent loss, non-finite or unexplained negative value",
+    "cap, service, queue semantics, scaling, backhaul, seed, order or mode differs",
+    "output exists, failed cell is dropped, disk/time budget is unsafe or raw/private data enters Git",
+    "an unpredeclared arm, command, backend or code change is required"
+  ],
+  "claim_boundaries": {
+    "canonical_jsq_claim_allowed": false,
+    "task_level_significance_allowed": false,
+    "equivalence_or_noninferiority_allowed": false,
+    "population_or_manchester_wide_claim_allowed": false,
+    "ordinary_traffic_claim_allowed": false,
+    "physical_result_return_confirmed": false,
+    "physical_or_kubernetes_deployment_tested": false,
+    "universal_least_busy_or_general_controller_superiority_allowed": false
+  },
+  "permission_boundaries": {
+    "authorised_after_exact_approval": ["first, eight fixed existing-mode ten-step replay probes", "second, one global gate containing two serial ten-step per_task_dla smokes for each fleet seed 1-4", "third and only after all eight smokes pass, four serial 3600-step per_task_dla cells in fixed order", "matched analysis against exact reused E2c ingress_dla and dla records", "one private vec_env branch and draft PR", "one private TrafficTwin branch and draft PR"],
+    "forbidden": ["any trace run before exact approval", "seed 0 or seed outside 1-4", "new ingress_dla/dla full cells", "off/jsq/P2C/DLA-P2C/JIQ/randomized routing", "nonzero backhaul/E3", "another cap/service/backend/evaluator seed/trace/fleet family", "scaling/prediction/learning/retraining/action masking/RSU actor observation", "ordinary traffic/bus modelling", "merge or Randy-upstream push", "automatic follow-on study"],
+    "next_action": "independent exact-head pre-run review"
+  }
+}
