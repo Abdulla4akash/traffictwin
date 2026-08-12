@@ -341,3 +341,73 @@ def test_committed_file_digest_resolution() -> None:
     assert (
         e2b_report["sha256"] == "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83"
     )
+
+
+def test_mutated_ingress_gate_rejected_fabricated_value_fails() -> None:
+    """Fabricated ingress_dla gate_rejected_seed0 must fail numeric fidelity."""
+    data = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    ingress = next(s for s in mutated["strategies"] if s["id"] == "ingress_dla")
+    assert ingress["experiment_evidence"]["gate_rejected_seed0"] == 2071344
+    ingress["experiment_evidence"]["gate_rejected_seed0"] = 99999999
+    original_text = MATRIX_PATH.read_text(encoding="utf-8")
+    try:
+        MATRIX_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, (
+            "validator should fail on fabricated ingress_dla gate_rejected_seed0 99999999"
+        )
+        combined = result.stdout + result.stderr
+        assert "gate_rejected" in combined.lower() or "ingress_dla" in combined.lower()
+        assert "2071344" in combined or "gate" in combined.lower()
+    finally:
+        MATRIX_PATH.write_text(original_text, encoding="utf-8")
+
+
+def test_mutated_ingress_gate_swapped_to_dla_value_fails() -> None:
+    """Cross-arm swap: ingress_dla gate set to common-target dla gate 2373522 must fail."""
+    data = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    ingress = next(s for s in mutated["strategies"] if s["id"] == "ingress_dla")
+    assert ingress["experiment_evidence"]["gate_rejected_seed0"] == 2071344
+    # 2373522 is the authoritative dla (common-target) gate, not ingress_dla
+    ingress["experiment_evidence"]["gate_rejected_seed0"] = 2373522
+    original_text = MATRIX_PATH.read_text(encoding="utf-8")
+    try:
+        MATRIX_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, (
+            "validator should fail when ingress_dla gate is swapped to dla value 2373522"
+        )
+        combined = result.stdout + result.stderr
+        assert "ingress_dla" in combined.lower() or "gate" in combined.lower()
+        assert "2373522" in combined or "swapped" in combined.lower()
+    finally:
+        MATRIX_PATH.write_text(original_text, encoding="utf-8")
+
+
+def test_mutated_per_task_energy_assigned_dla_value_fails() -> None:
+    """Assigning dla seed-1 energy to per_task_dla cost.energy must fail."""
+    data = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    per_task = next(s for s in mutated["strategies"] if s["id"] == "per_task_dla")
+    original_energy = per_task["cost"]["energy"]
+    assert "0.473289672" in original_energy or "0.47328967193459526" in original_energy
+    # Swap per_task value to dla's seed-1 energy 0.47327269456939974
+    per_task["cost"]["energy"] = (
+        "Energy per offered at seed1 per_task 0.47327269456939974 "
+        "vs dla 0.47327269456939974 delta +0.000000000; "
+        "primary difference is deadline throughput, not energy."
+    )
+    original_text = MATRIX_PATH.read_text(encoding="utf-8")
+    try:
+        MATRIX_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, (
+            "validator should fail when per_task_dla energy is swapped to dla value"
+        )
+        combined = result.stdout + result.stderr
+        assert "per_task_dla" in combined.lower() or "per_task" in combined.lower()
+        assert "energy" in combined.lower() or "0.473289" in combined
+    finally:
+        MATRIX_PATH.write_text(original_text, encoding="utf-8")

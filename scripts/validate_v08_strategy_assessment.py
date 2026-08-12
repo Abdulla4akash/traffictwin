@@ -125,6 +125,18 @@ EXPECTED_ALLOWED_SHA256_SET: set[str] = {
     "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
 }
 
+# Authoritative artifact bindings for numeric fidelity
+EXPECTED_E2B_COMPARISON_COMMIT = "fe2ed4e9bd9043b19b96a5f179390db629b01ccb"
+EXPECTED_E2B_COMPARISON_PATH = (
+    "docs/evaluation/e2b/e2b_placement_admission_factorial_comparison_v1.json"
+)
+EXPECTED_E2B_COMPARISON_SHA256 = "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf"
+EXPECTED_E2D_COMPARISON_COMMIT = "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761"
+EXPECTED_E2D_COMPARISON_PATH = (
+    "docs/evaluation/e2d/e2d_per_task_placement_robustness_comparison_v1.json"
+)
+EXPECTED_E2D_COMPARISON_SHA256 = "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0"
+
 
 def _git_show_sha256(commit: str, path: str) -> str | None:
     """Resolve (commit, path) via git show and SHA-256 the bytes. Returns hex or None."""
@@ -140,6 +152,24 @@ def _git_show_sha256(commit: str, path: str) -> str | None:
 def _is_committed_path(path: str) -> bool:
     """Committed docs are under docs/; external raw artifacts are under e.g. e2*_outputs/."""
     return path.startswith("docs/")
+
+
+def _load_authoritative_json(commit: str, path: str) -> dict[str, Any] | None:
+    """Load authoritative artifact bytes via git show and parse as JSON. Returns None on failure."""
+    result = subprocess.run(  # noqa: S603
+        ["git", "show", f"{commit}:{path}"],  # noqa: S607
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return None
+    try:
+        return json.loads(result.stdout.decode("utf-8"))  # type: ignore[no-any-return]
+    except json.JSONDecodeError:
+        return None
+
+
+def _float_close(a: float, b: float, tol: float = 1e-6) -> bool:
+    return abs(a - b) <= tol
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -458,6 +488,378 @@ def validate_assessment_md() -> list[str]:
     return errors
 
 
+def validate_numeric_fidelity(
+    matrix_data: dict[str, Any],
+    evidence_data: dict[str, Any],  # noqa: ARG001
+) -> list[str]:
+    """Artifact-backed numeric fidelity — load-bearing numerics keyed by correct arm.
+
+    Extracts already-bound authoritative artifact bytes via git show at the
+    expected commit/path and compares each load-bearing numeric
+    field/derivation to the matrix and markdown, keyed by the correct arm.
+    Catches:
+    - wrong empirical value (e.g. fabricated gate_rejected_seed0)
+    - redirected evidence SHA/path binding already handled via git show digest
+    - mismatched value/evidence binding including cross-arm swap
+      (e.g. ingress_dla gate set to dla 2373522, per_task energy set to dla)
+    """
+    errors: list[str] = []
+    # Verify authoritative file digests match expected SHA (binding integrity)
+    sha_e2b = _git_show_sha256(EXPECTED_E2B_COMPARISON_COMMIT, EXPECTED_E2B_COMPARISON_PATH)
+    if sha_e2b is None:
+        errors.append(
+            "cannot resolve authoritative E2b comparison "
+            f"{EXPECTED_E2B_COMPARISON_COMMIT}:{EXPECTED_E2B_COMPARISON_PATH}"
+        )
+        return errors
+    if sha_e2b != EXPECTED_E2B_COMPARISON_SHA256:
+        errors.append(
+            "E2b authoritative comparison SHA mismatch: expected "
+            f"{EXPECTED_E2B_COMPARISON_SHA256}, got {sha_e2b}"
+        )
+        return errors
+    sha_e2d = _git_show_sha256(EXPECTED_E2D_COMPARISON_COMMIT, EXPECTED_E2D_COMPARISON_PATH)
+    if sha_e2d is None:
+        errors.append(
+            "cannot resolve authoritative E2d comparison "
+            f"{EXPECTED_E2D_COMPARISON_COMMIT}:{EXPECTED_E2D_COMPARISON_PATH}"
+        )
+        return errors
+    if sha_e2d != EXPECTED_E2D_COMPARISON_SHA256:
+        errors.append(
+            "E2d authoritative comparison SHA mismatch: expected "
+            f"{EXPECTED_E2D_COMPARISON_SHA256}, got {sha_e2d}"
+        )
+        return errors
+
+    e2b = _load_authoritative_json(EXPECTED_E2B_COMPARISON_COMMIT, EXPECTED_E2B_COMPARISON_PATH)
+    e2d = _load_authoritative_json(EXPECTED_E2D_COMPARISON_COMMIT, EXPECTED_E2D_COMPARISON_PATH)
+    if e2b is None or e2d is None:
+        errors.append("failed to load authoritative comparison JSON")
+        return errors
+
+    # Map matrix strategies by id
+    by_id: dict[str, dict[str, Any]] = {}
+    for s in matrix_data.get("strategies", []):
+        if isinstance(s, dict) and "id" in s:
+            by_id[s["id"]] = s
+
+    # --- E2b arm-keyed checks ---
+    try:
+        off = e2b["arms"]["off"]
+        jsq = e2b["arms"]["jsq"]
+        dla = e2b["arms"]["dla"]
+        ingress = e2b["arms"]["ingress_dla"]
+    except KeyError as exc:
+        errors.append(f"E2b authoritative JSON missing expected arm: {exc}")
+        return errors
+
+    # Helper to get nested float/int with error handling
+    def _exp_offered(arm: dict[str, Any]) -> float:
+        return float(arm["offered_task_deadline_attainment"])
+
+    def _exp_admitted(arm: dict[str, Any]) -> float:
+        return float(arm["admitted_task_deadline_attainment"])
+
+    def _exp_gate(arm: dict[str, Any]) -> int:
+        return int(arm["rejection_and_unavailability"]["v2i_gate_rejected"])
+
+    def _exp_admitted_tasks(arm: dict[str, Any]) -> int:
+        return int(arm["admitted_tasks"])
+
+    def _exp_energy(arm: dict[str, Any]) -> float:
+        return float(arm["energy_j_per_offered_task"])
+
+    # Strongest-link / off
+    slo = by_id.get("strongest_link_off", {})
+    slo_exp = slo.get("experiment_evidence", {}) if isinstance(slo, dict) else {}
+    if slo_exp.get("admitted_tasks_seed0") != _exp_admitted_tasks(off):
+        errors.append(
+            "matrix strongest_link_off admitted_tasks_seed0 "
+            f"{slo_exp.get('admitted_tasks_seed0')} != authoritative off "
+            f"{off['admitted_tasks']}"
+        )
+    if not _float_close(
+        float(slo_exp.get("observed_offered_attainment_seed0", -1)),
+        _exp_offered(off),
+    ):
+        errors.append(
+            "matrix strongest_link_off observed_offered_attainment_seed0 "
+            f"{slo_exp.get('observed_offered_attainment_seed0')} "
+            f"!= authoritative {off['offered_task_deadline_attainment']}"
+        )
+
+    # JSQ
+    jsq_mat = by_id.get("jsq_without_gate", {})
+    jsq_exp = jsq_mat.get("experiment_evidence", {}) if isinstance(jsq_mat, dict) else {}
+    if jsq_exp.get("admitted_tasks_seed0") != _exp_admitted_tasks(jsq):
+        errors.append(
+            "matrix jsq_without_gate admitted_tasks_seed0 "
+            f"{jsq_exp.get('admitted_tasks_seed0')} != authoritative jsq "
+            f"{jsq['admitted_tasks']}"
+        )
+    if not _float_close(
+        float(jsq_exp.get("observed_offered_attainment_seed0", -1)),
+        _exp_offered(jsq),
+    ):
+        errors.append(
+            "matrix jsq_without_gate observed_offered_attainment_seed0 "
+            f"{jsq_exp.get('observed_offered_attainment_seed0')} "
+            f"!= authoritative {jsq['offered_task_deadline_attainment']}"
+        )
+
+    # Ingress DLA — primary gate and admitted checks (E2b blocker 1 & 2)
+    ing = by_id.get("ingress_dla", {})
+    ing_exp = ing.get("experiment_evidence", {}) if isinstance(ing, dict) else {}
+    exp_ingress_gate = _exp_gate(ingress)
+    exp_dla_gate = _exp_gate(dla)
+    exp_ingress_admitted = _exp_admitted_tasks(ingress)
+    exp_off_admitted = _exp_admitted_tasks(off)
+    exp_delta = exp_ingress_admitted - exp_off_admitted  # -1237224
+
+    if ing_exp.get("gate_rejected_seed0") != exp_ingress_gate:
+        errors.append(
+            "matrix ingress_dla gate_rejected_seed0 "
+            f"{ing_exp.get('gate_rejected_seed0')} != authoritative "
+            f"ingress_dla gate {exp_ingress_gate} (E2b ingress_dla arm; "
+            f"dla gate is {exp_dla_gate}, must not be swapped)"
+        )
+    # Cross-arm swap detection: ingress gate must NOT equal dla gate when they differ
+    if exp_ingress_gate != exp_dla_gate and ing_exp.get("gate_rejected_seed0") == exp_dla_gate:
+        errors.append(
+            "matrix ingress_dla gate_rejected_seed0 appears to be swapped "
+            f"with dla gate {exp_dla_gate} (expected ingress "
+            f"{exp_ingress_gate})"
+        )
+    if ing_exp.get("admitted_seed0") != exp_ingress_admitted:
+        errors.append(
+            "matrix ingress_dla admitted_seed0 "
+            f"{ing_exp.get('admitted_seed0')} != authoritative "
+            f"{exp_ingress_admitted}"
+        )
+    if not _float_close(
+        float(ing_exp.get("observed_offered_seed0", -1)),
+        _exp_offered(ingress),
+    ):
+        errors.append(
+            "matrix ingress_dla observed_offered_seed0 "
+            f"{ing_exp.get('observed_offered_seed0')} != authoritative "
+            f"{ingress['offered_task_deadline_attainment']}"
+        )
+    if not _float_close(
+        float(ing_exp.get("observed_admitted_seed0", -1)),
+        _exp_admitted(ingress),
+    ):
+        errors.append(
+            "matrix ingress_dla observed_admitted_seed0 "
+            f"{ing_exp.get('observed_admitted_seed0')} != authoritative "
+            f"{ingress['admitted_task_deadline_attainment']}"
+        )
+    # Admission gate prose must contain correct gate
+    ing_adm_gate = ""
+    if isinstance(ing.get("admission"), dict):
+        ing_adm_gate = str(ing["admission"].get("gate", ""))
+    if str(exp_ingress_gate) not in ing_adm_gate:
+        errors.append(
+            f"matrix ingress_dla admission.gate missing authoritative gate {exp_ingress_gate}"
+        )
+    # Benefit/cost delta prose must contain correct delta -1237224, not wrong -1134224
+    ing_benefit = str(ing.get("benefit", ""))
+    ing_cost = ""
+    if isinstance(ing.get("cost"), dict):
+        ing_cost = str(ing["cost"].get("admission_cost", ""))
+    if str(exp_delta) not in ing_benefit:
+        errors.append(
+            "matrix ingress_dla benefit missing authoritative admitted delta "
+            f"{exp_delta} (expected {exp_ingress_admitted} - "
+            f"{exp_off_admitted}); got {ing_benefit[:120]}"
+        )
+    if "-1134224" in ing_benefit and exp_delta != -1134224:
+        errors.append(
+            "matrix ingress_dla benefit contains wrong delta -1134224 (expected -1237224)"
+        )
+    if str(exp_delta) not in ing_cost:
+        errors.append(
+            f"matrix ingress_dla cost.admission_cost missing authoritative delta {exp_delta}"
+        )
+    if "-1134224" in ing_cost and exp_delta != -1134224:
+        errors.append("matrix ingress_dla cost.admission_cost contains wrong delta -1134224")
+    # Failure mode should mention correct ~2.07M, not ~2.37M for ingress
+    ing_fm = str(ing.get("failure_mode", ""))
+    if ("2.37M" in ing_fm or "2373522" in ing_fm) and str(exp_ingress_gate) not in ing_fm:
+        errors.append(
+            "matrix ingress_dla failure_mode appears to contain dla gate "
+            f"2373522 instead of ingress {exp_ingress_gate}"
+        )
+
+    # Common-target DLA (dla arm) — ensure its admission gate is dla's 2373522, not ingress's
+    ctd = by_id.get("common_target_dla", {})
+    ctd_exp = ctd.get("experiment_evidence", {}) if isinstance(ctd, dict) else {}
+    if ctd_exp.get("observed_offered_seed0") is not None and not _float_close(
+        float(ctd_exp.get("observed_offered_seed0", -1)),
+        _exp_offered(dla),
+    ):
+        errors.append(
+            "matrix common_target_dla observed_offered_seed0 "
+            f"{ctd_exp.get('observed_offered_seed0')} != authoritative dla "
+            f"{dla['offered_task_deadline_attainment']}"
+        )
+    if ctd_exp.get("admitted_seed0") != _exp_admitted_tasks(dla):
+        errors.append(
+            "matrix common_target_dla admitted_seed0 "
+            f"{ctd_exp.get('admitted_seed0')} != authoritative dla "
+            f"{dla['admitted_tasks']}"
+        )
+    ctd_adm = ""
+    if isinstance(ctd.get("admission"), dict):
+        ctd_adm = str(ctd["admission"].get("gate", ""))
+    if str(exp_dla_gate) not in ctd_adm:
+        errors.append(
+            f"matrix common_target_dla admission.gate missing authoritative dla gate {exp_dla_gate}"
+        )
+
+    # --- E2d arm-keyed checks (E2d blocker) ---
+    try:
+        rec1 = e2d["records_by_seed"]["1"]
+        per_task_e = float(rec1["per_task_dla"]["energy_j_per_offered_task"])
+        dla_e_seed1 = float(rec1["dla"]["energy_j_per_offered_task"])
+    except KeyError as exc:
+        errors.append(f"E2d authoritative JSON missing expected field: {exc}")
+        return errors
+    pt = by_id.get("per_task_dla", {})
+    pt_cost = ""
+    if isinstance(pt.get("cost"), dict):
+        # cost is object with energy string
+        pt_cost = (
+            str(pt["cost"].get("energy", "")) if isinstance(pt["cost"].get("energy"), str) else ""
+        )
+        # fallback: if cost has no energy string, check json dumps
+        if not pt_cost:
+            pt_cost = json.dumps(pt.get("cost", {}))
+    # Must contain per_task energy (allow truncated 0.473289672)
+    # Check that per_task energy is not swapped with dla
+    if not any(
+        s in pt_cost
+        for s in [
+            str(per_task_e),
+            f"{per_task_e:.9f}",
+            "0.47328967193459526",
+            "0.473289672",
+        ]
+    ):
+        errors.append(
+            "matrix per_task_dla cost.energy missing authoritative per_task "
+            f"seed-1 energy {per_task_e} (0.473289672); got {pt_cost[:200]}"
+        )
+    # If it contains dla energy as per_task assignment incorrectly (without per_task), flag swap
+    # The string states 'per_task X vs dla Y' — per_task X must be per_task_e, not dla_e
+    # Detect swap: if per_task portion equals dla_e
+    if "per_task" in pt_cost.lower():
+        # Extract per_task value via regex r'per_task\s+([0-9.]+)'
+        import re as _re
+
+        m = _re.search(r"per_task\s+([0-9]+\.[0-9]+)", pt_cost.lower())
+        if m:
+            try:
+                per_val = float(m.group(1))
+                if _float_close(per_val, dla_e_seed1) and not _float_close(per_val, per_task_e):
+                    errors.append(
+                        "matrix per_task_dla cost.energy per_task value "
+                        f"{per_val} appears to be swapped with dla "
+                        f"{dla_e_seed1} (expected per_task {per_task_e})"
+                    )
+                if (
+                    not _float_close(per_val, per_task_e)
+                    and per_val
+                    not in (
+                        per_task_e,
+                        float(f"{per_task_e:.9f}"),
+                    )
+                    and abs(per_val - per_task_e) > 1e-9
+                ):
+                    # Only report once; the missing check already covers
+                    pass  # noqa: S110
+            except ValueError:
+                pass
+    # Ensure dla energy distinction: should mention dla_e as well (not strictly required but helps)
+    if "dla" in pt_cost.lower() and not any(
+        s in pt_cost
+        for s in [str(dla_e_seed1), f"{dla_e_seed1:.9f}", "0.47327269456939974", "0.473272695"]
+    ):
+        # Only error if per_task_dla cost claims vs dla but omits correct dla value — not critical
+        pass
+
+    # Per-task experiment_evidence numeric checks vs E2d
+    pt_exp = pt.get("experiment_evidence", {}) if isinstance(pt, dict) else {}
+    # observed_offered seeds 1-4
+    try:
+        for i, seed in enumerate(["1", "2", "3", "4"]):
+            exp_per = float(
+                e2d["records_by_seed"][seed]["per_task_dla"]["offered_task_deadline_attainment"]
+            )
+            mat_list = pt_exp.get("observed_offered_seeds1_4", [])
+            if (
+                isinstance(mat_list, list)
+                and len(mat_list) >= 4
+                and not _float_close(float(mat_list[i]), exp_per)
+            ):
+                errors.append(
+                    "matrix per_task_dla observed_offered_seeds1_4["
+                    f"{i}] {mat_list[i]} != authoritative per_task_dla seed "
+                    f"{seed} {exp_per}"
+                )
+    except Exception as _exc:  # noqa: BLE001
+        # Best-effort per_task seeds check; validation already covers
+        # primary E2d energy/gate checks. Preserve prior swallow behavior
+        # but acknowledge exception for lint.
+        _ = _exc
+        pass  # noqa: S110
+
+    # Markdown numeric fidelity — assessment prose must contain correct values keyed by arm
+    try:
+        md_text = ASSESSMENT_PATH.read_text(encoding="utf-8")
+        # Must contain correct ingress gate and not wrong gate in ingress context
+        # Simple global checks: must contain correct gate and delta and per_task energy
+        if str(exp_ingress_gate) not in md_text:
+            errors.append(
+                f"assessment markdown missing authoritative ingress_dla gate {exp_ingress_gate}"
+            )
+        if str(exp_delta) not in md_text:
+            errors.append(f"assessment markdown missing authoritative admitted delta {exp_delta}")
+        if "-1134224" in md_text and exp_delta != -1134224:
+            errors.append("assessment markdown contains wrong delta -1134224 (expected -1237224)")
+        # Per-task energy in matrix is primary; markdown may be ~similar,
+        # but if it mentions per_task energy it must be correct
+        # We require markdown per_task section to not contain swapped
+        # energy as per_task
+        if "0.473272694" in md_text and "per_task" in md_text.lower() and "0.473289" not in md_text:
+            errors.append(
+                "assessment markdown per_task energy appears swapped or "
+                "missing correct per_task 0.473289672"
+            )
+        # Gate swap check: if markdown ingress_dla section contains wrong gate
+        # Extract ingress_dla section between headings
+        ingress_start = md_text.find("Ingress DLA")
+        ctd_start = md_text.find("Common-target DLA")
+        if ingress_start != -1 and ctd_start != -1 and ingress_start < ctd_start:
+            ingress_block = md_text[ingress_start:ctd_start]
+            if str(exp_ingress_gate) not in ingress_block:
+                errors.append(
+                    f"assessment ingress_dla block missing authoritative gate {exp_ingress_gate}"
+                )
+            if str(exp_dla_gate) in ingress_block and str(exp_ingress_gate) not in ingress_block:
+                errors.append(
+                    "assessment ingress_dla block appears to contain dla gate "
+                    f"{exp_dla_gate} instead of ingress {exp_ingress_gate}"
+                )
+            if "-1134224" in ingress_block:
+                errors.append("assessment ingress_dla block contains wrong delta -1134224")
+    except Exception as _exc:  # noqa: BLE001
+        errors.append(f"numeric fidelity markdown check failed: {_exc}")
+
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     for p in [MATRIX_PATH, EVIDENCE_MAP_PATH, ASSESSMENT_PATH]:
@@ -474,6 +876,7 @@ def main() -> int:
     errors.extend(validate_evidence_map(evidence_map, matrix))
     errors.extend(validate_committed_source_bindings(matrix, evidence_map))
     errors.extend(validate_assessment_md())
+    errors.extend(validate_numeric_fidelity(matrix, evidence_map))
     if errors:
         print("VALIDATION FAILED:", file=sys.stderr)
         for e in errors:

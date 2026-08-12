@@ -148,7 +148,7 @@
       "authority": "Placement authority is degenerate (ingress). Admission authority is the DLA gate (infrastructure). This is the admission-only contrast to DLA; it holds placement fixed at strongest-link.",
       "admission": {
         "cap": "Same 2.5x/6220 cap check. In ingress_dla the cap rejection is driven by admitted queue length; at seed 0, v2i_cap_rejected = 0 (all 834k cap rejections off were replaced by gate rejections).",
-        "gate": "Exact existing DLA seq_offsets gate and three-iteration fixed-point reconciliation, now evaluated at ingress RSU. Gate rejected 2373522 tasks at seed 0 (E2b), retained selected ingress, actual_execution = -1, not enqueued, not forwarded. Strict backlog-only deadline comparison.",
+        "gate": "Exact existing DLA seq_offsets gate and three-iteration fixed-point reconciliation, now evaluated at ingress RSU. Gate rejected 2071344 tasks at seed 0 (E2b), retained selected ingress, actual_execution = -1, not enqueued, not forwarded. Strict backlog-only deadline comparison.",
         "caveat_inherited_timing": "In E2b the ingress_dla-minus-off admission contrast retains one inherited eligibility-timing difference: off uses its step-entry coarse saturation check, while ingress_dla recomputes against live backlog per substep. Completed off recorded 138 unavailable V2I attempts (~1.1e-5 per offered task); the raw admission contrast and interaction are therefore not perfectly isolated gate-only effects (E2b report Limitation). INFERENCE if ignored.",
         "honesty": "IMPLEMENTATION-VERIFIED FACT for gate path; RESEARCH-EVIDENCE FACT for counts; INFERENCE boundary for off contrast caveat."
       },
@@ -165,12 +165,12 @@
         "determinism": "Deterministic; no new randomness."
       },
       "determinism": "Deterministic. No new PRNG draw or changed key split. Direct E2b implementation adds only ingress_dla flag and reuses existing gate logic.",
-      "benefit": "Isolates the admission benefit under strongest-link. E2b seed 0: ingress_dla offered attainment 0.715773211 vs off 0.683619229 (+0.032153983) and admitted attainment 0.897826701 vs 0.766522526. E2c replication seeds 1-4: ingress_dla offered 0.720032771, 0.703688004, 0.702976484, 0.708874512 \u2014 consistently above paired dla (see common_target_dla). Gate admitted fewer tasks (-1134224 at seed 0 vs off) and reduced penalty-inclusive offered latency versus dla - jsq: DLA minus ingress_dla context. RESEARCH-EVIDENCE FACT for one plus four draws; tasks are not independent replicates.",
-      "failure_mode": "Gate is conservative: it rejects tasks whose backlog exceeds deadline, even though some might still depend on future draining and service variability. At 2.5x cap with 1x service, gate traded 355207 cap rejections (jsq) or 834k (off) for ~2.37M gate rejections at seed 0. Higher backed-off load or looser cap would change the trade. Gate uses backlog only, not predicted service or earliest completion.",
+      "benefit": "Isolates the admission benefit under strongest-link. E2b seed 0: ingress_dla offered attainment 0.715773211 vs off 0.683619229 (+0.032153983) and admitted attainment 0.897826701 vs 0.766522526. E2c replication seeds 1-4: ingress_dla offered 0.720032771, 0.703688004, 0.702976484, 0.708874512 \u2014 consistently above paired dla (see common_target_dla). Gate admitted fewer tasks (-1237224 at seed 0 vs off; 10424749 - 11661973) and reduced penalty-inclusive offered latency versus dla - jsq: DLA minus ingress_dla context. RESEARCH-EVIDENCE FACT for one plus four draws; tasks are not independent replicates.",
+      "failure_mode": "Gate is conservative: it rejects tasks whose backlog exceeds deadline, even though some might still depend on future draining and service variability. At 2.5x cap with 1x service, gate traded 355207 cap rejections (jsq) or 834k (off) for ~2.07M gate rejections (2071344) at seed 0. Higher backed-off load or looser cap would change the trade. Gate uses backlog only, not predicted service or earliest completion.",
       "cost": {
         "compute": "Fixed 1x service, no scaling.",
         "backhaul": "None (no forwarding).",
-        "admission_cost": "Fewer admitted tasks costs offered throughput but increases admitted conditional success. At seed 0, admitted 10424749 vs off 11661973 (-1134224). E2c seeds 1-4 similar: ~10.52M to 10.28M admitted vs dla ~10.20M/9.99M.",
+        "admission_cost": "Fewer admitted tasks costs offered throughput but increases admitted conditional success. At seed 0, admitted 10424749 vs off 11661973 (-1237224 = 10424749 - 11661973). E2c seeds 1-4 similar: ~10.52M to 10.28M admitted vs dla ~10.20M/9.99M.",
         "energy": "Energy per offered task near 0.468 J; gate does not materially change energy denominator but latency falls.",
         "honesty": "RESEARCH-EVIDENCE FACT for seed-wise counts; INFERENCE if universalised."
       },
@@ -192,7 +192,7 @@
         "admitted_seed0": 10424749,
         "admitted_v2i_seed0": 580907,
         "forwarded_share_seed0": 0.0,
-        "gate_rejected_seed0": 2373522,
+        "gate_rejected_seed0": 2071344,
         "admission_contrast_ingressdla_minus_off_seed0": 0.032153983,
         "e2c_seeds_1_4_offered": [
           0.720032771,
@@ -327,7 +327,7 @@
         "compute": "Fixed 1x service. Placement evaluation cost higher (per-task vs per-substep) but not measured as separate resource metric.",
         "backhaul": "Zero measured but 600k forwards amplify any nonzero backhaul latency vs 0 for ingress_dla and 234k for dla. Not tested.",
         "admission_cost": "Per_task_dla admitted 10594205 (seed1), 10378506 (seed2), 10342346 (seed3), 10367858 (seed4) \u2014 more than either ingress_dla (~10.5M/10.28M) or dla (~10.20M/9.99M). Gate rejections fewer than dla but more than none.",
-        "energy": "Energy per offered at seed1 per_task 0.473272694 vs dla 0.473272694 (similar); primary difference is deadline throughput, not energy.",
+        "energy": "Energy per offered at seed1 per_task 0.473289672 (0.47328967193459526) vs dla 0.473272695 (0.47327269456939974) delta +0.000016977; primary difference is deadline throughput, not energy.",
         "honesty": "RESEARCH-EVIDENCE FACT for offered attainment deltas; INFERENCE if forwarding cost assumed zero in deployment."
       },
       "experiment_evidence": {
