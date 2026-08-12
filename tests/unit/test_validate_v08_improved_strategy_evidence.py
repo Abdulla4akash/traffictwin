@@ -121,3 +121,102 @@ def test_replication_unit_not_task() -> None:
         reader = csv.DictReader(f)
         for row in reader:
             assert row["replication_unit"] in {"fleet_draw", "fleet_seed", "run"}
+
+
+def test_validator_rejects_wrong_e2b_artifact_path() -> None:
+    """Discriminating: E2b artifact paths are pinned; wrong path must fail."""
+    original_results = RESULTS.read_text()
+    try:
+        data = json.loads(original_results)
+        # Corrupt pinned E2b off arm artifact_path to ingress_dla path (the old bug)
+        for row in data["rows"]:
+            if row.get("figure_id") == "fig1_e2b_offered_attainment_off":
+                row["artifact_path"] = (
+                    "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1/full/ingress_dla/run_1"
+                )
+                break
+        RESULTS.write_text(json.dumps(data, indent=2))
+        result = run_validator()
+        assert result.returncode != 0, (
+            f"validator should fail on wrong E2b artifact path, got pass: {result.stdout}"
+        )
+        stderr = result.stderr + result.stdout
+        assert "artifact_path" in stderr, (
+            f"wrong artifact_path failure should mention artifact_path: {stderr}"
+        )
+    finally:
+        RESULTS.write_text(original_results)
+        restored = run_validator()
+        assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"
+
+
+def test_validator_rejects_json_csv_value_mismatch() -> None:
+    """Discriminating: JSON and CSV headline values must match on figure_id join."""
+    original_csv = FIGURE_CSV.read_text()
+    try:
+        lines = original_csv.splitlines()
+        header = lines[0]
+        cols = header.split(",")
+        mutated_lines = [header]
+        for line in lines[1:]:
+            # parse safely
+            import io
+
+            reader = csv.DictReader(io.StringIO(header + "\n" + line))
+            row_csv = next(reader)
+            if row_csv.get("figure_id") == "fig1_e2b_offered_attainment_off":
+                # perturb headline value
+                row_csv["value"] = "0.999999999"
+            writer_io = io.StringIO()
+            writer = csv.DictWriter(writer_io, fieldnames=cols)
+            writer.writerow(row_csv)
+            mutated_line = writer_io.getvalue().strip().splitlines()[-1]
+            mutated_lines.append(mutated_line)
+        FIGURE_CSV.write_text("\n".join(mutated_lines) + "\n")
+        result = run_validator()
+        assert result.returncode != 0, (
+            f"validator should fail on JSON/CSV value mismatch, got pass: {result.stdout}"
+        )
+        stderr = result.stderr + result.stdout
+        assert "value" in stderr.lower() or "join mismatch" in stderr.lower(), (
+            f"value mismatch failure should mention value/join: {stderr}"
+        )
+    finally:
+        FIGURE_CSV.write_text(original_csv)
+        restored = run_validator()
+        assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"
+
+
+def test_validator_rejects_json_csv_artifact_mismatch_via_join() -> None:
+    """Discriminating: JSON/CSV artifact_path join mismatch must fail even for non-E2b pinned rows."""  # noqa: E501
+    original_csv = FIGURE_CSV.read_text()
+    try:
+        lines = original_csv.splitlines()
+        header = lines[0]
+        cols = header.split(",")
+        mutated_lines = [header]
+        for line in lines[1:]:
+            import io
+
+            reader = csv.DictReader(io.StringIO(header + "\n" + line))
+            row_csv = next(reader)
+            if row_csv.get("figure_id") == "fig2_e2c_dla_minus_ingress_seed1":
+                row_csv["artifact_path"] = "/tmp/wrong_path/run_1"  # noqa: S108
+            writer_io = io.StringIO()
+            writer = csv.DictWriter(writer_io, fieldnames=cols)
+            writer.writerow(row_csv)
+            mutated_line = writer_io.getvalue().strip().splitlines()[-1]
+            mutated_lines.append(mutated_line)
+        FIGURE_CSV.write_text("\n".join(mutated_lines) + "\n")
+        result = run_validator()
+        assert result.returncode != 0, (
+            f"validator should fail on join artifact mismatch, got pass: {result.stdout}"
+        )
+        stderr = result.stderr + result.stdout
+        assert "artifact_path" in stderr or "join mismatch" in stderr.lower(), (
+            f"artifact join mismatch should mention artifact_path: {stderr}"
+        )
+    finally:
+        FIGURE_CSV.write_text(original_csv)
+        restored = run_validator()
+        assert restored.returncode == 0, f"validator should pass after restore: {restored.stderr}"

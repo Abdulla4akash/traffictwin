@@ -8,12 +8,18 @@ Checks:
 - every numeric row bound to code SHA, manifest hash, actor, trace, seed, artifact
 - replication unit is fleet_draw/run, never task
 - orphan numbers rejected
+- JSON and CSV rows joined on figure_id require identical value,
+  artifact path, seed identity
+- E2b arm artifact paths pinned to authoritative upstream paths
+- prose mechanism ranges validated (bounded observed min-max,
+  not unsupported ~0.04-0.06 / ~0.18-0.24)
 """
 
 from __future__ import annotations
 
 import csv
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -42,6 +48,22 @@ EXPECTED_COMMITS = {
 
 ACTOR_SHA = "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
 TRACE_SHA = "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+
+# Pinned authoritative E2b arm artifact paths
+EXPECTED_E2B_ARTIFACTS = {
+    "fig1_e2b_offered_attainment_off": (
+        "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/off/run_1"  # noqa: E501
+    ),
+    "fig1_e2b_offered_attainment_jsq": (
+        "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/jsq/run_1"  # noqa: E501
+    ),
+    "fig1_e2b_offered_attainment_dla": (
+        "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/dla/run_1"  # noqa: E501
+    ),
+    "fig1_e2b_offered_attainment_ingress_dla": (
+        "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1/full/ingress_dla/run_1"  # noqa: E501
+    ),
+}
 
 REQUIRED_ROW_FIELDS = [
     "figure_id",
@@ -154,6 +176,7 @@ def validate() -> None:
 
     # Validate each row binding
     csv_evidence_ids: set[str] = set()
+    json_by_id: dict[str, dict[str, object]] = {}
     if isinstance(rows, list):
         for i, row in enumerate(rows):
             prefix = f"results.json rows[{i}]"
@@ -203,8 +226,22 @@ def validate() -> None:
             if fid and fid not in figure_to_evidence:
                 # allow only if evidence_id matches mapping
                 pass
+            # collect for join validation
+            if isinstance(fid, str) and fid:
+                if fid in json_by_id:
+                    errors.append(f"results.json duplicate figure_id {fid!r}")
+                json_by_id[fid] = row
+            # pinned E2b artifact path check for JSON rows
+            if isinstance(fid, str) and fid in EXPECTED_E2B_ARTIFACTS:
+                expected_path = EXPECTED_E2B_ARTIFACTS[fid]
+                actual_path = row.get("artifact_path", "")
+                if actual_path != expected_path:
+                    errors.append(
+                        f"{prefix} artifact_path for {fid!r} must be {expected_path!r}, got {actual_path!r}"  # noqa: E501
+                    )
 
     # Validate figure CSV
+    csv_by_id: dict[str, dict[str, str]] = {}
     try:
         with FIGURE_CSV.open(newline="") as csv_file:
             reader = csv.DictReader(csv_file)
@@ -256,8 +293,79 @@ def validate() -> None:
                     int(r.get("fleet_seed", ""))
                 except Exception:
                     errors.append(f"{prefix} fleet_seed not int")
+                # evaluator_seed int
+                try:
+                    int(r.get("evaluator_seed", ""))
+                except Exception:
+                    errors.append(f"{prefix} evaluator_seed not int")
+                # collect for join validation
+                fid_csv = r.get("figure_id", "")
+                if fid_csv:
+                    if fid_csv in csv_by_id:
+                        errors.append(f"figure_data.csv duplicate figure_id {fid_csv!r}")
+                    csv_by_id[fid_csv] = r
+                # pinned E2b artifact path check for CSV rows
+                if fid_csv in EXPECTED_E2B_ARTIFACTS:
+                    expected_path = EXPECTED_E2B_ARTIFACTS[fid_csv]
+                    actual_path = r.get("artifact_path", "")
+                    if actual_path != expected_path:
+                        errors.append(
+                            f"{prefix} artifact_path for {fid_csv!r} must be {expected_path!r}, got {actual_path!r}"  # noqa: E501
+                        )
     except Exception as csv_exc:
         errors.append(f"figure_data.csv read error: {csv_exc}")
+
+    # Join validation: JSON and CSV rows on figure_id require identical value, artifact_path, seed identity  # noqa: E501
+    all_figure_ids = set(json_by_id.keys()) | set(csv_by_id.keys())
+    for fid in sorted(all_figure_ids):
+        if fid not in json_by_id:
+            errors.append(
+                f"join mismatch: figure_id {fid!r} present in CSV but missing in results.json"
+            )
+            continue
+        if fid not in csv_by_id:
+            errors.append(
+                f"join mismatch: figure_id {fid!r} present in results.json but missing in CSV"
+            )
+            continue
+        jrow = json_by_id[fid]
+        crow = csv_by_id[fid]
+        # value identical
+        try:
+            jval = float(jrow.get("value", float("nan")))  # type: ignore[arg-type]
+            cval = float(crow.get("value", float("nan")))
+            if not math.isclose(jval, cval, rel_tol=0, abs_tol=1e-12):
+                errors.append(
+                    f"join mismatch for {fid!r}: value differs JSON {jval!r} vs CSV {cval!r}"
+                )
+        except Exception as exc:
+            errors.append(f"join mismatch for {fid!r}: value comparison error: {exc}")
+        # artifact_path identical
+        jpath = str(jrow.get("artifact_path", ""))
+        cpath = str(crow.get("artifact_path", ""))
+        if jpath != cpath:
+            errors.append(
+                f"join mismatch for {fid!r}: artifact_path differs JSON {jpath!r} vs CSV {cpath!r}"
+            )
+        # seed identity: fleet_seed and evaluator_seed
+        try:
+            j_fleet = int(jrow.get("fleet_seed", -1))  # type: ignore  # noqa: E501
+            c_fleet = int(crow.get("fleet_seed", -2))
+            if j_fleet != c_fleet:
+                errors.append(
+                    f"join mismatch for {fid!r}: fleet_seed differs JSON {j_fleet!r} vs CSV {c_fleet!r}"  # noqa: E501
+                )
+        except Exception as exc:
+            errors.append(f"join mismatch for {fid!r}: fleet_seed comparison error: {exc}")
+        try:
+            j_eval = int(jrow.get("evaluator_seed", -1))  # type: ignore  # evaluator_seed present in JSON rows  # noqa: E501
+            c_eval = int(crow.get("evaluator_seed", -2))
+            if j_eval != c_eval:
+                errors.append(
+                    f"join mismatch for {fid!r}: evaluator_seed differs JSON {j_eval!r} vs CSV {c_eval!r}"  # noqa: E501
+                )
+        except Exception as exc:
+            errors.append(f"join mismatch for {fid!r}: evaluator_seed comparison error: {exc}")
 
     # Every figure cell must resolve to evidence identity
     for fid, eid in figure_to_evidence.items():
@@ -307,6 +415,61 @@ def validate() -> None:
             or "tasks are independent replicates" in lower_summary
         ):
             errors.append("summary.md appears to claim tasks as independent")
+
+    # Validate E2c execution-share prose mechanism ranges are correct bounded values
+    # Must contain corrected observed min-max and exact draws,
+    # and must NOT contain unsupported old ranges
+    if "0.061" not in summary_text or "0.073" not in summary_text:
+        errors.append("summary.md E2c ingress_dla execution-share range must contain 0.061–0.073")
+    if "0.237" not in summary_text or "0.242" not in summary_text:
+        errors.append("summary.md E2c dla execution-share range must contain 0.237–0.242")
+    # Exact draws must be present when fact-tagged
+    for draw_val in [
+        "0.061085",
+        "0.072754",
+        "0.070738",
+        "0.067369",
+        "0.242396",
+        "0.238025",
+        "0.238580",
+        "0.236705",
+    ]:
+        if draw_val not in summary_text:
+            errors.append(f"summary.md missing exact E2c draw value {draw_val}")
+    # Reject unsupported old ranges
+    if "~0.04" in summary_text or "~0.18" in summary_text:
+        errors.append("summary.md contains unsupported old E2c range ~0.04–0.06 / ~0.18–0.24")
+    if "0.04–0.06" in summary_text and "0.061" not in summary_text:
+        errors.append(
+            "summary.md contains unsupported ingress range 0.04–0.06 without corrected 0.061–0.073"
+        )
+    if "0.18–0.24" in summary_text:
+        # If old unqualified range appears without corrected prefix, flag
+        # Allow only if corrected 0.237–0.242 also present? But old string is distinct.
+        errors.append("summary.md contains unsupported dla range 0.18–0.24 (must be 0.237–0.242)")
+
+    # Validate mechanism_bindings in results.json structurally binds same corrected ranges
+    mech = results.get("mechanism_bindings", {})
+    if isinstance(mech, dict):
+        e2c_bind = str(mech.get("e2c_imbalance", ""))
+        if e2c_bind:
+            if "0.061" not in e2c_bind or "0.073" not in e2c_bind:
+                errors.append(
+                    "results.json mechanism_bindings.e2c_imbalance must contain 0.061–0.073"
+                )
+            if "0.237" not in e2c_bind or "0.242" not in e2c_bind:
+                errors.append(
+                    "results.json mechanism_bindings.e2c_imbalance must contain 0.237–0.242"
+                )
+            if (
+                "~0.04" in e2c_bind
+                or "~0.18" in e2c_bind
+                or "0.04–0.06" in e2c_bind
+                or "0.18–0.24" in e2c_bind
+            ):
+                errors.append(
+                    "results.json mechanism_bindings.e2c_imbalance contains unsupported old range"
+                )
 
     # Check index standing fields
     for eid, ent in index.get("evidence_identities", {}).items():

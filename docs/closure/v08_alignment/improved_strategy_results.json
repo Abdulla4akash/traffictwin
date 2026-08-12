@@ -42,7 +42,7 @@
       "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
       "fleet_seed": 0,
       "evaluator_seed": 0,
-      "artifact_path": "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1/full/ingress_dla/run_1",
+      "artifact_path": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/off/run_1",
       "replication_unit": "fleet_draw",
       "uncertainty": "one_draw_descriptive_no_interval",
       "standing": "RESEARCH-EVIDENCE FACT"
@@ -286,7 +286,7 @@
   },
   "mechanism_bindings": {
     "e2b_forwarding": "ingress_dla forwarded 0; dla forwarded 232729 (83.5% of admitted V2I); jsq forwarded 2067204 (90%); all bound to manifest 9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91; code fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
-    "e2c_imbalance": "ingress_dla execution_share_range ~0.06; dla execution_share_range ~0.24; bound to manifest fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+    "e2c_imbalance": "ingress_dla execution_share_range 0.061–0.073 (exact draws 0.061085, 0.072754, 0.070738, 0.067369); dla execution_share_range 0.237–0.242 (exact draws 0.242396, 0.238025, 0.238580, 0.236705); bound to manifest fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
     "e2d_per_substep": "per_task_dla recomputes argmin(effective_busy_ms) per task in padded vehicle-slot order; max unique targets per nonempty substep mean >1; bound to manifest f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
   },
   "limitations": "All findings are bounded to: one Manchester incident hour (2024-03-15 20:00-21:00), one provisional uk2030 fleet, fixed evaluator_seed 0, waiting-room cap 2.5x (6220 tasks/RSU), 1x service, zero backhaul, frozen 17-dim actor that does not observe current RSU load and does not select execution RSU. No ordinary-traffic control, no physical/Kubernetes deployment, no retraining, no population-wide generalisation. Admitted findings are RESEARCH-EVIDENCE FACT; any broader inference is INFERENCE/PROVISIONAL and EXTERNAL DECISION REQUIRED."
