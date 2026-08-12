@@ -76,13 +76,17 @@ def main() -> None:
         if "DRAFT / NOT EFFECTIVE" not in text:
             errors.append(f"{name} missing 'DRAFT / NOT EFFECTIVE'")
 
-    # Validator must reject effective-v2 wording: if amendment claims effective without DRAFT
+    # Validator must reject effective-v2 wording: if amendment claims effective
+    # without DRAFT
     # We check that amendment does NOT contain an effective claim that bypasses DRAFT.
     # The draft packet contains DRAFT / NOT EFFECTIVE; if that phrase is absent we already error.
-    # Additionally flag if amendment contains 'is effective' or 'EFFECTIVE AMENDMENT' without being DRAFT.
+    # Additionally flag if amendment contains 'is effective' or
+    # 'EFFECTIVE AMENDMENT' without being DRAFT.
     # Since DRAFT / NOT EFFECTIVE is required, any standalone effective is suspicious.
-    # Simple rule: if DRAFT / NOT EFFECTIVE is absent, it's already a failure (discriminating mutation).
-    # No extra check needed beyond presence, but we also ensure packet does not contain forbidden approval claim.
+    # Simple rule: if DRAFT / NOT EFFECTIVE is absent, it's already a
+    # failure (discriminating mutation).
+    # No extra check needed beyond presence, but we also ensure packet does
+    # not contain forbidden approval claim.
     forbidden_phrases = [
         "has approved",
         "has been approved",
@@ -118,10 +122,8 @@ def main() -> None:
     normalized_packet = packet_text.lower().replace(" ", "").replace("\n", "")
     for topic in RANDY_SIX_TOPICS:
         norm_topic = topic.lower().replace(" ", "").replace("\n", "")
-        if norm_topic not in normalized_packet:
-            # fallback to simple lower check
-            if topic.lower() not in packet_text.lower():
-                errors.append(f"packet missing Randy topic '{topic}'")
+        if norm_topic not in normalized_packet and topic.lower() not in packet_text.lower():
+            errors.append(f"packet missing Randy topic '{topic}'")
     for rid in RANDY_IDS:
         if rid not in packet_text:
             errors.append(f"packet missing Randy ask ID {rid}")
@@ -140,22 +142,24 @@ def main() -> None:
         errors.append("amendment missing PROVISIONAL_PENDING_SANDRA")
 
     # 8. No question presupposes answer - check that asks are questions (contain ?)
-    # Count question marks in Sandra and Randy sections
-    sandra_section = packet_text[packet_text.find("SQ-SANDRA-01") :]
     # Simple heuristic: each ask ID should be followed by a '?' nearby
     for sid in SANDRA_IDS:
         idx = packet_text.find(sid)
         if idx != -1:
             snippet = packet_text[idx : idx + 1500]
             if "?" not in snippet:
-                errors.append(f"packet Sandra ask {sid} does not contain a neutral question (no '?')")
+                errors.append(
+                    f"packet Sandra ask {sid} does not contain a neutral question (no '?')"
+                )
 
     for rid in RANDY_IDS:
         idx = packet_text.find(rid)
         if idx != -1:
             snippet = packet_text[idx : idx + 1500]
             if "?" not in snippet:
-                errors.append(f"packet Randy ask {rid} does not contain a neutral question (no '?')")
+                errors.append(
+                    f"packet Randy ask {rid} does not contain a neutral question (no '?')"
+                )
 
     # 9. Machine-readable decision register: JSON validity and required fields
     try:
@@ -175,19 +179,33 @@ def main() -> None:
     # Check frozen seven
     frozen = data.get("unresolved_decisions_frozen_seven", [])
     if len(frozen) != 7:
-        errors.append(f"register unresolved_decisions_frozen_seven must have 7 entries, got {len(frozen)}")
+        errors.append(
+            f"register unresolved_decisions_frozen_seven must have 7 entries, got {len(frozen)}"
+        )
     for entry in frozen:
-        for field in ("source_class", "decision_owner", "current_standing", "provisional_tag", "mapped_asks"):
+        for field in (
+            "source_class",
+            "decision_owner",
+            "current_standing",
+            "provisional_tag",
+            "mapped_asks",
+        ):
             if field not in entry:
-                errors.append(f"register frozen entry {entry.get('id', '?')} missing field '{field}'")
+                errors.append(
+                    f"register frozen entry {entry.get('id', '?')} missing field '{field}'"
+                )
 
     operational = data.get("operational_questions_eight", [])
     if len(operational) != 8:
-        errors.append(f"register operational_questions_eight must have 8 entries, got {len(operational)}")
+        errors.append(
+            f"register operational_questions_eight must have 8 entries, got {len(operational)}"
+        )
     for entry in operational:
         for field in ("source_class", "decision_owner", "current_standing", "provisional_tag"):
             if field not in entry:
-                errors.append(f"register operational entry {entry.get('id', '?')} missing field '{field}'")
+                errors.append(
+                    f"register operational entry {entry.get('id', '?')} missing field '{field}'"
+                )
 
     sandra_asks = data.get("sandra_asks_five", [])
     if len(sandra_asks) != 5:
@@ -224,7 +242,7 @@ def main() -> None:
     print(f"  Register: {REGISTER.relative_to(ROOT)}")
     print(f"  Frozen seven: {len(FROZEN_SEVEN)} mapped")
     print(f"  Operational eight: {len(OPERATIONAL_EIGHT)} mapped")
-    print(f"  Sandra asks: 5  Randy asks: 6")
+    print("  Sandra asks: 5  Randy asks: 6")
 
 
 if __name__ == "__main__":

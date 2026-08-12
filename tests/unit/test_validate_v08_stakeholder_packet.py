@@ -5,8 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[2]
 VALIDATOR = ROOT / "scripts/validate_v08_stakeholder_packet.py"
 PACKET = ROOT / "docs/closure/v08_alignment/stakeholder_confirmation_packet.md"
@@ -14,8 +12,8 @@ AMENDMENT = ROOT / "docs/closure/v08_alignment/proposed_requirements_amendment_v
 REGISTER = ROOT / "docs/closure/v08_alignment/stakeholder_decision_register.json"
 
 
-def run_validator() -> subprocess.CompletedProcess:
-    result = subprocess.run(
+def run_validator() -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(  # noqa: S603 -- fixed sys.executable and repo validator path
         [sys.executable, str(VALIDATOR)],
         capture_output=True,
         text=True,
@@ -24,13 +22,13 @@ def run_validator() -> subprocess.CompletedProcess:
     return result
 
 
-def test_validator_passes_on_commit():
+def test_validator_passes_on_commit() -> None:
     result = run_validator()
     assert result.returncode == 0, f"validator failed: {result.stderr}\n{result.stdout}"
     assert "PASS" in result.stdout
 
 
-def test_all_required_files_exist():
+def test_all_required_files_exist() -> None:
     for p in [
         PACKET,
         AMENDMENT,
@@ -41,29 +39,29 @@ def test_all_required_files_exist():
         assert p.exists(), f"missing {p}"
 
 
-def test_packet_contains_draft_not_effective():
+def test_packet_contains_draft_not_effective() -> None:
     text = PACKET.read_text(encoding="utf-8")
     assert "DRAFT / NOT EFFECTIVE" in text
 
 
-def test_amendment_contains_draft_not_effective():
+def test_amendment_contains_draft_not_effective() -> None:
     text = AMENDMENT.read_text(encoding="utf-8")
     assert "DRAFT / NOT EFFECTIVE" in text
 
 
-def test_packet_contains_all_frozen_seven():
+def test_packet_contains_all_frozen_seven() -> None:
     text = PACKET.read_text(encoding="utf-8")
     for i in range(1, 8):
         assert f"UD-00{i}" in text, f"missing UD-00{i}"
 
 
-def test_packet_contains_all_operational_eight():
+def test_packet_contains_all_operational_eight() -> None:
     text = PACKET.read_text(encoding="utf-8")
     for i in range(1, 9):
         assert f"OQ-00{i}" in text, f"missing OQ-00{i}"
 
 
-def test_packet_contains_sandra_five_and_randy_six():
+def test_packet_contains_sandra_five_and_randy_six() -> None:
     text = PACKET.read_text(encoding="utf-8")
     for sid in [f"SQ-SANDRA-0{i}" for i in range(1, 6)]:
         assert sid in text, f"missing {sid}"
@@ -71,7 +69,7 @@ def test_packet_contains_sandra_five_and_randy_six():
         assert rid in text, f"missing {rid}"
 
 
-def test_register_machine_readable():
+def test_register_machine_readable() -> None:
     data = json.loads(REGISTER.read_text(encoding="utf-8"))
     assert data["base_sha"] == "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6"
     assert data["baseline"]["amendment_v2_standing"] == "DRAFT / NOT EFFECTIVE"
@@ -92,14 +90,14 @@ def test_register_machine_readable():
     assert len(data["randy_asks_six"]) == 6
 
 
-def test_no_effective_claim_in_packet():
+def test_no_effective_claim_in_packet() -> None:
     text = PACKET.read_text(encoding="utf-8")
     # Packet must not claim an effective amendment
     assert "has approved" not in text.lower()
     assert "has been approved" not in text.lower()
 
 
-def test_s035_handling_present():
+def test_s035_handling_present() -> None:
     text = PACKET.read_text(encoding="utf-8")
     assert "S-035" in text
     assert "S-035-A" in text
@@ -111,13 +109,13 @@ def test_s035_handling_present():
         assert "PROVISIONAL_PENDING_SANDRA" in inv["standing"]
 
 
-def test_provisional_tags_present():
+def test_provisional_tags_present() -> None:
     text = PACKET.read_text(encoding="utf-8")
     assert "PROVISIONAL_PENDING_SANDRA" in text
     assert "PROVISIONAL_PENDING_RANDY" in text
 
 
-def test_classification_labels_present():
+def test_classification_labels_present() -> None:
     text = PACKET.read_text(encoding="utf-8")
     for label in [
         "SOURCE-DERIVED FACT",
