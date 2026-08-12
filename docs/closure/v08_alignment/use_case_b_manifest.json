@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0.0",
+  "lane": "04",
+  "feature": "ITS service case B — deadline-aware VEC service",
+  "campaign": "v08-requirements-closure",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "branch": "agent/v08-closure-lane04-vec-service-case-v1",
+  "requirement_binding": {
+    "requirement_id": "TT-REQ-008",
+    "title": "Comparative infrastructure-side RSU load-management investigation",
+    "canonical_wording": "TrafficTwin shall, if the late RSU research direction is confirmed, support comparison of the existing vehicle-side offloading arrangement with a deterministic/rule-based infrastructure-side load-management approach and a separately defined learned scheduling/load-management approach, identifying the operating conditions in which each approach performs better.",
+    "priority": "SHOULD",
+    "requirement_type": "VALIDATION",
+    "campaign_status": "PARTIALLY_MET",
+    "open_decision": true,
+    "status_note": "S-035 / SANDRA-DIRECT-BODY-2026-08-04 raises direct source confidence for the RSU load-management problem and requested investigations A/B/C, but does not change the SHOULD priority or silently amend the frozen Negotiated Version 1. Directions A/B/C remain requested investigations / proposed directions / hypothesised outcomes, not mandatory assessed implementations without additional authoritative evidence."
+  },
+  "sources": [
+    {
+      "id": "FINAL_AUDIT",
+      "path": ".harness/context/sources/FINAL_AUDIT__FINAL_TRAFFICTWIN_V08_AUDIT.md",
+      "sha256": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+      "standing": "FINAL_NEGOTIATED_REQUIREMENTS_AUDIT"
+    },
+    {
+      "id": "NEGOTIATED_V1_WHOLE_FILE",
+      "path": ".harness/context/sources/NEGOTIATED_V1_WHOLE_FILE__canonical_baseline_v1.md",
+      "sha256": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+      "standing": "FROZEN_REQUIREMENTS_BASELINE_CONTAINER",
+      "canonical_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595"
+    },
+    {
+      "id": "RESEARCH_AUDIT_SEMANTIC_CONTRACT",
+      "path": ".harness/context/sources/RESEARCH_AUDIT_SEMANTIC_CONTRACT__TrafficTwin_research_audit_2026-08-07.md",
+      "sha256": "c7e01197160cb43db5f35bf804e6aa2beae6272a5915a1581369bdf0ec284645",
+      "standing": "ORIGINAL_RESEARCH_AUDIT_AND_SEMANTIC_CONTRACT"
+    },
+    {
+      "id": "AUDIT_SOURCE_INDEX",
+      "path": ".harness/context/sources/AUDIT_SOURCE_INDEX__source_index.md",
+      "sha256": "7ce9b43250d8b72e3c1aa9e0bbbc369b251bf7b7aedcae39ea8ed8cdda860d24",
+      "standing": "AUDIT_SOURCE_INDEX"
+    },
+    {
+      "id": "S-007",
+      "path": ".harness/context/sources/S-007__MSc Students QnA.docx",
+      "sha256": "e8dbbdfa43995870b7e79b8de00dd5e3d73d2988a3846c5bac178bb6b3ab4ec4",
+      "standing": "DIRECT_RANDY_QA"
+    },
+    {
+      "id": "S-035 / SANDRA-DIRECT-BODY-2026-08-04",
+      "path": ".harness/context/sources/S-035__sandra-direct-email.md",
+      "sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed",
+      "standing": "DIRECT_SUPERVISOR_SOURCE_BODY",
+      "supersedes": "SRC-010 for overlapping body content only; does not establish timestamp, message-id, transport headers, or Outlook provenance"
+    },
+    {
+      "id": "PRODUCT_DESIGN_V2",
+      "path": ".harness/context/sources/PRODUCT_DESIGN_V2__TrafficTwin_Product_Design_Document_V2.docx",
+      "sha256": "f45a9449bab70dde579a35ffe4f8e00eeca25d02ee2f6b68b16583816d524045",
+      "standing": "CLASS_D_PRODUCT_DESIGN_PROPOSAL"
+    }
+  ],
+  "implementation_evidence": {
+    "base_commit": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+    "v4_integration_receipt": "docs/quality/v4_final_integration.md",
+    "v4_receipt_blob_sha256": "12ae986620a96794c807246376aceb14bcd7d1424bfa24dc82f3c010d90748de",
+    "pr44_head": "0442905cb06022c050a87c6fc8052fb6a6e68577",
+    "pr44_merge": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6"
+  },
+  "vocabulary": {
+    "approved": [
+      {
+        "term": "vehicle mode",
+        "definition": "Actor output: Local, V2I, or V2V. Actor does not output RSU identity.",
+        "label": "SOURCE-DERIVED FACT"
+      },
+      {
+        "term": "ingress RSU",
+        "definition": "RSU that first receives the task via the radio link selected by the environment from the actor mode.",
+        "label": "RESEARCH-EVIDENCE FACT"
+      },
+      {
+        "term": "execution RSU",
+        "definition": "RSU where the task queues and receives compute service; may differ from ingress RSU after forwarding.",
+        "label": "RESEARCH-EVIDENCE FACT"
+      },
+      {
+        "term": "admission",
+        "definition": "Waiting-room ceiling check (MAX_CONCURRENT / rsu-cap-per-veh / rsu-cap-abs). Rejected tasks never enter queue, no retry or re-forwarding.",
+        "label": "SOURCE-DERIVED FACT"
+      },
+      {
+        "term": "placement",
+        "definition": "Infrastructure selection of execution RSU for admitted tasks (strongest-link, JSQ, P2C, DLA). Distinct from admission and scaling.",
+        "label": "RESEARCH-EVIDENCE FACT"
+      },
+      {
+        "term": "scaling",
+        "definition": "Per-RSU compute service-rate adjustment: fixed 1x, static 3x, or reactive Kubernetes-style resource-scaling simulation. Not a real Kubernetes deployment.",
+        "label": "RESEARCH-EVIDENCE FACT"
+      },
+      {
+        "term": "forwarding",
+        "definition": "Infrastructure transfer from ingress RSU to execution RSU with backhaul delay/cost (one-hop, full-mesh).",
+        "label": "IMPLEMENTATION-VERIFIED FACT"
+      },
+      {
+        "term": "service work",
+        "definition": "Compute processing at execution RSU at current multiplier.",
+        "label": "RESEARCH-EVIDENCE FACT"
+      },
+      {
+        "term": "return",
+        "definition": "Delivery of computed result toward vehicle, distinct from compute completion.",
+        "label": "RESEARCH-EVIDENCE FACT"
+      },
+      {
+        "term": "deadline assessment",
+        "definition": "Comparison of end-to-end latency against task deadline to produce deadline_success / deadline_miss.",
+        "label": "RESEARCH-EVIDENCE FACT"
+      }
+    ],
+    "provisional": [
+      "AI-based Kubernetes",
+      "AI-based infrastructure/resource control",
+      "learned infrastructure dispatcher"
+    ],
+    "unavailable": [
+      "vehicle-observable RSU load/capacity channel in frozen actor observation"
+    ],
+    "mandatory_distinctions": [
+      "vehicle mode != ingress RSU != execution RSU",
+      "admission != placement != scaling",
+      "forwarded != compute_completed != returned != deadline_success",
+      "waiting-room capacity != compute power",
+      "simulated Kubernetes-style scaling != Kubernetes deployment"
+    ]
+  },
+  "lifecycle": {
+    "ordered_stages": [
+      "offered tasks",
+      "frozen actor mode choice",
+      "ingress",
+      "admission",
+      "deterministic target selection",
+      "forwarding",
+      "service work",
+      "return",
+      "deadline assessment",
+      "comparison output"
+    ],
+    "counters_distinct": ["forwarded", "compute_completed", "returned", "deadline_success"],
+    "conservation": "offered = admitted + rejected; work conserved under substep-queue=sequential + rsu-cap-mode=reject",
+    "headline_metric": "completion_offered = deadline_success / offered",
+    "conditional_metric": "completion_admitted = deadline_success / admitted (diagnostic only)"
+  },
+  "authority_boundary": {
+    "vehicle_actor": "Chooses only Local/V2I/V2V. Does NOT choose exact RSU. Frozen MAPPO 17D seed-100 lacks RSU load awareness (best_rsu_load_frac computed but omitted from observation).",
+    "infrastructure_dispatcher": "Selects execution RSU via strongest-link / JSQ / P2C / DLA / DLA-P2C downstream of actor mode; handles forwarding; controls scaling. DLA includes admission feasibility rule — not a pure placement effect.",
+    "admission_gate": "Per-RSU waiting-room ceiling; physical reject semantics; terminal rejection without queue entry.",
+    "prohibited_claim": "Do not credit MAPPO with exact RSU choice without exact checkpoint/observation evidence"
+  },
+  "s035_support": {
+    "supports": [
+      "RSU queue/waiting-room capacity rather than compute power",
+      "plausible fail-fast / rejection-accounting explanation for reduced latency without improved deadline attainment",
+      "no explicit current RSU load/capacity awareness in trained vehicle policy",
+      "disproportionate load at congested-road RSUs while farther RSUs may be idle",
+      "infrastructure load management as supervisor-identified problem"
+    ],
+    "requested_investigations": [
+      {
+        "id": "A",
+        "label": "DRL offloading plus deterministic load balancing",
+        "classification": "requested investigation + proposed direction + hypothesised outcome (improved completion in free-flow and congested)",
+        "mandatory": false
+      },
+      {
+        "id": "B",
+        "label": "DRL offloading plus DRL scheduling/load balancing",
+        "classification": "requested investigation + proposed direction",
+        "mandatory": false
+      },
+      {
+        "id": "C",
+        "label": "DRL offloading plus AI-based infrastructure/resource control",
+        "classification": "requested investigation + proposed direction",
+        "mandatory": false
+      }
+    ],
+    "tt_req_008_priority_unchanged": "SHOULD",
+    "does_not_establish": ["timestamp", "message-id", "transport headers", "Outlook provenance"]
+  },
+  "limitations": [
+    "No RSU capacity broadcast to vehicles (goes stale in microseconds)",
+    "Backhaul modelled as one-hop fixed delay without bandwidth/loss/contention",
+    "Staleness control, proactive forecasting, learned dispatcher not implemented at bd4570f",
+    "Reported 0.75x-40x sweep ~0.6943 completion / 4.9->128.4s latency is RANDY_REPORTED_RESULT without raw artifact"
+  ],
+  "external_decisions_required": [
+    "Sandra confirmation of primary late RSU comparison scope (exact arms for B and C) to promote TT-REQ-008 beyond SHOULD",
+    "Concrete controller specification for learned scheduler (B) and AI-based resource control (C)",
+    "Whether deterministic (A) alone suffices for MSc thesis"
+  ],
+  "evidence_labels_used": [
+    "SOURCE-DERIVED FACT",
+    "IMPLEMENTATION-VERIFIED FACT",
+    "RESEARCH-EVIDENCE FACT",
+    "INFERENCE",
+    "PROVISIONAL WORDING",
+    "EXTERNAL DECISION REQUIRED"
+  ]
+}
