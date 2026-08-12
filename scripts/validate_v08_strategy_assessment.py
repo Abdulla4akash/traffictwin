@@ -815,6 +815,172 @@ def validate_numeric_fidelity(
         _ = _exc
         pass  # noqa: S110
 
+    # --- Cross-arm common_target admitted delta (E2b blocker) ---
+    # Common-target dla benefit must use 2018315 (dla - jsq admitted), not 355k/355207 cap delta
+    exp_dla_admitted = _exp_admitted_tasks(dla)
+    exp_jsq_admitted = _exp_admitted_tasks(jsq)
+    exp_dla_minus_jsq = exp_dla_admitted - exp_jsq_admitted  # -2018315
+    ctd = by_id.get("common_target_dla", {})
+    ctd_benefit = str(ctd.get("benefit", "")) if isinstance(ctd, dict) else ""
+    ctd_cost_adm = ""
+    if isinstance(ctd.get("cost"), dict):
+        ctd_cost_adm = str(ctd["cost"].get("admission_cost", ""))
+    # Must contain correct admitted delta arm-keyed (both arms and delta magnitude)
+    if "10122571" not in ctd_benefit or "12140886" not in ctd_benefit:
+        errors.append(  # noqa: E501
+            "matrix common_target_dla benefit missing authoritative arm-keyed admitted counts "
+            f"10122571 (dla) and 12140886 (jsq) for delta {exp_dla_minus_jsq}; got {ctd_benefit[:200]}"  # noqa: E501
+        )
+    if "2018315" not in ctd_benefit:
+        errors.append(  # noqa: E501
+            "matrix common_target_dla benefit missing 2018315 fewer admitted tasks (authoritative dla - jsq)"  # noqa: E501
+        )
+    # Must not label 355k/355207 as admitted-task delta
+    if "355207" in ctd_benefit:
+        errors.append(  # noqa: E501
+            "matrix common_target_dla benefit contains 355207 (cap-rejection delta) labelled as admitted-task delta; expected 2018315"  # noqa: E501
+        )
+    if "355k" in ctd_benefit.lower():
+        errors.append(  # noqa: E501
+            "matrix common_target_dla benefit contains '355k' mislabelled as admitted-task delta; expected 2018315"  # noqa: E501
+        )
+    # Cost admission_cost must be consistent (contains correct delta when mentioning)
+    if "2018315" not in ctd_cost_adm:
+        errors.append(  # noqa: E501
+            "matrix common_target_dla cost.admission_cost missing authoritative 2018315 admitted delta"  # noqa: E501
+        )
+    # Also check that cost does not mislabel 355k as admitted delta (strict)
+    if "355k fewer admitted" in ctd_cost_adm.lower():
+        errors.append(
+            "matrix common_target_dla cost.admission_cost contains '355k fewer admitted' mislabel"
+        )
+
+    # --- Cross-arm per_task near-uniform execution distribution (E2d blocker) ---
+    try:
+        per_ranges = []
+        dla_ranges = []
+        ingress_ranges = []
+        per_counts_all = []
+        for seed in ["1", "2", "3", "4"]:
+            rec = e2d["records_by_seed"][seed]
+            per_ranges.append(
+                float(rec["per_task_dla"]["v2i_path_metrics"]["imbalance_diagnostic"]["value"])
+            )
+            dla_ranges.append(
+                float(rec["dla"]["v2i_path_metrics"]["imbalance_diagnostic"]["value"])
+            )
+            ingress_ranges.append(
+                float(rec["ingress_dla"]["v2i_path_metrics"]["imbalance_diagnostic"]["value"])
+            )
+            per_counts_all.append(
+                rec["per_task_dla"]["v2i_path_metrics"]["actual_execution_count_per_rsu"]
+            )
+        # Mean differences
+        mean_per_minus_dla = (
+            sum(  # noqa: B905
+                p - d
+                for p, d in zip(per_ranges, dla_ranges)  # noqa: B905
+            )
+            / 4
+        )  # about -0.2380
+        mean_per_minus_ingress = (
+            sum(  # noqa: B905
+                p - i
+                for p, i in zip(per_ranges, ingress_ranges)  # noqa: B905
+            )
+            / 4
+        )  # about -0.0671
+    except KeyError as exc:
+        errors.append(f"E2d authoritative JSON missing execution-share range field: {exc}")
+        per_ranges = []
+        dla_ranges = []
+        mean_per_minus_dla = -0.23801151430459547
+        mean_per_minus_ingress = -0.06707133628035622
+
+    pt = by_id.get("per_task_dla", {})  # noqa: F811
+    # Reuse pt_cost already defined but need pt for failure/execution checks
+    pt_forwarding = pt.get("forwarding", {}) if isinstance(pt, dict) else {}
+    pt_exec_dist = (
+        str(pt_forwarding.get("execution_distribution", ""))
+        if isinstance(pt_forwarding, dict)
+        else ""
+    )
+    pt_failure = str(pt.get("failure_mode", "")) if isinstance(pt, dict) else ""
+    # Fail if per_task still claims 5 RSUs idle/truncated
+    for field_name, field_val in [
+        ("failure_mode", pt_failure),
+        ("forwarding.execution_distribution", pt_exec_dist),
+    ]:
+        low = field_val.lower()
+        # Original false pattern: 5 RSUs near-zero/truncated/idle
+        if "5 rsu" in low:
+            errors.append(  # noqa: E501
+                f"matrix per_task_dla {field_name} contains false '5 RSUs' near-zero/truncated claim; "  # noqa: E501
+                "authoritative E2d shows all ten RSUs execute near-uniform"  # noqa: E501
+            )
+        if "still truncated" in low or "near-zero execution" in low:  # noqa: SIM102
+            # Only flag if also mentions 5 RSUs or truncated as distribution claim
+            if "truncated" in low and "10 rsu" not in low and "near-uniform" not in low:  # noqa: SIM102
+                errors.append(  # noqa: E501
+                    f"matrix per_task_dla {field_name} appears to import common-target truncated distribution"  # noqa: E501
+                )
+    # Must contain near-uniform evidence: per_task ranges 0.000744 etc.
+    expected_per_range_substrs = ["0.000744", "0.000824", "0.000706", "0.001387"]
+    for substr in expected_per_range_substrs:
+        if substr not in pt_exec_dist and substr not in pt_failure:
+            # Allow either field to contain; require at least one of them
+            pass
+    # Require that at least one of the two fields contains the per_task range values
+    combined_per_text = pt_exec_dist + " " + pt_failure
+    for substr in expected_per_range_substrs:
+        if substr not in combined_per_text:
+            errors.append(  # noqa: E501
+                f"matrix per_task_dla near-uniform execution missing authoritative per_task range {substr} "  # noqa: E501
+                "(expected E2d per_task ranges 0.000744/0.000824/0.000706/0.001387)"  # noqa: E501
+            )
+            break
+    # Must contain mean differences vs dla and ingress (allow rounding)
+    if (
+        "-0.2380" not in combined_per_text
+        and "-0.238011" not in combined_per_text
+        and "-0.238" not in combined_per_text
+    ):
+        errors.append(  # noqa: E501
+            "matrix per_task_dla missing mean difference versus dla about -0.2380 "  # noqa: E501
+            f"(authoritative mean per_task - dla {mean_per_minus_dla:.4f})"  # noqa: E501
+        )
+    if (
+        "-0.0671" not in combined_per_text
+        and "-0.06707" not in combined_per_text
+        and "-0.067" not in combined_per_text
+    ):
+        errors.append(  # noqa: E501
+            "matrix per_task_dla missing mean difference versus ingress about -0.0671 "  # noqa: E501
+            f"(authoritative mean per_task - ingress {mean_per_minus_ingress:.4f})"  # noqa: E501
+        )
+    # Must not contain common-target range (0.24...) as per_task range
+    for dla_r in dla_ranges:
+        dla_str = f"{dla_r:.6f}"  # e.g. 0.242396  # noqa: E501
+        # Only flag if dla range appears as if it were per_task's own range without qualification  # noqa: E501
+        # Common-target ranges are >0.2, per_task are <0.002; simple check for dla_str in per_task execution dist  # noqa: E501
+        if dla_str in pt_exec_dist and "mean difference" not in pt_exec_dist.lower():
+            errors.append(  # noqa: E501
+                f"matrix per_task_dla forwarding.execution_distribution contains common-target dla range {dla_str} "  # noqa: E501
+                "as if it were per_task execution_share_range"  # noqa: E501
+            )
+    # Must contain counts indicating all ten RSUs ~66k-67k
+    if (
+        "66.3k" not in combined_per_text
+        and "66.3" not in combined_per_text
+        and "66583" not in combined_per_text
+    ):
+        errors.append(  # noqa: E501
+            "matrix per_task_dla missing authoritative counts roughly 66.3k–67.3k per RSU (all ten RSUs execute)"  # noqa: E501
+        )
+    # Must mention all ten RSUs
+    if "ten rsu" not in combined_per_text.lower() and "10 rsu" not in combined_per_text.lower():
+        errors.append("matrix per_task_dla near-uniform execution must state all ten RSUs execute")
+
     # Markdown numeric fidelity — assessment prose must contain correct values keyed by arm
     try:
         md_text = ASSESSMENT_PATH.read_text(encoding="utf-8")
@@ -837,6 +1003,63 @@ def validate_numeric_fidelity(
                 "assessment markdown per_task energy appears swapped or "
                 "missing correct per_task 0.473289672"
             )
+        # Common-target admitted delta in markdown (must not be 355k)
+        ctd_md_start = md_text.find("Common-target DLA")
+        # For common_target, search global markdown for admitted delta correctness near that section
+        if ctd_md_start != -1:
+            # Take window after common-target heading (up to next strategy heading 3.5)
+            per_task_md_start = md_text.find("per_task_dla", ctd_md_start)
+            if per_task_md_start == -1:
+                per_task_md_start = md_text.find("### 3.5", ctd_md_start)
+            ctd_block = (
+                md_text[ctd_md_start:per_task_md_start]
+                if per_task_md_start != -1
+                else md_text[ctd_md_start : ctd_md_start + 5000]
+            )
+            if "2018315" not in ctd_block:
+                errors.append(  # noqa: E501
+                    "assessment markdown common_target block missing authoritative admitted delta 2018315 (dla - jsq)"  # noqa: E501
+                )
+            if "355207" in ctd_block and "2018315" not in ctd_block:
+                errors.append(  # noqa: E501
+                    "assessment markdown common_target block contains 355207 mislabelled as admitted delta"  # noqa: E501
+                )
+            if "355k fewer admitted" in ctd_block.lower():
+                errors.append(  # noqa: E501
+                    "assessment markdown common_target block contains '355k fewer admitted' mislabel"  # noqa: E501
+                )
+        # Per_task near-uniform in markdown (failure_mode and forwarding)
+        per_task_md_start2 = md_text.find("per_task_dla")
+        if per_task_md_start2 == -1:
+            per_task_md_start2 = md_text.find("### 3.5")
+        if per_task_md_start2 != -1:
+            per_block = md_text[per_task_md_start2 : per_task_md_start2 + 8000]
+            per_low = per_block.lower()
+            if "5 rsu" in per_low:
+                errors.append(  # noqa: E501
+                    "assessment markdown per_task block contains false '5 RSUs' near-zero claim; authoritative E2d shows all ten RSUs near-uniform"  # noqa: E501
+                )
+            # Check near-uniform ranges present
+            for substr in ["0.000744", "0.000824", "0.000706", "0.001387"]:
+                if substr not in per_block:
+                    errors.append(  # noqa: E501
+                        f"assessment markdown per_task block missing authoritative per_task range {substr}"  # noqa: E501
+                    )
+                    break
+            if "-0.238" not in per_block:
+                errors.append(  # noqa: E501
+                    "assessment markdown per_task block missing mean difference versus dla about -0.2380"  # noqa: E501
+                )
+            if "-0.067" not in per_block:
+                errors.append(  # noqa: E501
+                    "assessment markdown per_task block missing mean difference versus ingress about -0.0671"  # noqa: E501
+                )
+            if "66.3k" not in per_block and "66583" not in per_block:
+                errors.append(
+                    "assessment markdown per_task block missing counts 66.3k–67.3k (all ten RSUs)"
+                )
+            if "ten rsu" not in per_low and "10 rsu" not in per_low:
+                errors.append("assessment markdown per_task block must state all ten RSUs execute")
         # Gate swap check: if markdown ingress_dla section contains wrong gate
         # Extract ingress_dla section between headings
         ingress_start = md_text.find("Ingress DLA")

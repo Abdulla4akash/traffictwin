@@ -411,3 +411,99 @@ def test_mutated_per_task_energy_assigned_dla_value_fails() -> None:
         assert "energy" in combined.lower() or "0.473289" in combined
     finally:
         MATRIX_PATH.write_text(original_text, encoding="utf-8")
+
+
+def test_common_target_admitted_delta_mislabeled_355k_fails() -> None:
+    """Common-target benefit labelled with 355k/355207 admitted delta must fail (cross-arm)."""
+    data = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    ctd = next(s for s in mutated["strategies"] if s["id"] == "common_target_dla")
+    assert "2018315" in ctd["benefit"]
+    # Replace correct delta with cap-rejection delta 355207 / 355k
+    ctd["benefit"] = ctd["benefit"].replace("2018315", "355207").replace("10122571", "0000000")
+    original_text = MATRIX_PATH.read_text(encoding="utf-8")
+    try:
+        MATRIX_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, (
+            "validator should fail when common_target benefit mislabels 355207 as admitted delta"
+        )
+        combined = result.stdout + result.stderr
+        assert (
+            "common_target_dla" in combined.lower()
+            or "355207" in combined
+            or "355k" in combined.lower()
+        )
+    finally:
+        MATRIX_PATH.write_text(original_text, encoding="utf-8")
+    # Also 355k variant
+    mutated2 = copy.deepcopy(data)
+    ctd2 = next(s for s in mutated2["strategies"] if s["id"] == "common_target_dla")
+    ctd2["benefit"] = "Admission benefit 355k fewer admitted tasks but higher success"
+    try:
+        MATRIX_PATH.write_text(json.dumps(mutated2, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, "validator should fail on '355k' admitted delta mislabel"
+        combined = result.stdout + result.stderr
+        assert "355k" in combined.lower() or "common_target" in combined.lower()
+    finally:
+        MATRIX_PATH.write_text(original_text, encoding="utf-8")
+
+
+def test_per_task_five_idle_rsus_fails() -> None:
+    """Per_task assigned five idle/near-zero RSUs (common-target import) must fail."""
+    data = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    pt = next(s for s in mutated["strategies"] if s["id"] == "per_task_dla")
+    # Inject false truncated claim
+    pt["failure_mode"] = (
+        "Per-task recomputation costs O(KMAX·N); still leaves 5 RSUs with near-zero execution "
+        "under zero backhaul, so not fully balanced. No stale-state test."
+    )
+    pt["forwarding"]["execution_distribution"] = (
+        "Per_task_dla execution was more balanced but still truncated on 5 RSUs near-zero. "
+        "execution_share_range 0.000744 but claim 5 idle."
+    )
+    original_text = MATRIX_PATH.read_text(encoding="utf-8")
+    try:
+        MATRIX_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, (
+            "validator should fail when per_task claims 5 RSUs near-zero/truncated"
+        )
+        combined = result.stdout + result.stderr
+        assert "per_task_dla" in combined.lower() or "5 rsu" in combined.lower()
+    finally:
+        MATRIX_PATH.write_text(original_text, encoding="utf-8")
+
+
+def test_per_task_execution_range_replaced_with_common_target_fails() -> None:
+    """Per_task execution range replaced with common-target range (e.g. 0.24) must fail."""
+    data = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    pt = next(s for s in mutated["strategies"] if s["id"] == "per_task_dla")
+    # Replace correct per_task near-uniform ranges with common-target dla range 0.242396 etc.
+    pt["forwarding"]["execution_distribution"] = (
+        "Per_task_dla execution was near-uniform but execution_share_range 0.24239634009294772 "
+        "and 0.2400144943654948; counts 66k but range is common-target."
+    )
+    # Also remove correct near-uniform markers so it looks like swap
+    pt["failure_mode"] = (
+        "Per-task costs O(KMAX·N); forwarding 600k; execution_share_range 0.242396 "
+        "mean versus dla -0.238 but range is wrong."
+    )
+    original_text = MATRIX_PATH.read_text(encoding="utf-8")
+    try:
+        MATRIX_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, (  # noqa: E501
+            "validator should fail when per_task execution range is replaced with common-target range"  # noqa: E501
+        )
+        combined = result.stdout + result.stderr
+        assert (
+            "per_task_dla" in combined.lower()
+            or "common-target" in combined.lower()
+            or "0.24" in combined
+        )
+    finally:
+        MATRIX_PATH.write_text(original_text, encoding="utf-8")
