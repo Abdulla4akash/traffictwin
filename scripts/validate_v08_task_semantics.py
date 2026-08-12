@@ -234,11 +234,19 @@ def validate_handcheck(handcheck: dict[str, Any], contract: dict[str, Any]) -> l
         if (
             isinstance(offered2, int)
             and isinstance(deadline2, int)
-            and isinstance(dens2.get("offered_completion_headline"), float)
+            and isinstance(dens2.get("offered_completion_headline"), (int, float))
         ):
             expected = deadline2 / offered2
-            if abs(dens2["offered_completion_headline"] - expected) > 1e-9:
+            if abs(float(dens2["offered_completion_headline"]) - expected) > 1e-9:
                 errors.append("e2d offered_completion mismatch")
+        if (
+            isinstance(admitted2, int)
+            and isinstance(deadline2, int)
+            and isinstance(dens2.get("admitted_completion_diagnostic"), (int, float))
+        ):
+            expected_admitted = deadline2 / admitted2 if admitted2 else 0
+            if abs(float(dens2["admitted_completion_diagnostic"]) - expected_admitted) > 1e-9:
+                errors.append("e2d admitted_completion mismatch")
         # unavailable instrumentation must be explicit
         avail = e2.get("availability", {})
         for field in ("compute_completed", "returned", "dropped"):
@@ -246,6 +254,16 @@ def validate_handcheck(handcheck: dict[str, Any], contract: dict[str, Any]) -> l
             val = avail.get(field, "")
             if "UNAVAILABLE" not in str(val) and "unavailable" not in str(val).lower():
                 errors.append(f"e2d availability for {field} must be marked UNAVAILABLE")
+        # honesty: unavailable compute_completed/returned/dropped must remain null
+        # and must not accept fabricated numeric values while availability says unavailable
+        for field in ("compute_completed", "returned", "dropped"):
+            aval = str(avail.get(field, ""))
+            if "UNAVAILABLE" in aval or "unavailable" in aval.lower():
+                raw_val = raw.get(field)
+                if raw_val is not None:
+                    errors.append(
+                        f"e2d raw_cell {field} must be null when UNAVAILABLE (got {raw_val})"
+                    )
         checks = rec.get("unavailable_instrumentation_explicit", [])
         if not isinstance(checks, list) or len(checks) == 0:
             errors.append("e2d unavailable_instrumentation_explicit missing")

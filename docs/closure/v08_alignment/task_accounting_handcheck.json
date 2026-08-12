@@ -70,9 +70,9 @@
       "forwarded_path_event": "forwarded 600885 <= admitted 10594205; ingress->execution matrix recorded, not double-counted",
       "denominators": {
         "offered_completion_headline": 0.724669503,
-        "admitted_completion_diagnostic": 0.894428,
+        "admitted_completion_diagnostic": 0.8944463506228169,
         "formula_offered": "9475948 / 13076234 = 0.724669503",
-        "formula_admitted": "9475948 / 10594205 = 0.894428 (approx)",
+        "formula_admitted": "9475948 / 10594205 = 0.8944463506228169",
         "headline_is_offered": true
       },
       "unavailable_instrumentation_explicit": [

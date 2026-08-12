@@ -151,3 +151,82 @@ def test_rejected_not_in_deadline_success() -> None:
     # deadline_success must be <= returned, and rejected are not counted
     assert acc["deadline_success"] <= acc["returned"]
     assert acc["gate_rejected"] + acc["capacity_rejected"] + acc["admitted"] == acc["offered"]
+
+
+def test_mutation_e2d_admitted_completion_mismatch_fails() -> None:
+    """Discriminating mutation: false admitted diagnostic must fail validation."""
+    import copy
+
+    contract, handcheck = _load_contract_and_handcheck()
+    hc = copy.deepcopy(handcheck)
+    # Set admitted diagnostic to false value 0.894428 (old buggy value) — internally consistent
+    # with false formula but not with exact quotient 9475948/10594205
+    rec = hc["e2d_reconciliation"]["reconciliation_checks"]
+    assert isinstance(rec, dict)
+    dens = rec["denominators"]
+    assert isinstance(dens, dict)
+    dens["admitted_completion_diagnostic"] = 0.894428
+    dens["formula_admitted"] = "9475948 / 10594205 = 0.894428 (approx)"
+    errs = validate_handcheck(hc, contract)
+    assert any("admitted" in e.lower() for e in errs), f"expected admitted mismatch, got {errs}"
+
+
+def test_mutation_e2d_admitted_completion_false_internally_matching_still_fails() -> None:
+    """Disposable mutation with false internally matching admitted value still fails."""
+    import copy
+
+    contract, handcheck = _load_contract_and_handcheck()
+    hc = copy.deepcopy(handcheck)
+    raw = hc["e2d_reconciliation"]["raw_cell"]
+    # keep raw same, set diagnostic to slightly off but internally matching formula
+    rec = hc["e2d_reconciliation"]["reconciliation_checks"]
+    assert isinstance(rec, dict)
+    dens = rec["denominators"]
+    assert isinstance(dens, dict)
+    # Choose a false value that matches a false formula text but not deadline/admitted
+    false_val = 0.8945
+    dens["admitted_completion_diagnostic"] = false_val
+    dens["formula_admitted"] = f"9475948 / 10594205 = {false_val} (false internally matching)"
+    errs = validate_handcheck(hc, contract)
+    assert any("admitted" in e.lower() for e in errs), (
+        f"expected admitted mismatch for false internally matching, got {errs}"
+    )
+    # Also verify the true value passes
+    _ = raw  # silence unused
+
+
+def test_mutation_e2d_fabricated_compute_completed_fails() -> None:
+    """Honesty: unavailable compute_completed must remain null; fabricated numeric must fail."""
+    import copy
+
+    contract, handcheck = _load_contract_and_handcheck()
+    hc = copy.deepcopy(handcheck)
+    hc["e2d_reconciliation"]["raw_cell"]["compute_completed"] = 7000
+    errs = validate_handcheck(hc, contract)
+    assert any("compute_completed" in e.lower() and "null" in e.lower() for e in errs), (
+        f"expected honesty error, got {errs}"
+    )
+
+
+def test_mutation_e2d_fabricated_returned_fails() -> None:
+    import copy
+
+    contract, handcheck = _load_contract_and_handcheck()
+    hc = copy.deepcopy(handcheck)
+    hc["e2d_reconciliation"]["raw_cell"]["returned"] = 6800
+    errs = validate_handcheck(hc, contract)
+    assert any("returned" in e.lower() and "null" in e.lower() for e in errs), (
+        f"expected honesty error, got {errs}"
+    )
+
+
+def test_mutation_e2d_fabricated_dropped_fails() -> None:
+    import copy
+
+    contract, handcheck = _load_contract_and_handcheck()
+    hc = copy.deepcopy(handcheck)
+    hc["e2d_reconciliation"]["raw_cell"]["dropped"] = 20
+    errs = validate_handcheck(hc, contract)
+    assert any("dropped" in e.lower() and "null" in e.lower() for e in errs), (
+        f"expected honesty error, got {errs}"
+    )
