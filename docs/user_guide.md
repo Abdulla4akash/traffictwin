@@ -323,6 +323,15 @@ change, precision narrowing, timestamp formatting change, retention decrease), a
 drift reports export as deterministic JSON/YAML/CSV; a handoff payload points toward Manifest
 Inference and Bundle Import without executing any import.
 
+Field-name privacy follows one product-wide policy shared with the Contract Drafting Assistant:
+schema field names are identity and appear verbatim on every export surface, and sensitive-looking
+names are flagged in an explicit `privacy_review` column (`PRIVACY_REVIEW_REQUIRED`) rather than
+being collapsed to a placeholder. Raw values still never enter portable exports, and CSV formula
+protection is unchanged. Compatibility: stored contracts and fingerprints are untouched by this
+policy (redaction was presentation-only); CSVs exported by earlier versions may contain the
+retired `[REDACTED_SECRET_FIELD]` placeholder and lack the `privacy_review` column — re-export to
+obtain per-field identity.
+
 Boundaries: the workbench reads local bounded samples only — it never calls TfGM, NTIS, National
 Highways, BODS, or any other provider, and stores no credentials. Portable observation output never
 contains raw categorical row values, only a distinct count and an aggregate hash. Mixed-timezone

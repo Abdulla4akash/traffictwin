@@ -1,7 +1,11 @@
 """Portable exports for contracts and drift reports.
 
 - YAML/JSON exports exclude raw row values, paths, clocks, secrets.
-- CSV exports apply spreadsheet formula-injection protection and secret redaction.
+- CSV exports apply spreadsheet formula-injection protection.
+- Field names are schema identity: preserved verbatim on every surface, never
+  collapsed to a shared placeholder. Secret-looking names are flagged in an
+  explicit ``privacy_review`` column (``PRIVACY_REVIEW_REQUIRED``) so a human
+  reviews them; raw values never enter portable exports at all.
 - Deterministic canonical serialisation with sorted keys.
 """
 
@@ -14,7 +18,7 @@ from typing import Any
 
 import yaml
 
-from traffictwin.data_contract.fingerprint import redact_field_name, sanitise_for_csv
+from traffictwin.data_contract.fingerprint import is_secret_field_name, sanitise_for_csv
 from traffictwin.data_contract.models import (
     SchemaDriftReport,
     SchemaObservation,
@@ -105,32 +109,42 @@ def export_drift_yaml(report: SchemaDriftReport) -> str:
 
 
 def export_drift_csv(report: SchemaDriftReport) -> str:
-    """Export drift findings as CSV with formula-injection protection and redaction.
+    """Export drift findings as CSV with formula-injection protection.
 
-    Columns: field_name, severity, code, message
+    Columns: field_name, severity, code, message, privacy_review
     Values that start with ``= + - @`` are prefixed with ``'``.
-    Secret-looking field names are redacted.
+
+    Field names are schema identity and are preserved verbatim on every
+    export surface: two distinct fields must never collapse to one
+    identifier. Secret-looking field names are therefore flagged in the
+    explicit ``privacy_review`` column (``PRIVACY_REVIEW_REQUIRED``)
+    instead of being replaced by a shared redaction placeholder. Raw
+    values remain excluded from portable exports entirely.
     """
     output = io.StringIO()
     writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
-    writer.writerow(["field_name", "severity", "code", "message"])
+    writer.writerow(["field_name", "severity", "code", "message", "privacy_review"])
     for finding in sorted(
         report.findings, key=lambda x: (x.severity.value, x.code, str(x.field_name))
     ):
-        field_name = redact_field_name(finding.field_name or "")
-        field_name = sanitise_for_csv(field_name)
+        raw_name = finding.field_name or ""
+        field_name = sanitise_for_csv(raw_name)
         severity = sanitise_for_csv(finding.severity.value)
         code = sanitise_for_csv(finding.code)
         message = sanitise_for_csv(finding.message)
-        writer.writerow([field_name, severity, code, message])
+        privacy = "PRIVACY_REVIEW_REQUIRED" if is_secret_field_name(raw_name) else ""
+        writer.writerow([field_name, severity, code, message, privacy])
     return output.getvalue()
 
 
 def export_observation_csv(observation: SchemaObservation) -> str:
-    """Export observation field table as CSV with redaction and formula protection.
+    """Export observation field table as CSV with formula protection.
 
     Portable observation contains no raw row values – only structural counts and
     deterministic aggregate hashes for categorical domains.
+
+    Field names are preserved verbatim (schema identity is never collapsed);
+    secret-looking names are flagged in the explicit ``privacy_review`` column.
     """
     output = io.StringIO()
     writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
@@ -146,10 +160,11 @@ def export_observation_csv(observation: SchemaObservation) -> str:
             "categorical_aggregate_hash",
             "precision",
             "scale",
+            "privacy_review",
         ]
     )
     for fo in sorted(observation.field_observations, key=lambda x: x.field_name):
-        fname = sanitise_for_csv(redact_field_name(fo.field_name))
+        fname = sanitise_for_csv(fo.field_name)
         ltype = sanitise_for_csv(fo.observed_logical_type.value)
         nullable = str(fo.nullable)
         observed_count = str(fo.observed_count)
@@ -161,6 +176,7 @@ def export_observation_csv(observation: SchemaObservation) -> str:
         aggregate_hash = sanitise_for_csv(fo.categorical_aggregate_hash or "")
         precision = str(fo.precision) if fo.precision is not None else ""
         scale = str(fo.scale) if fo.scale is not None else ""
+        privacy = "PRIVACY_REVIEW_REQUIRED" if is_secret_field_name(fo.field_name) else ""
         writer.writerow(
             [
                 fname,
@@ -173,6 +189,7 @@ def export_observation_csv(observation: SchemaObservation) -> str:
                 aggregate_hash,
                 precision,
                 scale,
+                privacy,
             ]
         )
     return output.getvalue()
