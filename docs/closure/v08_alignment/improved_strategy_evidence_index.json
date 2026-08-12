@@ -1,0 +1,129 @@
+{
+  "schema_version": "v08_improved_strategy_evidence_index_v1",
+  "generated_from_base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "campaign": "v08-requirements-closure",
+  "lane": "07",
+  "evidence_identities": {
+    "e2b_factorial_comparison": {
+      "read_only_ref": "refs/harness/read-only/e2b",
+      "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_comparison_v1.json",
+      "sha256": "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf",
+      "manifest": {
+        "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json",
+        "sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91"
+      },
+      "raw_root": "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1",
+      "raw_checksums_sha256": "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6",
+      "validation": {
+        "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_validation_v1.json",
+        "sha256": "e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1"
+      },
+      "standing": "RESEARCH-EVIDENCE FACT — read-only E2b factorial pilot, one fleet draw, descriptive only"
+    },
+    "e2b_path_summary": {
+      "read_only_ref": "refs/harness/read-only/e2b",
+      "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "path": "docs/evaluation/e2b/e2b_placement_admission_path_summary_v1.json",
+      "sha256": "dd48da132856e6199463cc195d93d007436c2cdb187133f8fa68962710c14c38",
+      "manifest_sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+      "standing": "RESEARCH-EVIDENCE FACT — mechanism decomposition"
+    },
+    "e2b_report": {
+      "read_only_ref": "refs/harness/read-only/e2b",
+      "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_report_2026-08-10.md",
+      "sha256": "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83",
+      "manifest_sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91"
+    },
+    "e2c_multidraw_comparison": {
+      "read_only_ref": "refs/harness/read-only/e2c",
+      "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+      "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_comparison_v1.json",
+      "sha256": "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
+      "manifest": {
+        "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_manifest_v1.json",
+        "sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a"
+      },
+      "raw_root": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1",
+      "raw_checksums_sha256": "d3f41d2fc21257f16518f62ec2fbbde55243a89d31726c57f1a0171fe7f582d4",
+      "validation": {
+        "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_validation_v1.json",
+        "sha256": "25b80d66d991b424e20a7fd18d9e45c641cddc4b4aa9ffeed0cbdccacb5f8f2f"
+      },
+      "standing": "RESEARCH-EVIDENCE FACT — matched 4-new-draw replication"
+    },
+    "e2c_mechanism_summary": {
+      "read_only_ref": "refs/harness/read-only/e2c",
+      "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+      "path": "docs/evaluation/e2c/e2c_gated_placement_mechanism_summary_v1.json",
+      "sha256": "5556f0fcd3e72c03c1efeb42df33697e77005e6151357b33a908d9154ae94baa",
+      "manifest_sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a"
+    },
+    "e2d_robustness_comparison": {
+      "read_only_ref": "refs/harness/read-only/e2d",
+      "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+      "path": "docs/evaluation/e2d/e2d_per_task_placement_robustness_comparison_v1.json",
+      "sha256": "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0",
+      "manifest": {
+        "path": "docs/evaluation/e2d/e2d_per_task_placement_robustness_manifest_v1.json",
+        "sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+      },
+      "raw_root": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1",
+      "raw_checksums_sha256": "eb5de7ce1eea202fee4d08d28bf7f4e38888b24709550cfc78dca71b16b250ca",
+      "validation": {
+        "path": "docs/evaluation/e2d/e2d_per_task_placement_robustness_validation_v1.json",
+        "sha256": "0e3f27cdec9d13ec8e340bf1d83b3afcd127e90d7bdcf316bc2a2b2738fd313f"
+      },
+      "standing": "RESEARCH-EVIDENCE FACT — per-task construct-validity study"
+    },
+    "e2d_mechanism_summary": {
+      "read_only_ref": "refs/harness/read-only/e2d",
+      "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+      "path": "docs/evaluation/e2d/e2d_per_task_placement_mechanism_summary_v1.json",
+      "sha256": "4975ab8792242a56c241d6513e7e49bcdfa5117ab462bcb6b9bb3c5d2a5e5410",
+      "manifest_sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+    },
+    "e2d_report": {
+      "read_only_ref": "refs/harness/read-only/e2d",
+      "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+      "path": "docs/evaluation/e2d/e2d_per_task_placement_report_2026-08-11.md",
+      "sha256": "8583503f817e159e74e20a8d0b3d72b281280984a2bbfac84b8e31786af8308e",
+      "manifest_sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+    }
+  },
+  "figure_cell_to_evidence": {
+    "fig1_e2b_offered_attainment_off": "e2b_factorial_comparison",
+    "fig1_e2b_offered_attainment_jsq": "e2b_factorial_comparison",
+    "fig1_e2b_offered_attainment_dla": "e2b_factorial_comparison",
+    "fig1_e2b_offered_attainment_ingress_dla": "e2b_factorial_comparison",
+    "fig2_e2c_dla_minus_ingress_per_seed": "e2c_multidraw_comparison",
+    "fig3_e2d_per_task_minus_ingress_per_seed": "e2d_robustness_comparison",
+    "fig3_e2d_per_task_minus_dla_per_seed": "e2d_robustness_comparison",
+    "mechanism_e2b_path": "e2b_path_summary",
+    "mechanism_e2c_execution": "e2c_mechanism_summary",
+    "mechanism_e2d_per_substep": "e2d_mechanism_summary"
+  },
+  "code_and_inputs": {
+    "product_code_commit": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+    "vec_env_commits": {
+      "e2b": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+      "e2d_per_task_helper": "2f63706f46319433a2ba3af1df97afd0e56a95d1"
+    },
+    "actor": {
+      "path": "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "training_seed": 100,
+      "observes_current_rsu_load": false,
+      "selects_execution_rsu": false
+    },
+    "trace": {
+      "path": "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd/traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    },
+    "evaluator_seed": 0,
+    "evaluator": "macos_arm64_cpu_jax_0_4_30"
+  },
+  "replication_unit": "fleet_draw",
+  "task_independence_claim": "tasks_are_accounting_records_not_independent_replicates"
+}
