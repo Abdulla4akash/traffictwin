@@ -1,0 +1,431 @@
+{
+  "schema_version": "v08_strategy_evidence_map_v1",
+  "generated_utc": "2026-08-12T15:29:03Z",
+  "lane": "05",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "resolution_rule": "Every empirical value in strategy_matrix.json resolves to an exact artifact SHA and an exact read-only head commit identity. Verification must check SHA hex format and membership in allowed set. Redirecting to an unrelated SHA must fail.",
+  "heads": {
+    "e2b": {
+      "ref": "refs/harness/read-only/e2b",
+      "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb"
+    },
+    "e2c": {
+      "ref": "refs/harness/read-only/e2c",
+      "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929"
+    },
+    "e2d": {
+      "ref": "refs/harness/read-only/e2d",
+      "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761"
+    }
+  },
+  "primitives": {
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "actor_path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "trace_path": "traces/trace_inc_fullrsu.npz",
+    "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+    "vec_env_commits": {
+      "e0_e2_instrumentation": "e11f4445a9cc939a79d4f419c6f48b43ce110664",
+      "e2b_ingress_dla": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+      "e2d_per_task": "2f63706f46319433a2ba3af1df97afd0e56a95d1",
+      "e2d_parent": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d"
+    },
+    "evaluator_shas": {
+      "e0_0f01f4d_evaluator": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+      "e2_e11f444_evaluator": "f9ec488528c52ce7cd6f7bb8b3a6c9c96aef532e5783a538bcac9763508519fe",
+      "e2d_per_task_helper": "a6e047265dd09365c0d4029afa76f8cb7caa444883e2f549a4254e3d0b53472a"
+    }
+  },
+  "strategies": {
+    "strongest_link_off": {
+      "strategy_id": "strongest_link_off",
+      "evidence": [
+        {
+          "artifact": "e0_full_reference_manifest",
+          "path": "docs/evaluation/e0/e0_full_reference_manifest_v1.json",
+          "sha256": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e0_full_reference_validation",
+          "path": "docs/evaluation/e0/e0_full_reference_validation_v1.json",
+          "sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_native_placement_pilot_manifest",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_manifest_v1.json",
+          "sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_native_placement_pilot_comparison",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_comparison_v1.json",
+          "sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_native_placement_pilot_validation",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_validation_v1.json",
+          "sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_path_forwarding_summary",
+          "path": "docs/evaluation/e2/e2_native_placement_path_forwarding_summary_v1.json",
+          "sha256": "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_evidence_index",
+          "path": "docs/evaluation/e2/e2_native_placement_evidence_index_v1.json",
+          "sha256": "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_raw_checksums",
+          "path": "e2_outputs/e2-native-placement-pilot-v1/checksums.sha256",
+          "sha256": "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_report",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_report_2026-08-09.md",
+          "sha256": "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT narrative bound to above manifests"
+        }
+      ]
+    },
+    "jsq_without_gate": {
+      "strategy_id": "jsq_without_gate",
+      "evidence": [
+        {
+          "artifact": "e2_native_placement_pilot_manifest",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_manifest_v1.json",
+          "sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_native_placement_pilot_comparison",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_comparison_v1.json",
+          "sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_native_placement_pilot_validation",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_validation_v1.json",
+          "sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_path_forwarding_summary",
+          "path": "docs/evaluation/e2/e2_native_placement_path_forwarding_summary_v1.json",
+          "sha256": "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_evidence_index",
+          "path": "docs/evaluation/e2/e2_native_placement_evidence_index_v1.json",
+          "sha256": "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        }
+      ]
+    },
+    "ingress_dla": {
+      "strategy_id": "ingress_dla",
+      "evidence": [
+        {
+          "artifact": "e2b_factorial_manifest",
+          "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json",
+          "sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2b_factorial_comparison",
+          "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_comparison_v1.json",
+          "sha256": "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2b_factorial_report",
+          "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_report_2026-08-10.md",
+          "sha256": "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2b_raw_checksums",
+          "path": "e2b_outputs/e2b-placement-admission-factorial-v1/checksums.sha256",
+          "sha256": "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2c_multidraw_manifest",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_manifest_v1.json",
+          "sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2c_multidraw_comparison",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_comparison_v1.json",
+          "sha256": "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2c_multidraw_validation",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_validation_v1.json",
+          "sha256": "25b80d66d991b424e20a7fd18d9e45c641cddc4b4aa9ffeed0cbdccacb5f8f2f",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2c_raw_checksums",
+          "path": "e2c_outputs/e2c-gated-placement-multidraw-v1/checksums.sha256",
+          "sha256": "d3f41d2fc21257f16518f62ec2fbbde55243a89d31726c57f1a0171fe7f582d4",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        }
+      ]
+    },
+    "common_target_dla": {
+      "strategy_id": "common_target_dla",
+      "evidence": [
+        {
+          "artifact": "e2_native_placement_pilot_manifest",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_manifest_v1.json",
+          "sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_native_placement_pilot_comparison",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_comparison_v1.json",
+          "sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2_native_placement_pilot_validation",
+          "path": "docs/evaluation/e2/e2_native_placement_pilot_validation_v1.json",
+          "sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2b_factorial_manifest",
+          "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json",
+          "sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+          "head": "refs/harness/read-only/e2b",
+          "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2c_multidraw_manifest",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_manifest_v1.json",
+          "sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2c_multidraw_comparison",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_comparison_v1.json",
+          "sha256": "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT primary replication"
+        },
+        {
+          "artifact": "e2c_multidraw_validation",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_validation_v1.json",
+          "sha256": "25b80d66d991b424e20a7fd18d9e45c641cddc4b4aa9ffeed0cbdccacb5f8f2f",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2c_raw_checksums",
+          "path": "e2c_outputs/e2c-gated-placement-multidraw-v1/checksums.sha256",
+          "sha256": "d3f41d2fc21257f16518f62ec2fbbde55243a89d31726c57f1a0171fe7f582d4",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        }
+      ]
+    },
+    "per_task_dla": {
+      "strategy_id": "per_task_dla",
+      "evidence": [
+        {
+          "artifact": "e2d_robustness_manifest",
+          "path": "docs/evaluation/e2d/e2d_per_task_placement_robustness_manifest_v1.json",
+          "sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2d_robustness_comparison",
+          "path": "docs/evaluation/e2d/e2d_per_task_placement_robustness_comparison_v1.json",
+          "sha256": "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT primary four-draw"
+        },
+        {
+          "artifact": "e2d_robustness_validation",
+          "path": "docs/evaluation/e2d/e2d_per_task_placement_robustness_validation_v1.json",
+          "sha256": "0e3f27cdec9d13ec8e340bf1d83b3afcd127e90d7bdcf316bc2a2b2738fd313f",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2d_mechanism_summary",
+          "path": "docs/evaluation/e2d/e2d_per_task_placement_mechanism_summary_v1.json",
+          "sha256": "4975ab8792242a56c241d6513e7e49bcdfa5117ab462bcb6b9bb3c5d2a5e5410",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2d_evidence_index",
+          "path": "docs/evaluation/e2d/e2d_per_task_placement_evidence_index_v1.json",
+          "sha256": "a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2d_raw_evidence_index_inner",
+          "path": "e2d_outputs/e2d-per-task-placement-robustness-v1/raw_evidence_index.json",
+          "sha256": "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT external raw-artifact inner index identity (distinguished from committed file digest a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b)"
+        },
+        {
+          "artifact": "e2d_raw_checksums",
+          "path": "e2d_outputs/e2d-per-task-placement-robustness-v1/checksums.sha256",
+          "sha256": "eb5de7ce1eea202fee4d08d28bf7f4e38888b24709550cfc78dca71b16b250ca",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2d_report",
+          "path": "docs/evaluation/e2d/e2d_per_task_placement_report_2026-08-11.md",
+          "sha256": "8583503f817e159e74e20a8d0b3d72b281280984a2bbfac84b8e31786af8308e",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT narrative bound to manifests above"
+        },
+        {
+          "artifact": "reused_e2c_ingress_dla_manifest",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_manifest_v1.json",
+          "sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT reused by hash for per_task vs ingress comparison"
+        },
+        {
+          "artifact": "reused_common_target_dla_comparison",
+          "path": "docs/evaluation/e2c/e2c_gated_placement_multidraw_comparison_v1.json",
+          "sha256": "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
+          "head": "refs/harness/read-only/e2c",
+          "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+          "standing": "RESEARCH-EVIDENCE FACT reused by hash"
+        }
+      ]
+    }
+  },
+  "allowed_sha256_set": [
+    "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f",
+    "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+    "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+    "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+    "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38",
+    "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e",
+    "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9",
+    "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3",
+    "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+    "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf",
+    "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6",
+    "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+    "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
+    "25b80d66d991b424e20a7fd18d9e45c641cddc4b4aa9ffeed0cbdccacb5f8f2f",
+    "d3f41d2fc21257f16518f62ec2fbbde55243a89d31726c57f1a0171fe7f582d4",
+    "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+    "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0",
+    "0e3f27cdec9d13ec8e340bf1d83b3afcd127e90d7bdcf316bc2a2b2738fd313f",
+    "4975ab8792242a56c241d6513e7e49bcdfa5117ab462bcb6b9bb3c5d2a5e5410",
+    "a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b",
+    "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7",
+    "eb5de7ce1eea202fee4d08d28bf7f4e38888b24709550cfc78dca71b16b250ca",
+    "8583503f817e159e74e20a8d0b3d72b281280984a2bbfac84b8e31786af8308e",
+    "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c",
+    "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83",
+    "e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1",
+    "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "f9ec488528c52ce7cd6f7bb8b3a6c9c96aef532e5783a538bcac9763508519fe",
+    "a6e047265dd09365c0d4029afa76f8cb7caa444883e2f549a4254e3d0b53472a",
+    "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+  ],
+  "forbidden_claims": {
+    "common_target_not_canonical_jsq": "Common-target batch DLA must not be described as canonical general JSQ; per_task is per-task least-busy, still workload-based.",
+    "dla_not_pure_placement": "DLA = placement + admission gate; describing DLA as pure placement is forbidden.",
+    "no_empirical_without_binding": "Every numeric in strategy_matrix.json must resolve here to a SHA in allowed_sha256_set and a head commit.",
+    "no_universal_winner": "No universal winner claim is allowed; all observations are bounded draws."
+  },
+  "source_classification": {
+    "s035_sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed",
+    "s035_path": ".harness/context/sources/S-035__sandra-direct-email.md",
+    "note": "S-035 direct body (SHA 08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed, DIRECT_SUPERVISOR_SOURCE_BODY) is authoritative for verbatim overlapping body content only; where S-035 overlaps SRC-010 paraphrase, S-035 controls (narrow overlapping-content supersession, not blanket). It establishes a supervisor-identified problem and requested investigations A/B/C as proposed directions/hypothesised outcomes, not a mandatory implemented deliverable. It does not amend frozen Negotiated Version 1 baseline (payload 58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595 unchanged), does not create an automatic TT-REQ-008 PARTIALLY_MET baseline status (any PARTIALLY_MET is campaign-overlay INFERENCE + EXTERNAL DECISION REQUIRED, not an effective baseline amendment), and does not establish timestamp/headers/provenance."
+  }
+}

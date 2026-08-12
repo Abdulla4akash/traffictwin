@@ -1,0 +1,431 @@
+{
+  "schema_version": "v08_strategy_matrix_v1",
+  "generated_utc": "2026-08-12T15:29:03Z",
+  "lane": "05",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "authority": {
+    "negotiated_baseline_whole_sha256": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+    "negotiated_baseline_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+    "final_audit_sha256": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+    "s035_sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed"
+  },
+  "strategies": [
+    {
+      "id": "strongest_link_off",
+      "human_label": "Strongest-link / LB-off (deterministic strongest radio link, no infrastructure load balancing)",
+      "honesty_class": "SOURCE-DERIVED FACT + IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT",
+      "definition": "Vehicle selects a V2I RSU by strongest radio link (best_rsu_idx from compute_per_vehicle_links). Infrastructure performs no alternative placement: selected target equals ingress and execution equals ingress when admitted. Load-balancing is off.",
+      "information": "Uses only per-vehicle strongest-link quality. Does not use RSU backlog (rsu_busy_ms), queue length, or remaining service work. Actor is frozen 17-dim MAPPO that does not observe current RSU load (S-035, RESEARCH_AUDIT, E0/E2 manifests).",
+      "authority": "RSU execution decision is infrastructure placement authority, but in off mode it is degenerate (identity function on ingress). Admission authority is separate: cap and local/V2V MQD checks still apply.",
+      "admission": {
+        "cap": "Per-RSU waiting-room ceiling at 2.5x (6220 tasks/RSU for padded width 2488). Evaluator flag --rsu-cap-per-veh 2.5, --rsu-cap-mode reject, --substep-queue sequential --substep-queue-iters 3. Cap rejection is not compute power (S-035 DIRECT_SUPERVISOR_SOURCE_BODY).",
+        "gate": "None beyond cap, local MQD, V2V MQD, and V2I unavailable (code 7). No deadline-aware gate. Rejected tasks retain selected target, actual execution = -1, not enqueued.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT: vec_env eval_sumo_stage1_mc.py at commits 0f01f4d and e11f444 implements cap/saturation semantics; RESEARCH-EVIDENCE FACT: E0 full reference records 834120 cap rejections at 2.5x."
+      },
+      "placement": {
+        "mode": "off / strongest-link",
+        "target_selection": "selected_execution_rsu = task_ingress_rsu (best_rsu_idx). No JSQ or other load metric.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT via vec_env evaluator source; PROVISIONAL WORDING: 'strongest-link' is the codebase term for best_rsu_idx, not a claim of optimal radio model."
+      },
+      "sequential_behavior": "Evaluator processes Model-C task substeps in ascending index; within each substep padded vehicle slots are processed in ascending index. Queue scatters include only admitted V2I tasks. Sequential accounting with three reconciliation iterations. IMPLEMENTATION-VERIFIED FACT.",
+      "common_target_behavior": "Not applicable: no common target is computed. Each admitted V2I task's selected target is its own ingress RSU; all work lies on ingress-to-execution diagonal. Must not be described as batch common-target.",
+      "forwarding": {
+        "forwarded_when": "Never. forwarded_admitted_task_count = 0, forwarded_share = 0.0, forwarding_latency_ms = 0.0, ingress_to_execution_matrix is diagonal.",
+        "cost": "0 ms backhaul by design ( --rsu-backhaul-ms 0.0) representing ideal fibre. Zero cost is a controlled simulator condition, not a deployment claim.",
+        "determinism": "Deterministic: forwarding is structurally false because execution equals ingress."
+      },
+      "determinism": "Fully deterministic given same trace, actor SHA, evaluator seed, fleet seed, and RSU state. No new PRNG split. Byte-identical vehicle action array across matched arms (IMPLEMENTATION-VERIFIED FACT, E2 validation).",
+      "benefit": "Baseline and isolation benefit: defines the frozen-actor cost of congestion without infrastructure rebalancing. Provides the accounting reference for conservation checks. In research, offered attainment 0.683619229 (seed 0, E2 off, RESEARCH-EVIDENCE FACT) and admitted attainment 0.766522526; later seeds show similar range. Not claimed as optimal.",
+      "failure_mode": "Under congested-road concentration, RSUs near congestion saturate (high cap rejection or backlog) while farther RSUs remain idle (S-035 supervisor-identified problem). No telemetry freshness staleness is tested; state is current sequential backlog.",
+      "cost": {
+        "compute": "Fixed 1x service ( --rsu-service-mult 1.0, --k8s-scale off). No scaling.",
+        "backhaul": "Zero measured. Nonzero backhaul is deferred unauthorised E3 gate.",
+        "admission_cost": "Cap rejection: 834120 V2I cap rejections at seed 0 off (E2); 138 V2I unavailable; local 34124, V2V 545879. Tasks are offered-denominator losses with penalty-inclusive latency.",
+        "honesty": "RESEARCH-EVIDENCE FACT for counts; INFERENCE for extrapolation beyond tested trace/cap."
+      },
+      "experiment_evidence": {
+        "primary_manifest": "docs/evaluation/e0/e0_full_reference_manifest_v1.json",
+        "primary_manifest_sha256": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f",
+        "primary_validation_sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+        "e2_pilot_manifest_sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+        "e2_pilot_comparison_sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+        "e2_pilot_validation_sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38",
+        "e2_pilot_report_ref": "refs/harness/read-only/e2b: docs/evaluation/e2/e2_native_placement_pilot_report_2026-08-09.md",
+        "read_only_head": "refs/harness/read-only/e2b commit fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+        "vec_env_commit": "e11f4445a9cc939a79d4f419c6f48b43ce110664",
+        "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+        "trace": "trace_inc_fullrsu.npz sha256 e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+        "actor": "mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz sha256 93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+        "observed_offered_attainment_seed0": 0.683619229,
+        "observed_admitted_attainment_seed0": 0.766522526,
+        "offered_tasks": 13076234,
+        "admitted_tasks_seed0": 11661973,
+        "forwarded_share": 0.0,
+        "execution_share_range_seed0": 0.098660108
+      },
+      "limits": "One Manchester incident hour (2024-03-15 20:00-21:00, 3600 steps), one actor, one trace, one cap (6220), fixed 1x service, zero backhaul, one evaluator seed (0), provisional uk2030 fleet. Deadline success is evaluator simulated outcome (not confirmed physical result return). No ordinary-traffic control, no staleness, no learning. EXTERNAL DECISION REQUIRED for broader fleet/trace/cap generalisation.",
+      "comparison_compatibility": "Isolates placement=off and admission=no-gate. Direct placement comparison is jsq - off only when both have gate off. Joint DLA - off mixes placement and admission and must not isolate either. Honesty: INFERENCE if comparison ignores inherited eligibility-timing difference (off step-entry coarse check vs live backlog).",
+      "provisional_wording": "Waiting-room ceiling is provisional training parity 2.5x (50/20), not an approved physical size.",
+      "external_decision_required": "Supervisor confirmation of primary denominator (offered vs admitted), required trace set beyond incident hour, and whether zero-backhaul idealisation remains acceptable for dissertation claims."
+    },
+    {
+      "id": "jsq_without_gate",
+      "human_label": "Evidenced JSQ without deadline gate (least-busy placement, admission = cap only)",
+      "honesty_class": "IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT",
+      "definition": "Evidenced deterministic load-aware execution placement that selects the RSU with least remaining service work (rsu_busy_ms argmin) as the execution target. No deadline-aware admission gate. This is placement-only JSQ, not the joint placement+admission DLA.",
+      "information": "Information is current RSU remaining service work rsu_busy_ms (total ms of admitted compute remaining, drained at most 1000 ms per simulated second, remainder carried). Not task count, not predicted earliest completion. The frozen actor still does not choose execution RSUs and does not observe RSU load. IMPLEMENTATION-VERIFIED FACT via vec_env vec_jax.py.",
+      "authority": "Infrastructure placement authority selects execution RSU after vehicle action chooses V2I. Admission authority remains unchanged (cap, MQD, unavailable). Separation is explicit: placement != admission.",
+      "admission": {
+        "cap": "Same 2.5x/6220 cap and sequential reject semantics as off. E2 jsq recorded 355207 cap rejections at seed 0 (vs 834120 for off), reflecting that balancing spreads admitted V2I queue work. Local MQD 34124, V2V MQD 545879, V2I unavailable 138 remain.",
+        "gate": "None. No backlog-vs-deadline gate; outcome code 3 count = 0 for jsq. This is the evidenced placement-only arm; any arm with gate on is not this strategy.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT; RESEARCH-EVIDENCE FACT for counts at seed 0. PROVISIONAL WORDING: cap size remains provisional."
+      },
+      "placement": {
+        "mode": "jsq (least-busy / shortest remaining service work)",
+        "target_selection": "Per substep, compute jnp.argmin(rsu_busy_ms) over all 10 RSUs (range, ingress quality, and capacity do not filter the argmin). That RSU is the selected execution target for eligible V2I candidates in that substep. Tie resolves to lowest RSU index. IMPLEMENTATION-VERIFIED FACT at vec_env parent 0e5ed2f79b50011fe0475a5c2069978f9fdd778d.",
+        "least_busy_not_shortest_queue": "Minimising rsu_busy_ms is least-busy / shortest-workload, not canonical queue-length JSQ. Do not claim canonical JSQ.",
+        "honesty": "SOURCE-DERIVED FACT for terminology caveat: research audit labels this LEAST-BUSY, not generic JSQ superiority."
+      },
+      "sequential_behavior": "Sequential: placement recomputes argmin from live sequential backlog at substep entry. Admitted service (at most per-task compute ms) is added immediately and will affect later substeps in same simulated second after reconciliation iterations. However, the evidenced jsq in E2 uses the inherited evaluator path where placement and admission are interleaved per candidate; the specific ordering nuance versus per_task_dla is recorded under common_target_behavior.",
+      "common_target_behavior": "Evidenced JSQ in E2 is common-target per substep: one argmin target is computed per Model-C task substep and broadcast to that substep's padded vehicle slots (eligible V2I traffic in that substep shares one selected target). This is batch common-target behaviour, not canonical per-task JSQ. Must not be called canonical general JSQ. The later per_task_dla recomputes after each candidate's reservation (see that entry).",
+      "forwarding": {
+        "forwarded_when": "When selected execution RSU differs from ingress RSU and task is admitted. At seed 0, forwarded_admitted = 2067204, share 0.899940968 of admitted V2I (2297044). Admitted execution is not on ingress diagonal.",
+        "cost": "Total forwarding latency 0.0 ms in evidence (zero backhaul design). Execution imbalance diagnostic (max share - min share) at seed 0: off 0.098660108 -> jsq 0.000457980 (reduction). Zero cost is controlled idealisation, not forwarding is free.",
+        "determinism": "Deterministic given rsu_busy_ms snapshot and tie rule. Forwarding flag and latency are deterministic outputs recorded in path arrays."
+      },
+      "determinism": "Deterministic placement. Actor vehicle actions remain byte-identical to off (E2 validation). No new PRNG split. Rejected/unavailable tasks have actual_execution = -1 and are not forwarded.",
+      "benefit": "In the single E2 draw, JSQ admitted 478913 more tasks than off (all V2I, reducing cap rejections by same count), reduced offered-task penalty-inclusive mean latency by 1338.918 ms, and reduced execution-share range by 0.098202128 (more balanced execution distribution). RESEARCH-EVIDENCE FACT for those deltas at seed 0.",
+      "failure_mode": "In that same seed 0 draw, JSQ decreased offered attainment by -0.007937454 and admitted attainment by -0.03878544 versus off, and increased admitted-task mean latency by +4839.858 ms. Balancing did not improve deadlines; queue balance and deadline attainment are separate. With zero-backhaul idealisation and frozen actor, load spreading can increase admitted work but not guarantee deadline wins. Zero-backhaul and lack of staleness mean real forwarding cost and stale telemetry could worsen outcomes.",
+      "cost": {
+        "compute": "Fixed 1x service, no scaling. Load spreading does not change total V2I service work (conserved) but changes per-RSU queuing.",
+        "backhaul": "Zero measured. Nonzero backhaul is unauthorised E3 gate; would add per-forwarded-task delay.",
+        "admission_cost": "Higher admitted count costs more queuing for admitted tasks (higher admitted latency) even if offered latency falls due to fewer cap penalties.",
+        "energy": "Energy per offered task at seed 0: jsq 0.468242424 J (off 0.468282764 J) delta -0.00004034 J. RESEARCH-EVIDENCE FACT."
+      },
+      "experiment_evidence": {
+        "manifest_ref": "refs/harness/read-only/e2b: docs/evaluation/e2/e2_native_placement_pilot_manifest_v1.json",
+        "manifest_sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+        "comparison_sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+        "validation_sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38",
+        "path_summary_sha256": "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e",
+        "evidence_index_sha256": "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9",
+        "read_only_head": "refs/harness/read-only/e2b commit fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+        "vec_env_commit": "e11f4445a9cc939a79d4f419c6f48b43ce110664",
+        "observed_offered_attainment_seed0": 0.675681775,
+        "observed_admitted_attainment_seed0": 0.727737086,
+        "offered_tasks": 13076234,
+        "admitted_tasks_seed0": 12140886,
+        "admitted_v2i_seed0": 2297044,
+        "forwarded_admitted_seed0": 2067204,
+        "forwarded_share_seed0": 0.899940968,
+        "execution_share_range_seed0": 0.00045798,
+        "execution_counts_by_rsu_seed0": [
+          229793,
+          229655,
+          230002,
+          229381,
+          229904,
+          230253,
+          230032,
+          229325,
+          229498,
+          229201
+        ],
+        "placement_contrast_jsq_minus_off_offered": -0.007937454,
+        "honesty": "RESEARCH-EVIDENCE FACT for one draw only; no population inference, no task-level significance. Claim boundary: canonical_jsq_claim_allowed=false."
+      },
+      "limits": "One seed (0), one fleet draw, one trace/hour, one cap, zero backhaul, fixed service, frozen actor without RSU load observation, evaluator deadline outcome not physical return. Cannot claim universal JSQ superiority or harm. EXTERNAL DECISION REQUIRED for staleness/backhaul and trace generalisation.",
+      "comparison_compatibility": "Pairs only with off when both have gate off: jsq - off isolates placement without gate. Pairs with dla (dla - jsq) isolates admission under JSQ. Joint DLA - off is placement+admission. Forgetting the common-target batch convention contaminates any claim of general JSQ.",
+      "provisional_wording": "JSQ here is shorthand for least-remaining-service-work; not canonical queue-length JSQ.",
+      "external_decision_required": "Whether zero-backhaul idealisation remains acceptable for dissertation; whether stale-state sensitivity (0/100/500/1000 ms) is required to qualify placement benefit."
+    },
+    {
+      "id": "ingress_dla",
+      "human_label": "Ingress DLA \u2014 strongest-link execution + deadline-aware admission (placement fixed, admission is DLA gate)",
+      "honesty_class": "IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT",
+      "definition": "New mode introduced in E2b: vehicle ingress remains strongest-link (best_rsu_idx). Selected execution RSU is exactly that ingress RSU (no forwarding). Admission uses the exact existing DLA deadline-aware gate and three-iteration fixed point (seq_offsets) on that ingress RSU's live backlog. Outcome code 3 records gate rejection.",
+      "information": "Gate information is the live per-RSU backlog plus candidate service (remaining wait) compared to the task's remaining deadline, recomputed each substep against current sequential state (E2b manifest). No new telemetry beyond what DLA already uses; ingress is radio, gate is backlog-vs-deadline. Frozen actor still does not choose execution RSU.",
+      "authority": "Placement authority is degenerate (ingress). Admission authority is the DLA gate (infrastructure). This is the admission-only contrast to DLA; it holds placement fixed at strongest-link.",
+      "admission": {
+        "cap": "Same 2.5x/6220 cap check. In ingress_dla the cap rejection is driven by admitted queue length; at seed 0, v2i_cap_rejected = 0 (all 834k cap rejections off were replaced by gate rejections).",
+        "gate": "Exact existing DLA seq_offsets gate and three-iteration fixed-point reconciliation, now evaluated at ingress RSU. Gate rejected 2071344 tasks at seed 0 (E2b), retained selected ingress, actual_execution = -1, not enqueued, not forwarded. Strict backlog-only deadline comparison.",
+        "caveat_inherited_timing": "In E2b the ingress_dla-minus-off admission contrast retains one inherited eligibility-timing difference: off uses its step-entry coarse saturation check, while ingress_dla recomputes against live backlog per substep. Completed off recorded 138 unavailable V2I attempts (~1.1e-5 per offered task); the raw admission contrast and interaction are therefore not perfectly isolated gate-only effects (E2b report Limitation). INFERENCE if ignored.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT for gate path; RESEARCH-EVIDENCE FACT for counts; INFERENCE boundary for off contrast caveat."
+      },
+      "placement": {
+        "mode": "strongest-link execution",
+        "target_selection": "selected_execution_rsu = best_rsu_idx (ingress) for every V2I attempt. No argmin, no load metric.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT. Deterministic, no forwarding."
+      },
+      "sequential_behavior": "Gate is live per-substep: recomputed against live backlog including reservations admitted earlier in the same simulated second (sequential). Three reconciliation iterations. IMPLEMENTATION-VERIFIED FACT.",
+      "common_target_behavior": "Not applicable: no common target. Each task's gate is evaluated at its own ingress RSU, not a shared JSQ target. All matrices are ingress-diagonal; forwarding count zero.",
+      "forwarding": {
+        "forwarded_when": "Never. Forwarded_admitted = 0, share 0.0, total forwarding latency 0.0 ms, all admitted execution on diagonal. Rejected tasks never forwarded.",
+        "cost": "Zero by construction (no forwarding) and zero backhaul. Idealisation does not affect this mode's measurement but limits generalisation to non-zero-cost environments.",
+        "determinism": "Deterministic; no new randomness."
+      },
+      "determinism": "Deterministic. No new PRNG draw or changed key split. Direct E2b implementation adds only ingress_dla flag and reuses existing gate logic.",
+      "benefit": "Isolates the admission benefit under strongest-link. E2b seed 0: ingress_dla offered attainment 0.715773211 vs off 0.683619229 (+0.032153983) and admitted attainment 0.897826701 vs 0.766522526. E2c replication seeds 1-4: ingress_dla offered 0.720032771, 0.703688004, 0.702976484, 0.708874512 \u2014 consistently above paired dla (see common_target_dla). Gate admitted fewer tasks (-1237224 at seed 0 vs off; 10424749 - 11661973) and reduced penalty-inclusive offered latency versus dla - jsq: DLA minus ingress_dla context. RESEARCH-EVIDENCE FACT for one plus four draws; tasks are not independent replicates.",
+      "failure_mode": "Gate is conservative: it rejects tasks whose backlog exceeds deadline, even though some might still depend on future draining and service variability. At 2.5x cap with 1x service, gate traded 355207 cap rejections (jsq) or 834k (off) for ~2.07M gate rejections (2071344) at seed 0. Higher backed-off load or looser cap would change the trade. Gate uses backlog only, not predicted service or earliest completion.",
+      "cost": {
+        "compute": "Fixed 1x service, no scaling.",
+        "backhaul": "None (no forwarding).",
+        "admission_cost": "Fewer admitted tasks costs offered throughput but increases admitted conditional success. At seed 0, admitted 10424749 vs off 11661973 (-1237224 = 10424749 - 11661973). E2c seeds 1-4 similar: ~10.52M to 10.28M admitted vs dla ~10.20M/9.99M.",
+        "energy": "Energy per offered task near 0.468 J; gate does not materially change energy denominator but latency falls.",
+        "honesty": "RESEARCH-EVIDENCE FACT for seed-wise counts; INFERENCE if universalised."
+      },
+      "experiment_evidence": {
+        "manifest_sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+        "manifest_ref": "refs/harness/read-only/e2b: docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json",
+        "report_ref": "refs/harness/read-only/e2b: docs/evaluation/e2b/e2b_placement_admission_factorial_report_2026-08-10.md",
+        "report_sha256": "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83",
+        "validation_sha256": "e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1",
+        "comparison_sha256": "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf",
+        "evidence_index_sha256": "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9",
+        "path_summary_ref": "refs/harness/read-only/e2b: docs/evaluation/e2b/e2b_placement_admission_path_summary_v1.json",
+        "read_only_head": "refs/harness/read-only/e2b commit fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+        "e2c_replication_manifest_sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+        "e2c_read_only_head": "refs/harness/read-only/e2c commit 1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+        "observed_offered_seed0": 0.715773211,
+        "observed_admitted_seed0": 0.897826701,
+        "offered_tasks": 13076234,
+        "admitted_seed0": 10424749,
+        "admitted_v2i_seed0": 580907,
+        "forwarded_share_seed0": 0.0,
+        "gate_rejected_seed0": 2071344,
+        "admission_contrast_ingressdla_minus_off_seed0": 0.032153983,
+        "e2c_seeds_1_4_offered": [
+          0.720032771,
+          0.703688004,
+          0.702976484,
+          0.708874512
+        ],
+        "vec_env_commit": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+        "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85"
+      },
+      "limits": "Descriptive until E2c: one seed (0) pilot then four new draws; not confirmatory. Same trace/hour/cap/service/backhaul/actor limits as other strategies. Off contrast inherits eligibility-timing caveat. Gate is backlog-only, not full earliest-completion predictor. EXTERNAL DECISION REQUIRED for cap and trace breadth.",
+      "comparison_compatibility": "Pairs with off (ingress_dla - off) isolates admission under strongest-link, modulo the timing caveat. Pairs with dla (dla - ingress_dla) isolates placement with gate fixed \u2014 the cleanest comparison because both use same live gate (E2c). Joint contrasts must not conflate admission and placement. No equivalence or tie claim from close values.",
+      "provisional_wording": "Deadline-aware admission is a simulator backlog rule (seq_offsets), not a certified physical admission controller.",
+      "external_decision_required": "Supervisor confirms whether backlog-only gate satisfies TT-REQ-008 and whether provisional cap/fleet remain acceptable for dissertation."
+    },
+    {
+      "id": "common_target_dla",
+      "human_label": "Common-target DLA \u2014 JSQ placement (common-target per substep) + deadline-aware admission",
+      "honesty_class": "IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT + INFERENCE boundary",
+      "definition": "DLA means JSQ execution placement plus the same deadline-aware admission gate. Inherited evaluator selects one common argmin(rsu_busy_ms) target per task substep and broadcasts it to all eligible V2I candidates in that substep; the same deadline gate and three-iteration reconciliation are applied at that selected target. This is the common-target batch behavior; it is not canonical per-task JSQ+DLA.",
+      "information": "Placement information is current rsu_busy_ms argmin over 10 RSUs (least remaining service work). Admission information is per-candidate backlog-vs-deadline at the selected common target. Radio ingress remains strongest-link but execution target is the common JSQ target; reachability, ingress quality, and capacity do not filter the argmin. IMPLEMENTATION-VERIFIED FACT.",
+      "authority": "Placement authority chooses execution RSU (JSQ). Admission authority is the DLA gate at that chosen RSU. Joint placement+admission mode; DLA minus ingress_dla isolates placement with gate fixed, DLA minus JSQ isolates admission under JSQ, but DLA minus off is joint and not isolation.",
+      "admission": {
+        "gate": "Strict backlog-only gate: task admitted only if predicted wait (backlog + candidate service) <= remaining deadline slack, using live rsu_busy_ms at selected common target, recomputed per substep with fixed-point. Outcome code 3 for gate rejection; rejected tasks retain selected target, execution -1, not enqueued. At E2 seed 0, gate rejected 2373522 tasks (replacing 355207 cap rejections relative to jsq).",
+        "cap": "Cap check is live per-substep at selected target; at E2 dla seed 0, v2i_cap_rejected = 0 (all cap pressure captured as gate rejections). E2c seeds 1-4 dla also 0 cap rejections (gate absorbs).",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT; RESEARCH-EVIDENCE FACT for counts. INFERENCE if gate described as pure placement."
+      },
+      "placement": {
+        "mode": "JSQ least-busy (common-target batch)",
+        "target_selection": "One jnp.argmin(rsu_busy_ms) per Model-C task substep, over all RSUs. That single RSU index is the selected execution target for every eligible V2I candidate in that substep. Sequentially, the target is computed at substep entry from backlogs updated by prior substeps, but not recomputed after each candidate's reservation within the same substep.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT at vec_env 0e5ed2f79b50011fe0475a5c2069978f9fdd778d. Must label as common-target batch, not general JSQ."
+      },
+      "sequential_behavior": "Inter-substep sequential: after each substep's scatter and three-iteration reconciliation, rsu_busy_ms reflects newly admitted service and drained compute before next substep's argmin. Intra-substep is batched: multiple candidates in same substep share the same target computed before any of them are admitted.",
+      "common_target_behavior": "This strategy IS the common-target behavior. All eligible V2I traffic within a task substep shares one selected target. The evidence explicitly records this convention: 'DLA chooses one common argmin(rsu_busy_ms) JSQ target per substep, so that substep's eligible V2I traffic shares one selected target; execution-imbalance and deadline observations must be read under this convention' (E2c Limitation). Do not call this canonical general JSQ. Its construct validity is exactly what E2d per_task_dla tests.",
+      "forwarding": {
+        "forwarded_when": "When common selected target differs from ingress and task passes gate. E2 seed 0: forwarded 232729 of 278729 admitted V2I (share 0.834965145). E2c seeds 1-4: forwarded ~234k-241k, share ~0.848-0.857. Forwarding latency 0.0 ms due to zero backhaul.",
+        "cost": "Zero measured. Mechanism note: common-target batching concentrates execution load \u2014 at seed 0, actual execution counts were [66743, 66899, 66772, 52223, 26092, 0,0,0,0,0] leaving 5 RSUs with zero execution; at E2c the execution-share range increased by mean +0.17094 over ingress_dla. Idealised zero cost understates real forwarding/backhaul cost.",
+        "matrix": "Ingress-to-execution matrix is not diagonal; off-diagonal entries show forwarding.",
+        "determinism": "Deterministic batch forwarding."
+      },
+      "determinism": "Deterministic given backlog snapshot per substep. No new PRNG. Actor actions byte-identical. DLA logits max abs diff 2.38e-7 vs off (within 1e-5 diagnostic bound, not excusing action diff).",
+      "benefit": "Admission benefit under JSQ: E2 dla vs jsq offered +0.019258144 (seed 0), admitted +0.169979215, offered mean latency -15400.42 ms, 2018315 fewer admitted tasks (10122571 dla vs 12140886 jsq at seed 0, delta = 10122571 - 12140886) but higher conditional success. However, this benefit is admission, not placement.",
+      "failure_mode": "Placement failure relative to ingress_dla: E2 dla vs off is joint, but dla vs ingress_dla at seed 0 was -0.020833292 (lower offered). E2c replication seeds 1-4 dla - ingress_dla: -0.022097035, -0.020519134, -0.021447383, -0.020825491 (mean -0.021222261, 95% CI [-0.022335, -0.020109], all negative). Common-target batch placement with gate fixed showed a directional deficit vs strongest-link execution in this bounded four-draw replication. Mechanism is associated with concentrated execution distribution and heavy gate rejections at common target, but no causal inference beyond controlled simulator.",
+      "cost": {
+        "compute": "Fixed 1x service. Panel execution highly concentrated, not load-spreading in the per_admitted sense; imbalance increased vs ingress_dla.",
+        "backhaul": "Zero measured, but forwarding count high (share >0.83). Nonzero backhaul would add cost per forwarded task.",
+        "admission_cost": "Gate rejected ~2.37M at seed 0, ~2.2M at seeds1-4, producing fewer admitted tasks than either jsq (2018315 fewer at seed0) or ingress_dla.",
+        "energy": "Energy per offered ~0.473 J at E2c dla seeds1-4 vs ingress_dla slightly higher (delta mean -1.59e-05 J).",
+        "honesty": "RESEARCH-EVIDENCE FACT for seed-wise deltas; INFERENCE if described as pure placement cost without naming admission."
+      },
+      "experiment_evidence": {
+        "e2_manifest_sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+        "e2_comparison_sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+        "e2_validation_sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38",
+        "e2_report_ref": "refs/harness/read-only/e2b: docs/evaluation/e2/e2_native_placement_pilot_report_2026-08-09.md",
+        "e2c_manifest_sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+        "e2c_comparison_sha256": "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
+        "e2c_validation_sha256": "25b80d66d991b424e20a7fd18d9e45c641cddc4b4aa9ffeed0cbdccacb5f8f2f",
+        "e2c_report_ref": "refs/harness/read-only/e2c: docs/evaluation/e2c/e2c_gated_placement_multidraw_report_2026-08-10.md",
+        "read_only_head_e2b": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+        "read_only_head_e2c": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+        "vec_env_commit": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+        "observed_offered_seed0": 0.694939919,
+        "observed_admitted_seed0": 0.897716302,
+        "admitted_seed0": 10122571,
+        "admitted_v2i_seed0": 278729,
+        "forwarded_seed0": 232729,
+        "forwarded_share_seed0": 0.834965145,
+        "offered_tasks": 13076234,
+        "admission_contrast_dla_minus_jsq_seed0": 0.019258144,
+        "placement_contrast_dla_minus_ingressdla_seed0": -0.020833292,
+        "e2c_dla_offered_seeds1_4": [
+          0.697935736,
+          0.68316887,
+          0.681529101,
+          0.688049021
+        ],
+        "e2c_ingressdla_offered_seeds1_4": [
+          0.720032771,
+          0.703688004,
+          0.702976484,
+          0.708874512
+        ],
+        "e2c_paired_differences": [
+          -0.022097035,
+          -0.020519134,
+          -0.021447383,
+          -0.020825491
+        ],
+        "e2c_mean_diff": -0.021222261,
+        "e2c_ci95": [
+          -0.02233525407,
+          -0.0201092678
+        ],
+        "honesty": "RESEARCH-EVIDENCE FACT: primary four-draw replication directional difference within bounded draws; not population or task-level significance; not equivalence."
+      },
+      "limits": "Four new provisional fleet draws + one pilot seed; one trace/hour/cap/service/backhaul/actor. Backlog is total remaining service ms, not predicted earliest completion. Common-target batch convention limits claims to that construction, not general JSQ. No scaling/P2C/learning. EXTERNAL DECISION REQUIRED for trace breadth and staleness.",
+      "comparison_compatibility": "With gate fixed, dla - ingress_dla isolates placement (common-target vs strongest-link). With placement fixed, dla - jsq isolates admission. Joint contrasts (dla - off) must not be presented as placement-only. Forgetting the common-target caveat contaminates any JSQ claim.",
+      "provisional_wording": "DLA is backlog gate at selected target; not 'deadline-aware placement' alone. Call it exactly 'JSQ execution placement + deadline-aware admission (common-target per substep)'.",
+      "external_decision_required": "Whether common-target batch construction satisfies the dissertation's intended 'load-aware placement' definition; if not, per_task_dla is the corrected construct."
+    },
+    {
+      "id": "per_task_dla",
+      "human_label": "per_task_dla \u2014 per-task recomputed least-busy placement + deadline-aware admission",
+      "honesty_class": "IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT",
+      "definition": "E2d narrowly bounded construct-validity study: adds one evaluator mode per_task_dla that recomputes the least-remaining-service-work (rsu_busy_ms) target after each candidate's admitted service reservation, in stable padded vehicle-slot order within each substep, before the next candidate's placement and gate evaluation. Admission gate is the same strict backlog-only seq_offsets fixed-point as DLA; backhaul remains zero.",
+      "information": "Placement uses live rsu_busy_ms after prior candidates' reservations (the same least-busy metric as JSQ, but per-candidate rather than per-substep batch). No extra telemetry beyond that; radio ingress remains strongest-link for eligibility. Gate information identical to DLA: backlog+service vs remaining deadline at selected target. IMPLEMENTATION-VERIFIED FACT via vec_env per_task helper SHA a6e047265dd09365c0d4029afa76f8cb7caa444883e2f549a4254e3d0b53472a.",
+      "authority": "Placement authority recomputes per task (infrastructure). Admission authority is the same DLA gate applied per task at its own selected target. This directly tests whether E2c's common-target deficit persists when placement is per-task.",
+      "admission": {
+        "gate": "Same gate as dla/ingress_dla: deadline-aware backlog check with three-iteration reconciliation, applied after per-task placement to that task's selected target. Gate rejected counts similar to dla but with different per-RSU distribution (E2d mechanism_summary).",
+        "cap": "Cap per substep at selected target;interacts with per-task reservations.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT; no new admission logic beyond per-task target."
+      },
+      "placement": {
+        "mode": "per-task least-remaining-service-work (least-busy)",
+        "target_selection": "Per admitted V2I candidate in ascending padded slot order within each Model-C task substep: candidate's selected target = argmin(rsu_busy_ms) computed from backlog that includes service just reserved for prior admitted candidates in same substep. Ties lowest index. Domain is all 10 RSUs.",
+        "contrast_to_common_target": "Common-target computes once per substep and reuses; per-task recomputes after each reservation, so fallible batch concentration is reduced.",
+        "honesty": "IMPLEMENTATION-VERIFIED FACT via vec_env candidate commit 2f63706f46319433a2ba3af1df97afd0e56a95d1 and helper SHA a6e047..."
+      },
+      "sequential_behavior": "Intra-substep sequential: placement and admission for slot k sees backlog updated by admissions for slots <k in same substep. Inter-substep sequential as before. This is the finest sequential granularity tested. Deterministic order is ascending slot index, same stable order used by co-batch offsets and scatter updates.",
+      "common_target_behavior": "This strategy replaces common-target batch with per-task recomputation. Mechanism records per-substep candidate counts, unique targets, target switches, and max target concentration versus the inherited common-target mode. These battlefield metrics are in e2d_per_task_placement_mechanism_summary_v1.json and show greater target dispersion under per-task.",
+      "forwarding": {
+        "forwarded_when": "When per-task selected target differs from ingress and task passes gate. At E2d seeds 1-4, forwarded ~600k tasks, share 0.899-0.900 of admitted V2I (667k admitted V2I), higher count than common-target dla (~234-241k) because per-task admits more V2I.",
+        "cost": "Forwarding latency 0.0 ms due to zero backhaul design; mechanism shows ingress_to_execution_matrix with greater off-diagonal spread than dla. Zero cost is idealisation; real backhaul would scale with ~600k forwards per hour.",
+        "execution_distribution": "Per_task_dla execution was near-uniform across all ten RSUs at every seed (counts roughly 66.3k–67.3k per RSU, e.g. seed1 66583–67080, seed2 66419–66969, seed3 66446–66917, seed4 66326–67251; execution-share ranges 0.000744/0.000824/0.000706/0.001387; mean difference versus dla about -0.2380, versus ingress about -0.0671), not truncated. All ten RSUs execute, showing greater target dispersion than common-target batch.",
+        "determinism": "Deterministic per-task forwarding."
+      },
+      "determinism": "Deterministic per-task order and tie rule. No new PRNG. Path arrays size [T,KMAX,N] record per-slot ingress, selected, execution, forwarded flag, and latency exactly.",
+      "benefit": "Primary strongest-link comparison (per_task_dla - ingress_dla offered attainment): seed1 +0.004636732564, seed2 +0.005867285642, seed3 +0.005071796666, seed4 +0.005509919752. Mean +0.005271433656, SD 0.000533733895, SE 0.000266866947, 95% CI [+0.004422143925, +0.006120723387] (t=3.182, df=3). Predeclared decision: directional_advantage_for_per_task_placement_within_bounded_draws. Secondary common-target comparison (per_task_dla - dla): mean +0.026493694591, CI [+0.02621, +0.02677]. Benefits are bounded four-draw directional, not universal. RESEARCH-EVIDENCE FACT.",
+      "failure_mode": "Per-task recomputation costs O(KMAX·N) placement evaluations per timestep versus one per substep for common-target; forwarding roughly 600k tasks (share 0.899-0.900 of 667k admitted V2I, ~2.5x vs common-target dla ~234-241k) increases backhaul exposure under nonzero cost. Execution is near-uniform across all ten RSUs (counts roughly 66.3k–67.3k; execution-share ranges 0.000744/0.000824/0.000706/0.001387; mean difference versus dla about -0.2380, versus ingress about -0.0671), not concentrated to a subset. No stale-state or backhaul test; staleness would affect per-task more (more decisions on potentially stale state) and real backhaul cost scales with forwarding.",
+      "cost": {
+        "compute": "Fixed 1x service. Placement evaluation cost higher (per-task vs per-substep) but not measured as separate resource metric.",
+        "backhaul": "Zero measured but 600k forwards amplify any nonzero backhaul latency vs 0 for ingress_dla and 234k for dla. Not tested.",
+        "admission_cost": "Per_task_dla admitted 10594205 (seed1), 10378506 (seed2), 10342346 (seed3), 10367858 (seed4) \u2014 more than either ingress_dla (~10.5M/10.28M) or dla (~10.20M/9.99M). Gate rejections fewer than dla but more than none.",
+        "energy": "Energy per offered at seed1 per_task 0.473289672 (0.47328967193459526) vs dla 0.473272695 (0.47327269456939974) delta +0.000016977; primary difference is deadline throughput, not energy.",
+        "honesty": "RESEARCH-EVIDENCE FACT for offered attainment deltas; INFERENCE if forwarding cost assumed zero in deployment."
+      },
+      "experiment_evidence": {
+        "manifest_sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+        "manifest_ref": "refs/harness/read-only/e2d: docs/evaluation/e2d/e2d_per_task_placement_robustness_manifest_v1.json",
+        "report_ref": "refs/harness/read-only/e2d: docs/evaluation/e2d/e2d_per_task_placement_report_2026-08-11.md",
+        "report_sha256": "8583503f817e159e74e20a8d0b3d72b281280984a2bbfac84b8e31786af8308e",
+        "comparison_sha256": "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0",
+        "validation_sha256": "0e3f27cdec9d13ec8e340bf1d83b3afcd127e90d7bdcf316bc2a2b2738fd313f",
+        "evidence_index_sha256": "a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b",
+        "raw_evidence_index_inner_sha256": "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7",
+        "raw_evidence_index_inner_path": "e2d_outputs/e2d-per-task-placement-robustness-v1/raw_evidence_index.json",
+        "mechanism_summary_sha256": "4975ab8792242a56c241d6513e7e49bcdfa5117ab462bcb6b9bb3c5d2a5e5410",
+        "read_only_head": "refs/harness/read-only/e2d commit 80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+        "vec_env_candidate_commit": "2f63706f46319433a2ba3af1df97afd0e56a95d1",
+        "vec_env_parent_commit": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+        "per_task_helper_sha256": "a6e047265dd09365c0d4029afa76f8cb7caa444883e2f549a4254e3d0b53472a",
+        "observed_offered_seeds1_4": [
+          0.724669504,
+          0.709555289,
+          0.708048281,
+          0.714384432
+        ],
+        "ingress_dla_offered_seeds1_4": [
+          0.720032771,
+          0.703688004,
+          0.702976484,
+          0.708874512
+        ],
+        "dla_offered_seeds1_4": [
+          0.697935736,
+          0.68316887,
+          0.681529101,
+          0.688049021
+        ],
+        "paired_differences_vs_ingress": [
+          0.004636732564,
+          0.005867285642,
+          0.005071796666,
+          0.005509919752
+        ],
+        "paired_differences_vs_common_target": [
+          0.026733767536,
+          0.026386419821,
+          0.026519179758,
+          0.026335411251
+        ],
+        "primary_mean": 0.005271433656,
+        "primary_ci95": [
+          0.004422143925,
+          0.006120723387
+        ],
+        "primary_decision": "directional_advantage_for_per_task_placement_within_bounded_draws",
+        "secondary_mean_vs_common_target": 0.026493694591,
+        "offered_tasks": 13076234,
+        "forwarded_seeds1_4": [
+          600885,
+          600181,
+          601402,
+          600755
+        ],
+        "honesty": "RESEARCH-EVIDENCE FACT for four-draw bounded study; NOT population, NOT task-level significance, NOT equivalence; prior dla result was known so not held-out replication."
+      },
+      "limits": "Four fleet seeds, fixed evaluator seed 0, one incident hour, one cap (6220), fixed 1x service, zero backhaul, provisional uk2030 fleet, frozen actor no RSU load observation, backlog-only gate, evaluator deadline not physical return. No ordinary-traffic control, no deployment, no scaling/P2C/learning. E2d is construct-validity robustness, not general controller superiority. EXTERNAL DECISION REQUIRED for trace/cap breadth and backhaul realism.",
+      "comparison_compatibility": "Primary is per_task_dla - ingress_dla (isolates per-task placement with gate fixed, strongest-link baseline). Secondary is per_task_dla - dla (per-task vs common-target). DLA vs off or vs jsq comparisons remain admission-conditioned. Prior E2c result known, so not independent replication.",
+      "provisional_wording": "Calling per_task_dla 'general JSQ' is still provisional; it is per-task least-busy, still using rsu_busy_ms workload, not queue length. Name it exactly 'per-task recomputed least-busy placement + DLA gate'.",
+      "external_decision_required": "Supervisor to confirm whether per-task recomputation cost (evaluations and forwarding) is acceptable for dissertation's performance claim under realistic backhaul (nonzero) and stale-state conditions."
+    }
+  ],
+  "s035_classification": {
+    "supervisor_identified_problem": [
+      "RSU queue/waiting-room capacity is admission capacity, not compute power (2.5 -> 0.75 was waiting room, not compute).",
+      "Fail-fast/rejection-accounting explanation for reduced latency without improved completion (quick RSU refusals).",
+      "No explicit current RSU load/capacity awareness in trained vehicle policy.",
+      "Disproportionate load at congested-road RSUs while farther RSUs idle.",
+      "Infrastructure load management as a supervisor-identified problem requiring investigation."
+    ],
+    "requested_investigations": {
+      "A": "DRL offloading plus deterministic load balancing (Kubernetes load balancing framework to distribute tasks from overloaded to quieter RSUs; retraining not required; deterministic).",
+      "B": "DRL offloading plus DRL-based scheduling/load balancing (train a load balancing model based on existing DRL).",
+      "C": "DRL offloading plus AI-based Kubernetes / AI-based infrastructure/resource control (design AI-based Kubernetes)."
+    },
+    "status_of_each": "Each of A/B/C is a supervisor-identified requested investigation / proposed direction / hypothesised outcome as the verbatim S-035 body supports for overlapping content. Do not call any direction a mandatory assessed implementation without additional authoritative evidence. Standing: DIRECT_SUPERVISOR_SOURCE_BODY S-035 SHA 08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed \u2014 authoritative only for verbatim overlapping body content; SRC-010 paraphrase is superseded only where it overlaps S-035 verbatim content, not blanket. Frozen Negotiated Version 1 text and hash remain unchanged; S-035 does not amend frozen baseline, does not establish timestamp/headers/provenance, and does not by itself create a mandatory deliverable. Requires overlapping-content narrow interpretation.",
+    "tt_req_008": "TT-REQ-008 frozen baseline (SHOULD, pending status per Negotiated Version 1 payload 58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595) remains unchanged. S-035 raises direct source confidence for infrastructure-aware load management and supports an INFERENCE that comparative evidence could be considered PARTIALLY_MET as a campaign overlay. This PARTIALLY_MET standing is INFERENCE + EXTERNAL DECISION REQUIRED, not an effective baseline amendment and not proof of a mandatory implemented deliverable."
+  },
+  "prohibited_claims_enforced": {
+    "common_target_not_canonical_jsq": "Common-target batch DLA must not be called canonical general JSQ. Per-task is still least-busy workload, not canonical queue-length JSQ.",
+    "dla_not_pure_placement": "DLA changes feasibility/admission (gate) as well as placement; do not describe DLA as pure placement when it also changes admission. dla = jsq placement + deadline gate; ingress_dla = strongest-link placement + same gate.",
+    "no_empirical_without_artifact": "Every numeric value above is bound to manifest/comparison/validation SHA and commit identity.",
+    "no_universal_winner": "No universal winner claim; E2 JSQ lost to off in one draw; E2b ingress_dla beat off via admission; E2c common-target lost to ingress_dla; E2d per_task beat ingress_dla in four draws but with more forwarding. All are bounded, not population."
+  },
+  "claim_boundaries_global": {
+    "equivalence_or_noninferiority_allowed": false,
+    "universal_least_busy_or_general_controller_superiority_allowed": false,
+    "population_or_manchester_wide_claim_allowed": false,
+    "task_level_significance_allowed": false,
+    "physical_or_kubernetes_deployment_tested": false,
+    "physical_result_return_confirmed": false,
+    "tasks_used_as_independent_replicates": false
+  }
+}
