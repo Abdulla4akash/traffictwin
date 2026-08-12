@@ -1,0 +1,5 @@
+{
+  "command": "metric-contract",
+  "module": "traffictwin.metric_contract_registry.cli:app",
+  "help": "Validate, merge, and fingerprint closed metric contracts"
+}

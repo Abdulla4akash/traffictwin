@@ -1,0 +1,10 @@
+{
+  "enum_name": "METRIC_CONTRACT_REGISTRY",
+  "label": "Metric Contract Registry",
+  "url": "metric-contracts",
+  "script": "app_pages/metric_contract_registry.py",
+  "renderer": "traffictwin.ui.pages.metric_contract_registry:render",
+  "group": "Build & run",
+  "description": "Define and validate closed metadata contracts for custom metrics without executable code.",
+  "icon": "contract"
+}
