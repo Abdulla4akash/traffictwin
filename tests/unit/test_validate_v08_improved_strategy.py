@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any, cast
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 JSON_PATH = REPO_ROOT / "docs/closure/v08_alignment/improved_dynamic_strategy_contract.json"
@@ -83,8 +84,8 @@ def _run_validator_against(tmp_root: Path) -> int:
         return result.returncode
 
 
-def _load_json(path: Path = JSON_PATH) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _load_json(path: Path = JSON_PATH) -> dict[str, Any]:
+    return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
 # ---------------------------------------------------------------------------
@@ -151,7 +152,7 @@ def test_s035_classification_correct() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _mutant_setup() -> tuple[Path, dict, str, str]:
+def _mutant_setup() -> tuple[Path, dict[str, Any], str, str]:
     tmp = Path(tempfile.mkdtemp())
     data = _load_json()
     md = MD_PATH.read_text(encoding="utf-8")
@@ -159,7 +160,7 @@ def _mutant_setup() -> tuple[Path, dict, str, str]:
     return tmp, data, md, pseudo
 
 
-def _write_mutant(tmp: Path, data: dict, md: str, pseudo: str) -> None:
+def _write_mutant(tmp: Path, data: dict[str, Any], md: str, pseudo: str) -> None:
     (tmp / "improved_dynamic_strategy_contract.json").write_text(
         json.dumps(data, indent=2, sort_keys=False) + "\n", encoding="utf-8"
     )
