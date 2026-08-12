@@ -1,4 +1,4 @@
-from traffictwin.ui.pages.reproducibility_replay import render
-from traffictwin.ui.state import load_ui_config  # noqa: F401
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.page_runtime import run_page_script
 
-render(load_ui_config())
+run_page_script(UiPage.REPRODUCIBILITY_REPLAY)

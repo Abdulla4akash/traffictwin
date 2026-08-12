@@ -588,6 +588,18 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | SUMO tripinfo/summary output import | Implemented, bounded | SUMO 1.27.x only; public synthetic acceptance fixture; FCD and launch unavailable. |
 | Direct launch | Adapter-specific | Generic/SUMO launch remains `false`; exact VEC foreground execution is conditional on a complete accepted VEC-07 preflight. |
 | Near-live/true-live data | v0.7 candidate, source-bounded | BODS live buses and National Highways operational events are classified from source timestamps; WebTRIS and retrieval recency cannot be promoted to live. Continuous city-road telemetry remains unavailable. |
+| Study Workspace | Implemented | Read-only research-lifecycle cockpit referencing existing artifacts with derived lifecycle and lineage; no artifact mutation. |
+| Evidence Admission Inbox | Implemented | Human review queue between validated artifacts and preregistered evidence attachment; validation alone never admits evidence. CLI: `traffictwin evidence-admission`. |
+| Metric Contract Registry | Implemented | Closed metadata contracts for custom metrics without executable code; validate, merge, and fingerprint. CLI: `traffictwin metric-contract`. |
+| Calibration Workbench | Implemented | Read-only descriptive comparison of admitted observed evidence with simulation candidates; half-open windows, fingerprint binding, weighted normalized error with per-metric coverage gate. |
+| Baseline Registry | Implemented | Explicit-review baseline declaration and promotion; no automatic promotion. CLI: `traffictwin baseline`. |
+| Study Accrual Monitor | Implemented | Deterministic accrual and deviation view against the frozen preregistered plan. |
+| Reproducibility Replay | Implemented | Allowlisted deterministic replay of verified capsule artifacts with fingerprint receipts. CLI: `traffictwin replay`. |
+| Contract Drafting Assistant | Implemented | Profiles 2-20 local tabular samples into a reviewable draft source data contract; draft-only, no freeze, human review required. |
+| Event-to-Scenario Bridge | Implemented | Deterministic unexecuted bridge from a declared authored event to four reviewable handoffs; no automatic execution. |
+| Multi-Objective Trade-Off Explorer | Implemented | Descriptive non-dominated frontier across compatible policy arms under declared metrics and hard constraints; fail-closed for unavailable metrics. |
+| Workspace Activation | Implemented | Preview-first, confirmation-gated local activation for a real workspace; no network or provider action on render. CLI: `traffictwin workspace`. |
+| Streamlit/pytest isolation guard | Implemented, test infrastructure | Post-AppTest subprocess isolation for the UI test suite; prevents hidden fork-after-AppTest child crashes on macOS. |
 
 ## Testing And Quality
 

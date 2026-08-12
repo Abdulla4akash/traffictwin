@@ -1,8 +1,4 @@
-"""App page wrapper for Calibration Workbench."""
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.page_runtime import run_page_script
 
-from __future__ import annotations
-
-from traffictwin.ui.pages.calibration_workbench import render
-from traffictwin.ui.state import load_ui_config
-
-render(load_ui_config())
+run_page_script(UiPage.CALIBRATION_WORKBENCH)

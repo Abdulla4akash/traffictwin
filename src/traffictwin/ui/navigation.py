@@ -23,7 +23,11 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.SCENARIO_MUTATION,
         UiPage.WHATIF_STUDIO,
         UiPage.SCENARIO,
+        UiPage.STUDY_WORKSPACE,
         UiPage.DATA_CONTRACT_WORKBENCH,
+        UiPage.METRIC_CONTRACT_REGISTRY,
+        UiPage.CONTRACT_DRAFTING_ASSISTANT,
+        UiPage.EVENT_SCENARIO_BRIDGE,
         UiPage.MANIFEST_WIZARD,
         UiPage.BUNDLE_IMPORT,
         UiPage.SUMO_IMPORT,
@@ -55,8 +59,19 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.PROVENANCE,
         UiPage.STUDY_CAPSULE,
         UiPage.RESOURCE_STRATEGY_EXPLORER,
+        UiPage.CALIBRATION_WORKBENCH,
+        UiPage.STUDY_ACCRUAL_MONITOR,
+        UiPage.MULTIOBJECTIVE_TRADEOFF,
+        UiPage.EVIDENCE_ADMISSION_INBOX,
+        UiPage.BASELINE_REGISTRY,
+        UiPage.REPRODUCIBILITY_REPLAY,
     ],
-    "Project": [UiPage.PARTICIPANT_EVALUATION, UiPage.SETTINGS, UiPage.ABOUT],
+    "Project": [
+        UiPage.PARTICIPANT_EVALUATION,
+        UiPage.WORKSPACE_ACTIVATION,
+        UiPage.SETTINGS,
+        UiPage.ABOUT,
+    ],
 }
 
 V07_PENDING_PAGE_KEY = "_v07_pending_page"

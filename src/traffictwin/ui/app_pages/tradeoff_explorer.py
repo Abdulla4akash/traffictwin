@@ -1,5 +1,4 @@
-"""Direct Streamlit page script for the candidate v0.7 router."""
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.page_runtime import run_page_script
 
-from traffictwin.ui.pages.tradeoff_explorer import render
-
-render(object())
+run_page_script(UiPage.MULTIOBJECTIVE_TRADEOFF)

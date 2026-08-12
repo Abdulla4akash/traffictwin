@@ -1086,6 +1086,111 @@ incompatible metric is gated out of arm summaries entirely (no numeric aggregate
 metric keys cannot be shadowed by supplied values, and no winner/best/optimal claim is made
 anywhere.
 
+## Study Workspace
+
+Study Workspace is a read-only research-lifecycle cockpit. It references existing research
+artifacts (preregistrations, experiments, capsules, reports) and derives lifecycle stage and
+lineage links between them so a researcher can see where a study stands and what produced what.
+
+Boundaries: the page mutates nothing — it never creates, edits, promotes, or deletes an
+artifact, and a derived lifecycle stage is a description, not an approval.
+
+## Evidence Admission Inbox
+
+Evidence Admission Inbox is the human review queue between validated artifacts and preregistered
+evidence attachment. Validated candidates queue for a named reviewer decision; admission and
+rejection each record who decided and why. The `traffictwin evidence-admission` CLI offers the
+same queue for scripted review preparation.
+
+Boundaries: validation alone never admits evidence, nothing is attached automatically, and a
+rejected candidate stays visible with its recorded reason.
+
+## Metric Contract Registry
+
+Metric Contract Registry defines and validates closed metadata contracts for custom metrics —
+name, unit, direction, denominator, and compatibility constraints — without any executable code.
+Contracts can be validated, merged, and fingerprinted from the page or via
+`traffictwin metric-contract`.
+
+Boundaries: a contract is metadata only; registering one grants no execution and legacy Resource
+Strategy behaviour is unchanged. Downstream pages stay fail-closed for metrics whose contracts
+are unavailable or incompatible.
+
+## Calibration Workbench
+
+Calibration Workbench descriptively compares admitted observed evidence with simulation
+candidates over aligned half-open windows. Evidence is fingerprint-bound, and the summary score
+is a dimensionless weighted mean normalized error (Σ(weight×mae/scale)/Σweight) with a
+per-metric coverage gate.
+
+Boundaries: the page is read-only and descriptive — it does not calibrate, fit, rank, or claim
+validity, and evidence that fails the coverage gate is excluded explicitly rather than scored.
+
+## Baseline Registry
+
+Baseline Registry declares and promotes the exact artifact that is the current baseline for a
+stated purpose. Promotion is an explicit reviewed act with a recorded decision trail; the
+`traffictwin baseline` CLI manages candidates, approvals, and the promotion workflow.
+
+Boundaries: nothing is promoted automatically — importing, validating, or registering an
+artifact never makes it a baseline.
+
+## Study Accrual Monitor
+
+Study Accrual Monitor deterministically shows how collected and reviewed evidence compares with
+the frozen preregistered plan over time, including accrual progress and deviations from the
+planned schedule.
+
+Boundaries: the monitor reads admitted evidence and the frozen plan only; it caches no shortcut
+state and never modifies the plan or the evidence it reports on.
+
+## Reproducibility Replay
+
+Reproducibility Replay re-executes allowlisted deterministic analyses from verified capsule
+artifacts and emits a receipt with a fingerprint comparison against the original result. The
+`traffictwin replay` CLI provides the same verify-and-replay workflow.
+
+Boundaries: only allowlisted deterministic adapters run — no arbitrary code, no network, and a
+fingerprint mismatch is reported, never repaired.
+
+## Contract Drafting Assistant
+
+Contract Drafting Assistant profiles between 2 and 20 local tabular samples and drafts a
+reviewable source data contract from what the samples agree on. The handoff to Data Contract
+Workbench is draft-only: `draft_only=True`, `freeze_executed=False`, and
+`human_review_required=True`.
+
+Boundaries: the assistant never freezes a contract, exact schema field names are preserved
+across report/draft/JSON/CSV/handoff/UI, and high-confidence sensitive identifiers are flagged
+`PRIVACY_REVIEW_REQUIRED` for human review without collapsing field identity or leaking values.
+
+## Event-to-Scenario Bridge
+
+Event-to-Scenario Bridge deterministically maps a declared authored event to four reviewable
+handoffs (scenario, mutation, sweep, and what-if requests) so an observed disruption can become
+a planned study input.
+
+Boundaries: every handoff is unexecuted — the bridge launches nothing, and each handoff remains
+a reviewable request until a human acts on it elsewhere.
+
+## Multi-Objective Trade-Off Explorer
+
+Multi-Objective Trade-Off Explorer shows the descriptive non-dominated (Pareto) frontier across
+compatible policy arms under declared metrics and hard constraints, so competing objectives can
+be inspected together.
+
+Boundaries: the frontier is descriptive, not a recommendation; metrics that are unavailable or
+contract-incompatible fail closed and no winner/best/optimal claim is made.
+
+## Workspace Activation
+
+Workspace Activation is a preview-first, confirmation-gated wizard for activating a real local
+TrafficTwin workspace. Every step shows exactly what would change before an explicit
+confirmation, and `traffictwin workspace` provides the same wizard for the terminal.
+
+Boundaries: rendering the page performs no network, provider, or filesystem action — only an
+explicit confirmation does, and the preview is the complete statement of what will happen.
+
 ## Trusted Custom Metrics For Developers
 
 Researchers can register reviewed local deterministic functions through the Python

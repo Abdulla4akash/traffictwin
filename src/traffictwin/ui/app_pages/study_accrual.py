@@ -1,5 +1,4 @@
-from traffictwin.ui.pages.study_accrual import render
-from traffictwin.ui.state import UiConfig, load_ui_config
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.page_runtime import run_page_script
 
-config: UiConfig = load_ui_config()
-render(config)
+run_page_script(UiPage.STUDY_ACCRUAL_MONITOR)

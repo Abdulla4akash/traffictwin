@@ -21,6 +21,7 @@ from traffictwin.annotations import (
     AnalystDecisionLabel,
     analyst_annotation_contract,
 )
+from traffictwin.baseline_registry.cli import app as baseline_registry_cli_app
 from traffictwin.case_studies import build_synthetic_case_study_pack
 from traffictwin.config.capabilities import default_export_import_manifest, manifest_to_plain_dict
 from traffictwin.config.seed_io import SeedIOError, load_seed, normalise_seed_file
@@ -48,6 +49,7 @@ from traffictwin.evaluation.participants import (
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.evidence.temporal import TemporalEvidenceConfig
+from traffictwin.evidence_admission.cli import app as evidence_admission_cli_app
 from traffictwin.experiments.equivalence_testing import (
     EquivalenceMarginBasis,
     EquivalenceStudyConfig,
@@ -393,6 +395,7 @@ from traffictwin.integration.vec_runner import (
     preflight_vec_run,
     run_vec_evaluator,
 )
+from traffictwin.metric_contract_registry.cli import app as metric_contract_registry_cli_app
 from traffictwin.metrics.aggregation import aggregate_experiment
 from traffictwin.metrics.comparison import compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
@@ -518,6 +521,7 @@ from traffictwin.reporting.latex import (
 from traffictwin.reporting.markdown import report_to_markdown
 from traffictwin.reporting.models import ReportBuildError, ResearchReport, ResearchReportType
 from traffictwin.reporting.pdf import report_to_pdf_bytes
+from traffictwin.reproducibility_replay.cli import app as reproducibility_replay_cli_app
 from traffictwin.research_object import (
     PermissionStatus,
     PublicationScope,
@@ -571,6 +575,7 @@ from traffictwin.synthetic.experiments import (
 )
 from traffictwin.synthetic.scenarios import list_preset_names, preset_config
 from traffictwin.synthetic.validation import verify_synthetic_path
+from traffictwin.workspace_activation.cli import app as workspace_activation_cli_app
 
 app = typer.Typer(no_args_is_help=True, help="TrafficTwin research-software CLI.")
 registry_app = typer.Typer(no_args_is_help=True, help="Metadata registry commands.")
@@ -669,6 +674,31 @@ app.add_typer(release_app, name="release")
 app.add_typer(integration_app, name="integration")
 app.add_typer(participant_app, name="participant-evaluation")
 app.add_typer(manifest_app, name="manifest")
+app.add_typer(
+    baseline_registry_cli_app,
+    name="baseline",
+    help="Manage baseline candidates, approvals, and promotion workflow.",
+)
+app.add_typer(
+    evidence_admission_cli_app,
+    name="evidence-admission",
+    help="Evidence admission inbox — human review queue for preregistration attachment",
+)
+app.add_typer(
+    metric_contract_registry_cli_app,
+    name="metric-contract",
+    help="Validate, merge, and fingerprint closed metric contracts",
+)
+app.add_typer(
+    reproducibility_replay_cli_app,
+    name="replay",
+    help="Verify and replay allowlisted deterministic analyses with fingerprint receipts.",
+)
+app.add_typer(
+    workspace_activation_cli_app,
+    name="workspace",
+    help="Local real-workspace activation wizard",
+)
 integration_app.add_typer(tos_app, name="tos")
 integration_app.add_typer(sumo_app, name="sumo")
 integration_app.add_typer(external_app, name="external")

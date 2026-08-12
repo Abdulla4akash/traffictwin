@@ -1,3 +1,4 @@
-from traffictwin.ui.pages.event_scenario_bridge import render
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.page_runtime import run_page_script
 
-render()
+run_page_script(UiPage.EVENT_SCENARIO_BRIDGE)
