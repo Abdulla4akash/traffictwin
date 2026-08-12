@@ -107,7 +107,7 @@
         {
           "artifact": "e2_report",
           "path": "docs/evaluation/e2/e2_native_placement_pilot_report_2026-08-09.md",
-          "sha256": "report_sha_not_hashed_separately_verify_via_head",
+          "sha256": "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c",
           "head": "refs/harness/read-only/e2b",
           "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
           "standing": "RESEARCH-EVIDENCE FACT narrative bound to above manifests"
@@ -173,7 +173,7 @@
         {
           "artifact": "e2b_factorial_comparison",
           "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_comparison_v1.json",
-          "sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52",
+          "sha256": "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf",
           "head": "refs/harness/read-only/e2b",
           "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
           "standing": "RESEARCH-EVIDENCE FACT"
@@ -181,7 +181,7 @@
         {
           "artifact": "e2b_factorial_report",
           "path": "docs/evaluation/e2b/e2b_placement_admission_factorial_report_2026-08-10.md",
-          "sha256": "report_bound_to_manifest_9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+          "sha256": "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83",
           "head": "refs/harness/read-only/e2b",
           "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
           "standing": "RESEARCH-EVIDENCE FACT"
@@ -335,10 +335,18 @@
         {
           "artifact": "e2d_evidence_index",
           "path": "docs/evaluation/e2d/e2d_per_task_placement_evidence_index_v1.json",
-          "sha256": "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7",
+          "sha256": "a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b",
           "head": "refs/harness/read-only/e2d",
           "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
           "standing": "RESEARCH-EVIDENCE FACT"
+        },
+        {
+          "artifact": "e2d_raw_evidence_index_inner",
+          "path": "e2d_outputs/e2d-per-task-placement-robustness-v1/raw_evidence_index.json",
+          "sha256": "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7",
+          "head": "refs/harness/read-only/e2d",
+          "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+          "standing": "RESEARCH-EVIDENCE FACT external raw-artifact inner index identity (distinguished from committed file digest a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b)"
         },
         {
           "artifact": "e2d_raw_checksums",
@@ -385,6 +393,7 @@
     "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9",
     "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3",
     "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+    "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf",
     "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6",
     "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
     "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
@@ -394,9 +403,13 @@
     "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0",
     "0e3f27cdec9d13ec8e340bf1d83b3afcd127e90d7bdcf316bc2a2b2738fd313f",
     "4975ab8792242a56c241d6513e7e49bcdfa5117ab462bcb6b9bb3c5d2a5e5410",
+    "a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b",
     "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7",
     "eb5de7ce1eea202fee4d08d28bf7f4e38888b24709550cfc78dca71b16b250ca",
     "8583503f817e159e74e20a8d0b3d72b281280984a2bbfac84b8e31786af8308e",
+    "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c",
+    "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83",
+    "e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1",
     "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
     "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
     "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",

@@ -21,8 +21,10 @@ Discriminating: deleting one admission field or redirecting one evidence SHA mus
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -86,6 +88,8 @@ EXPECTED_HEADS: dict[str, str] = {
 
 # Full allowed SHA-256 set embedded for self-contained cross-check.
 # Must match strategy_evidence_map.json allowed_sha256_set exactly.
+# Includes committed-file digests (verified via git show)
+# and external raw-artifact digests (distinguished).
 EXPECTED_ALLOWED_SHA256_SET: set[str] = {
     "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f",
     "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
@@ -96,6 +100,7 @@ EXPECTED_ALLOWED_SHA256_SET: set[str] = {
     "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9",
     "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3",
     "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+    "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf",
     "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6",
     "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
     "b0bc17ef097e8a8ca3639482bbf5ae05ef249c1221836cc6591207e87b511970",
@@ -105,9 +110,13 @@ EXPECTED_ALLOWED_SHA256_SET: set[str] = {
     "1655ae76d3c9a6aac77d66b53555a35d608394427f86f0f19828fa5fb148afd0",
     "0e3f27cdec9d13ec8e340bf1d83b3afcd127e90d7bdcf316bc2a2b2738fd313f",
     "4975ab8792242a56c241d6513e7e49bcdfa5117ab462bcb6b9bb3c5d2a5e5410",
+    "a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b",
     "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7",
     "eb5de7ce1eea202fee4d08d28bf7f4e38888b24709550cfc78dca71b16b250ca",
     "8583503f817e159e74e20a8d0b3d72b281280984a2bbfac84b8e31786af8308e",
+    "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c",
+    "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83",
+    "e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1",
     "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
     "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
     "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
@@ -115,6 +124,22 @@ EXPECTED_ALLOWED_SHA256_SET: set[str] = {
     "a6e047265dd09365c0d4029afa76f8cb7caa444883e2f549a4254e3d0b53472a",
     "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
 }
+
+
+def _git_show_sha256(commit: str, path: str) -> str | None:
+    """Resolve (commit, path) via git show and SHA-256 the bytes. Returns hex or None."""
+    result = subprocess.run(  # noqa: S603
+        ["git", "show", f"{commit}:{path}"],  # noqa: S607
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return None
+    return hashlib.sha256(result.stdout).hexdigest()
+
+
+def _is_committed_path(path: str) -> bool:
+    """Committed docs are under docs/; external raw artifacts are under e.g. e2*_outputs/."""
+    return path.startswith("docs/")
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -271,34 +296,50 @@ def validate_evidence_map(data: dict[str, Any], matrix_data: dict[str, Any]) -> 
             continue
         for entry in evidences:
             sha = str(entry.get("sha256", ""))
-            if (
-                "placeholder" in sha.lower()
-                or sha.startswith("report_")
-                or sha.startswith("e2b_comparison_sha_placeholder")
-            ):
-                if not any(a in sha for a in allowed_set):
-                    if sid == "ingress_dla" and sha.startswith("e2b_comparison_sha_placeholder"):
-                        continue
-                    if sha.startswith("report_bound_to_manifest") or sha.startswith(
-                        "report_sha_not_hashed"
-                    ):
-                        continue
-                    errors.append(
-                        f"evidence_map {sid} entry {entry.get('artifact')} "
-                        "has placeholder without allowed SHA"
-                    )
-                continue
-            if not isinstance(sha, str) or (not HEX64.match(sha) and not HEX40.match(sha)):
+            commit = str(entry.get("commit", ""))
+            path = str(entry.get("path", ""))
+            # Strict hex64 required: malformed length must fail
+            if not isinstance(sha, str) or not HEX64.match(sha):
                 errors.append(
                     f"evidence_map {sid} entry {entry.get('artifact')} "
-                    f"sha256 must be hex64/hex40, got {sha!r}"
+                    f"sha256 must be hex64 (64 hex chars), got {sha!r}"
                 )
                 continue
-            if HEX64.match(sha) and sha not in allowed_set:
+            if sha not in allowed_set:
                 errors.append(
                     f"evidence_map {sid} entry {entry.get('artifact')} "
                     f"sha256 {sha} not in allowed_sha256_set (possible redirect)"
                 )
+                continue
+            # Enforce path/SHA binding via git show for committed paths.
+            # Distinguish external raw-artifact hashes (e2*_outputs/)
+            # from committed file hashes (docs/).
+            if _is_committed_path(path):
+                if not HEX40.match(commit):
+                    errors.append(
+                        f"evidence_map {sid} entry {entry.get('artifact')} commit must be 40-hex"
+                    )
+                else:
+                    resolved = _git_show_sha256(commit, path)
+                    if resolved is None:
+                        errors.append(
+                            f"evidence_map {sid} entry {entry.get('artifact')} "
+                            f"cannot resolve committed (commit,path) {commit}:{path}"
+                        )
+                    elif resolved != sha:
+                        errors.append(
+                            f"evidence_map {sid} entry {entry.get('artifact')} "
+                            f"sha256 {sha} does not match committed file digest {resolved} "
+                            f"for {commit}:{path} (possible path/SHA swap)"
+                        )
+            else:
+                # External raw artifact: must be distinguished, no git show resolution,
+                # but still must be allowed and hex64 (already checked)
+                if not path:
+                    errors.append(
+                        f"evidence_map {sid} entry {entry.get('artifact')} "
+                        f"missing path for external artifact"
+                    )
             head = entry.get("head")
             if head is not None and head not in (
                 "refs/harness/read-only/e2b",

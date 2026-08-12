@@ -237,3 +237,107 @@ def test_evidence_map_source_classification_narrow() -> None:
         "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed" in note
         or "S-035" in note
     )
+
+
+def test_swapping_two_allowed_shas_between_paths_fails() -> None:
+    """Validator must fail when two otherwise-allowed SHAs are swapped between paths."""
+    data = json.loads(EVIDENCE_MAP_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    # Swap ingress_dla manifests (9383... vs 8d35...) — both allowed
+    # but path/SHA binding must enforce git show comparison.
+    e0 = mutated["strategies"]["ingress_dla"]["evidence"][0]
+    e1 = mutated["strategies"]["ingress_dla"]["evidence"][1]
+    assert e0["path"] == "docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json"
+    assert e1["path"] == "docs/evaluation/e2b/e2b_placement_admission_factorial_comparison_v1.json"
+    # Both SHAs are in allowed set; swapping must still fail due to git show resolution
+    sha0 = e0["sha256"]
+    sha1 = e1["sha256"]
+    assert sha0 != sha1
+    e0["sha256"] = sha1
+    e1["sha256"] = sha0
+    original_text = EVIDENCE_MAP_PATH.read_text(encoding="utf-8")
+    try:
+        EVIDENCE_MAP_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, (
+            "validator should fail when allowed SHAs are swapped between paths"
+        )
+        assert (
+            "does not match committed file digest" in result.stderr
+            or "possible path/SHA swap" in result.stderr
+        )
+    finally:
+        EVIDENCE_MAP_PATH.write_text(original_text, encoding="utf-8")
+
+
+def test_malformed_length_sha_fails() -> None:
+    """Validator must reject malformed-length SHA tokens (63 or 65 hex chars)."""
+    data = json.loads(EVIDENCE_MAP_PATH.read_text(encoding="utf-8"))
+    mutated = copy.deepcopy(data)
+    # Truncate a valid SHA to 63 chars (malformed length)
+    entry = mutated["strategies"]["strongest_link_off"]["evidence"][0]
+    original_sha = entry["sha256"]
+    assert len(original_sha) == 64
+    malformed = original_sha[:-1]  # 63 chars
+    assert len(malformed) == 63
+    entry["sha256"] = malformed
+    original_text = EVIDENCE_MAP_PATH.read_text(encoding="utf-8")
+    try:
+        EVIDENCE_MAP_PATH.write_text(json.dumps(mutated, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, "validator should fail on malformed-length SHA"
+        assert "hex64" in result.stderr.lower() or "must be hex64" in result.stderr.lower()
+    finally:
+        EVIDENCE_MAP_PATH.write_text(original_text, encoding="utf-8")
+    # Also test 65-char malformed (extra char)
+    mutated2 = copy.deepcopy(data)
+    entry2 = mutated2["strategies"]["strongest_link_off"]["evidence"][0]
+    malformed2 = original_sha + "a"  # 65 chars
+    assert len(malformed2) == 65
+    entry2["sha256"] = malformed2
+    try:
+        EVIDENCE_MAP_PATH.write_text(json.dumps(mutated2, indent=2), encoding="utf-8")
+        result = _run_validator()
+        assert result.returncode != 0, "validator should fail on 65-char malformed SHA"
+    finally:
+        EVIDENCE_MAP_PATH.write_text(original_text, encoding="utf-8")
+
+
+def test_committed_file_digest_resolution() -> None:
+    """Evidence map committed entries must match git show digest exactly."""
+    data = json.loads(EVIDENCE_MAP_PATH.read_text(encoding="utf-8"))
+    # Check that the corrected SHAs match actual committed file digests
+    ingress_comparison = data["strategies"]["ingress_dla"]["evidence"][1]
+    assert (
+        ingress_comparison["path"]
+        == "docs/evaluation/e2b/e2b_placement_admission_factorial_comparison_v1.json"
+    )
+    assert ingress_comparison["commit"] == "fe2ed4e9bd9043b19b96a5f179390db629b01ccb"
+    assert (
+        ingress_comparison["sha256"]
+        == "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf"
+    )
+    per_task_index = data["strategies"]["per_task_dla"]["evidence"][4]
+    assert (
+        per_task_index["path"]
+        == "docs/evaluation/e2d/e2d_per_task_placement_evidence_index_v1.json"
+    )
+    assert per_task_index["commit"] == "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761"
+    assert (
+        per_task_index["sha256"]
+        == "a6027fc17d1477547ba9d34c1fe95b224f79e6b0cedcfa49534b60c36265db4b"
+    )
+    # Inner raw index must be distinguished as external raw-artifact
+    inner = data["strategies"]["per_task_dla"]["evidence"][5]
+    assert inner["artifact"] == "e2d_raw_evidence_index_inner"
+    assert (
+        inner["path"] == "e2d_outputs/e2d-per-task-placement-robustness-v1/raw_evidence_index.json"
+    )
+    assert inner["sha256"] == "408cf8bb86370970941690b5887648c5bfb86d84a0da6bb2361b7edd508d80a7"
+    # Report digests must be actual file digests, not sentinels
+    e2_report = data["strategies"]["strongest_link_off"]["evidence"][8]
+    assert e2_report["sha256"] == "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c"
+    e2b_report = data["strategies"]["ingress_dla"]["evidence"][2]
+    assert (
+        e2b_report["sha256"] == "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83"
+    )
