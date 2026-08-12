@@ -36,7 +36,14 @@ LIFECYCLE_STAGES = [
 DISTINCT_COUNTERS = ["forwarded", "compute_completed", "returned", "deadline_success"]
 
 # Mandatory vocabulary distinctions (lowercased fragments).
-REQUIRED_VOCAB = ["vehicle mode", "ingress rsu", "execution rsu", "admission", "placement", "scaling"]
+REQUIRED_VOCAB = [
+    "vehicle mode",
+    "ingress rsu",
+    "execution rsu",
+    "admission",
+    "placement",
+    "scaling",
+]
 
 # Source hashes that must be bound exactly.
 EXPECTED_HASHES = {
@@ -79,7 +86,8 @@ def validate_markdown(text: str) -> None:
     for i in range(1, len(positions)):
         if positions[i] < positions[i - 1]:
             _add(
-                f"lifecycle stage out of order: '{LIFECYCLE_STAGES[i]}' appears before '{LIFECYCLE_STAGES[i-1]}'"
+                f"lifecycle stage out of order: '{LIFECYCLE_STAGES[i]}' "
+                f"appears before '{LIFECYCLE_STAGES[i - 1]}'"
             )
 
     # 2. Vocabulary distinctions present.
@@ -91,11 +99,18 @@ def validate_markdown(text: str) -> None:
     _require(
         r"vehicle mode.*ingress rsu|ingress rsu.*execution rsu|distinct",
         text,
-        "vocabulary distinctions not explicitly stated (vehicle mode / ingress RSU / execution RSU must be distinguished)",
+        (
+            "vocabulary distinctions not explicitly stated (vehicle mode / ingress RSU / "
+            "execution RSU must be distinguished)"
+        ),
     )
 
     # 3. Authority boundary: actor chooses mode, NOT RSU.
-    _require(r"actor.*chooses.*local.*v2i.*v2v|actor.*chooses.*mode", text, "actor mode choice not described (Local/V2I/V2V)")
+    _require(
+        r"actor.*chooses.*local.*v2i.*v2v|actor.*chooses.*mode",
+        text,
+        "actor mode choice not described (Local/V2I/V2V)",
+    )
 
     # Prohibited: credit actor with exact RSU choice as positive claim.
     # Allow only if it is negated / stated as prohibited. So we look for positive phrasing
@@ -104,26 +119,39 @@ def validate_markdown(text: str) -> None:
     # they only appear alongside a negation/prohibition.
     # For mutation discrimination we treat any occurrence of "actor selects.*rsu" as fail
     # unless the file also contains an explicit "does not" / "does NOT" / "prohibited" nearby.
-    # Simplest discriminating rule: if markdown contains "actor selects.*rsu" or "mappo.*chooses.*rsu"
-    # as a positive statement without the required disclaimer, fail.
+    # Simplest discriminating rule: if markdown contains "actor selects.*rsu"
+    # or "mappo.*chooses.*rsu" as a positive statement without the required
+    # disclaimer, fail.
     # We implement: forbidden patterns must not appear at all as standalone positive claims.
     # The correct file uses "does NOT choose.*rsu" which is allowed; mutation uses positive form.
     # So we forbid positive forms:
-    if re.search(r"actor\s+selects\s+(target\s+)?rsu", text, re.IGNORECASE):
-        # Allow only if the file also contains an explicit negation of this claim.
-        if not re.search(r"actor.*does\s+not.*rsu|does\s+not\s+choose.*rsu|prohibited", text, re.IGNORECASE):
-            _add("prohibited claim: actor credited with RSU choice (actor selects RSU)")
+    # Allow only if the file also contains an explicit negation of this claim.
+    if re.search(r"actor\s+selects\s+(target\s+)?rsu", text, re.IGNORECASE) and not re.search(
+        r"actor.*does\s+not.*rsu|does\s+not\s+choose.*rsu|prohibited",
+        text,
+        re.IGNORECASE,
+    ):
+        _add("prohibited claim: actor credited with RSU choice (actor selects RSU)")
     if re.search(r"mappo\s+chooses\s+rsu|mappo\s+selects\s+rsu", text, re.IGNORECASE):
         _add("prohibited claim: MAPPO credited with exact RSU choice")
 
     # More general: "actor chooses target rsu" without negation
-    if re.search(r"actor\s+chooses\s+target\s+rsu", text, re.IGNORECASE):
-        if not re.search(r"actor.*does\s+not\s+choose.*rsu", text, re.IGNORECASE):
-            _add("prohibited claim: actor credited with target RSU choice")
+    if re.search(r"actor\s+chooses\s+target\s+rsu", text, re.IGNORECASE) and not re.search(
+        r"actor.*does\s+not\s+choose.*rsu", text, re.IGNORECASE
+    ):
+        _add("prohibited claim: actor credited with target RSU choice")
 
     # 4. Waiting-room vs compute power.
-    _require(r"waiting-room.*capac|queue.*capac|admission.*ceiling", text, "waiting-room / admission ceiling not defined")
-    _require(r"compute\s*power|compute.*scaling|service\s*rate", text, "compute power / service rate not defined")
+    _require(
+        r"waiting-room.*capac|queue.*capac|admission.*ceiling",
+        text,
+        "waiting-room / admission ceiling not defined",
+    )
+    _require(
+        r"compute\s*power|compute.*scaling|service\s*rate",
+        text,
+        "compute power / service rate not defined",
+    )
     # Must state they are distinct.
     _require(
         r"waiting-room.*not.*compute|queue.*not.*compute|waiting-room.*\u2260.*compute|capacity.*not.*compute|capacity.*\u2260.*compute",
@@ -137,11 +165,18 @@ def validate_markdown(text: str) -> None:
         _add("prohibited claim: queue capacity equated with compute power")
 
     # 5. Kubernetes-style vs real deployment.
-    _require(r"kubernetes-style|simulated.*scaling|resource-scaling\s+simulation", text, "must use Kubernetes-style / simulated scaling wording")
-    if re.search(r"kubernetes\s+deployment", text, re.IGNORECASE):
-        # Allow only if qualified as "not a ... deployment" or "simulated".
-        if not re.search(r"not\s+a.*kubernetes\s+deployment|simulated.*kubernetes|kubernetes-style", text, re.IGNORECASE):
-            _add("prohibited claim: simulated scaling called Kubernetes deployment")
+    _require(
+        r"kubernetes-style|simulated.*scaling|resource-scaling\s+simulation",
+        text,
+        "must use Kubernetes-style / simulated scaling wording",
+    )
+    # Allow only if qualified as "not a ... deployment" or "simulated".
+    if re.search(r"kubernetes\s+deployment", text, re.IGNORECASE) and not re.search(
+        r"not\s+a.*kubernetes\s+deployment|simulated.*kubernetes|kubernetes-style",
+        text,
+        re.IGNORECASE,
+    ):
+        _add("prohibited claim: simulated scaling called Kubernetes deployment")
 
     # 6. Distinct stages: forwarded, compute_completed, returned, deadline_success
     for c in DISTINCT_COUNTERS:
@@ -153,7 +188,11 @@ def validate_markdown(text: str) -> None:
         "must state forwarded / compute_completed / returned / deadline_success are distinct",
     )
     # Prohibited: conflating compute completion with deadline success.
-    if re.search(r"compute_completed\s*=\s*deadline_success|compute_completed\s+equals\s+deadline_success", text, re.IGNORECASE):
+    if re.search(
+        r"compute_completed\s*=\s*deadline_success|compute_completed\s+equals\s+deadline_success",
+        text,
+        re.IGNORECASE,
+    ):
         _add("prohibited claim: compute_completed conflated with deadline_success")
     if re.search(r"compute completion\s*=\s*deadline success", text, re.IGNORECASE):
         _add("prohibited claim: compute completion conflated with deadline success")
@@ -162,7 +201,13 @@ def validate_markdown(text: str) -> None:
         _add("prohibited claim: compute_completed equated with deadline_success")
 
     # 7. Evidence labels present.
-    for label in ["SOURCE-DERIVED FACT", "IMPLEMENTATION-VERIFIED FACT", "RESEARCH-EVIDENCE FACT", "PROVISIONAL WORDING", "EXTERNAL DECISION REQUIRED"]:
+    for label in [
+        "SOURCE-DERIVED FACT",
+        "IMPLEMENTATION-VERIFIED FACT",
+        "RESEARCH-EVIDENCE FACT",
+        "PROVISIONAL WORDING",
+        "EXTERNAL DECISION REQUIRED",
+    ]:
         if label not in text:
             _add(f"evidence label missing: '{label}'")
     # Inference is also required but flagged separately.
@@ -170,13 +215,31 @@ def validate_markdown(text: str) -> None:
         _add("evidence label missing: 'INFERENCE'")
 
     # 8. S-035 binding.
-    _require(r"S-035|SANDRA-DIRECT-BODY", text, "S-035 / SANDRA-DIRECT-BODY-2026-08-04 not referenced")
-    _require(r"08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed", text, "S-035 SHA-256 not bound")
-    _require(r"fail.?fast|rejection.?accounting", text, "fail-fast / rejection-accounting explanation not present")
-    _require(r"does\s+not\s+broadcast|stale|obsolete", text, "RSU capacity broadcast staleness not stated")
+    _require(
+        r"S-035|SANDRA-DIRECT-BODY", text, "S-035 / SANDRA-DIRECT-BODY-2026-08-04 not referenced"
+    )
+    _require(
+        r"08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed",
+        text,
+        "S-035 SHA-256 not bound",
+    )
+    _require(
+        r"fail.?fast|rejection.?accounting",
+        text,
+        "fail-fast / rejection-accounting explanation not present",
+    )
+    _require(
+        r"does\s+not\s+broadcast|stale|obsolete",
+        text,
+        "RSU capacity broadcast staleness not stated",
+    )
 
     # 9. Provenance: frozen payload hash.
-    _require(r"58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595", text, "frozen canonical payload SHA not bound")
+    _require(
+        r"58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+        text,
+        "frozen canonical payload SHA not bound",
+    )
     # Should not use bare SRC-011 without S-035 key.
     if re.search(r"\bSRC-011\b", text) and "S-035" not in text:
         _add("ambiguous bare identifier SRC-011 used without S-035 campaign key")
@@ -184,7 +247,16 @@ def validate_markdown(text: str) -> None:
 
 def validate_manifest(data: dict[str, object]) -> None:
     # Required top-level keys.
-    for k in ["lane", "feature", "campaign", "base_sha", "requirement_binding", "lifecycle", "vocabulary", "authority_boundary"]:
+    for k in [
+        "lane",
+        "feature",
+        "campaign",
+        "base_sha",
+        "requirement_binding",
+        "lifecycle",
+        "vocabulary",
+        "authority_boundary",
+    ]:
         if k not in data:
             _add(f"manifest missing key: '{k}'")
 
@@ -220,7 +292,10 @@ def validate_manifest(data: dict[str, object]) -> None:
     if isinstance(vocab, dict):
         approved = vocab.get("approved")
         if not isinstance(approved, list) or len(approved) < 6:
-            _add("manifest vocabulary.approved must list vehicle mode, ingress RSU, execution RSU, admission, placement, scaling")
+            _add(
+                "manifest vocabulary.approved must list vehicle mode, ingress RSU, "
+                "execution RSU, admission, placement, scaling"
+            )
         must_distinct = vocab.get("mandatory_distinctions")
         if not isinstance(must_distinct, list) or len(must_distinct) < 5:
             _add("manifest vocabulary.mandatory_distinctions must enumerate all five distinctions")
@@ -256,7 +331,10 @@ def validate_manifest(data: dict[str, object]) -> None:
                             _add(f"manifest S-035 sha256 mismatch: expected {expected}")
             else:
                 if hash_map.get(sid) != expected:
-                    _add(f"manifest source {sid} sha256 mismatch: expected {expected}, got {hash_map.get(sid)}")
+                    _add(
+                        f"manifest source {sid} sha256 mismatch: expected {expected}, "
+                        f"got {hash_map.get(sid)}"
+                    )
     else:
         _add("manifest sources must be a list with exact sha256 bindings")
 
@@ -288,7 +366,10 @@ def validate_demo(data: dict[str, object]) -> None:
                     entry = counters[c]
                     if not isinstance(entry, dict) or "distinct_from" not in entry:
                         _add(f"demo_contract counter '{c}' must have distinct_from")
-                    elif not isinstance(entry["distinct_from"], list) or len(entry["distinct_from"]) < 1:
+                    elif (
+                        not isinstance(entry["distinct_from"], list)
+                        or len(entry["distinct_from"]) < 1
+                    ):
                         _add(f"demo_contract counter '{c}' distinct_from must be non-empty")
 
     # Authority binding must state actor does not choose RSU.
@@ -310,14 +391,25 @@ def validate_demo(data: dict[str, object]) -> None:
     co = data.get("comparison_output")
     if isinstance(co, dict):
         if co.get("headline_metric") != "completion_offered = deadline_success / offered":
-            _add("demo_contract headline_metric must be 'completion_offered = deadline_success / offered'")
+            _add(
+                "demo_contract headline_metric must be "
+                "'completion_offered = deadline_success / offered'"
+            )
         req = co.get("required_metrics")
         if not isinstance(req, list) or len(req) < 5:
             _add("demo_contract required_metrics too short")
         else:
             flat = " ".join(str(x).lower() for x in req)
-            if "forwarded" not in flat or "compute_completed" not in flat or "returned" not in flat or "deadline_success" not in flat:
-                _add("demo_contract required_metrics must mention forwarded / compute_completed / returned / deadline_success as distinct")
+            if (
+                "forwarded" not in flat
+                or "compute_completed" not in flat
+                or "returned" not in flat
+                or "deadline_success" not in flat
+            ):
+                _add(
+                    "demo_contract required_metrics must mention forwarded / "
+                    "compute_completed / returned / deadline_success as distinct"
+                )
     else:
         _add("demo_contract comparison_output missing")
 
@@ -335,7 +427,9 @@ def main() -> int:
     if ERRORS:
         for e in ERRORS:
             print(f"ERROR: {e}", file=sys.stderr)
-        print(f"validation failed with {len(ERRORS)} error(s) before content checks", file=sys.stderr)
+        print(
+            f"validation failed with {len(ERRORS)} error(s) before content checks", file=sys.stderr
+        )
         return 1
 
     # Validate markdown.
@@ -382,7 +476,7 @@ def main() -> int:
     print("OK: use_case_b validation passed")
     print(f"  lifecycle stages: {len(LIFECYCLE_STAGES)} in order")
     print(f"  distinct counters: {', '.join(DISTINCT_COUNTERS)}")
-    print(f"  vocabulary distinctions: 5 enforced")
+    print("  vocabulary distinctions: 5 enforced")
     print(f"  sources bound: {len(EXPECTED_HASHES)} hashes verified")
     return 0
 

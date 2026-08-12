@@ -5,10 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
-
-import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 VALIDATOR = REPO_ROOT / "scripts/validate_v08_use_case_b.py"
@@ -18,7 +15,7 @@ DEMO_PATH = REPO_ROOT / "docs/closure/v08_alignment/use_case_b_demo_contract.jso
 
 
 def _run_validator() -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603 -- fixed sys.executable and repo validator path
         [sys.executable, str(VALIDATOR)],
         capture_output=True,
         text=True,
@@ -28,7 +25,9 @@ def _run_validator() -> subprocess.CompletedProcess[str]:
 
 def test_validator_passes_on_clean_tree() -> None:
     result = _run_validator()
-    assert result.returncode == 0, f"validator failed:\nSTDERR:\n{result.stderr}\nSTDOUT:\n{result.stdout}"
+    assert result.returncode == 0, (
+        f"validator failed:\nSTDERR:\n{result.stderr}\nSTDOUT:\n{result.stdout}"
+    )
     assert "OK: use_case_b validation passed" in result.stdout
 
 
@@ -68,7 +67,14 @@ def test_markdown_contains_all_lifecycle_stages_in_order() -> None:
 
 def test_markdown_distinguishes_core_vocabulary() -> None:
     text = MD_PATH.read_text(encoding="utf-8").lower()
-    for term in ["vehicle mode", "ingress rsu", "execution rsu", "admission", "placement", "scaling"]:
+    for term in [
+        "vehicle mode",
+        "ingress rsu",
+        "execution rsu",
+        "admission",
+        "placement",
+        "scaling",
+    ]:
         assert term in text, f"missing vocabulary term: {term}"
 
 
@@ -95,7 +101,7 @@ def test_markdown_marks_prohibited_claims_as_distinct() -> None:
 
 def test_mutation_actor_credited_with_rsu_choice_fails() -> None:
     """Mutate markdown to credit actor with RSU choice; validator must fail."""
-    import scripts.validate_v08_use_case_b as v  # type: ignore[import-not-found]
+    import scripts.validate_v08_use_case_b as v
 
     original = MD_PATH.read_text(encoding="utf-8")
     # Inject a positive claim that actor selects RSU (without negation).
@@ -117,7 +123,7 @@ def test_mutation_actor_credited_with_rsu_choice_fails() -> None:
 
 def test_mutation_conflate_compute_and_deadline_fails() -> None:
     """Mutate markdown to equate compute_completed with deadline_success; validator must fail."""
-    import scripts.validate_v08_use_case_b as v  # type: ignore[import-not-found]
+    import scripts.validate_v08_use_case_b as v
 
     original = MD_PATH.read_text(encoding="utf-8")
     mutated = original + "\n\nNote: compute_completed = deadline_success for all tasks.\n"
@@ -127,12 +133,13 @@ def test_mutation_conflate_compute_and_deadline_fails() -> None:
     errors = list(v.ERRORS)
     v.ERRORS.clear()
     assert any("compute_completed" in e and "deadline" in e.lower() for e in errors), (
-        f"validator should fail when compute_completed conflated with deadline_success, got: {errors}"
+        f"validator should fail when compute_completed conflated with "
+        f"deadline_success, got: {errors}"
     )
 
 
 def test_mutation_waiting_room_equated_with_compute_fails() -> None:
-    import scripts.validate_v08_use_case_b as v  # type: ignore[import-not-found]
+    import scripts.validate_v08_use_case_b as v
 
     original = MD_PATH.read_text(encoding="utf-8")
     mutated = original + "\n\nThe waiting-room is compute power for scaling.\n"
@@ -159,9 +166,14 @@ def test_manifest_binds_source_hashes() -> None:
     # Check at least the S-035 and FINAL_AUDIT hashes.
     s035_entry = next(v for k, v in sources.items() if "S-035" in k)
     assert s035_entry == "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed"
-    assert sources["FINAL_AUDIT"] == "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9"
+    assert (
+        sources["FINAL_AUDIT"] == "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9"
+    )
 
 
 def test_demo_contract_headline_metric() -> None:
     data = json.loads(DEMO_PATH.read_text(encoding="utf-8"))
-    assert data["comparison_output"]["headline_metric"] == "completion_offered = deadline_success / offered"
+    assert (
+        data["comparison_output"]["headline_metric"]
+        == "completion_offered = deadline_success / offered"
+    )
