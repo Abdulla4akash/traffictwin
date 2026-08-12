@@ -1,4 +1,4 @@
-# ruff: noqa: ANN001,ANN401,ANN002,ANN003,ANN201,ANN202,S110,SIM105
+# ruff: noqa: ANN001,ANN401,ANN002,ANN003,ANN201,ANN202
 """Pytest plugin for AppTest cold-start hardening — lazy, fail-closed.
 
 First AppTest.run in a pytest process gets max(requested,60); later calls
@@ -60,8 +60,6 @@ class _PatchedLoader(importlib.abc.Loader):
             if exc.name is not None and exc.name.startswith("streamlit"):
                 # Tolerate missing Streamlit only when not needed.
                 return
-            raise
-        except Exception:
             raise
 
 
@@ -155,7 +153,7 @@ def pytest_sessionfinish(session, exitstatus):  # type: ignore[no-untyped-def]
     try:
         if _finder in sys.meta_path:
             sys.meta_path.remove(_finder)
-    except Exception:
+    except ValueError:
         pass
     # Restore AppTest.run — fail closed if helper is broken.
     try:
@@ -164,5 +162,63 @@ def pytest_sessionfinish(session, exitstatus):  # type: ignore[no-untyped-def]
         if exc.name is not None and exc.name.startswith("streamlit"):
             return
         raise
-    except Exception:
-        raise
+
+
+# ---------------------------------------------------------------------------
+# Streamlit isolation guard — targeted snapshot/restore defense-in-depth
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def _streamlit_isolation_guard(request):  # type: ignore[no-untyped-def]
+    """Targeted isolation: snapshot relevant state before each test and restore after.
+
+    - Snapshots only sys.modules["streamlit"] hierarchy, AppTest.run wrapper flags,
+      selected env vars, cwd, and finder. Does not clear all sys.modules or reload app.
+    - Diagnoses pre-restoration after-state and visibly reports meaningful leaks
+      even when the polluting test passes. The guard is defense-in-depth, not
+      concealment.
+    - Always restores the before snapshot, even if reporting raises or warnings
+      are configured as errors.
+    """
+    from tests.support.streamlit_isolation import (
+        capture_streamlit_snapshot,
+        diagnose_streamlit_leak,
+        has_meaningful_streamlit_leak,
+        restore_streamlit_snapshot,
+    )
+
+    before = capture_streamlit_snapshot()
+    yield
+    # Capture post-test state before restoration for diagnosis.
+    after = capture_streamlit_snapshot()
+    leak = diagnose_streamlit_leak(before, after)
+    # Report meaningful leaks even when test passed.
+    try:
+        if has_meaningful_streamlit_leak(leak):
+            import warnings
+
+            # Compact, secret-safe message naming the polluting node.
+            details: list[str] = []
+            if "sys_modules" in leak:
+                details.append(f"sys_modules={leak['sys_modules']}")
+            if "apptest_installed" in leak:
+                details.append(f"apptest_installed={leak['apptest_installed']}")
+            if "cwd" in leak:
+                details.append("cwd_changed")
+            if "finder_present" in leak:
+                details.append("finder_changed")
+            # Include fake detection from diagnose.
+            if leak.get("streamlit_has_secrets") is False:
+                details.append("real Streamlit capability absent or fake detected")
+            if not details:
+                details.append(str(leak))
+            msg = (
+                f"Streamlit isolation leak detected after {request.node.nodeid}: "
+                + "; ".join(details)
+                + " — state was restored by the isolation guard"
+            )
+            warnings.warn(msg, pytest.PytestWarning, stacklevel=2)
+    finally:
+        # Restore even if warning is configured as error.
+        restore_streamlit_snapshot(before)
