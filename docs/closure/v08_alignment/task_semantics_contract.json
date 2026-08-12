@@ -1,0 +1,98 @@
+{
+  "schema_version": "v08_task_semantics_contract_v1",
+  "frozen_baseline_ref": {
+    "negotiated_v1_whole_file_sha256": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+    "canonical_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+    "final_audit_sha256": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+    "source_index_sha256": "7ce9b43250d8b72e3c1aa9e0bbbc369b251bf7b7aedcae39ea8ed8cdda860d24",
+    "s035_direct_body_sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed"
+  },
+  "lifecycle": {
+    "stages": [
+      "offered",
+      "gate_rejected",
+      "capacity_rejected",
+      "admitted",
+      "forwarded",
+      "started",
+      "compute_completed",
+      "returned",
+      "dropped",
+      "deadline_success"
+    ],
+    "terminal_rejected_classes": ["gate_rejected", "capacity_rejected"],
+    "path_event": "forwarded",
+    "description": "Canonical task lifecycle. offered is the root. Surplus tasks are terminally rejected outside any RSU queue with no retry. Admitted tasks proceed through placement/execution/return; forwarded is a path event recording ingress->execution RSU difference, not a separate accounting class.",
+    "conservation_rule": "offered == admitted + gate_rejected + capacity_rejected",
+    "partial_order_edges": [
+      ["offered", "admitted"],
+      ["offered", "gate_rejected"],
+      ["offered", "capacity_rejected"],
+      ["admitted", "forwarded"],
+      ["admitted", "started"],
+      ["started", "compute_completed"],
+      ["compute_completed", "returned"],
+      ["compute_completed", "dropped"],
+      ["returned", "deadline_success"]
+    ],
+    "inequalities": [
+      "offered >= admitted",
+      "offered == admitted + gate_rejected + capacity_rejected",
+      "admitted >= forwarded",
+      "admitted >= started",
+      "started >= compute_completed",
+      "compute_completed >= returned",
+      "compute_completed == returned + dropped",
+      "returned >= deadline_success"
+    ],
+    "waiting_room_ceiling": {
+      "definition": "Per-RSU admission/in-flight ceiling (waiting-room limit) counting waiting + served tasks. Not compute service rate, not worker capacity, not multiplied compute power.",
+      "unit": "tasks (count) per RSU",
+      "per_vehicle_arithmetic": "rsu_max_concurrent = round(capacity_per_vehicle * N); capacity_per_vehicle is dimensionless scalar, N is padded vehicle-slot count (maxN). Report both per-vehicle scalar and absolute per-RSU count with N to avoid per-vehicle wording without arithmetic.",
+      "source_basis": "S-007 DIRECT_RANDY_QA and S-035 DIRECT_SUPERVISOR_SOURCE_BODY"
+    },
+    "zero_latency_rejected_fiction_prohibited": "Rejected tasks never enter queue, never acquire latency measurement. They must not be placed in a completed bucket with latency 0.",
+    "physical_distinctions": {
+      "compute_completed": "RSU finished execution of admitted task (physical compute).",
+      "returned": "Result successfully returned to vehicle/consumer over network path.",
+      "deadline_success": "Returned result met application deadline (deadline attainment). Flag alone is not proof of physical return without return evidence.",
+      "dropped": "Computed result failed to return (loss) or was discarded after compute.",
+      "conflation_prohibited": "returned must be strictly distinguished from compute_completed; equality implies dropped==0 and must be explicitly justified, not silently conflated."
+    },
+    "placement_admission_scaling_separation": {
+      "placement": "Selecting execution RSU (deterministic JSQ/P2C/deadline-aware or learned); operates on admitted tasks and may cause forwarding.",
+      "admission": "Gate decision admitting offered task to RSU queue subject to waiting-room ceiling; terminal rejection is admission outcome.",
+      "scaling": "Adjusting compute service rate/workers (fixed 1x, static 3x, reactive Kubernetes-style); does not change admission ceiling in this model.",
+      "rule": "A change to waiting-room ceiling must not be described as compute-capacity or scaling change."
+    }
+  },
+  "denominators": {
+    "offered_completion_headline": "deadline_success / offered",
+    "admitted_completion_diagnostic": "deadline_success / admitted",
+    "headline_rule": "Report deadline attainment over offered as headline. Admitted completion is conditional diagnostic only.",
+    "rejection_rate": "(gate_rejected + capacity_rejected) / offered",
+    "forwarded_share": "forwarded / admitted (if forwarded instrumented)",
+    "energy_denominators": "Report energy both per offered task and per admitted task where applicable."
+  },
+  "instrumentation_honesty": {
+    "required_fields": ["offered", "admitted", "gate_rejected", "capacity_rejected", "deadline_success"],
+    "optional_but_distinct": ["forwarded", "started", "compute_completed", "returned", "dropped"],
+    "unknown_field_rule": "Any lifecycle field not natively emitted by the evaluator must be explicit null with reason in unavailable_instrumentation; do not manufacture a value.",
+    "unavailable_instrumentation_for_e2d": [
+      "started is not separately instrumented in vec_env evaluator; treated as == admitted in this reconciliation with explicit note",
+      "compute_completed vs returned distinction is not natively instrumented: vec_env reports deadline_success as deadline attainment, not confirmed physical return; raw per-task return path is bounded unavailable",
+      "forwarding energy/cost and stale-state telemetry age are not natively emitted"
+    ],
+    "forbidden_fabrications": [
+      "Do not infer physical completion from deadline flag alone",
+      "Do not assign zero latency to rejected tasks",
+      "Do not set returned == compute_completed without dropped accounting and explicit justification",
+      "Do not use per-vehicle wording for per-RSU ceiling without arithmetic (capacity * N = absolute)"
+    ]
+  },
+  "research_reconciliation": {
+    "accepted_cell_ref": "E2d per_task_dla seed 1 (refs/harness/read-only/e2d 80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761)",
+    "report_path": "docs/evaluation/e2d/e2d_per_task_placement_report_2026-08-11.md in E2d head"
+  },
+  "source_honesty_labels": ["SOURCE-DERIVED FACT", "IMPLEMENTATION-VERIFIED FACT", "RESEARCH-EVIDENCE FACT", "INFERENCE", "PROVISIONAL WORDING", "EXTERNAL DECISION REQUIRED"]
+}
