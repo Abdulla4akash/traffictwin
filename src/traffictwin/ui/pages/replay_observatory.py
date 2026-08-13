@@ -32,6 +32,19 @@ from traffictwin.ui.replay_observatory_service import (
     load_time_window,
 )
 
+
+def _describe_relation(playhead_s: float, cursor_s: float) -> str:
+    """Pure helper returning truthful relation copy; never prints a false inequality."""
+
+    ph = float(playhead_s)
+    cs = float(cursor_s)
+    if abs(ph - cs) < 1e-9:
+        return f"playhead and cursor coincide at {ph:.2f} s"
+    if ph < cs:
+        return f"playhead {ph:.2f} s precedes cursor event time {cs:.2f} s"
+    return f"playhead {ph:.2f} s follows cursor event time {cs:.2f} s"
+
+
 _ENGINE_KEY = "replay_observatory_engine"
 _SIDE_LEFT_KEY = "replay_side_left_engine"
 _SIDE_RIGHT_KEY = "replay_side_right_engine"
@@ -206,7 +219,6 @@ def _describe_receipt(receipt: object, before: ReplayEngineState | None) -> tupl
                 t_f = float(target) if target is not None else rs.playhead_time_s
             except Exception:
                 t_f = rs.playhead_time_s
-            # Conditional truth: only claim distinct when gap; otherwise coincide.
             cursor_t = float(rs.cursor.simulator_time_s)
             playhead_t = float(rs.playhead_time_s)
             if abs(cursor_t - playhead_t) < 1e-9:
@@ -216,11 +228,20 @@ def _describe_receipt(receipt: object, before: ReplayEngineState | None) -> tupl
                     f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {cursor_t:.2f} s "
                     f"(event time) — playhead and cursor coincide at {playhead_t:.2f} s (exact-event seek)",
                 )
+            if playhead_t < cursor_t:
+                return (
+                    "success",
+                    f"Seeked to {t_f:.2f} s — playhead {playhead_t:.2f} s (requested/accumulated), "
+                    f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {cursor_t:.2f} s "
+                    f"(event time) — distinct; playhead {playhead_t:.2f} s precedes cursor event time {cursor_t:.2f} s "
+                    f"(SEEK target falls before selected next event)",
+                )
             return (
                 "success",
                 f"Seeked to {t_f:.2f} s — playhead {playhead_t:.2f} s (requested/accumulated), "
                 f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {cursor_t:.2f} s "
-                f"(event time) — distinct; gap seek keeps playhead {playhead_t:.2f} s < cursor {cursor_t:.2f} s",
+                f"(event time) — distinct; playhead {playhead_t:.2f} s follows cursor event time {cursor_t:.2f} s "
+                f"(SEEK target lies after final event)",
             )
         # fallback
         return (
@@ -417,16 +438,16 @@ def render(config: object) -> None:  # noqa: ARG001
     # Seek-target caption rendered from post-action view (not pre-action _st)
     _cursor_t_post = float(view.cursor.simulator_time_s)
     _playhead_t_post = float(view.engine_state.playhead_time_s)
+    _relation_post = _describe_relation(_playhead_t_post, _cursor_t_post)
     if abs(_cursor_t_post - _playhead_t_post) < 1e-9:
         _seek_caption_ph.caption(
             f"Seek target {seek_target:.2f} s — cursor event time {_cursor_t_post:.2f} s and "
-            f"playhead time {_playhead_t_post:.2f} s coincide at {_playhead_t_post:.2f} s (exact-event seek)"
+            f"playhead time {_playhead_t_post:.2f} s — {_relation_post}"
         )
     else:
         _seek_caption_ph.caption(
             f"Seek target {seek_target:.2f} s — cursor event time {_cursor_t_post:.2f} s vs "
-            f"playhead time {_playhead_t_post:.2f} s — distinct; gap seek keeps playhead "
-            f"{_playhead_t_post:.2f} s < cursor {_cursor_t_post:.2f} s"
+            f"playhead time {_playhead_t_post:.2f} s — distinct; {_relation_post}"
         )
 
     # Truthful receipt banner derived from canonical receipt/resulting_state
@@ -523,18 +544,20 @@ def render(config: object) -> None:  # noqa: ARG001
     clock_cols[2].metric("Cursor index", f"{cursor.index}/{cursor.total_events}")
     clock_cols[3].metric("Playback state", state.playback_state.value)
     clock_cols[4].metric("Speed", f"{state.speed_multiplier:g}x")
+    _clock_relation = _describe_relation(
+        float(state.playhead_time_s), float(cursor.simulator_time_s)
+    )
     if abs(float(cursor.simulator_time_s) - float(state.playhead_time_s)) < 1e-9:
         st.caption(
             f"Cursor event time (selected event): {cursor.simulator_time_s:.2f} s · "
             f"Playhead time (requested/accumulated): {state.playhead_time_s:.2f} s — "
-            f"they coincide at {state.playhead_time_s:.2f} s (exact-event); gap seeks would keep them distinct"
+            f"{_clock_relation}"
         )
     else:
         st.caption(
             f"Cursor event time (selected event): {cursor.simulator_time_s:.2f} s · "
             f"Playhead time (requested/accumulated): {state.playhead_time_s:.2f} s — "
-            f"distinct; gap seek keeps playhead {state.playhead_time_s:.2f} s < cursor {cursor.simulator_time_s:.2f} s; "
-            f"playhead drives ADVANCE, cursor selects event"
+            f"distinct; {_clock_relation}; playhead drives ADVANCE, cursor selects event"
         )
     st.caption(
         f"Simulator time: {cursor.simulator_time_s:.2f} s · Playhead time: {state.playhead_time_s:.2f} s · "
@@ -631,16 +654,18 @@ def render(config: object) -> None:  # noqa: ARG001
     st.caption(
         "Only event types genuinely present in the stream are listed; others are unavailable."
     )
+    _timeline_relation = _describe_relation(
+        float(state.playhead_time_s), float(cursor.simulator_time_s)
+    )
     if abs(float(cursor.simulator_time_s) - float(state.playhead_time_s)) < 1e-9:
         st.caption(
             f"Timeline window starts at cursor — index {cursor.index} ({cursor.simulator_time_s:.2f} s) — "
-            f"showing up to 200 events from cursor forward (playhead {state.playhead_time_s:.2f} s coincides at cursor time; gap seeks would be distinct)"
+            f"showing up to 200 events from cursor forward ({_timeline_relation})"
         )
     else:
         st.caption(
             f"Timeline window starts at cursor — index {cursor.index} ({cursor.simulator_time_s:.2f} s) — "
-            f"showing up to 200 events from cursor forward (playhead {state.playhead_time_s:.2f} s is distinct; "
-            f"gap seek keeps playhead < cursor)"
+            f"showing up to 200 events from cursor forward (distinct; {_timeline_relation})"
         )
     st.markdown(
         f"**Present event types:** {', '.join(str(t.value) for t in view.present_event_types) or '—'}"

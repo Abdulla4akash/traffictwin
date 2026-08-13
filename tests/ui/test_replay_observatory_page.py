@@ -107,10 +107,17 @@ def test_page_shows_simulation_clock_and_timeline(monkeypatch: pytest.MonkeyPatc
     assert not app.exception
     joined = _text(app)
     assert "Simulation clock" in joined
-    # Cursor event time vs playhead time distinctly labelled (gap seek truth)
+    # Cursor event time vs playhead time distinctly labelled; truthful relation
     assert "Cursor event time" in joined
     assert "Playhead time" in joined
-    assert "gap seeks" in joined.lower() or "distinct" in joined.lower()
+    # Initial state is coincident (0/0); captions must truthfully say coincide, not claim gap
+    assert "coincide" in joined.lower() or "distinct" in joined.lower()
+    # Must show relation copy without false inequality
+    assert (
+        "playhead and cursor coincide" in joined.lower()
+        or "precedes" in joined.lower()
+        or "follows" in joined.lower()
+    )
     assert "Cursor index" in joined or "cursor" in joined.lower()
     assert "Playback state" in joined
     assert "Event timeline" in joined
@@ -332,8 +339,13 @@ def test_cursor_playhead_separate_labels_and_gap_truth(monkeypatch: pytest.Monke
     joined = _text(app)
     assert "Cursor event time" in joined
     assert "Playhead time" in joined
-    # Gap seek truth caption
-    assert "gap seeks keep these distinct" in joined.lower() or "distinct" in joined.lower()
+    # Truthful relation caption: initial is coincide, gap seeks are distinct
+    assert "coincide" in joined.lower() or "distinct" in joined.lower()
+    assert (
+        "playhead and cursor coincide" in joined.lower()
+        or "precedes" in joined.lower()
+        or "follows" in joined.lower()
+    )
     # Metrics must exist separately
     assert _metric(app, "Cursor event time") is not None
     assert _metric(app, "Playhead time") is not None
@@ -348,10 +360,16 @@ def test_cursor_playhead_separate_labels_and_gap_truth(monkeypatch: pytest.Monke
     joined2 = _text(app)
     assert "playhead 2.00" in joined2.lower()
     assert "cursor" in joined2.lower() and "2.50" in joined2
-    # Distinct times shown in metrics
+    # Distinct times shown in metrics and truthful relation is precedes
+    assert "precedes" in joined2.lower(), f"gap 2.0 should say precedes, got {joined2}"
+    # Must not falsely claim follows for this case
+    # The distinct gap seek must not be described as follows
+    assert "playhead 2.00 s follows" not in joined2.lower()
     cursor_t = _metric(app, "Cursor event time")
     playhead_t = _metric(app, "Playhead time")
     assert cursor_t != playhead_t
+    assert playhead_t == "2.00 s"
+    assert cursor_t == "2.50 s"
 
 
 def test_bounded_window_load(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -705,17 +723,269 @@ def test_seek_caption_post_action_coincide_vs_gap_truth(monkeypatch: pytest.Monk
     )
     assert "distinct" in sc_gap.lower(), f"gap seek caption must say distinct, got {sc_gap}"
     assert "coincide" not in sc_gap.lower(), f"gap caption must not say coincide, got {sc_gap}"
-    # Ensure gap caption correctly keeps playhead < cursor ordering
-    assert "2.00" in sc_gap and "2.50" in sc_gap
-    # Receipt for gap must say distinct and not coincide
+    # Truthful relation: playhead precedes cursor (2.00 < 2.50)
+    assert "precedes" in sc_gap.lower(), f"gap seek caption must say precedes, got {sc_gap}"
+    assert "follows" not in sc_gap.lower(), f"gap seek must not say follows, got {sc_gap}"
+    assert "2.00 s follows" not in sc_gap.lower()
+    # Ensure gap caption correctly keeps playhead < cursor ordering via precedes phrase
+    assert (
+        "playhead 2.00 s precedes cursor event time 2.50 s" in sc_gap.lower()
+        or "precedes" in sc_gap.lower()
+    )
+    # Receipt for gap must say distinct and not coincide, and truthfully precedes
     joined_gap = _text(app)
     assert "Seeked to 2.00" in joined_gap
-    # Find the seek receipt line: should contain distinct and playhead 2.00
+    # Find the seek receipt line: should contain distinct and playhead 2.00 and precedes
     assert "distinct" in joined_gap.lower()
-    # Verify simulation clock now says distinct
+    assert "precedes" in joined_gap.lower(), f"gap receipt must say precedes, got {joined_gap}"
+    assert "playhead 2.00 s follows" not in joined_gap.lower()
+    # Gap receipt must describe before next event, not after final event
+    assert "lies after final event" not in joined_gap.lower(), (
+        f"gap receipt must not claim after final, got {joined_gap}"
+    )
+    assert (
+        "falls before selected next event" in joined_gap.lower() or "precedes" in joined_gap.lower()
+    )
+    # Verify simulation clock now says distinct and precedes
     sim_caps_gap = [
         c.value for c in app.caption if "Cursor event time (selected event)" in str(c.value)
     ]
     assert any("distinct" in str(v).lower() for v in sim_caps_gap), (
         f"sim clock should say distinct for gap, got {sim_caps_gap}"
     )
+    assert any("precedes" in str(v).lower() for v in sim_caps_gap), (
+        f"sim clock should say precedes for gap, got {sim_caps_gap}"
+    )
+    # Timeline must also say distinct and precedes for gap
+    timeline_caps_gap = [
+        c.value for c in app.caption if "Timeline window starts at cursor" in str(c.value)
+    ]
+    assert any("distinct" in str(v).lower() for v in timeline_caps_gap), (
+        f"timeline should say distinct for gap, got {timeline_caps_gap}"
+    )
+    assert any("precedes" in str(v).lower() for v in timeline_caps_gap), (
+        f"timeline should say precedes for gap, got {timeline_caps_gap}"
+    )
+    # Ensure gap captions never claim follows or after-final-event falsely
+    assert all("follows" not in str(v).lower() for v in sim_caps_gap) or any(
+        "precedes" in str(v).lower() for v in sim_caps_gap
+    )
+    assert all("lies after final event" not in str(v).lower() for v in timeline_caps_gap)
+
+
+def test_seek_beyond_end_follows_truth(monkeypatch: pytest.MonkeyPatch) -> None:
+    """SEEK 8.0 beyond last event (6.0) must show playhead 8.00 follows cursor 6.00, ENDED, never false inequality."""
+
+    app = _app(monkeypatch)
+    assert not app.exception
+    # Seek to 8.0 beyond final 6.0
+    for s in app.slider:
+        if "Seek" in str(getattr(s, "label", "")):
+            s.set_value(8.0).run(timeout=30)
+            break
+    seek_btn = next(b for b in app.button if b.label == "SEEK")
+    seek_btn.click().run(timeout=30)
+    assert not app.exception, f"seek 8.0 raised: {app.exception}"
+    # Metrics must be 8.00 playhead, 6.00 cursor, ENDED, 7/7
+    assert _metric(app, "Playhead time") == "8.00 s", (
+        f"playhead should be 8.00, got {_metric(app, 'Playhead time')}"
+    )
+    assert _metric(app, "Cursor event time") == "6.00 s", (
+        f"cursor should be 6.00 (last event), got {_metric(app, 'Cursor event time')}"
+    )
+    assert _metric(app, "Cursor index") == "7/7"
+    assert _metric(app, "Playback state") == "ended"
+    joined = _text(app)
+    # Receipt must describe follows, not precedes, and after final event, never false inequality
+    assert "Seeked to 8.00" in joined
+    assert (
+        "playhead 8.00 s follows cursor event time 6.00 s" in joined.lower()
+        or "follows" in joined.lower()
+    )
+    assert "lies after final event" in joined.lower(), (
+        f"receipt should say lies after final event, got {joined}"
+    )
+    assert "8.00 < 6.00" not in joined, (
+        f"must never print false inequality 8.00 < 6.00, got {joined}"
+    )
+    assert "8.00 s < cursor 6.00" not in joined
+    assert "playhead 8.00 s precedes" not in joined.lower(), (
+        f"must not say precedes for 8.00 > 6.00, got {joined}"
+    )
+    assert "falls before selected next event" not in joined.lower(), (
+        f"must not falsely call before next event for beyond-end, got {joined}"
+    )
+    # Every relevant caption must say follows, never precedes, never false inequality
+    seek_caps = [c.value for c in app.caption if "Seek target" in str(c.value)]
+    assert len(seek_caps) == 1
+    sc = str(seek_caps[0])
+    assert "follows" in sc.lower(), f"seek caption must say follows, got {sc}"
+    assert "precedes" not in sc.lower(), (
+        f"seek caption must not say precedes for 8.00->6.00, got {sc}"
+    )
+    assert "8.00 < 6.00" not in sc
+    assert "8.00" in sc and "6.00" in sc
+    sim_caps = [
+        c.value for c in app.caption if "Cursor event time (selected event)" in str(c.value)
+    ]
+    assert any("follows" in str(v).lower() for v in sim_caps), (
+        f"sim clock must say follows, got {sim_caps}"
+    )
+    assert all("precedes" not in str(v).lower() for v in sim_caps), (
+        f"sim clock must not say precedes, got {sim_caps}"
+    )
+    assert all("8.00 < 6.00" not in str(v) for v in sim_caps)
+    timeline_caps = [
+        c.value for c in app.caption if "Timeline window starts at cursor" in str(c.value)
+    ]
+    assert any("follows" in str(v).lower() for v in timeline_caps), (
+        f"timeline must say follows, got {timeline_caps}"
+    )
+    assert all("precedes" not in str(v).lower() for v in timeline_caps), (
+        f"timeline must not say precedes, got {timeline_caps}"
+    )
+    # Generic captions must describe only relation, not claim generic gap-before-next-event
+    for cap in sim_caps + timeline_caps:
+        assert "gap seek" not in str(cap).lower() or "follows" in str(cap).lower(), (
+            f"generic caption must not falsely claim gap seek: {cap}"
+        )
+        # Ensure not claiming gap-before-next-event for beyond-end
+        assert "falls before selected next event" not in str(cap).lower()
+
+
+def test_play_advance_follows_not_seek(monkeypatch: pytest.MonkeyPatch) -> None:
+    """PLAY then ADVANCE 0.5 must show playhead 0.50 follows cursor 0.00, generic captions not attributed to SEEK."""
+
+    app = _app(monkeypatch)
+    assert not app.exception
+    assert _metric(app, "Playback state") == "paused"
+    assert _metric(app, "Playhead time") == "0.00 s"
+    assert _metric(app, "Cursor event time") == "0.00 s"
+    # PLAY
+    play_btn = next(b for b in app.button if b.label == "PLAY")
+    play_btn.click().run(timeout=30)
+    assert not app.exception
+    assert _metric(app, "Playback state") == "playing"
+    # Ensure advance delta is 0.5 (default) — set explicitly
+    for ni in app.number_input:
+        if "Advance delta" in str(getattr(ni, "label", "")):
+            ni.set_value(0.5).run(timeout=30)
+            break
+    adv_btn = next(b for b in app.button if b.label == "ADVANCE")
+    adv_btn.click().run(timeout=30)
+    assert not app.exception, f"advance raised: {app.exception}"
+    assert _metric(app, "Playhead time") == "0.50 s", (
+        f"playhead should be 0.50, got {_metric(app, 'Playhead time')}"
+    )
+    assert _metric(app, "Cursor event time") == "0.00 s", (
+        f"cursor should remain 0.00, got {_metric(app, 'Cursor event time')}"
+    )
+    assert _metric(app, "Playback state") == "playing"
+    assert _metric(app, "Cursor index") == "0/7"
+    joined = _text(app)
+    # Receipt should be ADVANCE, not SEEK, and mention advanced
+    assert "Advanced by 0.50" in joined or "advanced" in joined.lower()
+    # Metrics receipt should show playhead 0.50 and cursor 0/7
+    assert "playhead 0.50" in joined.lower()
+    # Generic captions must say follows and not attribute to SEEK
+    seek_caps = [c.value for c in app.caption if "Seek target" in str(c.value)]
+    assert len(seek_caps) == 1
+    sc = str(seek_caps[0])
+    assert "follows" in sc.lower(), f"seek caption after ADVANCE must say follows, got {sc}"
+    assert "precedes" not in sc.lower()
+    # Generic clock/timeline must say follows and must not claim SEEK cause
+    sim_caps = [
+        c.value for c in app.caption if "Cursor event time (selected event)" in str(c.value)
+    ]
+    assert any("follows" in str(v).lower() for v in sim_caps), (
+        f"sim clock must say follows, got {sim_caps}"
+    )
+    timeline_caps = [
+        c.value for c in app.caption if "Timeline window starts at cursor" in str(c.value)
+    ]
+    assert any("follows" in str(v).lower() for v in timeline_caps), (
+        f"timeline must say follows, got {timeline_caps}"
+    )
+    for cap in sim_caps + timeline_caps + seek_caps:
+        # Generic captions must describe only relation, not claim a gap seek / SEEK cause
+        assert "gap seek" not in str(cap).lower(), (
+            f"generic caption must not attribute ADVANCE to SEEK: {cap}"
+        )
+        # Also must not contain SEEK target attribution (except receipt which is not in captions)
+        # The word SEEK in generic captions would be a false cause attribution
+        assert "SEEK" not in str(cap) or "follows" in str(cap).lower(), (
+            f"generic caption must not claim SEEK cause: {cap}"
+        )
+    # Ensure no false inequality printed
+    for cap in sim_caps + timeline_caps + [sc]:
+        assert "0.50 < 0.00" not in str(cap)
+        assert "0.50 s < cursor 0.00" not in str(cap)
+    # Ensure not saying precedes falsely
+    for cap in sim_caps + timeline_caps:
+        assert "precedes" not in str(cap).lower(), (
+            f"must not say precedes for 0.50 > 0.00, got {cap}"
+        )
+
+
+def test_aggregate_coincide_without_exact_event(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Aggregate-only zero-event state may say coincide but must not label as exact-event seek without SEEK receipt."""
+
+    app = _app(monkeypatch)
+    agg_btn = next(b for b in app.button if b.label == "Load aggregate-only demo")
+    agg_btn.click().run(timeout=30)
+    assert not app.exception
+    assert _metric(app, "Cursor index") == "0/0"
+    assert _metric(app, "Playback state") == "ended"
+    assert _metric(app, "Playhead time") == "0.00 s"
+    assert _metric(app, "Cursor event time") == "0.00 s"
+    joined = _text(app)
+    # May say coincide for zero-event aggregate, but must not claim exact-event
+    # Check all captions that mention coincide
+    captions = [str(c.value) for c in app.caption]
+    # At least one caption should mention coincide (clock/seek/timeline) for zero-event
+    assert any("coincide" in cap.lower() for cap in captions), (
+        f"aggregate should mention coincide, got {captions}"
+    )
+    # But must NOT say exact-event or exact-event seek absent a SEEK receipt
+    for cap in captions:
+        # Generic captions for aggregate must not contain exact-event phrasing
+        assert "exact-event seek" not in cap.lower(), (
+            f"aggregate must not say exact-event seek without receipt: {cap}"
+        )
+        # Also should not say "exact-event" as a SEEK attribution in generic captions
+        # The only allowed exact-event is in a live SEEK receipt, which does not exist here
+    # Ensure no SEEK receipt is present (no Seeked text) or if present, not for aggregate
+    # After aggregate load, last receipt is cleared, so no Seeked banner should appear
+    # We check that joined does not contain Seeked to ... with exact-event seek for aggregate
+    # The aggregate load clears receipt, so any prior Seeked should be withheld
+    assert (
+        "Seeked to" not in joined
+        or "coincide" not in joined.lower()
+        or "exact-event seek" not in joined.lower()
+    )
+    # Also ensure simulation clock and timeline for aggregate say coincide but not exact-event
+    sim_caps = [
+        c.value for c in app.caption if "Cursor event time (selected event)" in str(c.value)
+    ]
+    for cap in sim_caps:
+        if "coincide" in str(cap).lower():
+            assert "exact-event" not in str(cap).lower(), (
+                f"aggregate sim clock must not say exact-event: {cap}"
+            )
+    timeline_caps = [
+        c.value for c in app.caption if "Timeline window starts at cursor" in str(c.value)
+    ]
+    for cap in timeline_caps:
+        if "coincide" in str(cap).lower():
+            assert "exact-event" not in str(cap).lower(), (
+                f"aggregate timeline must not say exact-event: {cap}"
+            )
+    seek_caps = [c.value for c in app.caption if "Seek target" in str(c.value)]
+    for cap in seek_caps:
+        if "coincide" in str(cap).lower():
+            assert "exact-event seek" not in str(cap).lower(), (
+                f"aggregate seek caption must not say exact-event seek: {cap}"
+            )
+            assert "exact-event" not in str(cap).lower(), (
+                f"aggregate seek caption must not say exact-event: {cap}"
+            )
