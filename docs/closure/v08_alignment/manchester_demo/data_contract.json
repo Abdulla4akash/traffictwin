@@ -1,0 +1,107 @@
+{
+  "schema_version": "manchester_demo_data_contract_v1",
+  "campaign": "v08-requirements-closure",
+  "lane": "09",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "prepared_base_sha": "6f760a5e59808005ae43db43eb05a9c546f217a7",
+  "contract_id": "manchester_demo_data_contract",
+  "purpose": "Deterministic bounded Manchester demonstration through v0.8 minimal adapter \u2014 offline-first replay, no uncontrolled retrieval, no credential required. Honest about committed vs private raw provenance.",
+  "entry_points_verified_at_v08": [
+    {
+      "locator": "src/traffictwin/ui/pages/manchester_evidence_hub.py",
+      "route": "/manchester-evidence-hub",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "locator": "src/traffictwin/ui/pages/manchester_operations.py",
+      "route": "/manchester",
+      "via": "src/traffictwin/ui/app_pages/manchester.py -> src/traffictwin/ui/page_runtime.py:run_manchester_page_script",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "locator": "src/traffictwin/ui/pages/scenario_builder.py",
+      "route": "/scenario-builder",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+    }
+  ],
+  "inputs": {
+    "REAL_MANCHESTER_DATA": [
+      "ons_boundary (static ONS December 2025 GeoJSON, SHAs 1bf8a1293de43f1573ec87685e0772ec8b9bd4cb14ec0ae0b0c21cd80d9a313a / 31b78ea21882ec80a82b0cc584a57e0b1d1a4f1c8269e1bfc54826fb9981a51c; validator recomputes from committed files)",
+      "dft_historical_counts (historical only, two committed receipts: manchester_dft_gate_b_probe_20260725.json SHA c0a59f..., manchester_dft_observation_acquisition_20260725.json SHA f33cfe...; retained fixtures present; never live)",
+      "bods_bus_positions (REAL MANCHESTER DATA bus-only; committed receipt docs/integration/evidence/manchester_bods_bee_network_probe_20260723.json SHA e60ee7...; private raw fingerprint 33e07061... distinguished from committed receipt SHA; offline historical replay; live path no_live placeholder when BODS_API_KEY absent)"
+    ],
+    "REAL_EXTERNAL_NON_MANCHESTER_DATA": [
+      "national_highways_operational (strategic road only; committed receipt national_highways_operational_acceptance_20260724.json SHA 5329b1...; private raw bytes not committed; not Manchester city-road)",
+      "webtris_historical (historical strategic-road site/day reports only; committed receipt manchester_webtris_recency_probe_20260724.json SHA 229a84...; one accepted historical site/day M56/8150A 2026-06-24, near-live rejected 204; never near_live)"
+    ],
+    "SYNTHETIC_DATA": [
+      "manual_incident_authored (bounded authored incident via Scenario Builder; real SHA-256 a0deb68b86f56f58b19f41367af3c33e42e38bed38da558810e087d36179b449 over sorted-keys canonical JSON of declared bytes; validator recomputes)"
+    ],
+    "SIMULATION_OUTPUT": [
+      "synthetic_square_sumo (hand-authored TrafficTwin synthetic-square: one edge 100 m square perimeter, six deterministic vehicles; pins f63508af..., 9dba2087..., 377e9555...; not netconvert 1.27.1, not Manchester observation)"
+    ],
+    "DESIGN_ONLY_CAPABILITY_explicit_unavailable": [
+      "tfgm_signal_locations (DESIGN-ONLY CAPABILITY \u2014 unavailable for current view; full archive 2529 locations workspace-only private archive SHA 85a529..., CSV SHA c45ad... not committed; only derived 3-row fixture tests/fixtures/manchester/tfgm/signals-manchester-3.csv.b64 SHA 1780fd... and code SHAs 071748..., 458be64... committed; marked unavailable rather than inventing provenance)",
+      "general_live_road_traffic_bods (DESIGN-ONLY CAPABILITY \u2014 unavailable, BODS ceiling is bus-only)",
+      "live_city_wide_twin (DESIGN-ONLY CAPABILITY \u2014 unavailable)",
+      "social_media_ingestion (DESIGN-ONLY CAPABILITY \u2014 unavailable, DEFERRED)"
+    ]
+  },
+  "retrieval_contract": {
+    "bounded": true,
+    "live_retrieval_in_deterministic_demo": false,
+    "max_rows_per_snapshot": 500,
+    "fixture_bound": "replay from stored SHA-256 of committed receipts / local fixtures / honest unavailable markers only; private raw bytes remain workspace-only and are never implied bundled",
+    "credentials": "optional/unavailable \u2014 deterministic demo performs no live retrieval; BODS_API_KEY / NATIONAL_HIGHWAYS_API_KEY absent yields honest no_live / not_ready_credential_missing blockers for live path, but committed offline receipts provide historical bound",
+    "no_uncontrolled_retrieval": true,
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "outputs": {
+    "current_view_artifact": "docs/closure/v08_alignment/manchester_demo/current_view_artifact.json",
+    "scenario_or_analysis": "docs/closure/v08_alignment/manchester_demo/scenario_or_analysis.json",
+    "quality_report": "docs/closure/v08_alignment/manchester_demo/quality_report.json",
+    "reproducibility_receipt": "docs/closure/v08_alignment/manchester_demo/reproducibility_receipt.json",
+    "honesty_labels_per_output": "every output distinguishes SOURCE-DERIVED FACT / IMPLEMENTATION-VERIFIED FACT / RESEARCH-EVIDENCE FACT / INFERENCE / PROVISIONAL WORDING / EXTERNAL DECISION REQUIRED"
+  },
+  "provenance_contract": {
+    "every_real_source_has_sha256": true,
+    "sha256_shape": "exactly 64 lowercase hex; decorated/prefixed pseudo-digests are rejected",
+    "validator_recomputes_every_committed_sha256_from_current_tree": true,
+    "wrong_but_valid_64hex_is_failure": "validator fails if committed file's recomputed SHA does not match declared SHA",
+    "missing_or_nonexistent_locator_is_failure": "validator fails if committed_evidence_locator missing or file does not exist",
+    "private_raw_distinguished_from_committed_receipt": "private raw fingerprint (e.g., bods 33e070...) is stored separately from committed_evidence_sha256 (e60ee7...); raw not implied bundled",
+    "every_synthetic_source_has_real_digest_over_canonical_payload": "manual_incident_authored provenance_sha256 a0deb68b... is real SHA over sorted-keys canonical JSON; validator recomputes; placeholder prefixed digests are rejected",
+    "every_simulation_source_has_pinned_shas": true,
+    "unavailable_has_null_with_reason": true,
+    "placeholder_counted_as_observed_is_failure": "unavailable/no-live UI state with null provenance and no committed binding must be in unavailable_layers, not counted as observed REAL layer",
+    "hash_removal_is_failure": "Removing any provenance_sha256 or committed_evidence_sha256 or pinned SHA must cause validation to fail",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "freshness_contract": {
+    "ons_boundary": "static (committed GeoJSON, validator recomputes)",
+    "tfgm_signal_locations": "unavailable (full archive workspace-only private; marked design-only)",
+    "dft_historical_counts": "historical (never live; two committed receipts)",
+    "webtris_historical": "historical (never near_live; private probe metadata)",
+    "bods_bus_positions": "historical_replay_offline_bus_only (live path unavailable/no_live placeholder; offline replay bound via committed receipt e60ee7...)",
+    "national_highways_operational": "historical_snapshot_private_receipt (live path unavailable; not Manchester)",
+    "manual_incident_authored": "synthetic (real SHA a0deb68b)",
+    "synthetic_square_sumo": "synthetic (pinned)",
+    "general_live_road_traffic_bods": "unavailable",
+    "live_city_wide_twin": "unavailable",
+    "no_promotion": "No source is relabelled fresher than its implementation truth; BODS bus-only never general road traffic; DfT/WebTRIS historical never live/near_live; National Highways strategic-road never Manchester",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "quality_contract_ref": "docs/closure/v08_alignment/manchester_demo/quality_report.json",
+  "red_lines": [
+    "Must not claim live city-wide twin is available",
+    "Must not claim measured general road traffic from BODS is available (BODS is bus-only REAL MANCHESTER DATA, offline replay committed receipt e60ee7... is bus-only)",
+    "Must not claim operational general-road current state is available",
+    "Must not present DESIGN-ONLY CAPABILITY as implemented",
+    "Must not present REAL EXTERNAL NON-MANCHESTER DATA (National Highways/WebTRIS strategic-road) as REAL MANCHESTER DATA",
+    "Must not present WebTRIS historical as near_live",
+    "Must not perform live retrieval in deterministic tests",
+    "Must not use decorated/prefixed pseudo-digest in any *_sha256 field; must be 64 lowercase hex and validator must recompute from committed file",
+    "Must not imply private raw bytes are bundled when only committed receipt SHA is present"
+  ],
+  "s_035_note": "TT-REQ-008 / S-035 RSU load-management investigations are out of scope for this Manchester current-context workflow; workflow records them only as supervisor-identified problem / requested investigation / proposed direction / hypothesised outcome with SHOULD priority unchanged."
+}

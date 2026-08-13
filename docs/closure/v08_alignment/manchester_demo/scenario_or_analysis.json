@@ -1,0 +1,111 @@
+{
+  "schema_version": "manchester_demo_scenario_or_analysis_v1",
+  "campaign": "v08-requirements-closure",
+  "lane": "09",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "artifact_id": "manchester_bounded_synthetic_what_if_v1",
+  "standing": "SYNTHETIC-ANCHORED MIXED",
+  "parent_current_view": "docs/closure/v08_alignment/manchester_demo/current_view_artifact.json",
+  "deterministic_fixture_marker": {
+    "fixed_value": "2026-08-12T15:29:03Z",
+    "note": "non-observational deterministic fixture, not an observed generation time"
+  },
+  "entry_point": {
+    "locator": "src/traffictwin/ui/pages/scenario_builder.py",
+    "route": "/scenario-builder",
+    "via": "src/traffictwin/ui/app_pages/scenario_builder.py -> src/traffictwin/ui/page_runtime.py",
+    "service": "src/traffictwin/experiments/scenario_mutation.py",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "synthetic_incident": {
+    "source_id": "manual_incident_authored",
+    "evidence_standing": "SYNTHETIC DATA",
+    "freshness": "synthetic",
+    "definition": "Authored bounded synthetic incident: single corridor slowdown \u2014 duration 60 simulated seconds, speed cap 30 percent reduction, extent one edge of synthetic square",
+    "bounds": "Deterministic, bounded, authored locally \u2014 no live data, no Manchester observation claim",
+    "provenance": "src/traffictwin/experiments/scenario_mutation.py synthetic bundle canonical payload SHA",
+    "provenance_sha256": "a0deb68b86f56f58b19f41367af3c33e42e38bed38da558810e087d36179b449",
+    "canonical_payload": {
+      "bounds": "Deterministic, bounded, authored locally \u2014 no live data, no Manchester observation claim",
+      "definition": "Authored bounded synthetic incident: single corridor slowdown \u2014 duration 60 simulated seconds, speed cap 30 percent reduction, extent one edge of synthetic square",
+      "evidence_standing": "SYNTHETIC DATA",
+      "freshness": "synthetic",
+      "source_id": "manual_incident_authored"
+    },
+    "canonical_payload_note": "SHA-256 over sorted-keys canonical JSON of canonical_payload; validator recomputes",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+    "notes": "SYNTHETIC DATA \u2014 never presented as REAL MANCHESTER DATA; labelled synthetic in every output. Real SHA over declared bytes."
+  },
+  "simulation_output": {
+    "source_id": "synthetic_square_sumo",
+    "evidence_standing": "SIMULATION OUTPUT",
+    "freshness": "synthetic",
+    "identity": "hand-authored TrafficTwin synthetic-square \u2014 Original TrafficTwin-authored synthetic scenario: one edge tracing a 100 m square perimeter with six deterministic vehicles. Not derived from Eclipse SUMO scenario files.",
+    "pinned_inputs": {
+      "square.sumocfg": {
+        "sha256": "f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d",
+        "bytes": 538
+      },
+      "square.net.xml": {
+        "sha256": "9dba208715f894606119533ab3c6d3d95133cabe32a910eecc96fd1a47d52126",
+        "bytes": 1048
+      },
+      "square.rou.xml": {
+        "sha256": "377e955571566c625c82ee43b5c2e63e55a595960a46491dfbb14d540b6ec4a1",
+        "bytes": 1048
+      }
+    },
+    "not_netconvert": "Not netconvert 1.27.1; hand-written for this repository; see src/traffictwin/integration/sumo_execution/scenario_synthetic_square/README.md",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "what_if_analysis": {
+    "type": "deterministic bounded what-if diagnostic",
+    "inputs": [
+      "synthetic_square_sumo (SIMULATION OUTPUT)",
+      "manual_incident_authored (SYNTHETIC DATA)"
+    ],
+    "method": "One-click synthetic-square smoke execution + scenario-mutation diagnostic \u2014 smoke only proves plumbing, does not claim Manchester demand calibration or VEC Manchester chaining (MAN-09 foundation_only, MAN-11 foundation_only)",
+    "outputs": {
+      "diagnostic_table": "labelled SYNTHETIC DATA / SIMULATION OUTPUT \u2014 six vehicles, 120 simulated seconds, deterministic bundle SHA",
+      "bundle_sha256": "cded8a2eeb4f8024247b95112e1bba6ebec08906bc0cec35b6f577534e5adbde",
+      "bundle_canonical_payload": {
+        "inputs": [
+          "synthetic_square_sumo (SIMULATION OUTPUT)",
+          "manual_incident_authored (SYNTHETIC DATA)"
+        ],
+        "method": "One-click synthetic-square smoke execution + scenario-mutation diagnostic \u2014 smoke only proves plumbing, does not claim Manchester demand calibration or VEC Manchester chaining (MAN-09 foundation_only, MAN-11 foundation_only)",
+        "outputs": {
+          "diagnostic_table": "labelled SYNTHETIC DATA / SIMULATION OUTPUT \u2014 six vehicles, 120 simulated seconds, deterministic bundle SHA"
+        },
+        "type": "deterministic bounded what-if diagnostic"
+      },
+      "bundle_sha256_note": "SHA-256 over sorted-keys canonical JSON of bundle_canonical_payload; validator recomputes",
+      "completion_rate_synthetic": "not claimed as Manchester observation \u2014 synthetic diagnostic only",
+      "latency_synthetic": "not claimed as Manchester observation \u2014 synthetic diagnostic only"
+    },
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT + INFERENCE",
+    "prohibited_claims_avoided": [
+      "Did not claim SUMO-calibrated Manchester demand",
+      "Did not claim SUMO-to-VEC Manchester chaining",
+      "Did not present synthetic as REAL MANCHESTER DATA",
+      "Did not claim live city-wide twin"
+    ]
+  },
+  "decision_support_output": {
+    "primary_question": "Can a bounded current/context review with honestly separated evidence be demonstrated without asserting a live city-wide twin, measured general-road traffic from BODS, or operational general-road current state?",
+    "decision_type": "documentation/bounded-review readiness, not real-time control",
+    "output": "Reproducible local review packet (current_view_artifact.json + this scenario bundle) with one-page summary stating which sources were REAL MANCHESTER DATA / REAL EXTERNAL NON-MANCHESTER DATA / SYNTHETIC DATA / SIMULATION OUTPUT / DESIGN-ONLY CAPABILITY",
+    "honesty_label": "INFERENCE"
+  },
+  "tt_req_008_boundary": {
+    "note": "No RSU offloading/scheduling evaluation in this Manchester current-context workflow. RSU load-management investigations (A) DRL+deterministic load balancing, (B) DRL+DRL scheduling, (C) DRL+AI-based control remain SHOULD/open decision under S-035; none implemented here as mandatory deliverable.",
+    "priority": "SHOULD \u2014 PARTIALLY_MET with open decision YES",
+    "classification": "supervisor-identified problem + requested investigation + proposed direction + hypothesised outcome as body supports",
+    "honesty_label": "SOURCE-DERIVED FACT"
+  },
+  "externally_required_still_open": [
+    "Final supervisor-approved direction whether TT-REQ-008 comparison becomes MUST (needs original 4 August Outlook thread with headers)",
+    "Manchester/SUMO/real-data boundary for final demonstration (SQ-SANDRA-04)",
+    "Any TfGM/NTIS measured-traffic feed provider response"
+  ]
+}
