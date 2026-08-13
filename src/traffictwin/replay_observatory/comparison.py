@@ -196,18 +196,10 @@ class SideBySideState(ReplayModel):
             != self.unavailable_right_event_types
         ):
             raise ValueError("unavailable_right_event_types must use canonical lexical order")
-        if len(set(self.unavailable_left_event_types)) != len(
-            set(self.unavailable_right_event_types)
-        ) or len(set(self.unavailable_left_event_types)) != len(self.unavailable_left_event_types):
-            # Check duplicates within each
-            if len(set(self.unavailable_left_event_types)) != len(
-                self.unavailable_left_event_types
-            ):
-                raise ValueError("duplicate left unavailable")
-            if len(set(self.unavailable_right_event_types)) != len(
-                self.unavailable_right_event_types
-            ):
-                raise ValueError("duplicate right unavailable")
+        if len(set(self.unavailable_left_event_types)) != len(self.unavailable_left_event_types):
+            raise ValueError("duplicate left unavailable")
+        if len(set(self.unavailable_right_event_types)) != len(self.unavailable_right_event_types):
+            raise ValueError("duplicate right unavailable")
         if self.agreement.fingerprint() != self.agreement_fingerprint:
             raise ValueError("agreement_fingerprint must match agreement fingerprint")
         if self.left_state.stream_fingerprint != self.agreement.left_stream_fingerprint:
@@ -240,7 +232,14 @@ class SideBySideState(ReplayModel):
     def verify_against(
         self, left_stream: ReplayEventStream, right_stream: ReplayEventStream
     ) -> None:
-        """Exact verifier that revalidates agreement/streams and checks coherence."""
+        """Structural stream validation (not live freshness).
+
+        Revalidates agreement/streams and checks window, fingerprints,
+        unavailable types, aggregate and missing-target truthfulness
+        against the supplied streams. Does not assert that this state
+        is still the current live state of a SideBySideReplay; use
+        verify_against_replay for exact live binding.
+        """
         agr = _revalidate_agreement(self.agreement)
         ls = _revalidate_stream(left_stream)
         rs = _revalidate_stream(right_stream)
@@ -254,29 +253,105 @@ class SideBySideState(ReplayModel):
             raise ComparisonAgreementError("STATE_MISMATCH", "left_state fingerprint mismatch")
         if self.right_state.stream_fingerprint != rs.fingerprint():
             raise ComparisonAgreementError("STATE_MISMATCH", "right_state fingerprint mismatch")
-        # Windows must be exactly the agreement window slices (order preserved)
+        # Exact full bounded windows: no prefix allowance
         expected_left = tuple(
             ev for ev in ls.events if agr.window_start_s <= ev.simulator_time_s <= agr.window_end_s
         )
         expected_right = tuple(
             ev for ev in rs.events if agr.window_start_s <= ev.simulator_time_s <= agr.window_end_s
         )
-        # Allow truncated by max but for full verification require exact equality
-        if (
-            self.left_window != expected_left[: len(self.left_window)]
-            and self.left_window != expected_left
-        ):
+        if self.left_window != expected_left:
             raise ComparisonAgreementError("WINDOW_MISMATCH", "left_window mismatch")
-        if (
-            self.right_window != expected_right[: len(self.right_window)]
-            and self.right_window != expected_right
-        ):
+        if self.right_window != expected_right:
             raise ComparisonAgreementError("WINDOW_MISMATCH", "right_window mismatch")
         if self.causal_disclaimer != CAUSAL_DISCLAIMER:
             raise ComparisonAgreementError("DISCLAIMER_MISMATCH", "causal disclaimer mismatch")
+        # Bind actual cursors/states via exact engine verification patterns
+        try:
+            self.left_state.cursor.verify_against_stream(ls)
+        except Exception as exc:
+            raise ComparisonAgreementError(
+                "STATE_MISMATCH", f"left cursor mismatch: {exc}"
+            ) from exc
+        try:
+            self.right_state.cursor.verify_against_stream(rs)
+        except Exception as exc:
+            raise ComparisonAgreementError(
+                "STATE_MISMATCH", f"right cursor mismatch: {exc}"
+            ) from exc
+        # Recompute unavailable types canonically and compare
+        all_types = set(EventType)
+        left_present = set(ls.present_event_types)
+        right_present = set(rs.present_event_types)
+        expected_left_unavail = tuple(sorted(all_types - left_present, key=str))
+        expected_right_unavail = tuple(sorted(all_types - right_present, key=str))
+        if self.unavailable_left_event_types != expected_left_unavail:
+            raise ComparisonAgreementError(
+                "UNAVAILABLE_MISMATCH", "unavailable_left_event_types mismatch"
+            )
+        if self.unavailable_right_event_types != expected_right_unavail:
+            raise ComparisonAgreementError(
+                "UNAVAILABLE_MISMATCH", "unavailable_right_event_types mismatch"
+            )
+        # Aggregate truthfulness
+        expected_agg = (
+            ls.capability_manifest.source_data_kind is SourceDataKind.AGGREGATE_ONLY
+            or rs.capability_manifest.source_data_kind is SourceDataKind.AGGREGATE_ONLY
+        )
+        if self.aggregate_unavailable != expected_agg:
+            raise ComparisonAgreementError("AGGREGATE_MISMATCH", "aggregate_unavailable mismatch")
+        # Missing execution target precise check
+        expected_missing = _compute_missing_execution_target(ls, rs)
+        if self.missing_execution_target != expected_missing:
+            raise ComparisonAgreementError(
+                "MISSING_TARGET_MISMATCH", "missing_execution_target mismatch"
+            )
+        # Verify left/right states' additional bindings via engine patterns
+        # Stream fingerprints already checked; check unavailable via state
+        if self.left_state.unavailable_event_types != expected_left_unavail:
+            raise ComparisonAgreementError("STATE_MISMATCH", "left_state unavailable mismatch")
+        if self.right_state.unavailable_event_types != expected_right_unavail:
+            raise ComparisonAgreementError("STATE_MISMATCH", "right_state unavailable mismatch")
 
     def verify_exact(self, left_stream: ReplayEventStream, right_stream: ReplayEventStream) -> None:
+        """Structural alias; see verify_against."""
         self.verify_against(left_stream, right_stream)
+
+    def verify_against_replay(self, replay: SideBySideReplay) -> None:
+        """Exact live-state verification against the current replay.
+
+        Canonically compares this state against the replay's exact
+        live streams, agreement, left/right engine states/cursors/
+        playheads, full windows and truthfulness fields. Fails if
+        stale, tampered or otherwise inconsistent.
+        """
+        try:
+            SideBySideState.model_validate_json(self.model_dump_json())
+        except ValidationError as exc:
+            raise ComparisonAgreementError("INVALID_STATE", str(exc)) from exc
+        # Verify replay integrity and check structural coherence.
+        replay._verify_integrity()
+        # Structural checks against live streams ensure windows/truthfulness.
+        self.verify_against(replay._left_stream, replay._right_stream)
+        # Live cursor/playhead binding via engine verifiers.
+        try:
+            self.left_state.verify_against_engine(replay.left_engine)
+        except Exception as exc:
+            raise ComparisonAgreementError("STATE_MISMATCH", f"left_state not live: {exc}") from exc
+        try:
+            self.right_state.verify_against_engine(replay.right_engine)
+        except Exception as exc:
+            raise ComparisonAgreementError(
+                "STATE_MISMATCH", f"right_state not live: {exc}"
+            ) from exc
+        if self.agreement_fingerprint != replay.agreement.fingerprint():
+            raise ComparisonAgreementError("AGREEMENT_MISMATCH", "agreement fingerprint not live")
+        if self.agreement.fingerprint() != replay.agreement.fingerprint():
+            raise ComparisonAgreementError("AGREEMENT_MISMATCH", "agreement not live")
+
+    def verify_exact_replay(self, replay: SideBySideReplay) -> None:
+        """Alias for verify_against_replay (exact live binding)."""
+        self.verify_against_replay(replay)
 
 
 class SideBySideReceipt(ReplayModel):
@@ -316,7 +391,14 @@ class SideBySideReceipt(ReplayModel):
     def verify_against(
         self, left_stream: ReplayEventStream, right_stream: ReplayEventStream
     ) -> None:
-        """Exact verification that revalidates dependencies and refuses stale/tampered."""
+        """Structural stream validation (not live freshness).
+
+        Revalidates dependencies against the supplied streams and
+        checks receipt/state coherence. Does not assert that this
+        receipt is still the current live receipt of a
+        SideBySideReplay; use verify_against_replay for exact live
+        binding.
+        """
         try:
             SideBySideReceipt.model_validate_json(self.model_dump_json())
         except ValidationError as exc:
@@ -339,7 +421,38 @@ class SideBySideReceipt(ReplayModel):
             raise ComparisonAgreementError("TAMPER_DETECTED", "receipt indicates tamper")
 
     def verify_exact(self, left_stream: ReplayEventStream, right_stream: ReplayEventStream) -> None:
+        """Structural alias; see verify_against."""
         self.verify_against(left_stream, right_stream)
+
+    def verify_against_replay(self, replay: SideBySideReplay) -> None:
+        """Exact live-state verification against the current replay.
+
+        Canonically compares this receipt and its resulting_state
+        against the replay's exact live streams, agreement, engine
+        states/cursors/playheads, full windows and truthfulness.
+        Fails if stale, tampered or otherwise inconsistent.
+        """
+        try:
+            SideBySideReceipt.model_validate_json(self.model_dump_json())
+        except ValidationError as exc:
+            raise ComparisonAgreementError("INVALID_RECEIPT", str(exc)) from exc
+        replay._verify_integrity()
+        if self.agreement_fingerprint != replay.agreement.fingerprint():
+            raise ComparisonAgreementError("RECEIPT_MISMATCH", "agreement fingerprint not live")
+        if self.left_stream_fingerprint != replay._left_stream.fingerprint():
+            raise ComparisonAgreementError("RECEIPT_MISMATCH", "left stream fingerprint not live")
+        if self.right_stream_fingerprint != replay._right_stream.fingerprint():
+            raise ComparisonAgreementError("RECEIPT_MISMATCH", "right stream fingerprint not live")
+        if self.causal_disclaimer != CAUSAL_DISCLAIMER:
+            raise ComparisonAgreementError("DISCLAIMER_MISMATCH", "causal disclaimer mismatch")
+        # Delegate live state check to state's verifier.
+        self.resulting_state.verify_against_replay(replay)
+        if self.tamper_detected:
+            raise ComparisonAgreementError("TAMPER_DETECTED", "receipt indicates tamper")
+
+    def verify_exact_replay(self, replay: SideBySideReplay) -> None:
+        """Alias for verify_against_replay (exact live binding)."""
+        self.verify_against_replay(replay)
 
 
 # ---------------------------------------------------------------------------
@@ -435,6 +548,45 @@ def _check_compatible_streams(
     # identity_namespace field already enforces a strict pattern and presence.
     # Distinct source_ids are allowed when compatibility is explicitly declared.
     # Window finite already validated.
+
+
+def _compute_missing_execution_target(
+    left_stream: ReplayEventStream, right_stream: ReplayEventStream
+) -> bool:
+    """Precise per-offered-task check when payload supports entity identity.
+
+    For each TASK_OFFERED event, check for a corresponding EXECUTION_TARGET
+    with the same task entity_id. If any offered task lacks a matching
+    execution target, report missing. If no offered tasks, not missing.
+    Remains conservatively unavailable and never fabricates.
+    """
+
+    for stream in (left_stream, right_stream):
+        offered_ids: set[str] = set()
+        exec_ids: set[str] = set()
+        has_offer = False
+        has_exec = False
+        for ev in stream.events:
+            if ev.event_type is EventType.TASK_OFFERED:
+                has_offer = True
+                try:
+                    offered_ids.add(ev.entity.entity_id)
+                except Exception:
+                    offered_ids.add(ev.event_id)
+            elif ev.event_type is EventType.EXECUTION_TARGET:
+                has_exec = True
+                try:
+                    exec_ids.add(ev.entity.entity_id)
+                except Exception:
+                    exec_ids.add(ev.event_id)
+        if has_offer and not has_exec:
+            return True
+        if offered_ids and not offered_ids.issubset(exec_ids):
+            return True
+        types = set(stream.present_event_types)
+        if EventType.TASK_OFFERED in types and EventType.EXECUTION_TARGET not in types:
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -581,13 +733,6 @@ class SideBySideReplay:
             raise ComparisonAgreementError(
                 "INVALID_SEEK", "target_time_s must be finite non-negative"
             )
-        if (
-            target_time_s < self._agreement.window_start_s
-            or target_time_s > self._agreement.window_end_s
-        ):
-            # Seeking outside declared window is allowed but produces explicit bounded state;
-            # we clamp window check to agreement but still seek engines.
-            pass
         self._left_engine.seek(target_time_s)
         self._right_engine.seek(target_time_s)
         self._verify_integrity()
@@ -603,31 +748,4 @@ class SideBySideReplay:
         return self.synchronized_receipt()
 
     def _has_missing_execution_target(self) -> bool:
-        # Truthful check: if any left/right present types include task_offered
-        # but not execution_target, missing target is true, but we do not invent it.
-        left_types = set(self._left_stream.present_event_types)
-        right_types = set(self._right_stream.present_event_types)
-        # If either stream has offered/task lifecycle but no execution_target
-        # anywhere, flag missing.
-        # We do not interpret ResourceState/ScaleAction.
-        for types in (left_types, right_types):
-            if EventType.TASK_OFFERED in types and EventType.EXECUTION_TARGET not in types:
-                return True
-        # Also check per-stream event existence: if execution_target present
-        # type but zero such events, also missing.
-        for stream in (self._left_stream, self._right_stream):
-            has_offer = any(ev.event_type is EventType.TASK_OFFERED for ev in stream.events)
-            has_exec = any(ev.event_type is EventType.EXECUTION_TARGET for ev in stream.events)
-            if has_offer and not has_exec:
-                return True
-        return False
-
-    def verify_fingerprints(self) -> bool:
-        return (
-            self._left_stream.fingerprint() == self._agreement.left_stream_fingerprint
-            and self._right_stream.fingerprint() == self._agreement.right_stream_fingerprint
-        )
-
-    def verify_integrity(self) -> None:
-        """Exact verification that revalidates and refuses stale/tampered."""
-        self._verify_integrity()
+        return _compute_missing_execution_target(self._left_stream, self._right_stream)

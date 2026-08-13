@@ -277,8 +277,9 @@ class ReplayEngineState(ReplayModel):
     unavailable_event_types: tuple[EventType, ...] = ()
     end_of_stream: bool
     empty_stream: bool
+    playhead_time_s: float = Field(ge=0)
 
-    @field_validator("speed_multiplier", "window_start_s", "window_end_s")
+    @field_validator("speed_multiplier", "window_start_s", "window_end_s", "playhead_time_s")
     @classmethod
     def validate_finite_fields(cls, value: float | None) -> float | None:
         if value is None:
@@ -315,12 +316,20 @@ class ReplayEngineState(ReplayModel):
                 raise ValueError("empty stream requires end_of_stream")
             if self.playback_state is not PlaybackState.ENDED:
                 raise ValueError("empty stream requires playback_state == ended")
+            if self.playhead_time_s != 0.0:
+                raise ValueError("empty stream requires playhead_time_s == 0.0")
         elif self.end_of_stream:
             if self.playback_state is not PlaybackState.ENDED:
                 raise ValueError("end_of_stream requires playback_state == ended")
+            # playhead must be at least last event time when at end
+            if self.cursor.total_events > 0 and self.playhead_time_s < self.cursor.simulator_time_s:
+                raise ValueError("at-end playhead must be >= last event time")
         else:
             if self.playback_state is PlaybackState.ENDED:
                 raise ValueError("ended playback requires end_of_stream")
+            # playhead must be >= cursor time and consistent
+            if self.playhead_time_s < self.cursor.simulator_time_s:
+                raise ValueError("playhead_time_s must be >= cursor simulator_time_s")
         return self
 
     def canonical_dict(self) -> dict[str, object]:
@@ -357,6 +366,8 @@ class ReplayEngineState(ReplayModel):
         # unavailable types must match engine's computed
         if self.unavailable_event_types != engine._unavailable_event_types:
             raise ReplayEngineError("STATE_MISMATCH", "unavailable_event_types mismatch")
+        if self.playhead_time_s != engine._playhead_time_s:
+            raise ReplayEngineError("STATE_MISMATCH", "playhead_time_s mismatch")
 
     def verify_exact(self, engine: ReplayEngine) -> None:
         self.verify_against_engine(engine)
@@ -493,6 +504,7 @@ class ReplayEngine:
         self._window_end_s: float | None = window_end_s
 
         # Cursor initialisation: empty stream starts at end, otherwise at 0 paused.
+        self._playhead_time_s: float = 0.0
         if len(stream.events) == 0:
             self._cursor_index: int = 0
             self._playback_state: PlaybackState = PlaybackState.ENDED
@@ -584,7 +596,7 @@ class ReplayEngine:
                 "INVALID_WINDOW",
                 f"window duration exceeds bound {MAX_WINDOW_DURATION_S}",
             )
-        if max_events < 0 or max_events > MAX_WINDOW_EVENTS:
+        if max_events < 1 or max_events > MAX_WINDOW_EVENTS:
             raise ReplayEngineError("INVALID_WINDOW", "max_events out of bounds")
         # Verify integrity before loading.
         self._verify_integrity()
@@ -686,6 +698,21 @@ class ReplayEngine:
             pass
         if self.is_empty() or end_of_stream:
             playback = PlaybackState.ENDED
+        # Ensure playhead is coherent with cursor for snapshot
+        playhead = self._playhead_time_s
+        if self.is_empty():
+            playhead = 0.0
+        elif end_of_stream:
+            # playhead must be at least last event time
+            last_time = float(self._stream.events[-1].simulator_time_s)
+            if playhead < last_time:
+                playhead = last_time
+        else:
+            # playhead must be >= cursor time
+            if playhead < cursor.simulator_time_s:
+                playhead = cursor.simulator_time_s
+        # Persist coherent playhead back to engine for determinism
+        self._playhead_time_s = playhead
         return ReplayEngineState(
             playback_state=playback,
             cursor=cursor,
@@ -696,6 +723,7 @@ class ReplayEngine:
             unavailable_event_types=self._unavailable_event_types,
             end_of_stream=end_of_stream,
             empty_stream=self.is_empty(),
+            playhead_time_s=playhead,
         )
 
     # -- controls -----------------------------------------------------------
@@ -725,11 +753,13 @@ class ReplayEngine:
         if request.control is ReplayControl.PLAY:
             if self.is_empty():
                 self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
             elif self.is_at_end():
                 # At end, PLAY stays ENDED; seek required to move.
                 self._playback_state = PlaybackState.ENDED
             else:
                 self._playback_state = PlaybackState.PLAYING
+                # playhead stays, but ensure it is at least cursor time
 
         elif request.control is ReplayControl.PAUSE:
             if self.is_empty() or self.is_at_end():
@@ -743,18 +773,22 @@ class ReplayEngine:
             # Empty stream stays at end.
             if self.is_empty():
                 self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
             else:
                 idx = self._find_seek_index(request.target_time_s)
                 self._cursor_index = idx
+                self._playhead_time_s = request.target_time_s
                 if self.is_at_end():
                     self._playback_state = PlaybackState.ENDED
                 else:
                     self._playback_state = PlaybackState.PAUSED
+                    # playhead already at target; cursor time >= playhead by seek semantics
 
         elif request.control is ReplayControl.STEP:
             assert request.step_count is not None and request.step_direction is not None
             if self.is_empty():
                 self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
             else:
                 if request.step_direction == "forward":
                     self._cursor_index = min(
@@ -763,31 +797,88 @@ class ReplayEngine:
                     )
                 else:
                     self._cursor_index = max(0, self._cursor_index - request.step_count)
+                # Bind playhead to new cursor time
                 if self.is_at_end():
                     self._playback_state = PlaybackState.ENDED
+                    if len(self._stream.events) > 0:
+                        self._playhead_time_s = float(self._stream.events[-1].simulator_time_s)
+                    else:
+                        self._playhead_time_s = 0.0
                 else:
                     self._playback_state = PlaybackState.PAUSED
+                    self._playhead_time_s = float(
+                        self._stream.events[self._cursor_index].simulator_time_s
+                    )
 
         elif request.control is ReplayControl.ADVANCE:
             assert request.advance_delta_s is not None
             # ADVANCE is deterministic non-real-time; never sleeps.
             if self.is_empty() or self.is_at_end():
                 self._playback_state = PlaybackState.ENDED
-                # No cursor movement
+                # No cursor movement, playhead coherent via state()
+                pass
             elif self._playback_state is not PlaybackState.PLAYING:
                 # Explicit PAUSED behavior: do not advance, remain paused.
+                # playhead unchanged, cursor unchanged
                 pass
             else:
-                # PLAYING: advance target_time by delta_s * speed_multiplier
-                cur_time = float(self._stream.events[self._cursor_index].simulator_time_s)
+                # PLAYING: deterministic playhead accumulation
                 delta = request.advance_delta_s
-                target = cur_time + delta * self._speed_multiplier
-                idx = self._find_seek_index(target)
-                self._cursor_index = idx
-                if self.is_at_end():
-                    self._playback_state = PlaybackState.ENDED
+                if delta == 0.0:
+                    # exact no-op: no playhead or cursor movement
+                    pass
                 else:
-                    self._playback_state = PlaybackState.PLAYING
+                    new_playhead = self._playhead_time_s + delta * self._speed_multiplier
+                    # Ensure finite and bound
+                    if not math.isfinite(new_playhead):
+                        raise ReplayEngineError("INVALID_ADVANCE", "playhead must remain finite")
+                    # Monotonic playhead
+                    if new_playhead < self._playhead_time_s:
+                        raise ReplayEngineError("INVALID_ADVANCE", "playhead must be monotonic")
+                    self._playhead_time_s = new_playhead
+                    # Determine new cursor index deterministically without rewind or skip
+                    # Use playhead to find target, but clamp to monotonic and stable order
+                    cur_idx = self._cursor_index
+                    # Check for remaining equal-time members at current cursor time
+                    if cur_idx + 1 < len(self._stream.events) and float(
+                        self._stream.events[cur_idx + 1].simulator_time_s
+                    ) == float(self._stream.events[cur_idx].simulator_time_s):
+                        # There is at least one more event at same time: advance one step
+                        self._cursor_index = cur_idx + 1
+                    else:
+                        # No remaining at same time: find latest time <= new_playhead
+                        # For accumulation, stay until playhead reaches next distinct time
+                        target_idx: int | None = None
+                        # Search from end backwards for last time <= new_playhead
+                        for idx in range(len(self._stream.events) - 1, cur_idx, -1):
+                            t = float(self._stream.events[idx].simulator_time_s)
+                            if t <= new_playhead:
+                                # Find first index of this time group for stable order
+                                first = idx
+                                while (
+                                    first > cur_idx
+                                    and float(self._stream.events[first - 1].simulator_time_s) == t
+                                ):
+                                    first -= 1
+                                # Ensure first is after current
+                                if first <= cur_idx:
+                                    first = cur_idx + 1
+                                    # need to find first of that time again? already
+                                target_idx = first
+                                break
+                        # Also consider case where new_playhead >= next event
+                        if target_idx is not None and target_idx > cur_idx:
+                            self._cursor_index = target_idx
+                        elif new_playhead >= float(self._stream.events[-1].simulator_time_s):
+                            # Beyond last event
+                            self._cursor_index = len(self._stream.events)
+                        else:
+                            # Stay
+                            pass
+                    if self.is_at_end():
+                        self._playback_state = PlaybackState.ENDED
+                    else:
+                        self._playback_state = PlaybackState.PLAYING
         else:
             raise ReplayEngineError("INVALID_CONTROL", f"unknown control {request.control}")
 

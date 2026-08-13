@@ -727,6 +727,7 @@ def test_state_invariants_and_verifiers() -> None:
             unavailable_event_types=state.unavailable_event_types,
             end_of_stream=state.end_of_stream,
             empty_stream=state.empty_stream,
+            playhead_time_s=state.playhead_time_s,
         )
     # Verify exact catches tampered stream
     forged_stream = stream.model_copy(update={"events": ()})
@@ -798,10 +799,12 @@ def test_advance_equal_time_ordering() -> None:
     # Next advance 0.0 stays at same group head
     r2 = engine.advance(0.0)
     assert r2.resulting_state.cursor.index == 1
-    # Advance 0.5 at 1x stays within same time group still at e1 (target 1.5)
-    # Our seek lands on first >= target, so 1.5 lands at e3 (2.0)
+    # Advance 0.5 at 1x with playhead accumulation: from 1.0 group, next advance of 0.5
+    # should step to next member of same-time group (e2) to preserve stable order,
+    # not jump to 2.0
     r3 = engine.advance(0.5)
-    assert r3.resulting_state.cursor.index == 3
+    assert r3.resulting_state.cursor.index == 2
+    assert r3.resulting_state.cursor.event_id == "evt-aaa-002"
 
 
 def test_advance_paused_and_ended_explicit() -> None:
@@ -866,3 +869,178 @@ def test_receipt_binds_exact_request_and_stream() -> None:
     # Construction itself should fail validation due to state mismatch
     with pytest.raises((ValidationError, ReplayEngineError)):
         forged.verify_against(engine)
+
+
+# ---------------------------------------------------------------------------
+# Opus B1 discriminating probes: playhead, equal-time, fractional, end/pause
+# ---------------------------------------------------------------------------
+
+
+def _equal_time_stream_5() -> ReplayEventStream:
+    src = _source()
+    e0 = _sim_event(seq=0, time=0.0, source=src, event_id="evt-aaa-000")
+    e1 = _sim_event(seq=1, time=1.0, source=src, event_id="evt-aaa-001")
+    e2 = _sim_event(seq=2, time=1.0, source=src, event_id="evt-aaa-002")
+    e3 = _sim_event(seq=3, time=1.0, source=src, event_id="evt-aaa-003")
+    e4 = _sim_event(seq=4, time=2.0, source=src, event_id="evt-aaa-004")
+    e5 = _sim_event(seq=5, time=3.0, source=src, event_id="evt-aaa-005")
+    present = tuple(sorted({e.event_type for e in (e0, e1, e2, e3, e4, e5)}, key=str))
+    manifest = _manifest(source=src, available=present)
+    return ReplayEventStream(
+        stream_id="stream-001",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=(e0, e1, e2, e3, e4, e5),
+        limitations=("a",),
+    )
+
+
+def test_opus_b1_advance_zero_is_noop_from_middle_of_equal_time_group() -> None:
+    stream = _equal_time_stream_5()
+    engine = ReplayEngine(stream)
+    engine.step(2, "forward")
+    assert engine.cursor_index == 2
+    assert engine.current_event().event_id == "evt-aaa-002"  # type: ignore[union-attr]
+    engine.play()
+    before_ph = engine.state().playhead_time_s
+    before_idx = engine.cursor_index
+    r = engine.advance(0.0)
+    assert r.resulting_state.cursor.index == before_idx
+    assert r.resulting_state.playhead_time_s == before_ph
+    assert engine.cursor_index == before_idx
+    # also from first and last of group
+    engine2 = ReplayEngine(stream)
+    engine2.step(1, "forward")
+    engine2.play()
+    r2 = engine2.advance(0.0)
+    assert r2.resulting_state.cursor.index == 1
+    engine3 = ReplayEngine(stream)
+    engine3.step(3, "forward")
+    engine3.play()
+    r3 = engine3.advance(0.0)
+    assert r3.resulting_state.cursor.index == 3
+
+
+def test_opus_b1_advance_from_middle_half_and_double_speed() -> None:
+    stream = _equal_time_stream_5()
+    # half speed
+    engine_h = ReplayEngine(stream)
+    engine_h.step(2, "forward")
+    engine_h.play()
+    engine_h.set_speed(0.5)
+    engine_h.play()
+    before_h = engine_h.state().playhead_time_s
+    r_h = engine_h.advance(1.0)
+    # effective 0.5, must move exactly one within equal-time group, monotonic, never rewind
+    assert r_h.resulting_state.cursor.index == 3
+    assert r_h.resulting_state.cursor.event_id == "evt-aaa-003"
+    assert r_h.resulting_state.playhead_time_s == pytest.approx(before_h + 0.5)
+    assert r_h.resulting_state.cursor.index > 2
+    # double speed
+    engine_d = ReplayEngine(stream)
+    engine_d.step(2, "forward")
+    engine_d.play()
+    engine_d.set_speed(2.0)
+    engine_d.play()
+    before_d = engine_d.state().playhead_time_s
+    r_d = engine_d.advance(0.5)
+    # effective 1.0, also one step within group for our deterministic equal-time handling
+    assert r_d.resulting_state.cursor.index == 3
+    assert r_d.resulting_state.playhead_time_s == pytest.approx(before_d + 1.0)
+    # both preserve stable order by event_id
+    assert r_h.resulting_state.cursor.event_id == r_d.resulting_state.cursor.event_id
+
+
+def test_opus_b1_repeated_fractional_advances_accumulate() -> None:
+    # events spaced 1.0 apart: 0.0, 1.0, 2.0, 3.0
+    src = _source()
+    events = [_sim_event(seq=i, time=float(i), source=src) for i in range(4)]
+    stream = _stream_with_events(events)
+    engine = ReplayEngine(stream)
+    engine.play()
+    # playhead starts at 0.0
+    assert engine.state().playhead_time_s == 0.0
+    # three fractional 0.4 advances should accumulate to 1.2 and only then move to index1
+    r1 = engine.advance(0.4)
+    assert r1.resulting_state.cursor.index == 0
+    assert r1.resulting_state.playhead_time_s == pytest.approx(0.4)
+    r2 = engine.advance(0.4)
+    assert r2.resulting_state.cursor.index == 0
+    assert r2.resulting_state.playhead_time_s == pytest.approx(0.8)
+    r3 = engine.advance(0.4)
+    assert r3.resulting_state.cursor.index == 1
+    assert r3.resulting_state.playhead_time_s == pytest.approx(1.2)
+    # further fractional
+    r4 = engine.advance(0.4)
+    assert r4.resulting_state.cursor.index == 1
+    assert r4.resulting_state.playhead_time_s == pytest.approx(1.6)
+    r5 = engine.advance(0.4)
+    assert r5.resulting_state.cursor.index == 2
+    assert r5.resulting_state.playhead_time_s == pytest.approx(2.0)
+
+
+def test_opus_b1_advance_end_and_pause_explicit() -> None:
+    stream = _equal_time_stream_5()
+    engine = ReplayEngine(stream)
+    engine.play()
+    engine.seek(10.0)
+    assert engine.is_at_end()
+    ph_before = engine.state().playhead_time_s
+    r_end = engine.advance(1.0)
+    assert r_end.resulting_state.end_of_stream is True
+    assert r_end.resulting_state.playback_state is PlaybackState.ENDED
+    assert r_end.resulting_state.cursor.is_at_end is True
+    assert r_end.resulting_state.playhead_time_s == ph_before
+    # pause behavior: advance while paused is no-op
+    engine2 = ReplayEngine(stream)
+    engine2.step(1, "forward")
+    assert engine2.playback_state is PlaybackState.PAUSED
+    ph2_before = engine2.state().playhead_time_s
+    r_pause = engine2.advance(1.0)
+    assert r_pause.resulting_state.cursor.index == 1
+    assert r_pause.resulting_state.playback_state is PlaybackState.PAUSED
+    assert r_pause.resulting_state.playhead_time_s == ph2_before
+    # empty stream
+    empty = _stream_with_events([])
+    e_engine = ReplayEngine(empty)
+    r_empty = e_engine.advance(1.0)
+    assert r_empty.resulting_state.empty_stream is True
+    assert r_empty.resulting_state.playhead_time_s == 0.0
+
+
+def test_opus_b1_playhead_bind_through_transitions() -> None:
+    stream = _equal_time_stream_5()
+    engine = ReplayEngine(stream)
+    # initial playhead 0.0
+    s0 = engine.state()
+    assert s0.playhead_time_s == 0.0
+    engine.play()
+    s1 = engine.state()
+    assert s1.playhead_time_s == 0.0
+    assert s1.playback_state is PlaybackState.PLAYING
+    engine.pause()
+    s2 = engine.state()
+    assert s2.playhead_time_s == 0.0
+    assert s2.playback_state is PlaybackState.PAUSED
+    engine.seek(1.0)
+    s3 = engine.state()
+    assert s3.playhead_time_s == 1.0
+    assert s3.cursor.index == 1
+    engine.step(1, "forward")
+    s4 = engine.state()
+    assert s4.playhead_time_s == 1.0  # same time group, playhead tracks cursor time
+    assert s4.cursor.index == 2
+    engine.play()
+    engine.set_speed(2.0)
+    s5 = engine.state()
+    assert s5.speed_multiplier == 2.0
+    assert s5.playhead_time_s == s4.playhead_time_s
+    r = engine.advance(0.5)
+    assert r.resulting_state.playhead_time_s == pytest.approx(s5.playhead_time_s + 1.0)
+    # receipt binds playhead and is verifiable
+    r.resulting_state.verify_against_engine(engine)
+    r.verify_against(engine)
+    # tamper playhead fails
+    forged_state = r.resulting_state.model_copy(update={"playhead_time_s": 999.0})
+    with pytest.raises((ValidationError, ReplayEngineError)):
+        forged_state.verify_against_engine(engine)

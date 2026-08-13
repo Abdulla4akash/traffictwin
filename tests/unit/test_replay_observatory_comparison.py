@@ -12,6 +12,7 @@ from traffictwin.replay_observatory.comparison import (
     SideBySideAgreement,
     SideBySideReplay,
 )
+from traffictwin.replay_observatory.engine import ReplayEngineError
 from traffictwin.replay_observatory.models import (
     EntityIdentity,
     EntityKind,
@@ -748,3 +749,282 @@ def test_missing_execution_target_truthful_no_synthesis() -> None:
     replay.seek_both(0.0)
     state2 = replay.synchronized_state()
     assert state2.missing_execution_target is True
+
+
+# ---------------------------------------------------------------------------
+# Opus B2 discriminating probes: exact windows, cursors, unavailable, aggregate, stale
+# ---------------------------------------------------------------------------
+
+
+def test_opus_b2_window_prefix_not_allowed() -> None:
+    left = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(5)])
+    right = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(5)])
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    # exact full window has 5 events each (0..4)
+    assert len(state.left_window) == 5
+    # truncate to prefix should fail verification
+    truncated = state.model_copy(update={"left_window": state.left_window[:2]})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        truncated.verify_against(left, right)
+    truncated_r = state.model_copy(update={"right_window": state.right_window[:1]})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        truncated_r.verify_against(left, right)
+    # empty prefix also fails when window non-empty
+    empty_prefix = state.model_copy(update={"left_window": ()})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        empty_prefix.verify_against(left, right)
+
+
+def test_opus_b2_forged_aggregate_unavailable_rejected() -> None:
+    left = _stream()
+    agg_src = SourceIdentity(
+        source_id="agg-src",
+        source_kind=SourceKind.RESEARCH_AGGREGATE,
+        artifact_sha256=ARTIFACT3,
+        schema_version="1.0",
+    )
+    agg_manifest = SourceCapabilityManifest(
+        manifest_id="m-agg",
+        source=agg_src,
+        source_data_kind=SourceDataKind.AGGREGATE_ONLY,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        available_event_types=(),
+        limitations=("Aggregate only",),
+    )
+    agg_stream = ReplayEventStream(
+        stream_id="agg-stream",
+        capability_manifest=agg_manifest,
+        present_event_types=(),
+        events=(),
+        limitations=("Aggregate only",),
+    )
+    agreement = SideBySideAgreement(
+        time_basis="simulator_time_s",
+        time_units="seconds",
+        alignment=AlignmentMode.CLOCK_ALIGN,
+        tolerance_s=0.1,
+        window_start_s=0.0,
+        window_end_s=10.0,
+        left_stream_fingerprint=left.fingerprint(),
+        right_stream_fingerprint=agg_stream.fingerprint(),
+        identity_namespace="src-001",
+        compatibility_acknowledged=True,
+        declared_event_types=(),
+        causal_disclaimer=CAUSAL_DISCLAIMER,
+    )
+    replay = SideBySideReplay(left, agg_stream, agreement)
+    state = replay.synchronized_state()
+    assert state.aggregate_unavailable is True
+    receipt = replay.synchronized_receipt()
+    assert receipt.resulting_state.aggregate_unavailable is True
+    # forge to false should fail
+    forged_state = state.model_copy(update={"aggregate_unavailable": False})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_state.verify_against(left, agg_stream)
+    forged_receipt_state = receipt.resulting_state.model_copy(
+        update={"aggregate_unavailable": False}
+    )
+    forged_receipt = receipt.model_copy(update={"resulting_state": forged_receipt_state})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_receipt.verify_against(left, agg_stream)
+
+
+def test_opus_b2_erased_unavailable_types_rejected() -> None:
+    src_a = _source(source_id="src-a")
+    src_b = _source(source_id="src-b")
+    from traffictwin.replay_observatory.models import VehicleStateEvent, VehicleStatePayload
+
+    left = _stream(source=src_a, events=[_sim_event(seq=0, time=0.0, source=src_a)])
+    veh_evt = VehicleStateEvent(
+        event_id="evt-veh-000",
+        sequence=0,
+        simulator_time_s=0.0,
+        entity=EntityIdentity(kind=EntityKind.VEHICLE, entity_id="veh-001"),
+        source=src_b,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src_b.artifact_sha256, record="rec-veh-000"),
+        payload=VehicleStatePayload(x_m=1.0, y_m=1.0, speed_mps=1.0),
+    )
+    right = ReplayEventStream(
+        stream_id="s-right",
+        capability_manifest=SourceCapabilityManifest(
+            manifest_id="m1",
+            source=src_b,
+            source_data_kind=SourceDataKind.EVENT_STREAM,
+            evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+            available_event_types=(EventType.VEHICLE_STATE,),
+            limitations=("a",),
+        ),
+        present_event_types=(EventType.VEHICLE_STATE,),
+        events=(veh_evt,),
+        limitations=("a",),
+    )
+    agreement = _agreement_for(left, right, declared_event_types=())
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    # left is missing vehicle_state, right missing simulation_time
+    assert EventType.VEHICLE_STATE in state.unavailable_left_event_types
+    assert EventType.SIMULATION_TIME in state.unavailable_right_event_types
+    # erase unavailable types should fail
+    forged_left_erased = state.model_copy(update={"unavailable_left_event_types": ()})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_left_erased.verify_against(left, right)
+    forged_right_erased = state.model_copy(update={"unavailable_right_event_types": ()})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_right_erased.verify_against(left, right)
+    # duplicate should also fail via exact verifier (model_copy bypasses validation)
+    forged_dup = state.model_copy(
+        update={"unavailable_left_event_types": (EventType.VEHICLE_STATE, EventType.VEHICLE_STATE)}
+    )
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_dup.verify_against(left, right)
+
+
+def test_opus_b2_stale_receipt_after_transition_fails() -> None:
+    left = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(5)])
+    right = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(5)])
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    receipt_before = replay.synchronized_receipt()
+    # structural verify passes against current streams
+    receipt_before.verify_against(left, right)
+    # transition both engines
+    replay.seek_both(3.0)
+    state_after = replay.synchronized_state()
+    assert state_after.left_state.cursor.index == 3
+    assert receipt_before.resulting_state.left_state.cursor.index == 0
+    # stale receipt must fail via its own exact live verifier
+    with pytest.raises(ComparisonAgreementError):
+        receipt_before.verify_against_replay(replay)
+    with pytest.raises(ComparisonAgreementError):
+        receipt_before.resulting_state.verify_against_replay(replay)
+    # structural stream-only verify still passes (window exact, not live)
+    receipt_before.verify_against(left, right)
+    # live mismatch also via nested engine verifier
+    with pytest.raises(ReplayEngineError):
+        receipt_before.resulting_state.left_state.verify_against_engine(replay.left_engine)
+    assert (
+        receipt_before.resulting_state.left_state.cursor.index
+        != state_after.left_state.cursor.index
+    )
+    # current receipt/state must pass exact live verifier
+    receipt_after = replay.synchronized_receipt()
+    receipt_after.verify_against(left, right)
+    receipt_after.verify_against_replay(replay)
+    receipt_after.resulting_state.verify_against_replay(replay)
+    receipt_after.resulting_state.left_state.verify_against_engine(replay.left_engine)
+    # stale state directly fails live check
+    stale_state = receipt_before.resulting_state
+    with pytest.raises(ComparisonAgreementError):
+        stale_state.verify_against_replay(replay)
+    # step_both also makes previous receipt stale
+    replay.step_both(1, "forward")
+    with pytest.raises(ComparisonAgreementError):
+        receipt_after.verify_against_replay(replay)
+    with pytest.raises(ComparisonAgreementError):
+        receipt_after.resulting_state.verify_against_replay(replay)
+
+
+def test_opus_b2_missing_execution_target_per_task_precise() -> None:
+    src = _source()
+    # offered task-001 and task-002, only task-001 has execution target
+    offer1 = TaskOfferedEvent(
+        event_id="evt-offer-001",
+        sequence=0,
+        simulator_time_s=1.0,
+        entity=EntityIdentity(kind=EntityKind.TASK, entity_id="task-001"),
+        source=src,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src.artifact_sha256, record="rec-offer-001"),
+        payload=TaskOfferedPayload(offered_to_entity_id="res-001"),
+    )
+    offer2 = TaskOfferedEvent(
+        event_id="evt-offer-002",
+        sequence=1,
+        simulator_time_s=2.0,
+        entity=EntityIdentity(kind=EntityKind.TASK, entity_id="task-002"),
+        source=src,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src.artifact_sha256, record="rec-offer-002"),
+        payload=TaskOfferedPayload(offered_to_entity_id="res-002"),
+    )
+    from traffictwin.replay_observatory.models import ExecutionTargetEvent, ExecutionTargetPayload
+
+    exec1 = ExecutionTargetEvent(
+        event_id="evt-exec-001",
+        sequence=2,
+        simulator_time_s=3.0,
+        entity=EntityIdentity(kind=EntityKind.TASK, entity_id="task-001"),
+        source=src,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src.artifact_sha256, record="rec-exec-001"),
+        payload=ExecutionTargetPayload(execution_resource_id="res-001"),
+    )
+    # stream has offer1, offer2 but only exec1 -> missing for task-002
+    present = tuple(sorted([EventType.TASK_OFFERED, EventType.EXECUTION_TARGET], key=str))
+    manifest = SourceCapabilityManifest(
+        manifest_id="m-precise",
+        source=src,
+        source_data_kind=SourceDataKind.EVENT_STREAM,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        available_event_types=present,
+        limitations=("a",),
+    )
+    left = ReplayEventStream(
+        stream_id="left-precise",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=(offer1, offer2, exec1),
+        limitations=("a",),
+    )
+    right = _stream(source=src, events=[_sim_event(seq=0, time=0.0, source=src)])
+    agreement = _agreement_for(left, right, declared_event_types=(), window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    # precise per-task: task-002 missing -> true
+    assert state.missing_execution_target is True
+    # now add exec for task-002, missing should be false
+    exec2 = ExecutionTargetEvent(
+        event_id="evt-exec-002",
+        sequence=3,
+        simulator_time_s=4.0,
+        entity=EntityIdentity(kind=EntityKind.TASK, entity_id="task-002"),
+        source=src,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src.artifact_sha256, record="rec-exec-002"),
+        payload=ExecutionTargetPayload(execution_resource_id="res-002"),
+    )
+    left2 = ReplayEventStream(
+        stream_id="left-precise2",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=(offer1, offer2, exec1, exec2),
+        limitations=("a",),
+    )
+    agreement2 = _agreement_for(left2, right, declared_event_types=(), window_end_s=10.0)
+    replay2 = SideBySideReplay(left2, right, agreement2)
+    state2 = replay2.synchronized_state()
+    assert state2.missing_execution_target is False
+    # forged missing false when actually true should fail
+    forged = state.model_copy(update={"missing_execution_target": False})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged.verify_against(left, right)
+
+
+def test_opus_b2_max_events_bound_and_duplicate_unavailable() -> None:
+    left = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(3)])
+    right = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(3)])
+    agreement = _agreement_for(left, right)
+    replay = SideBySideReplay(left, right, agreement)
+    # max_events 0 should be rejected
+    with pytest.raises(ReplayEngineError):
+        replay.left_engine.load_time_window(0.0, 10.0, max_events=0)
+    # duplicate unavailable should be rejected via verifier
+    state = replay.synchronized_state()
+    forged_dup2 = state.model_copy(
+        update={"unavailable_left_event_types": (EventType.VEHICLE_STATE, EventType.VEHICLE_STATE)}
+    )
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_dup2.verify_against(left, right)
