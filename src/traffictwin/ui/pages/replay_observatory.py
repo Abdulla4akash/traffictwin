@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Replay Observatory — deterministic event replay over immutable streams."""
 
 from __future__ import annotations
@@ -6,7 +7,7 @@ import math
 
 import streamlit as st
 
-from traffictwin.replay_observatory.engine import ReplayEngine
+from traffictwin.replay_observatory.engine import PlaybackState, ReplayEngine, ReplayEngineState
 from traffictwin.replay_observatory.models import EventType
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.unavailable import render_unavailable_panel
@@ -37,6 +38,8 @@ _SIDE_RIGHT_KEY = "replay_side_right_engine"
 _SELECTED_EVENT_KEY = "replay_selected_event_id"
 _WINDOW_START_KEY = "replay_window_start"
 _WINDOW_END_KEY = "replay_window_end"
+_LAST_RECEIPT_KEY = "replay_last_receipt"
+_LAST_BEFORE_KEY = "replay_last_before_state"
 
 
 def _ensure_engine() -> ReplayEngine:
@@ -50,7 +53,6 @@ def _ensure_engine() -> ReplayEngine:
 
 
 def _format_event_row(event: object) -> dict[str, object]:
-    # event is ReplayEvent; use attribute access safely
     return {
         "event_id": getattr(event, "event_id", ""),
         "event_type": str(getattr(event, "event_type", "")),
@@ -60,6 +62,164 @@ def _format_event_row(event: object) -> dict[str, object]:
         "entity_kind": str(getattr(getattr(event, "entity", None), "kind", "")),
         "source_id": getattr(getattr(event, "source", None), "source_id", ""),
     }
+
+
+def _describe_receipt(receipt: object, before: ReplayEngineState | None) -> tuple[str, str]:
+    """Derive a truthful banner from the canonical receipt/resulting_state."""
+
+    try:
+        req = getattr(receipt, "request", None)
+        rs: ReplayEngineState | None = getattr(receipt, "resulting_state", None)
+        if req is None or rs is None:
+            return "info", str(receipt)
+        control = str(getattr(req, "control", ""))
+        # Speed change via apply_speed reuses PLAY/PAUSE with speed_multiplier; detect speed delta
+        req_speed = getattr(req, "speed_multiplier", None)
+        before_speed = before.speed_multiplier if before is not None else None
+        speed_changed = (
+            req_speed is not None and before_speed is not None and req_speed != before_speed
+        )
+        # Generic speed banner when speed changed regardless of control
+        if speed_changed and rs is not None:
+            return (
+                "success",
+                f"Speed set to {rs.speed_multiplier:g}x — playback {rs.playback_state.value}, "
+                f"playhead {rs.playhead_time_s:.2f} s, cursor {rs.cursor.index}/{rs.cursor.total_events} "
+                f"at {rs.cursor.simulator_time_s:.2f} s (event time)",
+            )
+        if control == "play":
+            if rs.empty_stream:
+                return (
+                    "info",
+                    f"PLAY unavailable — empty stream has zero events; state remains ENDED "
+                    f"(no-op, playhead {rs.playhead_time_s:.2f} s, cursor 0/0)",
+                )
+            # aggregate-only is also empty_stream; above covers
+            if before is not None and before.end_of_stream and rs.end_of_stream:
+                return (
+                    "info",
+                    f"PLAY no-op — already at end (cursor {rs.cursor.index}/{rs.cursor.total_events}, "
+                    f"ENDED; playhead {rs.playhead_time_s:.2f} s)",
+                )
+            if rs.playback_state is PlaybackState.PLAYING:
+                return (
+                    "success",
+                    f"Playback state: playing — playhead {rs.playhead_time_s:.2f} s, "
+                    f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {rs.cursor.simulator_time_s:.2f} s, "
+                    f"speed {rs.speed_multiplier:g}x",
+                )
+            if rs.playback_state is PlaybackState.ENDED:
+                return (
+                    "info",
+                    f"PLAY resulted in ENDED — stream at end or empty "
+                    f"(cursor {rs.cursor.index}/{rs.cursor.total_events}, playhead {rs.playhead_time_s:.2f} s)",
+                )
+            return (
+                "success",
+                f"Playback state: {rs.playback_state.value} — playhead {rs.playhead_time_s:.2f} s",
+            )
+        if control == "pause":
+            if rs.playback_state is PlaybackState.PAUSED:
+                return (
+                    "success",
+                    f"Playback state: paused — playhead {rs.playhead_time_s:.2f} s, "
+                    f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {rs.cursor.simulator_time_s:.2f} s",
+                )
+            if rs.playback_state is PlaybackState.ENDED:
+                return (
+                    "info",
+                    f"PAUSE resulted in ENDED — empty or at end "
+                    f"(cursor {rs.cursor.index}/{rs.cursor.total_events}, playhead {rs.playhead_time_s:.2f} s)",
+                )
+            return "success", f"Playback state: {rs.playback_state.value}"
+        if control == "advance":
+            delta = getattr(req, "advance_delta_s", 0.0)
+            try:
+                delta_f = float(delta) if delta is not None else 0.0
+            except Exception:
+                delta_f = 0.0
+            if before is not None and before.playback_state is not PlaybackState.PLAYING:
+                return (
+                    "info",
+                    f"ADVANCE no-op while {before.playback_state.value.upper()} — advancement requires PLAYING "
+                    f"(delta {delta_f:.2f} s, speed {rs.speed_multiplier:g}x; "
+                    f"playhead remains {rs.playhead_time_s:.2f} s, "
+                    f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {rs.cursor.simulator_time_s:.2f} s)",
+                )
+            if delta_f == 0.0:
+                return (
+                    "info",
+                    f"ADVANCE no-op — zero delta (playhead {rs.playhead_time_s:.2f} s, "
+                    f"cursor {rs.cursor.index}/{rs.cursor.total_events})",
+                )
+            if before is not None and before.end_of_stream:
+                return (
+                    "info",
+                    f"ADVANCE no-op — already ENDED (cursor {rs.cursor.index}/{rs.cursor.total_events}, "
+                    f"playhead {rs.playhead_time_s:.2f} s)",
+                )
+            before_ph = before.playhead_time_s if before is not None else 0.0
+            before_idx = before.cursor.index if before is not None else 0
+            if rs.playhead_time_s == before_ph and rs.cursor.index == before_idx:
+                return (
+                    "info",
+                    f"ADVANCE no-op — no progress (playhead {rs.playhead_time_s:.2f} s, "
+                    f"cursor {rs.cursor.index}/{rs.cursor.total_events})",
+                )
+            if rs.end_of_stream and before is not None and not before.end_of_stream:
+                return (
+                    "success",
+                    f"Advanced to end — playhead clamped to {rs.playhead_time_s:.2f} s "
+                    f"(cursor {rs.cursor.index}/{rs.cursor.total_events}, ENDED)",
+                )
+            return (
+                "success",
+                f"Advanced by {delta_f:.2f} s (scaled by speed {rs.speed_multiplier:g}x) — "
+                f"playhead {rs.playhead_time_s:.2f} s, cursor {rs.cursor.index}/{rs.cursor.total_events} "
+                f"at {rs.cursor.simulator_time_s:.2f} s, playback {rs.playback_state.value}",
+            )
+        if control == "step":
+            direction = str(getattr(req, "step_direction", "forward"))
+            count = getattr(req, "step_count", 1)
+            if before is not None and before.cursor.is_at_end and rs.cursor.is_at_end:
+                return (
+                    "info",
+                    f"STEP {direction} no-op — already at end "
+                    f"(cursor {rs.cursor.index}/{rs.cursor.total_events}, ENDED; playhead {rs.playhead_time_s:.2f} s)",
+                )
+            if before is not None and before.cursor.index == rs.cursor.index:
+                return (
+                    "info",
+                    f"STEP {direction} no-op — cursor unchanged at {rs.cursor.index}/{rs.cursor.total_events} "
+                    f"(playhead {rs.playhead_time_s:.2f} s)",
+                )
+            b_idx = before.cursor.index if before is not None else -1
+            return (
+                "success",
+                f"Stepped {direction} by {count} — cursor {b_idx}→{rs.cursor.index}/{rs.cursor.total_events} "
+                f"at {rs.cursor.simulator_time_s:.2f} s, playhead {rs.playhead_time_s:.2f} s, "
+                f"playback {rs.playback_state.value}",
+            )
+        if control == "seek":
+            target = getattr(req, "target_time_s", rs.playhead_time_s)
+            try:
+                t_f = float(target) if target is not None else rs.playhead_time_s
+            except Exception:
+                t_f = rs.playhead_time_s
+            return (
+                "success",
+                f"Seeked to {t_f:.2f} s — playhead {rs.playhead_time_s:.2f} s (requested/accumulated), "
+                f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {rs.cursor.simulator_time_s:.2f} s "
+                f"(event time) — playhead and cursor times are distinct; gap seeks keep playhead < cursor",
+            )
+        # fallback
+        return (
+            "success",
+            f"{control.upper()} — playback {rs.playback_state.value}, playhead {rs.playhead_time_s:.2f} s, "
+            f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {rs.cursor.simulator_time_s:.2f} s",
+        )
+    except Exception as exc:
+        return "error", f"Receipt banner failed: {exc}"
 
 
 def render(config: object) -> None:  # noqa: ARG001
@@ -76,7 +236,133 @@ def render(config: object) -> None:  # noqa: ARG001
     st.caption("Evidence standing for the synthetic fixture is DESIGN-ONLY CAPABILITY.")
 
     engine = _ensure_engine()
-    # Resolve view for display; handle window inputs if present
+
+    # ---- Controls mutating engine BEFORE view, so same render shows post-action state ----
+    st.subheader("Replay controls")
+    st.caption(
+        "Controls are deterministic and explicit — no background real-time execution occurs."
+    )
+
+    speed_options = [0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
+    try:
+        _cur_state = engine.state()
+        cur_speed = _cur_state.speed_multiplier
+    except Exception:
+        cur_speed = 1.0
+    speed_idx = 3
+    try:
+        speed_idx = speed_options.index(cur_speed)
+    except ValueError:
+        speed_idx = 3
+    chosen_speed = st.select_slider(
+        "Speed multiplier",
+        options=speed_options,
+        value=speed_options[speed_idx],
+        format_func=lambda v: f"{v:g}x",
+        key="replay_speed_slider",
+    )
+    pending_receipt = None
+    pending_before: ReplayEngineState | None = None
+    if chosen_speed != cur_speed:
+        try:
+            before = engine.state()
+            receipt = apply_speed(engine, speed_multiplier=float(chosen_speed))
+            pending_receipt = receipt
+            pending_before = before
+        except Exception as exc:
+            st.error(f"Speed change refused: {exc}")
+
+    # Compute time range for seek from engine directly
+    max_time = 0.0
+    if engine.stream.events:
+        max_time = float(max(ev.simulator_time_s for ev in engine.stream.events))
+    # Use playhead/cursor time for default seek target derived from engine state
+    try:
+        _st = engine.state()
+        default_seek = float(min(_st.playhead_time_s, max(10.0, max_time + 2.0)))
+        # Also keep cursor time available for caption distinctness
+        _cursor_t = float(_st.cursor.simulator_time_s)
+    except Exception:
+        default_seek = 0.0
+        _cursor_t = 0.0
+    seek_target = st.slider(
+        "Seek target time (s)",
+        min_value=0.0,
+        max_value=max(10.0, max_time + 2.0),
+        value=float(default_seek),
+        step=0.5,
+        key="replay_seek_slider",
+    )
+    st.caption(
+        f"Seek target {seek_target:.2f} s — cursor event time {_cursor_t:.2f} s vs playhead time {default_seek:.2f} s "
+        f"(distinct; gap seek keeps playhead < cursor event time)"
+    )
+    adv_delta = st.number_input(
+        "Advance delta (s)",
+        min_value=0.0,
+        max_value=3600.0,
+        value=0.5,
+        step=0.5,
+        key="replay_advance_delta",
+    )
+
+    btn_cols = st.columns(6)
+    if btn_cols[0].button("PLAY", key="replay_play"):
+        try:
+            before = engine.state()
+            receipt = apply_play(engine)
+            pending_receipt = receipt
+            pending_before = before
+        except Exception as exc:
+            st.error(f"PLAY refused: {exc}")
+    if btn_cols[1].button("PAUSE", key="replay_pause"):
+        try:
+            before = engine.state()
+            receipt = apply_pause(engine)
+            pending_receipt = receipt
+            pending_before = before
+        except Exception as exc:
+            st.error(f"PAUSE refused: {exc}")
+    if btn_cols[2].button("STEP", key="replay_step_forward"):
+        try:
+            before = engine.state()
+            receipt = apply_step(engine, count=1, direction="forward")
+            pending_receipt = receipt
+            pending_before = before
+        except Exception as exc:
+            st.error(f"STEP refused: {exc}")
+    if btn_cols[3].button("STEP BACK", key="replay_step_back"):
+        try:
+            before = engine.state()
+            receipt = apply_step(engine, count=1, direction="backward")
+            pending_receipt = receipt
+            pending_before = before
+        except Exception as exc:
+            st.error(f"STEP BACK refused: {exc}")
+    if btn_cols[4].button("SEEK", key="replay_seek_button"):
+        try:
+            before = engine.state()
+            receipt = apply_seek(engine, target_time_s=float(seek_target))
+            pending_receipt = receipt
+            pending_before = before
+        except Exception as exc:
+            st.error(f"SEEK refused: {exc}")
+    if btn_cols[5].button("ADVANCE", key="replay_advance_button"):
+        try:
+            before = engine.state()
+            receipt = apply_advance(engine, delta_s=float(adv_delta))
+            pending_receipt = receipt
+            pending_before = before
+        except Exception as exc:
+            st.error(f"ADVANCE refused: {exc}")
+
+    # Persist last receipt for rerun visibility (aggregate reload already reruns)
+    if pending_receipt is not None:
+        st.session_state[_LAST_RECEIPT_KEY] = pending_receipt
+        if pending_before is not None:
+            st.session_state[_LAST_BEFORE_KEY] = pending_before
+
+    # ---- Build canonical view AFTER controls — same render shows post-action state ----
     window_start_val = st.session_state.get(_WINDOW_START_KEY, 0.0)
     window_end_val = st.session_state.get(_WINDOW_END_KEY, 10.0)
     try:
@@ -102,7 +388,39 @@ def render(config: object) -> None:  # noqa: ARG001
         st.error(f"View construction failed: {exc}")
         return
 
-    # Source / evidence / provenance
+    # Truthful receipt banner derived from canonical receipt/resulting_state
+    # Show banner for this run's pending receipt, or persisted last receipt if still current
+    display_receipt = (
+        pending_receipt if pending_receipt is not None else st.session_state.get(_LAST_RECEIPT_KEY)
+    )
+    display_before = (
+        pending_before if pending_before is not None else st.session_state.get(_LAST_BEFORE_KEY)
+    )
+    if display_receipt is not None:
+        # Only show if receipt still matches current engine state (exact live binding would pass)
+        try:
+            # Verify coherence without raising: check fingerprint etc.
+            rs = getattr(display_receipt, "resulting_state", None)
+            if rs is not None and rs.stream_fingerprint == engine.stream_fingerprint:
+                # Also check speed/playhead/cursor match current engine to avoid stale banner
+                cur = engine.state()
+                if (
+                    rs.cursor == cur.cursor
+                    and rs.playhead_time_s == cur.playhead_time_s
+                    and rs.playback_state == cur.playback_state
+                    and rs.speed_multiplier == cur.speed_multiplier
+                ):
+                    kind, text = _describe_receipt(display_receipt, display_before)
+                    if kind == "success":
+                        st.success(text)
+                    elif kind == "error":
+                        st.error(text)
+                    else:
+                        st.info(text)
+        except Exception:  # noqa: S110
+            pass
+
+    # Source / evidence / provenance — derived ONLY from currently loaded stream/manifest
     st.subheader("Source and evidence")
     manifest = view.stream.capability_manifest
     cols = st.columns(4)
@@ -112,15 +430,33 @@ def render(config: object) -> None:  # noqa: ARG001
     cols[3].metric("Source kind", manifest.source.source_kind.value)
     st.caption(f"Artifact SHA-256: `{manifest.source.artifact_sha256}`")
     st.caption(
-        f"Schema version: `{manifest.source.schema_version}` · Stream fingerprint: `{view.engine_state.stream_fingerprint[:16]}...`"  # noqa: E501
+        f"Schema version: `{manifest.source.schema_version}` · Stream fingerprint: `{view.engine_state.stream_fingerprint[:16]}...`"
     )
     st.markdown(f"Source ID: `{manifest.source.source_id}` · Stream ID: `{view.stream.stream_id}`")
     st.caption(
-        f"Evidence standing: {manifest.evidence_standing.value} · Source kind: {manifest.source.source_kind.value}"  # noqa: E501
+        f"Evidence standing: {manifest.evidence_standing.value} · Source kind: {manifest.source.source_kind.value}"
     )
-    st.caption(
-        "Provenance adapter: synthetic-engineering-adapter · Source record example: rec-sim-000"
-    )
+    # Provenance caption derived from currently loaded stream only
+    if view.stream.events:
+        # Derive from actual loaded events, not hardcoded fixture
+        exemplar = view.stream.events[0]
+        st.caption(
+            f"Provenance adapter: {exemplar.provenance.adapter_id} · "
+            f"Source record example: {exemplar.provenance.source_record_id} — "
+            f"derived from currently loaded stream ({view.stream.stream_id})"
+        )
+        st.caption(
+            "Source record IDs in loaded stream: "
+            + ", ".join(f"`{ev.provenance.source_record_id}`" for ev in view.stream.events[:3])
+            + (" …" if len(view.stream.events) > 3 else "")
+        )
+    else:
+        st.caption(
+            "Provenance: Unavailable — aggregate-only/empty stream has no event provenance "
+            "(zero events, derived from currently loaded stream)"
+        )
+        st.caption("Adapter ID: Unavailable — no events in currently loaded stream")
+        st.caption("Source record ID: Unavailable — no events in currently loaded stream")
     st.markdown("**Limitations:**")
     for lim in manifest.limitations:
         st.markdown(f"- {lim}")
@@ -128,16 +464,24 @@ def render(config: object) -> None:  # noqa: ARG001
         if lim not in manifest.limitations:
             st.markdown(f"- {lim}")
 
-    # Simulation clock
+    # Simulation clock — cursor event time vs playhead time distinctly labelled
     st.subheader("Simulation clock")
     cursor = view.cursor
-    clock_cols = st.columns(4)
-    clock_cols[0].metric("Simulator time", f"{cursor.simulator_time_s:.2f} s")
-    clock_cols[1].metric("Cursor index", f"{cursor.index}/{cursor.total_events}")
-    clock_cols[2].metric("Playback state", view.engine_state.playback_state.value)
-    clock_cols[3].metric("Speed", f"{view.engine_state.speed_multiplier:g}x")
+    state = view.engine_state
+    clock_cols = st.columns(5)
+    clock_cols[0].metric("Cursor event time", f"{cursor.simulator_time_s:.2f} s")
+    clock_cols[1].metric("Playhead time", f"{state.playhead_time_s:.2f} s")
+    clock_cols[2].metric("Cursor index", f"{cursor.index}/{cursor.total_events}")
+    clock_cols[3].metric("Playback state", state.playback_state.value)
+    clock_cols[4].metric("Speed", f"{state.speed_multiplier:g}x")
     st.caption(
-        f"Simulator time: {cursor.simulator_time_s:.2f} s · Cursor index: {cursor.index}/{cursor.total_events} · Playback state: {view.engine_state.playback_state.value}"  # noqa: E501
+        f"Cursor event time (selected event): {cursor.simulator_time_s:.2f} s · "
+        f"Playhead time (requested/accumulated): {state.playhead_time_s:.2f} s — "
+        f"gap seeks keep these distinct; playhead drives ADVANCE, cursor selects event"
+    )
+    st.caption(
+        f"Simulator time: {cursor.simulator_time_s:.2f} s · Playhead time: {state.playhead_time_s:.2f} s · "
+        f"Cursor index: {cursor.index}/{cursor.total_events} · Playback state: {state.playback_state.value}"
     )
     st.progress(
         (cursor.index / max(1, cursor.total_events)) if not view.is_empty else 1.0,
@@ -182,11 +526,14 @@ def render(config: object) -> None:  # noqa: ARG001
     )
     st.session_state[_WINDOW_START_KEY] = float(ws_input)
     st.session_state[_WINDOW_END_KEY] = float(we_input)
+    st.caption(
+        f"Timeline window starts at cursor — index {cursor.index} at {cursor.simulator_time_s:.2f} s (event time)"
+    )
     window_display: tuple[object, ...] = ()
     try:
         window_display = load_time_window(
             engine,
-            float(ws_input),  # noqa: E501
+            float(ws_input),
             float(we_input),
             max_events=int(max_events_input),
         )
@@ -194,7 +541,6 @@ def render(config: object) -> None:  # noqa: ARG001
         st.error(f"Window load refused: {exc}")
         window_display = ()
 
-    # Show window count explicitly for tests
     st.metric("Window event count", len(window_display))
     if window_display:
         st.dataframe(
@@ -206,91 +552,6 @@ def render(config: object) -> None:  # noqa: ARG001
         if not view.is_empty and not view.is_aggregate_only:
             st.caption("No events in the selected window — truthfully empty for those bounds.")
 
-    # Controls — PLAY / PAUSE / STEP / SEEK / speed / ADVANCE (no background execution)
-    st.subheader("Replay controls")
-    st.caption(
-        "Controls are deterministic and explicit — no background real-time execution occurs."
-    )
-    speed_options = [0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0]
-    speed_idx = 3
-    try:
-        speed_idx = speed_options.index(view.engine_state.speed_multiplier)
-    except ValueError:
-        speed_idx = 3
-    chosen_speed = st.select_slider(
-        "Speed multiplier",
-        options=speed_options,
-        value=speed_options[speed_idx],
-        format_func=lambda v: f"{v:g}x",
-        key="replay_speed_slider",
-    )
-    if chosen_speed != view.engine_state.speed_multiplier:
-        try:
-            apply_speed(engine, speed_multiplier=float(chosen_speed))
-            st.success(f"Speed set to {chosen_speed:g}x")
-        except Exception as exc:
-            st.error(f"Speed change refused: {exc}")
-
-    # Compute time range for seek
-    max_time = 0.0
-    if view.stream.events:
-        max_time = float(max(ev.simulator_time_s for ev in view.stream.events))
-    seek_target = st.slider(
-        "Seek target time (s)",
-        min_value=0.0,
-        max_value=max(10.0, max_time + 2.0),
-        value=float(min(cursor.simulator_time_s, max(10.0, max_time + 2.0))),
-        step=0.5,
-        key="replay_seek_slider",
-    )
-    adv_delta = st.number_input(
-        "Advance delta (s)",
-        min_value=0.0,
-        max_value=3600.0,
-        value=0.5,
-        step=0.5,
-        key="replay_advance_delta",
-    )
-
-    btn_cols = st.columns(6)
-    if btn_cols[0].button("PLAY", key="replay_play"):
-        try:
-            apply_play(engine)
-            st.success("Playback state: playing")
-        except Exception as exc:
-            st.error(f"PLAY refused: {exc}")
-    if btn_cols[1].button("PAUSE", key="replay_pause"):
-        try:
-            apply_pause(engine)
-            st.success("Playback state: paused")
-        except Exception as exc:
-            st.error(f"PAUSE refused: {exc}")
-    if btn_cols[2].button("STEP", key="replay_step_forward"):
-        try:
-            apply_step(engine, count=1, direction="forward")
-            st.success("Stepped forward by 1")
-        except Exception as exc:
-            st.error(f"STEP refused: {exc}")
-    if btn_cols[3].button("STEP BACK", key="replay_step_back"):
-        try:
-            apply_step(engine, count=1, direction="backward")
-            st.success("Stepped backward by 1")
-        except Exception as exc:
-            st.error(f"STEP BACK refused: {exc}")
-    if btn_cols[4].button("SEEK", key="replay_seek_button"):
-        try:
-            apply_seek(engine, target_time_s=float(seek_target))
-            st.success(f"Seeked to {float(seek_target):.2f} s")
-        except Exception as exc:
-            st.error(f"SEEK refused: {exc}")
-    if btn_cols[5].button("ADVANCE", key="replay_advance_button"):
-        try:
-            # ADVANCE only moves while PLAYING; otherwise it is an explicit no-op
-            apply_advance(engine, delta_s=float(adv_delta))
-            st.success(f"Advanced by {float(adv_delta):.2f} s (scaled by speed)")
-        except Exception as exc:
-            st.error(f"ADVANCE refused: {exc}")
-
     # Also provide a bounded window load button that re-reads
     if st.button("Load window", key="replay_load_window"):
         try:
@@ -301,24 +562,27 @@ def render(config: object) -> None:  # noqa: ARG001
                 max_events=int(max_events_input),
             )
             st.success(
-                f"Loaded {len(loaded)} events in window [{float(ws_input):.2f}, {float(we_input):.2f}]"  # noqa: E501
+                f"Loaded {len(loaded)} events in window [{float(ws_input):.2f}, {float(we_input):.2f}]"
             )
         except Exception as exc:
             st.error(f"Load window refused: {exc}")
 
-    # Event timeline
+    # Event timeline — window starts at cursor, distinct from bounded window controls
     st.subheader("Event timeline")
     st.caption(
         "Only event types genuinely present in the stream are listed; others are unavailable."
     )
+    st.caption(
+        f"Timeline window starts at cursor — index {cursor.index} ({cursor.simulator_time_s:.2f} s) — "
+        f"showing up to 200 events from cursor forward (playhead {state.playhead_time_s:.2f} s is distinct)"
+    )
     st.markdown(
-        f"**Present event types:** {', '.join(str(t.value) for t in view.present_event_types) or '—'}"  # noqa: E501
+        f"**Present event types:** {', '.join(str(t.value) for t in view.present_event_types) or '—'}"
     )
     if view.unavailable_event_types:
         st.markdown(
-            f"**Unavailable event types:** {', '.join(str(t.value) for t in view.unavailable_event_types)}"  # noqa: E501
+            f"**Unavailable event types:** {', '.join(str(t.value) for t in view.unavailable_event_types)}"
         )
-    # Full timeline up to window limit
     timeline_events = view.window_events
     if timeline_events:
         st.dataframe(
@@ -346,7 +610,6 @@ def render(config: object) -> None:  # noqa: ARG001
         )
         if chosen:
             st.session_state[_SELECTED_EVENT_KEY] = str(chosen)
-            # Render details for chosen
             chosen_event = next(
                 (ev for ev in view.stream.events if ev.event_id == str(chosen)), None
             )
@@ -367,7 +630,7 @@ def render(config: object) -> None:  # noqa: ARG001
                             "artifact_sha256": chosen_event.source.artifact_sha256,
                         },
                         "provenance": {
-                            "source_artifact_sha256": chosen_event.provenance.source_artifact_sha256,  # noqa: E501
+                            "source_artifact_sha256": chosen_event.provenance.source_artifact_sha256,
                             "source_record_id": chosen_event.provenance.source_record_id,
                             "adapter_id": chosen_event.provenance.adapter_id,
                             "adapter_version": chosen_event.provenance.adapter_version,
@@ -376,18 +639,17 @@ def render(config: object) -> None:  # noqa: ARG001
                         "payload": chosen_event.payload.model_dump(mode="json"),
                     }
                 )
-                # truthful source/evidence/provenance captions
                 st.caption(
                     f"Evidence standing: {chosen_event.evidence_standing.value} · "
                     f"Provenance record: {chosen_event.provenance.source_record_id} · "
-                    f"Adapter: {chosen_event.provenance.adapter_id}"
+                    f"Adapter: {chosen_event.provenance.adapter_id} — "
+                    f"derived from currently loaded stream"
                 )
     else:
         st.caption("No entity details — empty stream carries no selectable events.")
 
     # Truthful unavailable panels for absent telemetry
     st.subheader("Telemetry availability")
-    # Map specific unavailable types to panels
     absent = set(view.unavailable_event_types)
     if EventType.EXECUTION_TARGET in absent:
         render_unavailable_panel(
@@ -438,6 +700,9 @@ def render(config: object) -> None:  # noqa: ARG001
             agg_stream = build_aggregate_only_declaration()
             agg_engine = create_engine(agg_stream)
             st.session_state[_ENGINE_KEY] = agg_engine
+            # Clear last receipt to avoid stale banner tied to previous stream fingerprint
+            st.session_state.pop(_LAST_RECEIPT_KEY, None)
+            st.session_state.pop(_LAST_BEFORE_KEY, None)
             st.success("Loaded aggregate-only declaration — zero events, no telemetry synthesised.")
             st.rerun()
         except Exception as exc:
@@ -446,6 +711,8 @@ def render(config: object) -> None:  # noqa: ARG001
         try:
             syn = build_synthetic_engineering_stream()
             st.session_state[_ENGINE_KEY] = create_engine(syn)
+            st.session_state.pop(_LAST_RECEIPT_KEY, None)
+            st.session_state.pop(_LAST_BEFORE_KEY, None)
             st.success("Reloaded synthetic engineering fixture.")
             st.rerun()
         except Exception as exc:
@@ -460,16 +727,33 @@ def render(config: object) -> None:  # noqa: ARG001
     )
     st.warning("synchronized visual replay is not causal evidence")
     st.info(f"Fixed causal disclaimer carried on every synchronized state: {SYNC_DISCLAIMER}")
+    st.caption(
+        "Time basis: simulator_time_s (fixed) · Time units: seconds (fixed) — exact agreement required"
+    )
 
     left_stream = build_synthetic_engineering_stream(stream_id="synthetic-engineering-001")
     right_stream = build_second_synthetic_stream(stream_id="synthetic-engineering-002")
+    # Exact stream identities side-by-side (never borrowed)
+    left_manifest = left_stream.capability_manifest
+    right_manifest = right_stream.capability_manifest
+    id_cols = st.columns(2)
+    id_cols[0].markdown(
+        f"**Left stream** — ID: `{left_stream.stream_id}` · Source: `{left_manifest.source.source_id}` "
+        f"(`{left_manifest.source.source_kind.value}`) · Evidence: `{left_manifest.evidence_standing.value}` · "
+        f"Fingerprint: `{left_stream.fingerprint()[:12]}...`"
+    )
+    id_cols[1].markdown(
+        f"**Right stream** — ID: `{right_stream.stream_id}` · Source: `{right_manifest.source.source_id}` "
+        f"(`{right_manifest.source.source_kind.value}`) · Evidence: `{right_manifest.evidence_standing.value}` · "
+        f"Fingerprint: `{right_stream.fingerprint()[:12]}...`"
+    )
     st.caption(
         f"Left fingerprint: `{left_stream.fingerprint()[:12]}...` · "
         f"Right fingerprint: `{right_stream.fingerprint()[:12]}...`"
     )
 
     compat_ack = st.checkbox(
-        "I acknowledge compatibility: common time basis/unit/schema/identity namespace/declared types",  # noqa: E501
+        "I acknowledge compatibility: common time basis/unit/schema/identity namespace/declared types",
         value=False,
         key="replay_side_compat_ack",
     )
@@ -477,18 +761,6 @@ def render(config: object) -> None:  # noqa: ARG001
         "Identity namespace",
         value="replay-observatory",
         key="replay_side_identity_ns",
-    )
-    time_basis = st.selectbox(
-        "Time basis",
-        options=["simulator_time_s"],
-        index=0,
-        key="replay_side_time_basis",
-    )
-    time_units = st.selectbox(
-        "Time units",
-        options=["seconds", "s"],
-        index=0,
-        key="replay_side_time_units",
     )
     window_start_side = st.number_input(
         "Side-by-side window start (s)",
@@ -508,10 +780,6 @@ def render(config: object) -> None:  # noqa: ARG001
     )
     if st.button("Create side-by-side comparison", key="replay_create_side_by_side"):
         try:
-            if time_basis != "simulator_time_s":
-                raise ValueError("time_basis must be simulator_time_s")
-            if time_units not in ("seconds", "s"):
-                raise ValueError("time_units must be seconds")
             agreement = build_side_by_side_agreement(
                 left_stream=left_stream,
                 right_stream=right_stream,
@@ -521,29 +789,33 @@ def render(config: object) -> None:  # noqa: ARG001
                 compatibility_acknowledged=bool(compat_ack),
             )
             replay = create_side_by_side(left_stream, right_stream, agreement)
-            state = get_side_by_side_state(replay)
+            state_side = get_side_by_side_state(replay)
             st.success(
                 "Side-by-side comparison created — synchronization is not evidence of causality."
             )
             st.json(
                 {
                     "agreement_fingerprint": agreement.fingerprint(),
-                    "left_window_count": len(state.left_window),
-                    "right_window_count": len(state.right_window),
-                    "unavailable_left": [str(t.value) for t in state.unavailable_left_event_types],
-                    "unavailable_right": [
-                        str(t.value) for t in state.unavailable_right_event_types
+                    "left_stream_id": left_stream.stream_id,
+                    "right_stream_id": right_stream.stream_id,
+                    "left_source_id": left_manifest.source.source_id,
+                    "right_source_id": right_manifest.source.source_id,
+                    "left_window_count": len(state_side.left_window),
+                    "right_window_count": len(state_side.right_window),
+                    "unavailable_left": [
+                        str(t.value) for t in state_side.unavailable_left_event_types
                     ],
-                    "causal_disclaimer": state.causal_disclaimer,
+                    "unavailable_right": [
+                        str(t.value) for t in state_side.unavailable_right_event_types
+                    ],
+                    "causal_disclaimer": state_side.causal_disclaimer,
                 }
             )
             st.caption("synchronized visual replay is not causal evidence")
-            # Store for potential further inspection
-            st.session_state["replay_side_state"] = state
+            st.session_state["replay_side_state"] = state_side
         except Exception as exc:
             st.error(f"Side-by-side refused: {exc}")
 
-    # Demonstrate truthful no fabrication: attempted task outcome synthesis is absent
     st.caption(
         "No execution RSUs, task outcomes, or Dynamic Resource/E3 semantics are "
         "manufactured by this observatory. Unavailable event types remain unavailable."

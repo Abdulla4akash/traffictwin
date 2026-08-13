@@ -290,10 +290,11 @@ def test_no_fabricated_task_telemetry_in_side_by_side() -> None:
         assert ev.event_type not in (EventType.EXECUTION_TARGET, EventType.RESOURCE_STATE)
     for ev in state.right_window:
         assert ev.event_type not in (EventType.EXECUTION_TARGET, EventType.RESOURCE_STATE)
-    assert state.missing_execution_target is False or state.missing_execution_target is True  # noqa: E501
-    # Missing execution target detection is truthful: both sides have TASK_OFFERED but no EXECUTION_TARGET  # noqa: E501
-    # So missing_execution_target should be True for our fixture
+    # Discriminating: fixture has TASK_OFFERED without EXECUTION_TARGET so missing must be True
     assert state.missing_execution_target is True
+    # Verify unavailable types truthfully exclude fabrication
+    assert EventType.EXECUTION_TARGET in state.unavailable_left_event_types
+    assert EventType.RESOURCE_STATE in state.unavailable_left_event_types
 
 
 # ---------------------------------------------------------------------------
@@ -420,3 +421,139 @@ def test_no_private_path_secret_exposure_in_stream() -> None:
             artifact_sha256="a" * 64,
             schema_version="1.0",
         )
+
+
+# ---------------------------------------------------------------------------
+# Previously untested public boundaries — narrow adjacent coverage
+# ---------------------------------------------------------------------------
+
+
+def test_json_boundaries_round_trip_and_refuse_large() -> None:
+    from traffictwin.replay_observatory.adapters import MAX_REPLAY_JSON_BYTES
+    from traffictwin.ui.replay_observatory_service import (
+        hash_stream,
+        load_aggregate_json,
+        load_stream_json,
+        stream_to_canonical_json,
+    )
+
+    stream = build_synthetic_engineering_stream()
+    canonical = stream_to_canonical_json(stream)
+    assert isinstance(canonical, str)
+    assert len(canonical) > 0
+    # Hash is deterministic 64-hex
+    h1 = hash_stream(stream)
+    h2 = hash_stream(stream)
+    assert h1 == h2
+    assert len(h1) == 64 and all(c in "0123456789abcdef" for c in h1)
+    # Round-trip via JSON adapter
+    loaded = load_stream_json(canonical)
+    assert loaded.fingerprint() == stream.fingerprint()
+    # Aggregate round-trip
+    agg = build_aggregate_only_declaration()
+    agg_json = stream_to_canonical_json(agg)
+    loaded_agg = load_aggregate_json(agg_json)
+    assert loaded_agg.capability_manifest.source_data_kind.value == "aggregate_only"
+    assert len(loaded_agg.events) == 0
+    # Too large must refuse
+    too_large = "x" * (MAX_REPLAY_JSON_BYTES + 1)
+    with pytest.raises(Exception):  # noqa: B017
+        load_stream_json(too_large)
+
+
+def test_observatory_view_window_starts_at_cursor_and_bounded() -> None:
+    stream = build_synthetic_engineering_stream()
+    engine = create_engine(stream)
+    # Default view window starts at cursor (index 0)
+    view0 = get_observatory_view(engine, max_window_events=200)
+    assert view0.cursor.index == 0
+    assert len(view0.window_events) > 0
+    assert view0.window_events[0].simulator_time_s == 0.0
+    # After STEP, window must start at new cursor
+    apply_step(engine, count=2, direction="forward")
+    view2 = get_observatory_view(engine, max_window_events=200)
+    assert view2.cursor.index == 2
+    assert view2.window_events[0].event_id == engine.stream.events[2].event_id
+    # Explicit bounded window is respected and distinct from cursor window
+    view_b = get_observatory_view(
+        engine, window_start_s=1.0, window_end_s=3.0, max_window_events=10
+    )
+    assert all(1.0 <= ev.simulator_time_s <= 3.0 for ev in view_b.window_events)
+    assert view_b.bounded_window == (1.0, 3.0)
+
+
+def test_gap_seek_playhead_cursor_distinct() -> None:
+    """Gap seek must keep playhead (requested) distinct from cursor event time."""
+
+    stream = build_synthetic_engineering_stream()
+    engine = create_engine(stream)
+    # Synthetic times: 0.0,1.0,2.5,... gap between 1.0 and 2.5
+    receipt = apply_seek(engine, target_time_s=2.0)
+    # Playhead is requested 2.0, cursor lands on next event at 2.5
+    assert receipt.resulting_state.playhead_time_s == 2.0
+    assert receipt.resulting_state.cursor.simulator_time_s == 2.5
+    assert (
+        receipt.resulting_state.cursor.simulator_time_s != receipt.resulting_state.playhead_time_s
+    )
+    # Same via view
+    view = get_observatory_view(engine)
+    assert view.cursor.simulator_time_s == 2.5
+    assert view.engine_state.playhead_time_s == 2.0
+
+
+def test_receipt_and_state_verify_against_engine_live_binding() -> None:
+    stream = build_synthetic_engineering_stream()
+    engine = create_engine(stream)
+    receipt = apply_play(engine)
+    # Receipt must verify against current engine
+    verify_receipt_against_engine(receipt, engine)
+    state = engine.state()
+    verify_state_against_engine(state, engine)
+    # Stale receipt after further mutation must be refused
+    apply_step(engine, count=1, direction="forward")
+    with pytest.raises(Exception):  # noqa: B017
+        verify_receipt_against_engine(receipt, engine)
+    # Forged speed in state must be refused
+    forged = state.model_copy(update={"speed_multiplier": 16.0})
+    with pytest.raises(Exception):  # noqa: B017
+        verify_state_against_engine(forged, engine)
+
+
+def test_advance_noop_while_paused_discriminating() -> None:
+    stream = build_synthetic_engineering_stream()
+    engine = create_engine(stream)
+    assert engine.playback_state.value == "paused"
+    before = engine.state()
+    receipt = apply_advance(engine, delta_s=1.0)
+    # Must be no-op: cursor/playhead unchanged, still paused
+    assert receipt.resulting_state.cursor.index == before.cursor.index
+    assert receipt.resulting_state.playhead_time_s == before.playhead_time_s
+    assert receipt.resulting_state.playback_state.value == "paused"
+
+
+def test_play_aggregate_ended_noop_discriminating() -> None:
+    stream = build_aggregate_only_declaration()
+    engine = create_engine(stream)
+    assert engine.state().empty_stream is True
+    assert engine.state().playback_state.value == "ended"
+    receipt = apply_play(engine)
+    assert receipt.resulting_state.playback_state.value == "ended"
+    assert receipt.resulting_state.empty_stream is True
+    assert receipt.resulting_state.cursor.total_events == 0
+
+
+def test_step_at_end_noop_discriminating() -> None:
+    stream = build_synthetic_engineering_stream()
+    engine = create_engine(stream)
+    # Drive to end
+    apply_seek(engine, target_time_s=100.0)
+    assert engine.is_at_end()
+    before = engine.state()
+    assert before.end_of_stream is True
+    assert before.cursor.is_at_end is True
+    receipt = apply_step(engine, count=1, direction="forward")
+    assert receipt.resulting_state.end_of_stream is True
+    assert receipt.resulting_state.cursor.is_at_end is True
+    assert receipt.resulting_state.cursor.index == before.cursor.index
+    # Playback remains ended
+    assert receipt.resulting_state.playback_state.value == "ended"
