@@ -100,7 +100,7 @@ All comparisons use `fleet_draw` as the replication unit. Individual tasks are n
 
 ## Deterministic export
 
-In the Explorer's E2 mode, three downloads are offered: **Download JSON**, **Download CSV**, **Download Markdown** from `build_e2_research_exports(package, receipt) -> E2ResearchExportBundle`. They are byte-identical across rebuilds (two builds compared), contain no absolute workstation paths, no secrets, and no scientific timestamps, and they echo the exact numbers, provenance and missingness above. The validator compares the bundle file content to the live service output and fails on mismatch.
+In the Explorer's E2 mode, three downloads are offered: **Download JSON**, **Download CSV**, **Download Markdown** from `build_e2_research_exports(package, receipt) -> E2ResearchExportBundle`. They are byte-identical across rebuilds (two live deterministic builds compared), contain no absolute workstation paths, no secrets, and no scientific timestamps, and they echo the exact numbers, provenance and missingness above. The validator compares two live deterministic builds and fails on mismatch.
 
 Run the strict validator locally:
 

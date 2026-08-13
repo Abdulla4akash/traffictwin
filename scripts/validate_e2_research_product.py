@@ -134,51 +134,214 @@ UNAVAILABLE_FIELDS: tuple[str, ...] = (
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 
-_ABS_PATH_RE: re.Pattern[str] = re.compile(r"(/Users/|/home/|/tmp/|/var/folders/|C:\\\\|D:\\\\)")
+_ABS_PATH_RE: re.Pattern[str] = re.compile(r"(/Users/|/home/|/tmp/|/var/folders/|[A-Za-z]:\\)")
 _SECRET_RE: re.Pattern[str] = re.compile(
     r"(password|secret|api[_-]?key|credential|private[_-]?key)", re.I
 )
+_SECRET_NEEDLES: tuple[str, ...] = (
+    "password",
+    "secret",
+    "api-key",
+    "api_key",
+    "credential",
+    "private_key",
+    "private-key",
+)
+
+
+def _is_phrase_directly_negated(lower: str, phrase_start: int) -> bool:
+    """Return True if phrase at phrase_start is directly negated by its nearby grammar."""
+    window: str = lower[max(0, phrase_start - 80) : phrase_start]
+    tokens: list[str] = re.findall(r"\b\w+\b", window)
+    last_tokens: list[str] = tokens[-4:] if len(tokens) >= 4 else tokens
+    negation_words: set[str] = {"not", "no", "without", "never", "non"}
+    if any(t in negation_words for t in last_tokens):
+        return True
+    # Handle multi-word negation when immediately before phrase
+    tail_immediate: str = window[-20:] if len(window) > 20 else window
+    if re.search(r"\b(is|are|was|were)\s+not\s*$", tail_immediate.strip()):
+        return True
+    if re.search(
+        r"\b(isn\'t|aren\'t|wasn\'t|weren\'t|doesn\'t|didn\'t|cannot|can\'t|won\'t|does\s+not|did\s+not)\s*$",  # noqa: E501
+        tail_immediate.strip(),
+    ):
+        return True
+    # Structural Non-claims ... include: list negates the phrase
+    if "non-claim" in lower:
+        nc_idx: int = lower.find("non-claim")
+        if nc_idx != -1 and nc_idx < phrase_start:
+            inc_idx: int = lower.find("include", nc_idx)
+            incs_idx: int = lower.find("includes", nc_idx)
+            use_inc: int = inc_idx if inc_idx != -1 else incs_idx
+            if use_inc != -1 and use_inc < phrase_start:
+                return True
+            colon_idx: int = lower.find(":", nc_idx)
+            if colon_idx != -1 and nc_idx < colon_idx < phrase_start:
+                return True
+    # Disjunctive scope: "not actual X or Y" — Y is still negated
+    stripped: str = window.strip()
+    if stripped.endswith("or") or stripped.endswith("or ") or re.search(r"\bor\s*$", stripped):
+        earlier: str = lower[:phrase_start]
+        not_idx: int = earlier.rfind("not ")
+        if not_idx != -1 and phrase_start - not_idx < 100:
+            return True
+        if re.search(r"\b(no|without|never)\b[^.;]{0,60}$", earlier):
+            return True
+    if stripped.endswith(",") and "not " in lower[max(0, phrase_start - 80) : phrase_start]:
+        earlier2: str = lower[:phrase_start]
+        if earlier2.rfind("not ") > earlier2.rfind("."):
+            return True
+    return False
+
+
+def _contains_affirming_secret(text: str) -> bool:
+    """Return True if text contains a secret keyword affirmatively.
+
+    Unlike Kubernetes claim detection, secret leakage has no claim-verb
+    requirement; any non-negated occurrence of a secret keyword is a leak.
+    "no secrets" / "without credential" are legitimate non-leak mentions.
+    Phrase-bound: only the secret's own nearby construction suppresses it,
+    and semicolon-separated clauses are independent units.
+    """
+    units: list[str] = _split_into_units(text)
+    for unit in units:
+        lower: str = unit.lower()
+        for needle in _SECRET_NEEDLES:
+            idx: int = lower.find(needle)
+            while idx != -1:
+                # phrase-bound leakage check — "secret leakage" check-name is not a leak
+                surrounding: str = lower[max(0, idx - 20) : idx + len(needle) + 20]
+                if "leakage" in surrounding:
+                    idx = lower.find(needle, idx + 1)
+                    continue
+                prefix_for_structural: str = lower[max(0, idx - 40) : idx]
+                # structural list suppresses only when it governs the secret
+                if (
+                    "non-claim" in prefix_for_structural
+                    or "not claimed" in prefix_for_structural
+                    or "explicitly not" in prefix_for_structural
+                ):
+                    if (
+                        "include" in lower[:idx]
+                        and lower.find("non-claim") < idx
+                        and (":" in lower[:idx] or "include" in lower[max(0, idx - 60) : idx])
+                    ):
+                        idx = lower.find(needle, idx + 1)
+                        continue
+                    if _is_phrase_directly_negated(lower, idx):
+                        idx = lower.find(needle, idx + 1)
+                        continue
+                if _is_phrase_directly_negated(lower, idx):
+                    idx = lower.find(needle, idx + 1)
+                    continue
+                return True
+            # while
+    return False
+
+
+def _split_into_units(text: str) -> list[str]:
+    units: list[str] = []
+    for raw_line in text.splitlines():
+        line: str = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            # Headings: also split semicolon clauses into independent units
+            for seg in re.split(r"\s*;\s*", line):
+                seg = seg.strip()
+                if seg:
+                    units.append(seg)
+            continue
+        # Bullet / ordered list: split semicolon clauses
+        m_bullet = re.match(r"^[-*]\s+(.*)", line)
+        m_ordered = re.match(r"^\d+\.\s+(.*)", line)
+        if m_bullet is not None:
+            content = m_bullet.group(1).strip()
+            if content:
+                for seg in re.split(r"\s*;\s*", content):
+                    seg = seg.strip()
+                    if seg:
+                        units.append(seg)
+            continue
+        if m_ordered is not None:
+            content = m_ordered.group(1).strip()
+            if content:
+                for seg in re.split(r"\s*;\s*", content):
+                    seg = seg.strip()
+                    if seg:
+                        units.append(seg)
+            continue
+        # Otherwise split into sentences on .!? followed by space, then semicolon clauses
+        parts: list[str] = re.split(r"(?<=[.!?])\s+", line)
+        for part in parts:
+            for seg in re.split(r"\s*;\s*", part):
+                seg = seg.strip()
+                if seg:
+                    units.append(seg)
+    return units
 
 
 def _contains_affirming(text: str, phrase: str) -> bool:
-    lower: str = text.lower()
     needle: str = phrase.lower()
-    start: int = 0
-    while True:
-        idx: int = lower.find(needle, start)
-        if idx == -1:
-            return False
-        prefix: str = lower[max(0, idx - 80) : idx]
-        has_neg: bool = any(
-            t in prefix
-            for t in (
-                "not ",
-                "no ",
-                "never",
-                "without",
-                "not claimed",
-                "non-claim",
-                "non claims",
-                "explicitly not",
-                "not actual",
-                "refuse",
-                "is not",
-                "are not",
-                "isn't",
-                "isnt",
-                "not supervisor",
-                "not randy",
-                "not kubernetes",
+    units: list[str] = _split_into_units(text)
+    claim_verbs: tuple[str, ...] = (
+        "performs",
+        "perform",
+        "does",
+        "doing",
+        "did",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "has",
+        "have",
+        "had",
+        "carries",
+        "carry",
+        "carrying",
+        "provides",
+        "provide",
+        "implements",
+        "implement",
+        "deploys",
+        "deploy",
+        "orchestrates",
+        "orchestrate",
+        "uses",
+        "use",
+        "using",
+        "offers",
+        "ensures",
+        "executes",
+        "runs",
+        "contains",
+        "includes",
+    )
+    for unit in units:
+        lower: str = unit.lower()
+        if needle not in lower:
+            continue
+        # Find each occurrence of the phrase — phrase-bound negation, not unit-wide
+        start_idx: int = lower.find(needle)
+        while start_idx != -1:
+            if _is_phrase_directly_negated(lower, start_idx):
+                start_idx = lower.find(needle, start_idx + 1)
+                continue
+            # For bare list items that are just noun phrases without a claiming verb,
+            # don't flag (these are legitimate non-claims listings like
+            # "actual Kubernetes deployment / cluster orchestration")
+            has_verb: bool = any(
+                re.search(r"\b" + re.escape(v) + r"\b", lower) is not None for v in claim_verbs
             )
-        )
-        window: str = lower[max(0, idx - 800) : idx + len(needle) + 100]
-        if "explicitly not claimed" in window or "non-claims" in window or "non claims" in window:
-            start = idx + len(needle)
-            continue
-        if has_neg:
-            start = idx + len(needle)
-            continue
-        return True
+            if not has_verb:
+                start_idx = lower.find(needle, start_idx + 1)
+                continue
+            return True
+        # while no affirming occurrence in this unit
+    return False
 
 
 def _fail(errors: list[str], msg: str) -> None:
@@ -212,10 +375,10 @@ def _check_base_receipt(errors: list[str]) -> None:
 
 def _check_builtin(errors: list[str]) -> None:
     try:
-        from traffictwin.evidence_admission.e2_research import (  # type: ignore[import-untyped]
+        from traffictwin.evidence_admission.e2_research import (  # type: ignore[import-untyped, unused-ignore]
             load_admitted_builtin_e2_research,
         )
-        from traffictwin.experiments.e2_research_artifact import (  # type: ignore[import-untyped]
+        from traffictwin.experiments.e2_research_artifact import (  # type: ignore[import-untyped, unused-ignore]
             builtin_e2_research_json,
             validate_e2_research_artifact,
         )
@@ -275,10 +438,10 @@ def _check_numerics(errors: list[str]) -> None:
         from traffictwin.evidence_admission.e2_research import (
             load_admitted_builtin_e2_research,
         )
-        from traffictwin.experiments.e2_comparison import (  # type: ignore[import-untyped]
+        from traffictwin.experiments.e2_comparison import (  # type: ignore[import-untyped, unused-ignore]
             build_e2_comparison_view,
         )
-        from traffictwin.experiments.e2_task_accounting import (  # type: ignore[import-untyped]
+        from traffictwin.experiments.e2_task_accounting import (  # type: ignore[import-untyped, unused-ignore]
             build_e2_seed1_task_accounting,
         )
 
@@ -385,7 +548,7 @@ def _check_numerics(errors: list[str]) -> None:
 
 def _check_strategies(errors: list[str]) -> None:
     try:
-        from traffictwin.experiments.e2_strategy_semantics import (  # type: ignore[import-untyped]
+        from traffictwin.experiments.e2_strategy_semantics import (  # type: ignore[import-untyped, unused-ignore]
             e2_strategy_semantics,
         )
 
@@ -462,7 +625,7 @@ def _check_absolute_path_secret(errors: list[str]) -> None:
         from traffictwin.evidence_admission.e2_research import (
             load_admitted_builtin_e2_research,
         )
-        from traffictwin.reporting.e2_research import (  # type: ignore[import-untyped]
+        from traffictwin.reporting.e2_research import (  # type: ignore[import-untyped, unused-ignore]
             build_e2_research_exports,
         )
 
@@ -491,8 +654,11 @@ def _check_absolute_path_secret(errors: list[str]) -> None:
             txt: str = p.read_text(encoding="utf-8")
             if _ABS_PATH_RE.search(txt):
                 _fail(errors, f"{p.name} contains absolute path")
-            if _SECRET_RE.search(txt) and ("api_key" in txt.lower() or "password" in txt.lower()):
+            if _contains_affirming_secret(txt):
                 _fail(errors, f"{p.name} contains secret keyword")
+            # Also catch single-backslash Windows paths like C:\Users\...
+            if re.search(r"[A-Za-z]:\\", txt):
+                _fail(errors, f"{p.name} contains Windows absolute path")
     except Exception as exc:
         _fail(errors, f"path/secret check failed: {exc}")
 

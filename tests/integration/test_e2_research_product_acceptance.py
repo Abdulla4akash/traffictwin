@@ -17,7 +17,7 @@ from unittest.mock import MagicMock
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from traffictwin.ui.state import (  # type: ignore[import-untyped]  # noqa: I001
+from traffictwin.ui.state import (  # type: ignore[import-untyped, unused-ignore]  # noqa: I001
     default_session_state,
     load_ui_config,
 )
@@ -161,7 +161,7 @@ def test_load_builtin_shows_exact_admission() -> None:
 
 
 def test_builtin_uses_importlib_resources_not_path() -> None:
-    from traffictwin.experiments.e2_research_artifact import (  # type: ignore[import-untyped]
+    from traffictwin.experiments.e2_research_artifact import (  # type: ignore[import-untyped, unused-ignore]
         builtin_e2_research_json,
     )
 
@@ -289,10 +289,10 @@ def test_accounting_exact_and_unavailable_not_zero() -> None:
         "dropped",
     ):
         assert field in body.lower()
-    from traffictwin.evidence_admission.e2_research import (  # type: ignore[import-untyped]
+    from traffictwin.evidence_admission.e2_research import (  # type: ignore[import-untyped, unused-ignore]
         load_admitted_builtin_e2_research,
     )
-    from traffictwin.experiments.e2_task_accounting import (  # type: ignore[import-untyped]
+    from traffictwin.experiments.e2_task_accounting import (  # type: ignore[import-untyped, unused-ignore]
         build_e2_seed1_task_accounting,
     )
 
@@ -374,7 +374,7 @@ def test_deterministic_export_and_no_leakage() -> None:
     from traffictwin.evidence_admission.e2_research import (
         load_admitted_builtin_e2_research,
     )
-    from traffictwin.reporting.e2_research import (  # type: ignore[import-untyped]
+    from traffictwin.reporting.e2_research import (  # type: ignore[import-untyped, unused-ignore]
         build_e2_research_exports,
     )
 
@@ -461,7 +461,7 @@ def test_validator_fails_on_numeric_drift(
 ) -> None:
     import scripts.validate_e2_research_product as v
 
-    from traffictwin.experiments.e2_comparison import (  # type: ignore[import-untyped]
+    from traffictwin.experiments.e2_comparison import (  # type: ignore[import-untyped, unused-ignore]
         build_e2_comparison_view,
     )
 
@@ -530,14 +530,14 @@ def test_validator_fails_on_missing_admission(
 ) -> None:
     import scripts.validate_e2_research_product as v
 
-    def fake_builtin() -> tuple[Any, Any]:
-        from traffictwin.evidence_admission.e2_research import (
-            load_admitted_builtin_e2_research,
-        )
+    from traffictwin.evidence_admission.e2_research import (  # type: ignore[import-untyped, unused-ignore]
+        load_admitted_builtin_e2_research as _orig_load,  # type: ignore[import-untyped, unused-ignore]
+    )
 
-        pkg, receipt = load_admitted_builtin_e2_research()
-        # Corrupt receipt standing
-        receipt.standing = "UNADMITTED RESEARCH"
+    def fake_builtin() -> tuple[Any, Any]:
+        pkg, receipt = _orig_load()
+        # Corrupt receipt standing via model_copy (receipt is frozen)
+        receipt = receipt.model_copy(update={"standing": "UNADMITTED RESEARCH"})
         return pkg, receipt
 
     # Patch the loader used by _check_builtin
@@ -552,9 +552,13 @@ def test_validator_fails_on_missing_admission(
     )
     errors: list[str] = []
     v._check_builtin(errors)
-    assert any("standing" in e.lower() or "admission" in e.lower() for e in errors), (
-        f"should detect admission failure: {errors}"
+    # Must detect standing drift specifically, not generic load failure
+    assert any("standing" in e.lower() for e in errors), (
+        f"should detect standing drift specifically: {errors}"
     )
+    assert not any(e.lower().startswith("builtin/admission load failed") for e in errors) or any(
+        "standing" in e.lower() for e in errors
+    ), f"generic load failure is not sufficient proof: {errors}"
 
 
 def test_validator_fails_on_absolute_path_leakage(
@@ -708,7 +712,7 @@ def test_validator_fails_on_missing_limitation(
     # Directly call with mocked pkg
     # Use internal check by temporarily patching the loader inside _check_limitations
     # We monkeypatch the imported function inside validator's module scope
-    import traffictwin.evidence_admission.e2_research as adm_mod  # type: ignore[import-untyped]
+    import traffictwin.evidence_admission.e2_research as adm_mod  # type: ignore[import-untyped, unused-ignore]
 
     orig = adm_mod.load_admitted_builtin_e2_research
     monkeypatch.setattr(adm_mod, "load_admitted_builtin_e2_research", fake_load)
@@ -927,3 +931,320 @@ def test_validator_fails_on_receipt_fingerprint_substitution(
     # Also the full validator must fail
     rc = v.main()
     assert rc != 0
+
+
+# ---- Phrase-bound direct negation: adversarial probes must be True ----
+
+
+@pytest.mark.parametrize(
+    ("text", "phrase"),
+    [
+        (
+            "TrafficTwin does not omit limitations and performs Kubernetes deployment.",
+            "kubernetes deployment",
+        ),
+        (
+            "No limitation is hidden; TrafficTwin deploys Kubernetes deployment.",
+            "kubernetes deployment",
+        ),
+        (
+            "This is not a toy; TrafficTwin carries supervisor approval.",
+            "supervisor approval",
+        ),
+        (
+            "Non-claims are documented, while TrafficTwin performs cluster orchestration.",
+            "cluster orchestration",
+        ),
+    ],
+)
+def test_contains_affirming_phrase_bound_adversarial(text: str, phrase: str) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    assert v._contains_affirming(text, phrase) is True, (
+        f"phrase-bound should be affirming for {phrase!r} in {text!r}"
+    )
+
+
+def test_contains_affirming_secret_phrase_bound_adversarial() -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    assert v._contains_affirming_secret("No limitation is hidden; credential=abc") is True
+
+
+@pytest.mark.parametrize(
+    ("text", "phrase"),
+    [
+        ("This is not supervisor approval", "supervisor approval"),
+        ("not Kubernetes deployment", "kubernetes deployment"),
+        ("no Kubernetes deployment", "kubernetes deployment"),
+        ("without Kubernetes deployment", "kubernetes deployment"),
+        (
+            "it is not actual Kubernetes deployment or cluster orchestration",
+            "kubernetes deployment",
+        ),
+        (
+            "it is not actual Kubernetes deployment or cluster orchestration",
+            "cluster orchestration",
+        ),
+        ("Non-claims include: kubernetes deployment", "kubernetes deployment"),
+        (
+            "This is not actual Kubernetes deployment or cluster orchestration",
+            "cluster orchestration",
+        ),
+    ],
+)
+def test_contains_affirming_direct_negation_still_false(text: str, phrase: str) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    assert v._contains_affirming(text, phrase) is False, (
+        f"direct negation should suppress {phrase!r} in {text!r}"
+    )
+
+
+def test_contains_affirming_secret_direct_negation_still_false() -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    assert v._contains_affirming_secret("without credential") is False
+    assert v._contains_affirming_secret("no credential") is False
+    assert v._contains_affirming_secret("not credential") is False
+    assert v._contains_affirming_secret("secret leakage check") is False
+    assert v._contains_affirming_secret("credential=abc") is True
+
+
+# ---- Positive controls: real shipped docs negated phrases must remain green ----
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "kubernetes deployment",
+        "cluster orchestration",
+        "supervisor approval",
+        "randy confirmation",
+        "task-level statistical replication",
+    ],
+)
+def test_positive_control_real_docs_negated_phrases_still_false(phrase: str) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    docs: str = Path("docs/e2_research_product.md").read_text(encoding="utf-8")
+    # Real docs contain these phrases only in negated / non-claim context, so remain not affirming
+    assert v._contains_affirming(docs, phrase) is False, f"real docs should not affirm {phrase!r}"
+    status: str = Path("docs/implementation-status.md").read_text(encoding="utf-8")
+    e2_start: int = status.find("## E2 Research Product")
+    e2_sec: str = status[e2_start : e2_start + 8000] if e2_start != -1 else status
+    if phrase in ("kubernetes deployment", "cluster orchestration", "supervisor approval"):
+        assert v._contains_affirming(e2_sec, phrase) is False
+
+
+# ---- Opus insertion at multiple positions ----
+
+
+def _inject_sentence_at_position(real: str, sentence: str, position: str) -> str:
+    if position == "top":
+        return sentence + "\n\n" + real
+    if position == "before_launch":
+        marker: str = "## Launch"
+        idx: int = real.find(marker)
+        if idx == -1:
+            return sentence + "\n\n" + real
+        return real[:idx] + sentence + "\n\n" + real[idx:]
+    if position == "inside_nonclaims":
+        marker = "Non-claims (14) include:"
+        idx2: int = real.find(marker)
+        if idx2 == -1:
+            return real + "\n\n" + sentence
+        insert_at: int = real.find("zero-backhaul realism.", idx2)
+        if insert_at != -1:
+            insert_at += len("zero-backhaul realism.")
+            return real[:insert_at] + " " + sentence + real[insert_at:]
+        return real[: idx2 + len(marker)] + " " + sentence + real[idx2 + len(marker) :]
+    if position == "after_nonclaims":
+        marker3: str = "zero-backhaul realism."
+        idx3: int = real.find(marker3)
+        if idx3 != -1:
+            insert_at2: int = idx3 + len(marker3)
+            return real[:insert_at2] + "\n\n" + sentence + real[insert_at2:]
+        return real + "\n\n" + sentence
+    return real + "\n\n" + sentence
+
+
+@pytest.mark.parametrize(
+    ("phrase", "sentence"),
+    [
+        ("kubernetes deployment", "TrafficTwin performs Kubernetes deployment."),
+        ("cluster orchestration", "TrafficTwin performs cluster orchestration."),
+        (
+            "task-level statistical replication",
+            "TrafficTwin performs task-level statistical replication.",
+        ),
+        ("supervisor approval", "TrafficTwin carries supervisor approval."),
+        ("randy confirmation", "TrafficTwin carries Randy confirmation."),
+        ("research approval", "TrafficTwin carries research approval."),
+    ],
+)
+@pytest.mark.parametrize(
+    "position", ["top", "before_launch", "inside_nonclaims", "after_nonclaims"]
+)
+def test_validator_fails_on_opus_insertion_at_positions(
+    phrase: str, sentence: str, position: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    real: str = Path("docs/e2_research_product.md").read_text(encoding="utf-8")
+    injected: str = _inject_sentence_at_position(real, sentence, position)
+    fake_root: Path = tmp_path / f"repo_opus_{phrase.replace(' ', '_')}_{position}"
+    (fake_root / "docs").mkdir(parents=True)
+    (fake_root / "docs/closure").mkdir(parents=True)
+    (fake_root / "docs/e2_research_product.md").write_text(injected, encoding="utf-8")
+    (fake_root / "docs/implementation-status.md").write_text(
+        Path("docs/implementation-status.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (fake_root / "docs/closure/e2_product_traceability.json").write_text(
+        Path("docs/closure/e2_product_traceability.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (fake_root / "docs/closure/e2_product_lane12_base_receipt.json").write_text(
+        Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    errors: list[str] = []
+    if phrase == "task-level statistical replication":
+        v._check_task_replication(errors)
+        assert any("task replication" in e.lower() for e in errors), (
+            f"should detect task replication at {position}: {errors}"
+        )
+    else:
+        v._check_kubernetes_claim(errors)
+        assert any(
+            phrase.split()[0].lower() in e.lower() or phrase.lower() in e.lower() for e in errors
+        ), f"should detect {phrase!r} at {position}: {errors}"
+
+
+# ---- Docs/traceability mutation: Windows single-backslash and secret leakage ----
+
+
+def test_validator_fails_on_windows_path_single_backslash_docs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    fake_root: Path = tmp_path / "repo_win_docs"
+    (fake_root / "docs").mkdir(parents=True)
+    (fake_root / "docs/closure").mkdir(parents=True)
+    real: str = Path("docs/e2_research_product.md").read_text(encoding="utf-8")
+    injected: str = real + "\n\nPath is C:\\Users\\name\\file\n"
+    (fake_root / "docs/e2_research_product.md").write_text(injected, encoding="utf-8")
+    (fake_root / "docs/closure/e2_product_traceability.json").write_text(
+        Path("docs/closure/e2_product_traceability.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (fake_root / "docs/closure/e2_product_lane12_base_receipt.json").write_text(
+        Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    # _check_absolute_path_secret only checks docs and traceability
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    errors: list[str] = []
+    v._check_absolute_path_secret(errors)
+    assert any("windows absolute path" in e.lower() for e in errors), (
+        f"windows path should be the reason: {errors}"
+    )
+
+
+def test_validator_fails_on_windows_path_single_backslash_traceability(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    fake_root: Path = tmp_path / "repo_win_trace"
+    (fake_root / "docs").mkdir(parents=True)
+    (fake_root / "docs/closure").mkdir(parents=True)
+    (fake_root / "docs/e2_research_product.md").write_text(
+        Path("docs/e2_research_product.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    tr: str = Path("docs/closure/e2_product_traceability.json").read_text(encoding="utf-8")
+    j: dict[str, object] = json.loads(tr)
+    # Inject Windows path into a string field
+    j["injected_path"] = "C:\\Users\\name\\file"
+    (fake_root / "docs/closure/e2_product_traceability.json").write_text(
+        json.dumps(j), encoding="utf-8"
+    )
+    (fake_root / "docs/closure/e2_product_lane12_base_receipt.json").write_text(
+        Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    errors: list[str] = []
+    v._check_absolute_path_secret(errors)
+    assert any("windows absolute path" in e.lower() for e in errors), (
+        f"windows path in traceability should be detected: {errors}"
+    )
+
+
+@pytest.mark.parametrize(
+    "secret_payload",
+    ["credential=abc", "private_key=xyz", "credential=secret123", "private_key=abc123"],
+)
+def test_validator_fails_on_secret_leakage_docs_mutation(
+    secret_payload: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    fake_root: Path = tmp_path / f"repo_secret_{secret_payload.replace('=', '_')}"
+    (fake_root / "docs").mkdir(parents=True)
+    (fake_root / "docs/closure").mkdir(parents=True)
+    real: str = Path("docs/e2_research_product.md").read_text(encoding="utf-8")
+    injected: str = real + f"\n\nLeaked {secret_payload}\n"
+    (fake_root / "docs/e2_research_product.md").write_text(injected, encoding="utf-8")
+    (fake_root / "docs/closure/e2_product_traceability.json").write_text(
+        Path("docs/closure/e2_product_traceability.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (fake_root / "docs/closure/e2_product_lane12_base_receipt.json").write_text(
+        Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    errors: list[str] = []
+    v._check_absolute_path_secret(errors)
+    assert any("secret" in e.lower() for e in errors), (
+        f"secret leakage {secret_payload!r} should be the reason: {errors}"
+    )
+
+
+@pytest.mark.parametrize(
+    "secret_payload",
+    ["credential=abc", "private_key=xyz"],
+)
+def test_validator_fails_on_secret_leakage_traceability_mutation(
+    secret_payload: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.validate_e2_research_product as v  # noqa: I001
+
+    fake_root: Path = tmp_path / f"repo_secret_trace_{secret_payload.replace('=', '_')}"
+    (fake_root / "docs").mkdir(parents=True)
+    (fake_root / "docs/closure").mkdir(parents=True)
+    (fake_root / "docs/e2_research_product.md").write_text(
+        Path("docs/e2_research_product.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    tr2: str = Path("docs/closure/e2_product_traceability.json").read_text(encoding="utf-8")
+    j2: dict[str, object] = json.loads(tr2)
+    j2["leaked"] = secret_payload
+    (fake_root / "docs/closure/e2_product_traceability.json").write_text(
+        json.dumps(j2), encoding="utf-8"
+    )
+    (fake_root / "docs/closure/e2_product_lane12_base_receipt.json").write_text(
+        Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    errors: list[str] = []
+    v._check_absolute_path_secret(errors)
+    assert any("secret" in e.lower() for e in errors), (
+        f"secret in traceability {secret_payload!r} should be detected: {errors}"
+    )
