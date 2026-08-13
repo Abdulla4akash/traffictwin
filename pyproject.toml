@@ -63,6 +63,7 @@ where = ["src"]
     "scenario_synthetic_square/*.md",
 ]
 "traffictwin.integration.manchester" = ["boundary_data/*.geojson"]
+"traffictwin.resources.research" = ["*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
