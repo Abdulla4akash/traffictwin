@@ -2324,3 +2324,172 @@ def test_mutation_accounting_e3b_e3c_contrasts_rejected() -> None:
         False
     )
     assert_fails(mutated4, "draw is N=4 tasks never replicates must be true")
+
+
+# --- Narrow comparator correction: deadline_success <= vs admission feasibility < ---
+
+
+def test_mutation_deadline_outcome_comparator_strict_less_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_comparator"
+    ] = "<"
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("deadline_success_comparator" in e for e in result["errors"])
+
+
+def test_mutation_deadline_outcome_comparator_gte_or_missing_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_comparator"
+    ] = ">="
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("deadline_success_comparator" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    del mutated2["v2i_latency_outcome_contract"][
+        "at_admission_record_with_u_current_applied_units"
+    ]["deadline_success_comparator"]
+    result2 = validate_contract(mutated2)
+    assert not result2["pass"]
+    assert any("deadline_success_comparator" in e for e in result2["errors"])
+
+
+def test_mutation_deadline_outcome_rule_wrong_spacing_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_rule"
+    ] = "simulated_latency_ms < task_deadline_ms"
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("deadline_success_rule" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_rule"
+    ] = " simulated_latency_ms <= task_deadline_ms"
+    result2 = validate_contract(mutated2)
+    assert not result2["pass"]
+    assert any("deadline_success_rule" in e for e in result2["errors"])
+
+
+def test_mutation_deadline_equality_is_success_false_missing_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_equality_is_success"
+    ] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("deadline_success_equality_is_success" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    del mutated2["v2i_latency_outcome_contract"][
+        "at_admission_record_with_u_current_applied_units"
+    ]["deadline_success_equality_is_success"]
+    result2 = validate_contract(mutated2)
+    assert not result2["pass"]
+    assert any("deadline_success_equality_is_success" in e for e in result2["errors"])
+
+
+def test_mutation_deadline_inherited_compatibility_false_missing_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "inherited_e2d_outcome_compatibility"
+    ] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("inherited_e2d_outcome_compatibility" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_is_inherited_e2d_outcome"
+    ] = False
+    result2 = validate_contract(mutated2)
+    assert not result2["pass"]
+    assert any("deadline_success_is_inherited_e2d_outcome" in e for e in result2["errors"])
+    mutated3 = copy.deepcopy(canonical())
+    del mutated3["v2i_latency_outcome_contract"][
+        "at_admission_record_with_u_current_applied_units"
+    ]["inherited_e2d_outcome_compatibility"]
+    result3 = validate_contract(mutated3)
+    assert not result3["pass"]
+    assert any("inherited_e2d_outcome_compatibility" in e for e in result3["errors"])
+
+
+def test_mutation_deadline_inherited_reference_missing_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "inherited_e2d_reference"
+    ] = "some other reference"
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("inherited_e2d_reference" in e for e in result["errors"])
+
+
+def test_mutation_admission_feasibility_strict_less_changed_to_le_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "admission_feasibility_predicate_reference"
+    ] = "observed_decision_backlog_work_ms[rsu] <= task_deadline_ms"
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("admission_feasibility_predicate_reference" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "admission_feasibility_predicate_is_strict_less"
+    ] = False
+    result2 = validate_contract(mutated2)
+    assert not result2["pass"]
+    assert any("admission_feasibility_predicate_is_strict_less" in e for e in result2["errors"])
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "equality_at_admission_gate_is_infeasible"
+    ] = False
+    result3 = validate_contract(mutated3)
+    assert not result3["pass"]
+    assert any("equality_at_admission_gate_is_infeasible" in e for e in result3["errors"])
+
+
+def test_mutation_comparators_are_identical_claim_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "outcome_and_feasibility_comparators_are_identical"
+    ] = True
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("outcome_and_feasibility_comparators_are_identical" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "outcome_and_feasibility_comparators_are_distinct"
+    ] = False
+    result2 = validate_contract(mutated2)
+    assert not result2["pass"]
+    assert any("outcome_and_feasibility_comparators_are_distinct" in e for e in result2["errors"])
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "comparator_conflation_forbidden"
+    ] = False
+    result3 = validate_contract(mutated3)
+    assert not result3["pass"]
+    assert any("comparator_conflation_forbidden" in e for e in result3["errors"])
+
+
+def test_mutation_legacy_boolean_deadline_success_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline"
+    ] = True
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any(
+        "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline" in e
+        for e in result["errors"]
+    )
+
+
+def test_mutation_deadline_comparator_bool_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "deadline_success_comparator"
+    ] = True  # bool, not string
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("deadline_success_comparator" in e for e in result["errors"])

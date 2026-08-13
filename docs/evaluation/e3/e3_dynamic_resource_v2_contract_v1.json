@@ -1131,10 +1131,22 @@
     "within_tick_task_slots": 5
   },
   "v2i_latency_outcome_contract": {
+    "admission_feasibility_predicate_is_strict_less": true,
+    "admission_feasibility_predicate_reference": "observed_decision_backlog_work_ms[rsu] < task_deadline_ms",
     "at_admission_record_with_u_current_applied_units": {
+      "admission_feasibility_predicate_is_strict_less": true,
+      "admission_feasibility_predicate_reference": "observed_decision_backlog_work_ms[rsu] < task_deadline_ms",
       "backlog_still_evolves_thereafter_under_actual_capacity": true,
-      "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline": true,
+      "comparator_conflation_forbidden": true,
+      "deadline_success_comparator": "<=",
+      "deadline_success_equality_is_success": true,
+      "deadline_success_is_inherited_e2d_outcome": true,
+      "deadline_success_rule": "simulated_latency_ms <= task_deadline_ms",
+      "equality_at_admission_gate_is_infeasible": true,
+      "inherited_e2d_outcome_compatibility": true,
+      "inherited_e2d_reference": "vec_env 2f63706f46319433a2ba3af1df97afd0e56a95d1 jaxmarl/env/vec_jax.py:736 deadline_met = latency <= deadline",
       "later_scaling_does_not_recompute_latency": true,
+      "outcome_and_feasibility_comparators_are_distinct": true,
       "radio_forward_return_formulas_and_random_raw_service_draw_remain_inherited": true,
       "raw_work_enqueued_is_never_divided_by_u": true,
       "rejected_work_never_enqueues_never_succeeds_and_inherited_10_deadline_penalty_is_explicitly_not_valid_latency_observation": true,
