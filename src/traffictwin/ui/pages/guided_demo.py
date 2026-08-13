@@ -15,9 +15,20 @@ from traffictwin.ui.guided_runtime import (
     resume_guided_workflow,
 )
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation import render_page_header
+from traffictwin.ui.navigation import activate_page, render_page_header
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tos_context import active_tos_package
+
+# Stable session-state intent for built-in E2 mode — shared with Home.
+E2_RESOURCE_STRATEGY_INTENT_KEY = "resource_strategy_intent"
+E2_RESOURCE_STRATEGY_INTENT_VALUE = "e2"
+
+
+def _on_inspect_e2_research() -> None:
+    """Record E2 intent then navigate via the proven callback router."""
+
+    st.session_state[E2_RESOURCE_STRATEGY_INTENT_KEY] = E2_RESOURCE_STRATEGY_INTENT_VALUE
+    activate_page(UiPage.RESOURCE_STRATEGY_EXPLORER)
 
 
 def render(config: UiConfig) -> None:
@@ -29,6 +40,26 @@ def render(config: UiConfig) -> None:
         "TrafficTwin validates, measures, compares, diagnoses, and traces them; the researcher "
         "interprets the evidence and its limits."
     )
+
+    with st.container(border=True):
+        st.markdown("**Real E2 research — Resource Strategy Explorer**")
+        st.caption(
+            "Inspect the bounded admitted E2b/E2c/E2d study with matched-cohort descriptive "
+            "comparison. Preselects the built-in E2 mode in Resource Strategy Explorer via a "
+            "stable session-state intent. This is admitted VEC research, not Manchester "
+            "observation, not a live forecast, and not Kubernetes deployment."
+        )
+        st.button(
+            "Inspect real E2 research",
+            key="guided_demo_inspect_e2_research",
+            width="stretch",
+            type="primary",
+            on_click=_on_inspect_e2_research,
+        )
+        st.caption(
+            "Opens Resource Strategy Explorer with the built-in E2 mode preselected. "
+            "Synthetic demonstration remains available separately in the explorer."
+        )
 
     selected = st.radio(
         "Evidence track",
