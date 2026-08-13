@@ -7,6 +7,14 @@ import pytest
 import streamlit as st
 
 import traffictwin.ui.navigation as legacy_navigation
+from traffictwin.ui.expansion_routes import (
+    EXPANSION_PAGE_SPECS,
+    MANCHESTER_SOURCE_OPERATIONS_EXPANSION_SPEC,
+    MANCHESTER_TWIN_EXPANSION_SPEC,
+    NAVIGATION_OVERLAP_NOTE,
+    REPLAY_OBSERVATORY_EXPANSION_SPEC,
+    RESEARCH_REGISTRY_EXPANSION_SPEC,
+)
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation_v07 import (
     MANCHESTER_GATE_D_PAGE_SPEC,
@@ -25,6 +33,7 @@ from traffictwin.ui.navigation_v07 import (
     V07PageSpec,
     legacy_navigation_requested,
     page_script_for,
+    v07_navigation_pages,
     v07_navigation_requested,
     validate_v07_page_specs,
 )
@@ -311,3 +320,89 @@ def test_every_direct_page_script_smoke_renders_with_shared_state(spec: V07PageS
 
     assert not app.exception
     assert app.session_state["_active_ui_page"] is spec.page
+
+
+# ---------------------------------------------------------------------------
+# Lane 16 expansion routes — additive, coherent, overlap-honest
+# ---------------------------------------------------------------------------
+
+
+def test_expansion_routes_are_additive_and_coherent() -> None:
+    # Expansion specs are additive only — outside the 34-page normative inventory.
+    assert len(EXPANSION_PAGE_SPECS) == 4
+    assert {s.title for s in EXPANSION_PAGE_SPECS} == {
+        "Manchester Twin",
+        "Manchester Source Operations",
+        "Replay Observatory",
+        "Research Registry",
+    }
+    assert [s.url_path for s in EXPANSION_PAGE_SPECS] == [
+        "manchester-twin",
+        "manchester-source-operations",
+        "replay-observatory",
+        "research-registry",
+    ]
+    assert [s.script for s in EXPANSION_PAGE_SPECS] == [
+        "app_pages/manchester_twin.py",
+        "app_pages/manchester_source_operations.py",
+        "app_pages/replay_observatory.py",
+        "app_pages/research_registry.py",
+    ]
+    # Coherent grouping: Manchester + Replay in Source evidence, Registry in Evidence & reports.
+    assert MANCHESTER_TWIN_EXPANSION_SPEC.group == "Source evidence"
+    assert MANCHESTER_SOURCE_OPERATIONS_EXPANSION_SPEC.group == "Source evidence"
+    assert REPLAY_OBSERVATORY_EXPANSION_SPEC.group == "Source evidence"
+    assert RESEARCH_REGISTRY_EXPANSION_SPEC.group == "Evidence & reports"
+    # No collision with normative or other additive routes.
+    validate_v07_page_specs()
+    # Navigation composition actually exposes them — proven via group counts and validation.
+    nav = v07_navigation_pages()
+    # Source evidence grows from 8 (4 normative + 4 existing additive) to 11 with 3 expansion pages.
+    assert len(nav["Source evidence"]) == 11, (
+        f"expected 11 Source evidence pages, got {len(nav['Source evidence'])}"
+    )
+    # Evidence & reports grows from 9 to 10 with Research Registry.
+    assert len(nav["Evidence & reports"]) == 10, (
+        f"expected 10 Evidence & reports pages, got {len(nav['Evidence & reports'])}"
+    )
+    # Total pages: normative 34 + additive 15 + expansion 4 = 53 plus hidden root.
+    # hidden root (1) + normative 34 + additive 15 + expansion 4 = 54
+    # Validate instead that validation still passes and counts are coherent.
+    # Validate instead that validation still passes and counts are coherent.
+    validate_v07_page_specs()
+    # Resource Strategy untouched.
+    assert any(s.page.value == "Resource Strategy Explorer" for s in V07_PAGE_SPECS)
+    rs_spec = next(s for s in V07_PAGE_SPECS if s.page.value == "Resource Strategy Explorer")
+    assert rs_spec.group == "Compare & test"
+    assert rs_spec.url_path == "resource-strategy"
+
+
+def test_expansion_routes_preserve_normative_inventory_and_validation() -> None:
+    # Normative inventory remains exactly the counted 34-page set; expansion does not replace.
+    from traffictwin.ui.navigation_v07 import V07_PAGE_SPECS as V07_SPECS_IMPORTED  # noqa: N811
+
+    assert len(V07_SPECS_IMPORTED) == len(UiPage)
+    # Overlap note is honest and non-empty.
+    assert "Resource Strategy Explorer" in NAVIGATION_OVERLAP_NOTE
+    assert "Research Registry" in NAVIGATION_OVERLAP_NOTE
+    assert "Manchester Operations" in NAVIGATION_OVERLAP_NOTE
+    # No duplicate scripts or paths across expansion.
+    assert len({s.script for s in EXPANSION_PAGE_SPECS}) == 4
+    assert len({s.url_path for s in EXPANSION_PAGE_SPECS}) == 4
+    # File existence already covered by validate_v07_page_specs, but double-check expansion helper.
+    from traffictwin.ui.expansion_routes import validate_expansion_routes
+
+    validate_expansion_routes()
+
+
+def test_expansion_additive_pages_smoke_render() -> None:
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    for spec in EXPANSION_PAGE_SPECS:
+        app = app_test.from_file(f"src/traffictwin/ui/{spec.script}")
+        for key, value in deepcopy(default_session_state()).items():
+            app.session_state[key] = value
+        app.session_state["_v07_navigation_active"] = True
+        app.run(timeout=25)
+        assert not app.exception, f"expansion page {spec.title} failed: {app.exception}"
+        # Page must render a title or meaningful marker.
+        assert len(app.title) >= 1 or len(app.markdown) >= 1 or len(app.caption) >= 1

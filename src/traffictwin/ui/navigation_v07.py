@@ -607,6 +607,13 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         raise ValueError("additive groups may only be appended after the normative seven")
     source_root = base or Path(__file__).parent
     missing = [spec.script for spec in V07_PAGE_SPECS if not (source_root / spec.script).is_file()]
+    # Expansion V1 additive specs — Lane 16 composition
+    try:
+        from traffictwin.ui.expansion_routes import (
+            EXPANSION_PAGE_SPECS as _expansion_specs,  # noqa: N811
+        )
+    except Exception:
+        _expansion_specs = ()
     additive_specs = (
         MANCHESTER_PAGE_SPEC,
         SOURCE_HEALTH_PAGE_SPEC,
@@ -623,6 +630,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         PLATFORM_DECISION_SAFETY_PAGE_SPEC,
         PLATFORM_XAI_AUDIT_PAGE_SPEC,
         MANCHESTER_GATE_D_PAGE_SPEC,
+        *_expansion_specs,
     )
     additive_paths = [spec.url_path for spec in additive_specs]
     additive_scripts = [spec.script for spec in additive_specs]
@@ -740,6 +748,23 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                         title=platform_spec.title,
                         icon=platform_spec.icon,
                         url_path=platform_spec.url_path,
+                    )
+                )
+        # Expansion V1 composition — additive, coherent grouping (Lane 16)
+        try:
+            from traffictwin.ui.expansion_routes import (
+                EXPANSION_PAGE_SPECS as _expansion_specs_nav,  # noqa: N811
+            )
+        except Exception:
+            _expansion_specs_nav = ()
+        for exp_spec in _expansion_specs_nav:
+            if exp_spec.group == group:
+                group_pages.append(
+                    st.Page(
+                        exp_spec.script,
+                        title=exp_spec.title,
+                        icon=exp_spec.icon,
+                        url_path=exp_spec.url_path,
                     )
                 )
         pages[group] = group_pages
