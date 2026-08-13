@@ -1,0 +1,9 @@
+{
+  "BASE_INTEGRATION_SHA": "b6a61adcdbc4d06f8f93ead0b5c4dd3f10e8e88b",
+  "base_head_message": "Merge Lane 09 admitted E2 research UI components",
+  "controller_campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
+  "description": "Controller-recorded cumulative integration checkpoint base for Lane 10 Resource Strategy Explorer REAL-E2 MODE",
+  "integrated_lanes_up_to": 9,
+  "lane": 10,
+  "receipt_schema_version": "e2_product_lane10_base_receipt_v1"
+}
