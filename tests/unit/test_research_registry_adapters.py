@@ -82,7 +82,7 @@ def test_exact_e2_values_through_existing_loaders() -> None:
     assert e2d.manifest_hash == "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
     # Primary vs secondary preserved — authoritative identities include _dla qualifier
     assert e2d.primary_metrics == ["offered_attainment_per_task_dla_minus_ingress_dla"]
-    assert e2d.secondary_metrics == ["offered_attainment_per_task_minus_dla"]
+    assert e2d.secondary_metrics == ["offered_attainment_per_task_dla_minus_dla"]
     assert e2d.declared_summary is not None
     assert e2d.declared_summary.ci_lower == 0.004422143925
     # Limitations and non-claims preserved
@@ -524,11 +524,11 @@ def test_exact_metric_names_preserved() -> None:
     assert by_study["E2c"].primary_metrics == ["offered_attainment_dla_minus_ingress_dla"]
     e2d = by_study["E2d"]
     assert e2d.primary_metrics == ["offered_attainment_per_task_dla_minus_ingress_dla"]
-    assert e2d.secondary_metrics == ["offered_attainment_per_task_minus_dla"]
+    assert e2d.secondary_metrics == ["offered_attainment_per_task_dla_minus_dla"]
     assert len(e2d.per_draw_values or []) == 8
     metrics_in_draws = {pd.metric for pd in (e2d.per_draw_values or [])}
     assert "offered_attainment_per_task_dla_minus_ingress_dla" in metrics_in_draws
-    assert "offered_attainment_per_task_minus_dla" in metrics_in_draws
+    assert "offered_attainment_per_task_dla_minus_dla" in metrics_in_draws
     assert e2d.declared_summary is not None
     assert e2d.declared_summary.metric == "offered_attainment_per_task_dla_minus_ingress_dla"
 
@@ -544,9 +544,11 @@ def test_authoritative_metric_identities_refuse_relabel_drift() -> None:
     (metric == ``offered_attainment_dla_minus_ingress_dla`` for E2c,
     metric == ``offered_attainment_per_task_dla_minus_ingress_dla``
     for E2d).
-    Secondary metric ``offered_attainment_per_task_minus_dla`` is only
+    Secondary metric ``offered_attainment_per_task_dla_minus_dla`` is only
     valid when explicitly sourced from ``e2d_per_task_minus_dla``
-    paired-difference; it must not be renamed to a truncated form.
+    paired-difference; it must not be renamed to a truncated form
+    (e.g. ``offered_attainment_per_task_minus_dla`` drops the authoritative
+    ``_dla`` qualifier).
     """
 
     pkg, _receipt = load_admitted_builtin_e2_research()
@@ -591,14 +593,15 @@ def test_authoritative_metric_identities_refuse_relabel_drift() -> None:
     assert {  # noqa: E501
         pd.metric
         for pd in (e2d.per_draw_values or [])
-        if pd.metric != "offered_attainment_per_task_minus_dla"  # noqa: E501
+        if pd.metric != "offered_attainment_per_task_dla_minus_dla"  # noqa: E501
     } == {"offered_attainment_per_task_dla_minus_ingress_dla"}
     # Secondary stays exactly as sourced from e2d_per_task_minus_dla
-    assert e2d.secondary_metrics == ["offered_attainment_per_task_minus_dla"]
-    # Forbid truncated relabels ever reappearing
+    assert e2d.secondary_metrics == ["offered_attainment_per_task_dla_minus_dla"]
+    # Forbid truncated relabels ever reappearing (including old fabricated omission)
     truncated = {  # noqa: E501
         "offered_attainment_dla_minus_ingress",  # noqa: E501
         "offered_attainment_per_task_minus_ingress",  # noqa: E501
+        "offered_attainment_per_task_minus_dla",  # noqa: E501
     }
     assert e2c.primary_metrics[0] not in truncated
     assert e2d.primary_metrics[0] not in truncated
@@ -606,6 +609,7 @@ def test_authoritative_metric_identities_refuse_relabel_drift() -> None:
     assert e2d.declared_summary.metric not in truncated
     for pd in (e2c.per_draw_values or []) + (e2d.per_draw_values or []):
         assert pd.metric not in truncated, f"relabel drift detected: {pd.metric!r}"
-        assert pd.metric not in {"offered_attainment_per_task_minus_dla_renamed"}, (
-            "invented renamed secondary forbidden"
-        )
+        assert pd.metric not in {
+            "offered_attainment_per_task_minus_dla_renamed",
+            "offered_attainment_per_task_dla_minus_dla_renamed",
+        }, "invented renamed secondary forbidden"

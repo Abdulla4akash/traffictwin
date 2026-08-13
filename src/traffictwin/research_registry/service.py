@@ -85,6 +85,8 @@ class RegistrySnapshot(BaseModel):
                 raise ValueError("unavailable record must be NOT_ADMITTED")
             if r.code_sha is not None or r.manifest_hash is not None:
                 raise ValueError("unavailable record must not have code_sha/manifest_hash")
+            if r.product_links is not None:
+                raise ValueError("unavailable record must not carry product_links")
         return revalidated
 
     @model_validator(mode="after")
@@ -284,6 +286,8 @@ class RegistryService:
                 raise ValueError("unavailable record must be NOT_ADMITTED")
             if rv.code_sha is not None or rv.manifest_hash is not None:
                 raise ValueError("unavailable record must not have code_sha/manifest_hash")
+            if rv.product_links is not None:
+                raise ValueError("unavailable record must not carry product_links")
             revalidated.append(rv)
         admitted_keys = {(rec.study, rec.version) for rec in self._records.values()}
         filtered = [r for r in revalidated if (r.study, r.version) not in admitted_keys]

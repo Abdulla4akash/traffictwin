@@ -249,7 +249,7 @@ def build_e2d_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         for s, v in zip([1, 2, 3, 4], expected_per_seed, strict=True)
     ]
     per_draw_vs = [
-        PerDrawValue(draw=s, value=v, metric="offered_attainment_per_task_minus_dla")
+        PerDrawValue(draw=s, value=v, metric="offered_attainment_per_task_dla_minus_dla")
         for s, v in zip([1, 2, 3, 4], expected_vs, strict=True)
     ]
     # Preserve secondary per-draw values (8 entries: 4 primary + 4 secondary) with distinct authoritative metric identities including _dla qualifier.  # noqa: E501
@@ -272,9 +272,9 @@ def build_e2d_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         seeds=[1, 2, 3, 4],
         draws=[1, 2, 3, 4],
         arms=None,
-        estimand="per_task_dla_minus_ingress_dla offered_task_deadline_attainment (paired fleet_draw differences); secondary per_task_minus_dla",  # noqa: E501
+        estimand="per_task_dla_minus_ingress_dla offered_task_deadline_attainment (paired fleet_draw differences); secondary per_task_dla_minus_dla",  # noqa: E501
         primary_metrics=["offered_attainment_per_task_dla_minus_ingress_dla"],
-        secondary_metrics=["offered_attainment_per_task_minus_dla"],
+        secondary_metrics=["offered_attainment_per_task_dla_minus_dla"],
         per_draw_values=combined_per_draw,
         declared_summary=DeclaredSummary(
             estimate=0.005271433656,
@@ -460,11 +460,26 @@ def build_e2_study_package() -> ResearchStudyPackage:
 
 
 def build_default_e2_admission_policy(pkg: ResearchStudyPackage | None = None) -> AdmissionPolicy:
-    """Exact allowlist for current admitted E2 package only. No wildcard, no E3."""
+    """Exact allowlist for current admitted E2 package only. No wildcard, no E3.
+
+    If a package is supplied it must equal the authoritative admitted E2 package;
+    an arbitrary caller-provided package cannot tautologically mint its own allowlist.
+    """
+    authoritative = build_e2_study_package()
+    authoritative_v = ResearchStudyPackage.model_validate(authoritative.model_dump(mode="json"))
     if pkg is None:
-        pkg = build_e2_study_package()
-    # Canonically revalidate pkg
-    pkg_v = ResearchStudyPackage.model_validate(pkg.model_dump(mode="json"))
+        pkg_v = authoritative_v
+    else:
+        # Canonically revalidate supplied pkg and strictly verify it equals authoritative.
+        pkg_v = ResearchStudyPackage.model_validate(pkg.model_dump(mode="json"))
+        if pkg_v.package_fingerprint != authoritative_v.package_fingerprint:
+            raise ValueError(
+                f"admission policy must be built from exact admitted E2 package; "
+                f"supplied fingerprint {pkg_v.package_fingerprint[:8]}… != "
+                f"authoritative {authoritative_v.package_fingerprint[:8]}…"
+            )
+        if pkg_v != authoritative_v:
+            raise ValueError("supplied package does not equal authoritative E2 package")
     entries = [
         AdmissionPolicyEntry(
             study=r.study,
