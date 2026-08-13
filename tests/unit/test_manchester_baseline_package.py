@@ -2007,3 +2007,379 @@ def test_model_copy_map_match_and_calibration_mutations_blocked() -> None:
     assert exc4.value.code == "MISSING_CALIBRATION"
     # Direct construction of calibration with missing receipt but production class is structurally allowed;  # noqa: E501
     # acceptance must still block.
+
+
+# --- Opus remediation discriminating vectors (must never produce SOFTWARE_VALID, never leak) ---
+
+
+def test_opus_private_path_vector_never_valid() -> None:
+    cand = _make_valid_synthetic()
+    # model_copy tampering to inject private path into limitations
+    tampered = cand.model_copy(update={"limitations": ("/Users/secret/hidden/file",)})
+    val = validate_candidate_software(
+        tampered, validated_at_utc=tampered.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val.software_standing != "SOFTWARE_VALID"
+    assert val.software_standing == "SOFTWARE_INVALID"
+    assert (
+        "SECRET_OR_PATH_LEAKAGE" in val.rejection_reasons
+        or "CANDIDATE_TAMPERED" in val.rejection_reasons
+    )
+    # must not echo private payload
+    assert "/Users/secret" not in str(val.rejection_reasons)
+    assert "/Users/secret" not in str(val.checks_performed)
+    # Direct model_validate with private payload should fail without reaching SOFTWARE_VALID
+    # Use raw dict to bypass model_copy freezing but still test canonical revalidation path
+    payload = tampered.model_dump(mode="json")
+    payload["limitations"] = ["/private/var/secret_leak"]
+    tampered3 = cand.model_copy(update={"limitations": ("/private/var/secret_leak",)})
+    val3 = validate_candidate_software(
+        tampered3, validated_at_utc=tampered3.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val3.software_standing == "SOFTWARE_INVALID"
+    assert "/private/var" not in str(val3.rejection_reasons)
+
+
+def test_opus_secret_like_content_vector_never_valid() -> None:
+    cand = _make_valid_synthetic()
+    secret_payload = "api_key=[REDACTED]"  # noqa: S105
+    tampered = cand.model_copy(update={"limitations": (secret_payload,)})
+    val = validate_candidate_software(
+        tampered, validated_at_utc=tampered.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val.software_standing == "SOFTWARE_INVALID"
+    assert "SECRET_OR_PATH_LEAKAGE" in val.rejection_reasons
+    # never echo secret payload
+    assert secret_payload not in str(val.rejection_reasons)
+    assert secret_payload not in str(val.checks_performed)
+    # also secret in package_id via raw attempt
+    with pytest.raises((ValueError, Exception)):
+        ManchesterBaselineCandidatePackage.model_validate(
+            {**cand.model_dump(mode="json"), "package_id": "my-secret-token-package"}
+        )
+
+
+def test_opus_traversal_package_id_vector_never_valid() -> None:
+    cand = _make_valid_synthetic()
+    tampered = cand.model_copy(update={"package_id": "../escape"})
+    val = validate_candidate_software(
+        tampered, validated_at_utc=tampered.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val.software_standing == "SOFTWARE_INVALID"
+    assert (
+        "SECRET_OR_PATH_LEAKAGE" in val.rejection_reasons
+        or "CANDIDATE_TAMPERED" in val.rejection_reasons
+    )
+    assert ".." not in str(val.rejection_reasons) or "SECRET_OR_PATH_LEAKAGE" in str(
+        val.rejection_reasons
+    )
+    # also traversal in network file path is already blocked at construction, but model_copy bypass
+    payload = cand.model_dump(mode="json")
+    payload["package_id"] = "synthetic-baseline-001"
+    # Inject traversal via limitations to ensure not leaked
+    tampered2 = cand.model_copy(update={"limitations": ("../escape attempt",)})
+    val2 = validate_candidate_software(
+        tampered2, validated_at_utc=tampered2.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val2.software_standing == "SOFTWARE_INVALID"
+
+
+def test_opus_empty_limitations_vector_never_valid() -> None:
+    cand = _make_valid_synthetic()
+    tampered = cand.model_copy(update={"limitations": ()})
+    val = validate_candidate_software(
+        tampered, validated_at_utc=tampered.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val.software_standing == "SOFTWARE_INVALID"
+    assert "CANDIDATE_TAMPERED" in val.rejection_reasons
+    assert val.software_standing == "SOFTWARE_INVALID"
+
+
+def test_opus_unsorted_inventory_vector_never_valid() -> None:
+    # Create two files unsorted
+    pf_a = PortableNetworkFile(
+        relative_path="networks/a.xml", sha256="a" * 64, byte_size=100, media_type="application/xml"
+    )
+    pf_b = PortableNetworkFile(
+        relative_path="networks/b.xml", sha256="b" * 64, byte_size=100, media_type="application/xml"
+    )
+    # Sorted inventory sha
+    sorted_files = sorted((pf_b, pf_a), key=lambda p: p.relative_path)
+    inv = [
+        {"relative_path": f.relative_path, "sha256": f.sha256, "byte_size": f.byte_size}
+        for f in sorted_files
+    ]
+    net_sha = hashlib.sha256(
+        json.dumps(inv, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    # Unsorted tuple (pf_b, pf_a) is unsorted
+    # Need to bypass validation via model_copy: create valid then mutate
+    cand = _make_valid_synthetic()
+    # Build a network identity with unsorted files via direct model_dump tampering
+    valid_net = NetworkIdentity(
+        tool_reported_version="1.27.1",
+        tool_executable_sha256="d" * 64,
+        network_files=(pf_a, pf_b),
+        network_identity_sha256=net_sha,
+        edge_count=10,
+        junction_count=5,
+    )
+    # Now tamper to unsorted order without updating sha
+    unsorted_net = valid_net.model_copy(update={"network_files": (pf_b, pf_a)})
+    tampered = cand.model_copy(update={"network_identity": unsorted_net})
+    val = validate_candidate_software(
+        tampered, validated_at_utc=tampered.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val.software_standing == "SOFTWARE_INVALID"
+    assert (
+        "NETWORK_HASH_MISMATCH" in val.rejection_reasons
+        or "CANDIDATE_TAMPERED" in val.rejection_reasons
+    )
+
+
+def test_opus_boundary_geographic_divergence_vector_never_valid() -> None:
+    cand = _make_observed_candidate()
+    # Diverge geographic identity sha
+    geo_diverged = GeographicIdentity(
+        envelope_fingerprint="b" * 64,
+        boundary_asset_sha256="d" * 64,
+        boundary_asset_name="greater_manchester_combined_authority.geojson",
+    )
+    tampered = cand.model_copy(update={"geographic_identity": geo_diverged})
+    val = validate_candidate_software(
+        tampered, validated_at_utc=tampered.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val.software_standing == "SOFTWARE_INVALID"
+    assert (
+        "BOUNDARY_MISMATCH" in val.rejection_reasons
+        or "CANDIDATE_TAMPERED" in val.rejection_reasons
+    )
+    # also name divergence
+    bound_payload = {
+        "scope": "greater_manchester_combined_authority",
+        "asset_sha256": "c" * 64,
+        "asset_name": "manchester_local_authority.geojson",
+    }
+    bound_fp2 = hashlib.sha256(
+        json.dumps(bound_payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    boundary2 = BoundaryIdentity(
+        scope="greater_manchester_combined_authority",
+        asset_sha256="c" * 64,
+        asset_name="manchester_local_authority.geojson",
+        identity_fingerprint=bound_fp2,
+    )
+    tampered2 = cand.model_copy(update={"boundary_identity": boundary2})
+    val2 = validate_candidate_software(
+        tampered2, validated_at_utc=tampered2.provenance.created_at_utc + timedelta(seconds=5)
+    )
+    assert val2.software_standing == "SOFTWARE_INVALID"
+    assert (
+        "BOUNDARY_MISMATCH" in val2.rejection_reasons
+        or "CANDIDATE_TAMPERED" in val2.rejection_reasons
+    )
+
+
+def test_opus_model_copy_mutations_never_produce_software_valid() -> None:
+    cand = _make_valid_synthetic()
+    base_time = cand.provenance.created_at_utc + timedelta(seconds=5)
+    vectors: list[dict[str, object]] = [
+        {"limitations": ("/Users/opus/private",)},
+        {"limitations": ("secret_token_leak",)},
+        {"package_id": "../traversal"},
+        {"limitations": ()},
+    ]
+    for upd in vectors:
+        tampered = cand.model_copy(update=upd)
+        val = validate_candidate_software(tampered, validated_at_utc=base_time)
+        assert val.software_standing != "SOFTWARE_VALID", f"vector {upd} produced SOFTWARE_VALID"
+        assert val.software_standing == "SOFTWARE_INVALID"
+        # checks_performed must be truthful and derived, not falsely claim success
+        assert "no_private_paths" in val.checks_performed
+        # never leak payload
+        for v in upd.values():
+            if isinstance(v, str) and "secret" in v.lower():
+                assert "secret" not in str(
+                    val.rejection_reasons
+                ).lower() or "SECRET_OR_PATH_LEAKAGE" in str(val.rejection_reasons)
+    # package_id secret
+    with pytest.raises((ValueError, Exception)):
+        ManchesterBaselineCandidatePackage.model_validate(
+            {**cand.model_dump(mode="json"), "package_id": "evil-secret-token"}
+        )
+
+
+def test_package_root_file_integrity_streaming_and_caps() -> None:
+    import tempfile
+    from pathlib import Path
+
+    cand = _make_valid_synthetic()
+    # Ensure deterministic time: candidate uses fixed 2026-01-01
+    assert cand.provenance.created_at_utc == datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+    # Prepare temp root with correct file
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+        pf = cand.network_identity.network_files[0]
+        target = root / pf.relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # Create content for streaming test; declared sha is placeholder
+        # so create candidate with matching sha via streaming
+        # Build a new candidate with correct sha for this test.
+        content = b"hello world synthetic network"
+        sha = hashlib.sha256(content).hexdigest()
+        size = len(content)
+        pf2 = PortableNetworkFile(
+            relative_path="networks/synthetic/network.xml",
+            sha256=sha,
+            byte_size=size,
+            media_type="application/xml",
+        )
+        inv = [
+            {"relative_path": pf2.relative_path, "sha256": pf2.sha256, "byte_size": pf2.byte_size}
+        ]
+        net_sha = hashlib.sha256(
+            json.dumps(inv, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        geo = cand.geographic_identity
+        net = NetworkIdentity(
+            tool_reported_version="1.27.1",
+            tool_executable_sha256="d" * 64,
+            network_files=(pf2,),
+            network_identity_sha256=net_sha,
+            edge_count=10,
+            junction_count=5,
+        )
+        # Reuse other identities from cand but with fixed time
+        prov = BaselineProvenance(
+            created_at_utc=datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC),
+            created_by="test-engineer@example.com",
+            software_version="0.7.0",
+        )
+        new_cand = ManchesterBaselineCandidatePackage(
+            package_id="synthetic-baseline-001",
+            geographic_identity=geo,
+            network_identity=net,
+            boundary_identity=cand.boundary_identity,
+            demand_identity=cand.demand_identity,
+            map_match_policy_identity=cand.map_match_policy_identity,
+            calibration_identity=cand.calibration_identity,
+            source_and_rights=cand.source_and_rights,
+            limitations=cand.limitations,
+            provenance=prov,
+            provider_data_required=cand.provider_data_required,
+            prerequisites=cand.prerequisites,
+        )
+        # Write correct file
+        target2 = root / pf2.relative_path
+        target2.parent.mkdir(parents=True, exist_ok=True)
+        target2.write_bytes(content)
+        val_time = prov.created_at_utc + timedelta(seconds=5)
+        val = validate_candidate_software(new_cand, validated_at_utc=val_time, package_root=root)
+        assert val.software_standing == "SOFTWARE_VALID"
+        assert "package_root_file_integrity" in val.checks_performed
+        # Tamper file content -> hash mismatch
+        target2.write_bytes(b"tampered content")
+        with pytest.raises(ManchesterBaselinePackageError) as exc:
+            validate_candidate_software(new_cand, validated_at_utc=val_time, package_root=root)
+        assert exc.value.code == "NETWORK_HASH_MISMATCH"
+        assert "tampered" not in str(exc.value).lower()
+        # Test cap: declare huge file exceeding cap should be rejected before unbounded read
+        huge_pf = PortableNetworkFile(
+            relative_path="networks/synthetic/huge.xml",
+            sha256="a" * 64,
+            byte_size=600_000_000,  # exceeds 500M cap
+            media_type="application/xml",
+        )
+        inv_huge = [
+            {
+                "relative_path": huge_pf.relative_path,
+                "sha256": huge_pf.sha256,
+                "byte_size": huge_pf.byte_size,
+            }
+        ]
+        net_sha_huge = hashlib.sha256(
+            json.dumps(inv_huge, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        net_huge = NetworkIdentity(
+            tool_reported_version="1.27.1",
+            tool_executable_sha256="d" * 64,
+            network_files=(huge_pf,),
+            network_identity_sha256=net_sha_huge,
+            edge_count=0,
+            junction_count=0,
+        )
+        huge_cand = new_cand.model_copy(update={"network_identity": net_huge})
+        # Even without file, validation should reject due to cap
+        with pytest.raises(ManchesterBaselinePackageError) as exc2:
+            validate_candidate_software(huge_cand, validated_at_utc=val_time, package_root=root)
+        assert exc2.value.code == "NETWORK_HASH_MISMATCH"
+        assert "huge" not in str(exc2.value).lower()
+        # Ensure no private path leak in package_root errors
+        with pytest.raises(ManchesterBaselinePackageError) as exc3:
+            validate_candidate_software(
+                new_cand,
+                validated_at_utc=val_time,
+                package_root="/tmp/secret/path",  # noqa: S108
+            )
+        # Even if package_root is weird, error must not echo it
+        assert "/tmp/secret" not in str(exc3.value)  # noqa: S108
+
+
+def test_builder_verifier_agree_rights_unknown_provider_false() -> None:
+    # Synthetic with rights UNKNOWN and provider_data_required False must be internally coherent
+    # and builder/verifier must agree: exact rights blocker, not mislabelled provider absence
+    fixed = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+    cand = make_synthetic_candidate(
+        rights_standing="UNKNOWN", provider_data_required=False, created_at_utc=fixed
+    )
+    assert cand.provider_data_required is False
+    assert cand.source_and_rights.rights_standing == "UNKNOWN"
+    # Demand must not carry provider evidence (never manufacture)
+    assert cand.demand_identity.provider_evidence_available is False
+    assert cand.demand_identity.source_snapshot_ids == ()
+    # Software validation should be valid (structural)
+    val = validate_candidate_software(cand, validated_at_utc=fixed + timedelta(seconds=5))
+    assert val.software_standing == "SOFTWARE_VALID"
+    # Builder with PROVIDER_DATA_REQUIRED standing must represent exact rights blocker, not mislabel
+    with pytest.raises(ManchesterBaselinePackageError) as exc:
+        decide_baseline_acceptance(
+            cand,
+            decided_by="reviewer@example.com",
+            decided_at_utc=fixed + timedelta(seconds=10),
+            scientific_standing="PROVIDER_DATA_REQUIRED",
+            rationale="attempt provider label for rights blocker",
+            prerequisites_verified=tuple(sorted(cand.prerequisites)),
+            software_validation=val,
+        )
+    assert exc.value.code == "RIGHTS_UNKNOWN"
+    # Builder with NOT_ACCEPTED should carry RIGHTS_UNKNOWN and verify
+    decision = decide_baseline_acceptance(
+        cand,
+        decided_by="reviewer@example.com",
+        decided_at_utc=fixed + timedelta(seconds=10),
+        scientific_standing="SCIENTIFICALLY_NOT_ACCEPTED",
+        rationale="rights unknown blocker",
+        prerequisites_verified=tuple(sorted(cand.prerequisites)),
+        software_validation=val,
+    )
+    assert "RIGHTS_UNKNOWN" in decision.rejection_reasons
+    assert decision.software_validation_fingerprint is None
+    # Verifier must agree with builder's artifact
+    verify_baseline_acceptance(decision, cand, val)
+    decision.verify(cand, val)
+    # Also make_synthetic_candidate deterministic time explicit: same inputs same fingerprint
+    cand2 = make_synthetic_candidate(
+        rights_standing="UNKNOWN", provider_data_required=False, created_at_utc=fixed
+    )
+    assert cand.fingerprint() == cand2.fingerprint()
+
+
+def test_make_synthetic_deterministic_time_explicit() -> None:
+    fixed = datetime(2026, 6, 15, 9, 0, 0, tzinfo=UTC)
+    cand_fixed = make_synthetic_candidate(created_at_utc=fixed)
+    assert cand_fixed.provenance.created_at_utc == fixed
+    cand_default = make_synthetic_candidate()
+    assert cand_default.provenance.created_at_utc == datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+    # Same fixed time yields same fingerprint
+    cand_fixed2 = make_synthetic_candidate(created_at_utc=fixed)
+    assert cand_fixed.fingerprint() == cand_fixed2.fingerprint()

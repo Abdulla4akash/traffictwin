@@ -56,13 +56,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # redefining them.  The import is intentional: it keeps JSON
 # canonicalisation and SHA-256 handling identical to the existing
 # snapshot/provenance contracts.
-from traffictwin.integration.manchester.models import (  # noqa: F401 - re-export for reuse transparency
-    canonical_json as _canonical_json_from_models,
-)
-
 # Reuse the reviewed toolchain prefix so network-tool identity stays
 # aligned with ``network_build``.
-from traffictwin.integration.manchester.network_build import (  # noqa: F401
+from traffictwin.integration.manchester.network_build import (
     SUPPORTED_SUMO_VERSION_PREFIX,
 )
 
@@ -146,6 +142,10 @@ MAX_REJECTION_REASONS = 16
 MAX_PROVENANCE_HOPS = 8
 MAX_STRING_LENGTH = 300
 MAX_IDENTIFIER_LENGTH = 200
+# Bounded streaming caps for package_root verification (finite defensible)
+MAX_PACKAGE_ROOT_FILE_SIZE = 500_000_000  # 500 MiB per file
+MAX_PACKAGE_ROOT_TOTAL_SIZE = 2_000_000_000  # 2 GiB total
+PACKAGE_ROOT_HASH_CHUNK_SIZE = 1_048_576  # 1 MiB chunks
 
 # Secret / private-path refusal patterns — mirrors ``models.py``.
 _PRIVATE_PATH_RE = re.compile(r"(/Users/|/home/|/private/|/var/|/tmp/|/etc/|~/|[A-Za-z]:\\)")
@@ -951,49 +951,185 @@ def validate_candidate_software(
         raise ManchesterBaselinePackageError(
             "TIMESTAMP_NOT_UTC", "validation timestamp must be UTC"
         )
+
+    # Canonical revalidation: close model_copy(update=...) bypass before
+    # asserting any check or emitting SOFTWARE_VALID. Use the same
+    # model_validate(model_dump(mode="json")) pattern as the acceptance
+    # boundary and map failures to bounded honest rejection semantics without
+    # echoing private/secret payloads.
+    _base_checks: tuple[str, ...] = tuple(
+        sorted(
+            [
+                "boundary_fingerprint",
+                "demand_source_ids_sorted",
+                "limitations_bounded",
+                "network_file_identities",
+                "no_private_paths",
+                "rights_sanitized",
+                "provenance_utc",
+            ]
+        )
+    )
+
+    def _checks_with_optional_root() -> tuple[str, ...]:
+        if package_root is not None:
+            return tuple(sorted(set(_base_checks) | {"package_root_file_integrity"}))
+        return _base_checks
+
+    try:
+        ManchesterBaselineCandidatePackage.model_validate(
+            candidate.model_dump(mode="json"), strict=False
+        )
+    except Exception as exc:
+        lower = str(exc).lower()
+        # Never echo payload; map to bounded RejectionReason.
+        if "private" in lower or "secret" in lower or "traversal" in lower or "backslash" in lower:
+            reason: RejectionReason = "SECRET_OR_PATH_LEAKAGE"
+        elif "boundary asset mismatch" in lower or "boundary asset name mismatch" in lower:
+            reason = "BOUNDARY_MISMATCH"
+        elif (
+            "network files must be sorted" in lower or "network file paths must be unique" in lower
+        ):
+            reason = "NETWORK_HASH_MISMATCH"
+        elif "limitations" in lower or "package id" in lower:
+            if "private" in lower or "secret" in lower or "traversal" in lower:
+                reason = "SECRET_OR_PATH_LEAKAGE"
+            else:
+                reason = "CANDIDATE_TAMPERED"
+        elif (
+            "provenance" in lower or "chain_fingerprint" in lower or "parent fingerprints" in lower
+        ):
+            reason = "PROVENANCE_BROKEN"
+        elif "demand" in lower or "source snapshot" in lower:
+            reason = "CANDIDATE_TAMPERED"
+        elif "network_identity_sha256" in lower or "network hash" in lower:
+            reason = "NETWORK_HASH_MISMATCH"
+        elif "boundary fingerprint" in lower:
+            reason = "BOUNDARY_MISMATCH"
+        else:
+            reason = "CANDIDATE_TAMPERED"
+        return ManchesterBaselineSoftwareValidation(
+            candidate_fingerprint=candidate.fingerprint(),
+            candidate_package_id=candidate.package_id,
+            network_identity_sha256=candidate.network_identity.network_identity_sha256,
+            software_standing="SOFTWARE_INVALID",
+            scientific_standing="SCIENTIFICALLY_NOT_ACCEPTED",
+            scientifically_accepted=False,
+            checks_performed=_checks_with_optional_root(),
+            rejection_reasons=(reason,),
+            validated_at_utc=validated_at_utc,
+            is_scientific_evidence=False,
+        )
+
     if package_root is not None:
         # Narrow explicit-root verification without leaking paths.
         # Caller must supply a concrete filesystem root (path-like) when
         # byte-level artefact verification is desired; errors never echo
         # the absolute root. This branch is intentionally narrow and
         # fail-closed on traversal/secret leakage rather than inventing
-        # observations.
+        # observations. Uses bounded streaming hash/size verification with
+        # finite defensible caps to avoid unbounded memory use.
         from pathlib import Path
 
         try:
             root = Path(str(package_root))
-        except Exception as exc:
+        except Exception:
             raise ManchesterBaselinePackageError(
-                "SECRET_OR_PATH_LEAKAGE", f"package_root invalid: {exc}"
-            ) from exc
-        # Do not leak root in messages; only validate declared relatives.
+                "SECRET_OR_PATH_LEAKAGE", "package_root invalid"
+            ) from None
+        # Defensive total size cap before any I/O
+        total_declared = 0
         for pf in candidate.network_identity.network_files:
+            if pf.byte_size > MAX_PACKAGE_ROOT_FILE_SIZE:
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH", "declared file exceeds defensible size cap"
+                )
+            total_declared += pf.byte_size
+            if total_declared > MAX_PACKAGE_ROOT_TOTAL_SIZE:
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH", "declared total size exceeds defensible cap"
+                )
             rel = pf.relative_path
-            # pf.relative_path already validated as safe relative; re-check
-            if _TRAVERSAL_RE.search(rel) or rel.startswith("/"):
+            if _TRAVERSAL_RE.search(rel) or rel.startswith("/") or "\\" in rel:
                 raise ManchesterBaselinePackageError(
                     "SECRET_OR_PATH_LEAKAGE", "network file path invalid"
                 )
             target = root / rel
+            # Prevent symlink escape without leaking paths
             try:
-                data = target.read_bytes()
+                resolved_root = root.resolve()
+                resolved_target = (root / rel).resolve()
+                # is_relative_to is 3.9+; fallback for safety
+                try:
+                    is_inside = resolved_target.is_relative_to(resolved_root)
+                except AttributeError:
+                    is_inside = str(resolved_target).startswith(str(resolved_root))
+                if not is_inside:
+                    raise ManchesterBaselinePackageError(
+                        "SECRET_OR_PATH_LEAKAGE", "network file path invalid"
+                    )
+            except ManchesterBaselinePackageError:
+                raise
             except Exception:
                 raise ManchesterBaselinePackageError(
                     "NETWORK_HASH_MISMATCH",
                     "declared network file not verifiable at package_root",
                 ) from None
-            if len(data) != pf.byte_size:
+            # Bounded streaming hash/size verification
+            try:
+                st = target.stat()
+            except Exception:
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH",
+                    "declared network file not verifiable at package_root",
+                ) from None
+            if not target.is_file():
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH",
+                    "declared network file not verifiable at package_root",
+                )
+            if st.st_size != pf.byte_size:
                 raise ManchesterBaselinePackageError(
                     "NETWORK_HASH_MISMATCH", "byte_size mismatch for declared file"
                 )
-            actual = _sha256_hex(data)
-            if actual != pf.sha256:
+            if st.st_size > MAX_PACKAGE_ROOT_FILE_SIZE:
                 raise ManchesterBaselinePackageError(
-                    "NETWORK_HASH_MISMATCH", "sha256 mismatch for declared file"
+                    "NETWORK_HASH_MISMATCH", "file exceeds defensible size cap"
                 )
+            try:
+                hasher = hashlib.sha256()
+                read_total = 0
+                with target.open("rb") as f:
+                    while True:
+                        chunk = f.read(PACKAGE_ROOT_HASH_CHUNK_SIZE)
+                        if not chunk:
+                            break
+                        read_total += len(chunk)
+                        if read_total > pf.byte_size or read_total > MAX_PACKAGE_ROOT_FILE_SIZE:
+                            raise ManchesterBaselinePackageError(
+                                "NETWORK_HASH_MISMATCH", "byte_size mismatch for declared file"
+                            )
+                        hasher.update(chunk)
+                if read_total != pf.byte_size:
+                    raise ManchesterBaselinePackageError(
+                        "NETWORK_HASH_MISMATCH", "byte_size mismatch for declared file"
+                    )
+                actual = hasher.hexdigest()
+                if actual != pf.sha256:
+                    raise ManchesterBaselinePackageError(
+                        "NETWORK_HASH_MISMATCH", "sha256 mismatch for declared file"
+                    )
+            except ManchesterBaselinePackageError:
+                raise
+            except Exception:
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH",
+                    "declared network file not verifiable at package_root",
+                ) from None
 
     # Perform deterministic checks without reading filesystem/network beyond
-    # the optional explicit package_root above.
+    # the optional explicit package_root above. At this point candidate has
+    # passed canonical revalidation, so checks are truthful.
     reasons: list[RejectionReason] = []
     # Check network file hash binding already enforced; but double-check any candidate tampering
     # by recomputing network identity.
@@ -1010,11 +1146,14 @@ def validate_candidate_software(
     # Also reject naïve cross-field tamper where provenance chain is inconsistent
     # — already enforced by BaselineProvenance model validator, but also
     # surface here as rejection reason for stale candidates.
-    # Boundary fingerprint already validated.
+    # Boundary fingerprint already validated via canonical revalidation.
 
     standing: SoftwareStanding = "SOFTWARE_INVALID" if reasons else "SOFTWARE_VALID"
     # Keep rejection reasons sorted and deduped
     reasons_sorted = tuple(sorted(set(reasons)))
+
+    # Derive checks_performed from checks truly performed (canonical revalidation + above)
+    checks_performed = _checks_with_optional_root()
 
     # Ensure scientific_standing never upgraded.
     return ManchesterBaselineSoftwareValidation(
@@ -1024,19 +1163,7 @@ def validate_candidate_software(
         software_standing=standing,
         scientific_standing="SCIENTIFICALLY_NOT_ACCEPTED",
         scientifically_accepted=False,
-        checks_performed=tuple(
-            sorted(
-                [
-                    "boundary_fingerprint",
-                    "demand_source_ids_sorted",
-                    "limitations_bounded",
-                    "network_file_identities",
-                    "no_private_paths",
-                    "rights_sanitized",
-                    "provenance_utc",
-                ]
-            )
-        ),
+        checks_performed=checks_performed,
         rejection_reasons=reasons_sorted,
         validated_at_utc=validated_at_utc,
         is_scientific_evidence=False,
@@ -1079,19 +1206,25 @@ def _check_scientific_acceptance_preconditions(
     by the candidate's external build receipt.
     """
     # Canonical revalidation: close model_copy/update bypass.
+    # Reuse same canonical model_validate(model_dump(mode="json")) pattern as
+    # the software validation boundary to avoid drift.
     try:
-        ManchesterBaselineCandidatePackage.model_validate(candidate.model_dump())
+        ManchesterBaselineCandidatePackage.model_validate(
+            candidate.model_dump(mode="json"), strict=False
+        )
     except Exception as exc:
         raise ManchesterBaselinePackageError(
             "CANDIDATE_TAMPERED",
-            f"candidate revalidation failed: {exc}",
+            "candidate revalidation failed",
         ) from exc
     try:
-        ManchesterBaselineSoftwareValidation.model_validate(software_validation.model_dump())
+        ManchesterBaselineSoftwareValidation.model_validate(
+            software_validation.model_dump(mode="json"), strict=False
+        )
     except Exception as exc:
         raise ManchesterBaselinePackageError(
             "CANDIDATE_TAMPERED",
-            f"software validation revalidation failed: {exc}",
+            "software validation revalidation failed",
         ) from exc
     # Exact software validation binding and temporal ordering
     if software_validation.candidate_fingerprint != candidate.fingerprint():
@@ -1356,16 +1489,38 @@ def decide_baseline_acceptance(
         )
 
     # Truthful non-acceptance: never invent CANDIDATE_TAMPERED
+    # Builder/verifier must agree for rights UNKNOWN with provider_data_required false:
+    # represent the exact rights blocker rather than mislabelling provider absence.
     if scientific_standing == "PROVIDER_DATA_REQUIRED":
-        if not rejection_reasons:
-            # Truthfully blocked only if provider data truly missing; otherwise require explicit
+        if "PROVIDER_DATA_REQUIRED" not in rejection_reasons:
             if candidate.provider_data_required:
                 rejection_reasons.append("PROVIDER_DATA_REQUIRED")
             else:
+                if candidate.source_and_rights.rights_standing == "UNKNOWN":
+                    raise ManchesterBaselinePackageError(
+                        "RIGHTS_UNKNOWN",
+                        (
+                            "PROVIDER_DATA_REQUIRED standing requires truthful provider-data absence; "  # noqa: E501
+                            "exact blocker is RIGHTS_UNKNOWN"
+                        ),
+                    )
+                if candidate.source_and_rights.rights_standing == "UNLICENSED":
+                    raise ManchesterBaselinePackageError(
+                        "RIGHTS_UNLICENSED",
+                        (
+                            "PROVIDER_DATA_REQUIRED standing requires truthful provider-data absence; "  # noqa: E501
+                            "exact blocker is RIGHTS_UNLICENSED"
+                        ),
+                    )
                 raise ManchesterBaselinePackageError(
                     "PROVIDER_DATA_REQUIRED",
                     "PROVIDER_DATA_REQUIRED standing requires truthful provider-data absence",
                 )
+        # Mismatched labelling: caller asked PROVIDER_DATA_REQUIRED but true blocker is rights.
+        # Ensure we don't produce a decision that claims PROVIDER_DATA_REQUIRED
+        # when exact blocker is rights.
+        # If the only blocker is rights and provider is false, the above already raised.
+        # If both blockers present, keep both truthfully.
     elif scientific_standing == "SCIENTIFICALLY_NOT_ACCEPTED" and not rejection_reasons:
         # Allow attributable rationale with no invented tamper. Use an explicit
         # truthful reason so the decision remains attributable and the
@@ -1456,11 +1611,13 @@ def verify_baseline_acceptance(
     #    own fields (catches model_copy mutation where fingerprint was not
     #    updated, or where new binding fields were altered).
     try:
-        ManchesterBaselineAcceptanceDecision.model_validate(decision.model_dump())
+        ManchesterBaselineAcceptanceDecision.model_validate(
+            decision.model_dump(mode="json"), strict=False
+        )
     except Exception as exc:
         raise ManchesterBaselinePackageError(
             "CANDIDATE_TAMPERED",
-            f"decision revalidation failed: {exc}",
+            "decision revalidation failed",
         ) from exc
 
     # 2. Exact candidate binding
@@ -1555,12 +1712,6 @@ def verify_baseline_acceptance(
         # satisfies production — do not self-upgrade.
 
 
-def _helper_canonical_fingerprint_for_candidate(
-    candidate: ManchesterBaselineCandidatePackage,
-) -> str:
-    return candidate.fingerprint()
-
-
 # Convenience for deterministic building in tests
 def make_synthetic_candidate(
     *,
@@ -1568,12 +1719,24 @@ def make_synthetic_candidate(
     rights_standing: RightsStanding = "ODbL-1.0",
     provider_data_required: bool = True,
     approved_map_match: bool = False,
+    created_at_utc: datetime | None = None,
 ) -> ManchesterBaselineCandidatePackage:
     """Return a minimal valid synthetic engineering candidate.
 
     Software-valid, scientifically blocked.
+
+    Deterministic time is explicit: ``created_at_utc`` defaults to a fixed
+    UTC value when ``None`` rather than ``datetime.now(UTC)``, so the same
+    inputs produce the same fingerprint. Caller may supply an explicit
+    ``created_at_utc`` for varied scenarios.
     """
-    now = datetime.now(UTC)
+    if created_at_utc is None:
+        created_at_utc = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+    if not _is_utc(created_at_utc):
+        raise ManchesterBaselinePackageError(
+            "TIMESTAMP_NOT_UTC", "synthetic creation timestamp must be UTC"
+        )
+    now = created_at_utc
     # deterministic portable file
     pf = PortableNetworkFile(
         relative_path="networks/synthetic/network.xml",
@@ -1608,10 +1771,14 @@ def make_synthetic_candidate(
         asset_name="greater_manchester_combined_authority.geojson",
         identity_fingerprint=bound_fp,
     )
+    # Never manufacture real provider evidence: synthetic candidates have
+    # no provider snapshot ids and provider_evidence_available=False
+    # regardless of provider_data_required flag. This keeps the
+    # provider_data_required=False branch internally coherent.
     demand = DemandIdentity(
         identity_fingerprint="e" * 64,
         source_snapshot_ids=(),
-        provider_evidence_available=not provider_data_required,
+        provider_evidence_available=False,
     )
     mmap = MapMatchPolicyIdentity(
         policy_id="manchester-dft-map-match-owner-policy-1.1",
