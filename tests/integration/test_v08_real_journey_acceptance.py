@@ -18,6 +18,12 @@ from __future__ import annotations
 import tempfile
 from copy import deepcopy
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from streamlit.testing.v1 import AppTest
+
+    from traffictwin.synthetic.whatif_pair import WhatIfPairReceipt, WhatIfPairRequest
 
 # ---------------------------------------------------------------------------
 # 1. Real route rendering via current registry and AppTest
@@ -236,7 +242,7 @@ def test_transactional_rollback_without_path_dot_corruption() -> None:
     fixture_variation = "tests/fixtures/bundles/variation_valid"
     script = page_script_for(UiPage.COMPARE)
 
-    def _compare_app(baseline: str, variation: str) -> object:
+    def _compare_app(baseline: str, variation: str) -> AppTest:
         app = AppTest.from_file(f"src/traffictwin/ui/{script}")
         for k, v in deepcopy(default_session_state()).items():
             app.session_state[k] = v
@@ -247,7 +253,7 @@ def test_transactional_rollback_without_path_dot_corruption() -> None:
         assert not app.exception, f"initial compare render failed: {app.exception}"
         return app
 
-    def _get(app: object, key: str) -> str:
+    def _get(app: AppTest, key: str) -> str:
         try:
             return str(app.session_state[key])
         except KeyError:
@@ -333,7 +339,7 @@ def test_portable_identity_and_synthetic_preservation() -> None:
     from traffictwin.ui.services.models import ServiceError
     from traffictwin.ui.services.whatif_pair import generate_whatif_pair_for_ui
 
-    def _generate_in(ws: Path, suffix: str) -> tuple[object, object]:
+    def _generate_in(ws: Path, suffix: str) -> tuple[WhatIfPairReceipt, WhatIfPairRequest]:
         initialise_workspace(ws)
         reg = ws / "registry.sqlite"
         req = WhatIfPairRequest(
