@@ -46,6 +46,7 @@ from traffictwin.integration.manchester.observation_matching_v11 import (
     MAP_MATCH_POLICY_V11_ID,
     ManualReviewQueue,
     ObservationMatchV11,
+    RoadGroupV11,
     TerminalDispositionV11,
 )
 from traffictwin.integration.manchester.observation_review import (
@@ -380,17 +381,22 @@ class MapMatchObservationProjection(MapMatchWorkflowModel):
                 raise ValueError("AUTO_ACCEPTED must not carry any human/ledger decision field")
             if not obs.groups:
                 raise ValueError("AUTO_ACCEPTED cannot have zero groups")
-            if len(obs.groups) != 1:
-                raise ValueError("AUTO_ACCEPTED requires exactly one road group")
             if obs.review_reasons:
                 raise ValueError("AUTO_ACCEPTED cannot carry review_reasons")
-            sole = obs.groups[0]
-            if self.accepted_group_key != sole.group_key:
-                raise ValueError("AUTO_ACCEPTED accepted_group_key must equal the sole group key")
-            expected_ids = tuple(sorted({m.edge_id for m in sole.members}))
+            # Deterministic derivation from policy record – never distance-ranked.
+            try:
+                derived = _auto_accepted_group(obs)
+            except MapMatchWorkflowError as exc:
+                raise ValueError(str(exc)) from exc
+            if self.accepted_group_key != derived.group_key:
+                raise ValueError(
+                    "AUTO_ACCEPTED accepted_group_key must equal the derived "
+                    "policy-accepted group key"
+                )
+            expected_ids = tuple(sorted({m.edge_id for m in derived.members}))
             if self.matched_edge_ids != expected_ids:
                 raise ValueError(
-                    "AUTO_ACCEPTED matched_edge_ids must equal sole group member edge IDs "
+                    "AUTO_ACCEPTED matched_edge_ids must equal derived group member edge IDs "
                     "sorted unique"
                 )
             if self.ambiguity_reason is not None:
@@ -734,13 +740,86 @@ def _nearest_distance(obs: ObservationMatchV11) -> Decimal | None:
     return min(g.nearest_distance_m for g in obs.groups)
 
 
+def _auto_accepted_group(obs: ObservationMatchV11) -> RoadGroupV11:
+    """Derive the policy-accepted group deterministically, never by distance.
+
+    * strict ``strict_v1_0_clear`` → the unique non-``admitted_by_override`` group
+      consistent with the base-policy acceptance.
+    * override ``exact_reference_family_override`` → the unique
+      ``admitted_by_override`` group whose members exactly equal
+      ``overrides_applied`` identities and that is the sole
+      ``exact_reference_match`` group.
+
+    Fails closed (``MapMatchWorkflowError``) if the derivation is not
+    unique/coherent.  Never guesses by nearest distance.
+    """
+
+    if obs.acceptance_path == "strict_v1_0_clear":
+        non_override = [g for g in obs.groups if not g.admitted_by_override]
+        if len(non_override) != 1:
+            raise MapMatchWorkflowError(
+                "AMBIGUOUS_AUTO_ACCEPTED",
+                f"observation {obs.count_point_id} strict acceptance requires exactly "
+                f"one non-override group, found {len(non_override)}",
+            )
+        selected = non_override[0]
+        if obs.overrides_applied:
+            raise MapMatchWorkflowError(
+                "INCOHERENT_AUTO_ACCEPTED",
+                f"observation {obs.count_point_id} strict path must not carry overrides_applied",
+            )
+        return selected
+    if obs.acceptance_path == "exact_reference_family_override":
+        if not obs.overrides_applied:
+            raise MapMatchWorkflowError(
+                "INCOHERENT_AUTO_ACCEPTED",
+                f"observation {obs.count_point_id} override acceptance requires overrides_applied",
+            )
+        override_edge_ids = {o.edge_id for o in obs.overrides_applied}
+        candidates = [
+            g
+            for g in obs.groups
+            if g.admitted_by_override and {m.edge_id for m in g.members} == override_edge_ids
+        ]
+        if len(candidates) != 1:
+            # Fallback to subset check only to give a deterministic failure message;
+            # still requires uniqueness.
+            candidates = [
+                g
+                for g in obs.groups
+                if g.admitted_by_override
+                and override_edge_ids.issubset({m.edge_id for m in g.members})
+            ]
+            if len(candidates) != 1:
+                raise MapMatchWorkflowError(
+                    "AMBIGUOUS_AUTO_ACCEPTED",
+                    f"observation {obs.count_point_id} override acceptance requires exactly "
+                    f"one admitted_by_override group matching overrides_applied, "
+                    f"found {len(candidates)}",
+                )
+        selected = candidates[0]
+        exact_groups = [g for g in obs.groups if g.exact_reference_match]
+        if len(exact_groups) != 1 or exact_groups[0].group_key != selected.group_key:
+            raise MapMatchWorkflowError(
+                "INCOHERENT_AUTO_ACCEPTED",
+                f"observation {obs.count_point_id} override acceptance requires exactly one "
+                f"exact_reference group equal to the admitted group",
+            )
+        if not selected.admitted_by_override or not selected.exact_reference_match:
+            raise MapMatchWorkflowError(
+                "INCOHERENT_AUTO_ACCEPTED",
+                f"observation {obs.count_point_id} override group must be admitted_by_override "
+                f"and exact_reference_match",
+            )
+        return selected
+    raise MapMatchWorkflowError(
+        "INCOHERENT_AUTO_ACCEPTED",
+        f"observation {obs.count_point_id} has unexpected acceptance_path {obs.acceptance_path!r}",
+    )
+
+
 def _matched_edge_ids_for_auto(obs: ObservationMatchV11) -> tuple[str, ...]:
-    if len(obs.groups) != 1:
-        raise MapMatchWorkflowError(
-            "AMBIGUOUS_AUTO_ACCEPTED",
-            f"observation {obs.count_point_id} AUTO_ACCEPTED requires exactly one road group",
-        )
-    grp = obs.groups[0]
+    grp = _auto_accepted_group(obs)
     return tuple(sorted({m.edge_id for m in grp.members}))
 
 
@@ -1059,9 +1138,10 @@ def build_map_match_workflow(
                         "AMBIGUOUS_CANDIDATE_SILENTLY_ACCEPTED",
                         f"observation {obs.count_point_id} has review_reasons but is accepted",
                     )
-                # AUTO must bind exactly one group and expose its edge IDs.
+                # AUTO must bind the deterministically derived policy-accepted group.
+                derived_group = _auto_accepted_group(obs)
                 matched_ids = _matched_edge_ids_for_auto(obs)
-                accepted_key = obs.groups[0].group_key
+                accepted_key = derived_group.group_key
                 standing = "AUTO_ACCEPTED"
                 standing_reason = (
                     "owner policy unambiguously accepted under clear thresholds; "

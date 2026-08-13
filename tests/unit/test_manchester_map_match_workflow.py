@@ -31,6 +31,7 @@ from traffictwin.integration.manchester.map_match_workflow import (
     load_verified_ledger,
     verify_workflow_fingerprint,
 )
+from traffictwin.integration.manchester.network_connectivity import MotorAccess
 from traffictwin.integration.manchester.network_geometry import EdgeSpatialIndex, build_edge_index
 from traffictwin.integration.manchester.observation_matching import EdgeCandidate
 from traffictwin.integration.manchester.observation_matching_v11 import (
@@ -102,9 +103,17 @@ def _junctions(*names: str) -> str:
     )
 
 
-def _edge(edge_id: str, road_type: str, *, ref: str | None = None) -> str:
+def _edge(edge_id: str, road_type: str, *, ref: str | None = None, shape: str | None = None) -> str:
     body = f'    <param key="ref" value="{ref}"/>\n' if ref else ""
-    return f'  <edge id="{edge_id}" from="J0" to="J1" type="{road_type}">\n{body}  </edge>'
+    shape_attr = f' shape="{shape}"' if shape else ""
+    return (
+        f'  <edge id="{edge_id}" from="J0" to="J1" type="{road_type}"{shape_attr}>\n{body}  </edge>'
+    )
+
+
+def _access(*edge_ids: str, level: MotorAccess = "passenger_car") -> dict[str, MotorAccess]:
+    # Helper for integration tests using real match_observation_v11 motor_access mapping.
+    return dict.fromkeys(edge_ids, level)
 
 
 def _index(tmp_path: Path, body: str) -> EdgeSpatialIndex:
@@ -1238,8 +1247,8 @@ def test_duplicate_edge_ids_within_group_forged_projection_rejected() -> None:
 def test_forged_matched_edges_and_group_ids_fail_closed() -> None:
     obs = _obs_auto(520)
     queue = build_manual_review_queue([obs])
-    # Forged accepted_group_key not equal sole group key
-    with pytest.raises(ValidationError, match="accepted_group_key.*sole group"):
+    # Forged accepted_group_key not equal derived policy-accepted group key
+    with pytest.raises(ValidationError, match="accepted_group_key.*derived policy-accepted"):
         MapMatchObservationProjection(
             observation=obs,
             queue_fingerprint=queue.fingerprint(),
@@ -1404,43 +1413,8 @@ def test_unresolved_and_rejected_must_expose_no_matched_edges() -> None:
         )
 
 
-def test_auto_requires_exactly_one_group_and_sorted_unique_edges() -> None:
-    # Build an AUTO observation with two groups – should be rejected as ambiguous auto
-    grp1 = _group("ref:A56|primary", "e1")
-    grp2 = _group2("ref:A57|secondary", "e2")
-    bad_auto = ObservationMatchV11(
-        policy_fingerprint=POLICY_FP,
-        count_point_id=540,
-        dft_road_type="Major",
-        dft_road_name="A56",
-        dft_normalised_ref="A56",
-        groups=(grp1, grp2),
-        rejections=(),
-        candidates_readmitted=(),
-        overrides_applied=(),
-        overrides_refused=(),
-        missing_evidence=(),
-        confidence="clear_candidate",
-        disposition="owner_policy_accepted_candidate",
-        acceptance_path="strict_v1_0_clear",
-        audit_flag=False,
-        family_mismatch=None,
-        reasons=("all strict conditions met",),
-        review_reasons=(),
-    )
-    _ = build_manual_review_queue([bad_auto])
-    # Manual queue treats auto-accepted as not queued; so we need a queue with 0 entries
-    # but build will detect ambiguous auto and raise.
-    fake_queue = ManualReviewQueue(
-        observations_total=1, accepted_total=1, queued_total=0, entries=()
-    )
-    with pytest.raises(
-        MapMatchWorkflowError, match="AMBIGUOUS_AUTO_ACCEPTED|exactly one road group"
-    ):
-        build_map_match_workflow(
-            observations=[bad_auto], queue=fake_queue, policy=POLICY, source=_source()
-        )
-    # Also test that matched_edge_ids must be sorted unique – direct construction
+def test_auto_requires_sorted_unique_edges() -> None:
+    # Matched edge IDs must be sorted unique – direct construction.
     obs = _obs_auto(541)
     queue2 = build_manual_review_queue([obs])
     with pytest.raises(ValidationError, match="sorted deterministic"):
@@ -1463,6 +1437,206 @@ def test_auto_requires_exactly_one_group_and_sorted_unique_edges() -> None:
             nearest_distance_m=Decimal("1.200"),
             original_disposition="owner_policy_accepted_candidate",
         )
+
+
+def test_integration_strict_acceptance_with_readmitted_candidate_never_demotes(
+    tmp_path: Path,
+) -> None:
+    """Real upstream: strict acceptance retains its group despite readmitted override.
+
+    Mirrors ``test_a_readmitted_candidate_never_demotes_a_strict_acceptance``
+    in ``test_manchester_observation_matching_v11`` but proves the workflow
+    projection derives the same accepted group without distance guessing.
+    """
+
+    from traffictwin.integration.manchester.observation_matching import match_observation
+    from traffictwin.integration.manchester.observation_matching_v11 import match_observation_v11
+
+    index = _index(
+        tmp_path,
+        "\n".join(
+            (
+                _edge("e1", "highway.primary", ref="A56"),
+                _edge("e2", "highway.unclassified", ref="A56"),
+            )
+        ),
+    )
+    # Use the exact site on the network so both candidates are retrieved.
+    easting, northing = index.geometry(0)[0], index.geometry(0)[1]
+    # Verify upstream strict path still accepts (v1.0 baseline).
+    from traffictwin.integration.manchester.observation_matching import ManchesterMapMatchPolicy
+
+    older = match_observation(
+        count_point_id=1,
+        easting=easting,
+        northing=northing,
+        dft_road_type="Major",
+        dft_road_name="A56",
+        dft_road_ref="A56",
+        index=index,
+        policy=ManchesterMapMatchPolicy(),
+    )
+    assert older.confidence == "clear_candidate"
+    # v1.1 with both candidates readmitted but strict path still wins.
+    result = match_observation_v11(
+        count_point_id=1,
+        easting=easting,
+        northing=northing,
+        dft_road_type="Major",
+        dft_road_name="A56",
+        dft_road_ref="A56",
+        index=index,
+        policy=POLICY,
+        motor_access=_access("e1", "e2"),
+    )
+    assert result.disposition == "owner_policy_accepted_candidate"
+    assert result.acceptance_path == "strict_v1_0_clear"
+    assert len(result.groups) == 2  # strict group + readmitted override group
+    # The non-override group is the policy-accepted one.
+    strict_groups = [g for g in result.groups if not g.admitted_by_override]
+    assert len(strict_groups) == 1
+    expected_key = strict_groups[0].group_key
+    expected_edges = tuple(sorted({m.edge_id for m in strict_groups[0].members}))
+
+    queue = build_manual_review_queue([result])
+    wf = build_map_match_workflow(
+        observations=[result], queue=queue, policy=POLICY, source=_source()
+    )
+    assert wf.auto_accepted_ids == (1,)
+    proj = wf.observations[0]
+    assert proj.standing == "AUTO_ACCEPTED"
+    assert proj.accepted_group_key == expected_key
+    assert proj.matched_edge_ids == expected_edges
+    # Reproducible verification – not distance-ranked.
+    assert (
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue, ledger=None, source=_source())
+        == wf.fingerprint()
+    )
+    # Fingerprint stable across rebuild from projection observations.
+    wf2 = build_map_match_workflow(
+        observations=[proj.observation], queue=queue, policy=POLICY, source=_source()
+    )
+    assert wf2.fingerprint() == wf.fingerprint()
+    assert wf2.observations[0].accepted_group_key == expected_key
+
+
+def test_integration_override_accepted_group_not_nearest(tmp_path: Path) -> None:
+    """Flagship override where the policy-accepted group is not the nearest.
+
+    A closer Major-family group without the signed reference must not steal
+    the acceptance from the farther exact-reference override group.  The
+    workflow must select by overrides_applied identity, not distance rank.
+    """
+
+    from traffictwin.integration.manchester.observation_matching_v11 import match_observation_v11
+
+    # Build a network where the non-reference Major group is geometrically
+    # closer than the override group.  e2 (secondary, no ref) sits on the site;
+    # e1 (unclassified, ref A56) is offset ~3 m away but still within the 5 m
+    # override limit.  Both are retrieved; only e1 can trigger the override.
+    index = _index(
+        tmp_path,
+        "\n".join(
+            (
+                _edge(
+                    "e1",
+                    "highway.unclassified",
+                    ref="A56",
+                    shape="31003.00,16000.00 31063.00,16060.00",
+                ),
+                _edge("e2", "highway.secondary", shape="31000.00,16000.00 31060.00,16060.00"),
+            )
+        ),
+    )
+    # Site exactly on e2's geometry → e2 distance 0, e1 distance ~3 m.
+    easting, northing = index.geometry(1)[0], index.geometry(1)[1]
+    result = match_observation_v11(
+        count_point_id=2,
+        easting=easting,
+        northing=northing,
+        dft_road_type="Major",
+        dft_road_name="A56",
+        dft_road_ref="A56",
+        index=index,
+        policy=POLICY,
+        motor_access=_access("e1", "e2"),
+    )
+    assert result.disposition == "owner_policy_accepted_candidate"
+    assert result.acceptance_path == "exact_reference_family_override"
+    assert len(result.groups) == 2
+    # Identify override group and its distance (should be the larger one).
+    override_group = next(g for g in result.groups if g.admitted_by_override)
+    other_group = next(g for g in result.groups if not g.admitted_by_override)
+    assert override_group.exact_reference_match is True
+    assert other_group.exact_reference_match is False
+    # Override group is not the nearest (other group is closer).
+    assert override_group.nearest_distance_m > other_group.nearest_distance_m
+    # Overrides applied identities match the override group exactly.
+    assert {m.edge_id for m in override_group.members} == {
+        o.edge_id for o in result.overrides_applied
+    }
+
+    queue = build_manual_review_queue([result])
+    wf = build_map_match_workflow(
+        observations=[result], queue=queue, policy=POLICY, source=_source()
+    )
+    assert wf.auto_accepted_ids == (2,)
+    proj = wf.observations[0]
+    assert proj.standing == "AUTO_ACCEPTED"
+    assert proj.accepted_group_key == override_group.group_key
+    assert proj.matched_edge_ids == tuple(sorted({m.edge_id for m in override_group.members}))
+    # Verify nearest_distance_m is still the global minimum, not the accepted group's distance.
+    assert proj.nearest_distance_m == min(g.nearest_distance_m for g in result.groups)
+    assert proj.nearest_distance_m == other_group.nearest_distance_m
+    # Reproducible verification.
+    assert (
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue, ledger=None, source=_source())
+        == wf.fingerprint()
+    )
+
+
+def test_integration_ambiguous_override_never_guessed(tmp_path: Path) -> None:
+    """Two competing exact-reference groups must stay unresolved, never guessed."""
+
+    from traffictwin.integration.manchester.observation_matching_v11 import match_observation_v11
+
+    index = _index(
+        tmp_path,
+        "\n".join(
+            (
+                _edge("e1", "highway.unclassified", ref="A56"),
+                _edge("e2", "highway.residential", ref="A56"),
+            )
+        ),
+    )
+    easting, northing = index.geometry(0)[0], index.geometry(0)[1]
+    result = match_observation_v11(
+        count_point_id=3,
+        easting=easting,
+        northing=northing,
+        dft_road_type="Major",
+        dft_road_name="A56",
+        dft_road_ref="A56",
+        index=index,
+        policy=POLICY,
+        motor_access=_access("e1", "e2"),
+    )
+    assert result.disposition == "awaiting_manual_review"
+    assert result.override_acceptance_refused == "several_exact_reference_groups"
+    assert len([g for g in result.groups if g.exact_reference_match]) == 2
+    assert result.overrides_applied == ()
+
+    queue = build_manual_review_queue([result])
+    wf = build_map_match_workflow(
+        observations=[result], queue=queue, policy=POLICY, source=_source()
+    )
+    proj = wf.observations[0]
+    assert proj.standing == "UNRESOLVED"
+    assert proj.accepted_group_key is None
+    assert proj.matched_edge_ids == ()
+    # No AUTO guess was published.
+    assert wf.auto_accepted_ids == ()
+    assert wf.unresolved_ids == (3,)
 
 
 # ---------------------------------------------------------------------------
