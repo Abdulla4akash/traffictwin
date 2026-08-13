@@ -194,18 +194,44 @@ def _describe_receipt(receipt: object, before: ReplayEngineState | None) -> tupl
         if control == "step":
             direction = str(getattr(req, "step_direction", "forward"))
             count = getattr(req, "step_count", 1)
-            if before is not None and before.cursor.is_at_end and rs.cursor.is_at_end:
-                return (
-                    "info",
-                    f"STEP {direction} no-op — already at end "
-                    f"(cursor {rs.cursor.index}/{rs.cursor.total_events}, ENDED; playhead {rs.playhead_time_s:.2f} s)",
-                )
-            if before is not None and before.cursor.index == rs.cursor.index:
-                return (
-                    "info",
-                    f"STEP {direction} no-op — cursor unchanged at {rs.cursor.index}/{rs.cursor.total_events} "
-                    f"(playhead {rs.playhead_time_s:.2f} s)",
-                )
+            if before is not None:
+                before_idx = before.cursor.index
+                after_idx = rs.cursor.index
+                before_ph = float(before.playhead_time_s)
+                after_ph = float(rs.playhead_time_s)
+                cursor_unchanged = before_idx == after_idx
+                playhead_unchanged = before_ph == after_ph
+                before_at_end = bool(before.cursor.is_at_end)
+                after_at_end = bool(rs.cursor.is_at_end)
+                # Genuine no-op: cursor and playhead both unchanged
+                if cursor_unchanged and playhead_unchanged:
+                    if before_at_end and after_at_end:
+                        return (
+                            "info",
+                            f"STEP {direction} no-op — already at end "
+                            f"(cursor {rs.cursor.index}/{rs.cursor.total_events}, ENDED; playhead {rs.playhead_time_s:.2f} s)",
+                        )
+                    return (
+                        "info",
+                        f"STEP {direction} no-op — cursor unchanged at {rs.cursor.index}/{rs.cursor.total_events} "
+                        f"(playhead {rs.playhead_time_s:.2f} s)",
+                    )
+                # Cursor remains at end but playhead rebinds/normalizes (SEEK beyond then STEP)
+                if before_at_end and after_at_end and cursor_unchanged and not playhead_unchanged:
+                    return (
+                        "success",
+                        f"STEP {direction} — cursor remains at end {rs.cursor.index}/{rs.cursor.total_events} (ENDED); "
+                        f"playhead normalized from {before_ph:.2f} s to {after_ph:.2f} s "
+                        f"(last event time {rs.cursor.simulator_time_s:.2f} s)",
+                    )
+                # Cursor unchanged but playhead moved (generic rebinding)
+                if cursor_unchanged and not playhead_unchanged:
+                    return (
+                        "success",
+                        f"STEP {direction} — cursor unchanged at {rs.cursor.index}/{rs.cursor.total_events} "
+                        f"but playhead moved from {before_ph:.2f} s to {after_ph:.2f} s, "
+                        f"playback {rs.playback_state.value}",
+                    )
             b_idx = before.cursor.index if before is not None else -1
             return (
                 "success",

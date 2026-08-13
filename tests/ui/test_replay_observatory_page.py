@@ -249,7 +249,7 @@ def test_play_aggregate_ended_truthful_noop(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 def test_step_at_end_noop_truthful(monkeypatch: pytest.MonkeyPatch) -> None:
-    """STEP at end must be no-op with explicit banner, not claim stepped."""
+    """STEP at exact end (playhead already at last event) is genuine no-op; SEEK beyond then STEP rebinds."""
 
     app = _app(monkeypatch)
     assert not app.exception
@@ -265,21 +265,43 @@ def test_step_at_end_noop_truthful(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Seeked to 10.00" in joined_seek
     assert "playhead" in joined_seek.lower()
     assert "cursor" in joined_seek.lower()
-    # After seek beyond end, should be ENDED at 7/7
+    # After seek beyond end, should be ENDED at 7/7 but playhead remains at requested 10.00 (distinct)
     assert _metric(app, "Playback state") == "ended"
     assert _metric(app, "Cursor index") == "7/7"
-    # Now STEP forward at end must be no-op
+    assert _metric(app, "Playhead time") == "10.00 s"
+    assert _metric(app, "Cursor event time") == "6.00 s"
+    # STEP forward when cursor already at end but playhead beyond must rebind, not no-op
     step_btn = next(b for b in app.button if b.label == "STEP")
     step_btn.click().run(timeout=30)
     assert not app.exception
     joined = _text(app)
     assert "STEP" in joined
-    assert "no-op" in joined.lower()
-    assert "already at end" in joined.lower()
+    # Must truthfully report playhead movement/rebinding, never claim no-op
+    assert "no-op" not in joined.lower(), f"rebinding STEP must not claim no-op, got {joined}"
+    assert "already at end" not in joined.lower() or "remains at end" in joined.lower()
     assert "ENDED" in joined
-    # Must not claim success stepping
+    # Must describe normalized/rebased playhead from 10.00 to last event time 6.00
+    assert "playhead" in joined.lower()
+    assert "10.00" in joined and "6.00" in joined
+    assert "normalized" in joined.lower() or "remains at end" in joined.lower()
+    # Must not claim success stepping with cursor movement
     assert "Stepped forward by 1" not in joined
     assert _metric(app, "Cursor index") == "7/7"
+    assert _metric(app, "Playhead time") == "6.00 s"
+    assert _metric(app, "Cursor event time") == "6.00 s"
+    assert _metric(app, "Playback state") == "ended"
+    # Second STEP at exact end with playhead already at last event is genuine no-op
+    step_btn2 = next(b for b in app.button if b.label == "STEP")
+    step_btn2.click().run(timeout=30)
+    assert not app.exception
+    joined2 = _text(app)
+    assert "STEP" in joined2
+    assert "no-op" in joined2.lower()
+    assert "already at end" in joined2.lower()
+    assert "ENDED" in joined2
+    assert "Stepped forward by 1" not in joined2
+    assert _metric(app, "Cursor index") == "7/7"
+    assert _metric(app, "Playhead time") == "6.00 s"
     assert _metric(app, "Playback state") == "ended"
 
 
@@ -1122,3 +1144,151 @@ def test_seek_empty_stream_noop_0_0_default(monkeypatch: pytest.MonkeyPatch) -> 
             assert "exact-event" not in str(cap.value).lower(), (
                 f"aggregate coincide must not say exact-event: {cap.value}"
             )
+
+
+def test_seek_beyond_8_then_step_rebinds_playhead(monkeypatch: pytest.MonkeyPatch) -> None:
+    """SEEK 8.0 beyond last event (6.0) then STEP rebinds playhead to 6.0 — never no-op."""
+
+    app = _app(monkeypatch)
+    assert not app.exception
+    for s in app.slider:
+        if "Seek" in str(getattr(s, "label", "")):
+            s.set_value(8.0).run(timeout=30)
+            break
+    seek_btn = next(b for b in app.button if b.label == "SEEK")
+    seek_btn.click().run(timeout=30)
+    assert not app.exception
+    assert _metric(app, "Playhead time") == "8.00 s"
+    assert _metric(app, "Cursor event time") == "6.00 s"
+    assert _metric(app, "Cursor index") == "7/7"
+    assert _metric(app, "Playback state") == "ended"
+    step_btn = next(b for b in app.button if b.label == "STEP")
+    step_btn.click().run(timeout=30)
+    assert not app.exception
+    # Rendered playhead must have changed to last event time
+    assert _metric(app, "Playhead time") == "6.00 s"
+    assert _metric(app, "Cursor event time") == "6.00 s"
+    assert _metric(app, "Cursor index") == "7/7"
+    assert _metric(app, "Playback state") == "ended"
+    joined = _text(app)
+    # Banner must truthfully report movement/rebinding, never no-op
+    assert "STEP" in joined
+    assert "no-op" not in joined.lower(), f"SEEK 8.0 then STEP must not claim no-op, got {joined}"
+    assert "playhead" in joined.lower()
+    assert "8.00" in joined and "6.00" in joined
+    assert "normalized" in joined.lower() or "remains at end" in joined.lower()
+    assert "Stepped forward by 1" not in joined
+    # Success styling for rebinding (playhead moved)
+    success_text = " ".join(str(getattr(v, "value", "")) for v in app.success)
+    assert "playhead" in success_text.lower()
+    assert "6.00" in success_text
+    # Info banner must not claim no-op for this step
+    info_text = " ".join(str(getattr(v, "value", "")) for v in app.info)
+    assert "no-op" not in info_text.lower() or "already at end" not in info_text.lower()
+
+
+def test_step_at_exact_end_genuine_noop(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ordinary STEP at exact end with playhead already at last event is genuine no-op."""
+
+    app = _app(monkeypatch)
+    assert not app.exception
+    # Drive to exact end via normal stepping (not SEEK beyond) to ensure playhead already at last event
+    # Alternative: SEEK to 6.0 lands at index 6, then STEP to 7/7 at 6.0
+    for s in app.slider:
+        if "Seek" in str(getattr(s, "label", "")):
+            s.set_value(6.0).run(timeout=30)
+            break
+    seek_btn = next(b for b in app.button if b.label == "SEEK")
+    seek_btn.click().run(timeout=30)
+    assert not app.exception
+    assert _metric(app, "Cursor index") == "6/7"
+    assert _metric(app, "Playhead time") == "6.00 s"
+    step_btn = next(b for b in app.button if b.label == "STEP")
+    step_btn.click().run(timeout=30)
+    assert not app.exception
+    # First step to end should be normal stepped, not no-op
+    assert _metric(app, "Cursor index") == "7/7"
+    assert _metric(app, "Playhead time") == "6.00 s"
+    assert _metric(app, "Playback state") == "ended"
+    # Second step at exact end with playhead already at last event must be genuine no-op
+    step_btn2 = next(b for b in app.button if b.label == "STEP")
+    step_btn2.click().run(timeout=30)
+    assert not app.exception
+    assert _metric(app, "Cursor index") == "7/7"
+    assert _metric(app, "Playhead time") == "6.00 s"
+    assert _metric(app, "Cursor event time") == "6.00 s"
+    assert _metric(app, "Playback state") == "ended"
+    joined = _text(app)
+    assert "STEP" in joined
+    assert "no-op" in joined.lower()
+    assert "already at end" in joined.lower()
+    assert "ENDED" in joined
+    assert "Stepped forward by 1" not in joined
+    # Must be info-styled no-op, not success
+    assert any("no-op" in str(getattr(v, "value", "")).lower() for v in app.info)
+    assert "playhead 6.00" in joined.lower()
+
+
+def test_step_rebinds_vs_genuine_noop_discrimination_via_service(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AppTest-level discrimination using service ground truth for both SEEK beyond and exact-end."""
+
+    # Service ground truth: SEEK 10 then STEP playhead moves, second STEP is no-op
+    from traffictwin.ui.replay_observatory_service import (
+        apply_seek,
+        apply_step,
+        build_synthetic_engineering_stream,
+        create_engine,
+    )
+
+    stream = build_synthetic_engineering_stream()
+    engine = create_engine(stream)
+    # SEEK 10.0 beyond last 6.0
+    r_seek = apply_seek(engine, target_time_s=10.0)
+    assert r_seek.resulting_state.playhead_time_s == 10.0
+    assert r_seek.resulting_state.cursor.index == 7
+    assert r_seek.resulting_state.cursor.simulator_time_s == 6.0
+    before = engine.state()
+    assert before.playhead_time_s == 10.0
+    r_step = apply_step(engine, count=1, direction="forward")
+    assert r_step.resulting_state.cursor.index == 7
+    assert r_step.resulting_state.playhead_time_s == 6.0
+    assert r_step.resulting_state.playhead_time_s != before.playhead_time_s
+    # Banner must not claim no-op for this rebinding
+    from traffictwin.ui.pages.replay_observatory import _describe_receipt
+
+    kind, text = _describe_receipt(r_step, before)
+    assert "no-op" not in text.lower()
+    assert "normalized" in text.lower() or "remains at end" in text.lower()
+    assert "10.00" in text and "6.00" in text
+    assert kind == "success"
+    # Second STEP is genuine no-op
+    before2 = engine.state()
+    r_step2 = apply_step(engine, count=1, direction="forward")
+    assert r_step2.resulting_state.cursor.index == 7
+    assert r_step2.resulting_state.playhead_time_s == 6.0
+    assert r_step2.resulting_state.playhead_time_s == before2.playhead_time_s
+    kind2, text2 = _describe_receipt(r_step2, before2)
+    assert "no-op" in text2.lower()
+    assert "already at end" in text2.lower()
+    assert kind2 == "info"
+
+    # Also verify AppTest same discrimination renders identically
+    app = _app(monkeypatch)
+    assert not app.exception
+    # First drive via AppTest SEEK 10 then STEP to trigger same service path
+    for s in app.slider:
+        if "Seek" in str(getattr(s, "label", "")):
+            s.set_value(10.0).run(timeout=30)
+            break
+    seek_btn = next(b for b in app.button if b.label == "SEEK")
+    seek_btn.click().run(timeout=30)
+    assert _metric(app, "Playhead time") == "10.00 s"
+    step_btn = next(b for b in app.button if b.label == "STEP")
+    step_btn.click().run(timeout=30)
+    assert _metric(app, "Playhead time") == "6.00 s"
+    assert _metric(app, "Cursor index") == "7/7"
+    joined = _text(app)
+    assert "no-op" not in joined.lower() or "remains at end" in joined.lower()
+    assert "playhead" in joined.lower()
