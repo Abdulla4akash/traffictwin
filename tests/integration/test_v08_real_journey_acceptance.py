@@ -414,3 +414,148 @@ def test_portable_identity_and_synthetic_preservation() -> None:
         assert cons1.fingerprint == cons2.fingerprint
         assert str(ws1) not in str(cons1.to_portable_dict())
         assert str(ws2) not in str(cons2.to_portable_dict())
+
+
+# ---------------------------------------------------------------------------
+# 6. Temp-copy executable journey mutation — forced import root verification
+# ---------------------------------------------------------------------------
+
+
+def test_temp_copy_executable_journey_forces_import_root() -> None:
+    """Temp-copy mutation proves import from temp root via in-process
+    traffictwin.__file__ check; prevents editable-install shadowing of
+    the temp mutation probe without spawning a subprocess."""
+    import hashlib
+    import importlib
+    import importlib.util
+    import os
+    import shutil
+    import sys
+    from pathlib import Path as _Path
+
+    repo_root = _Path(__file__).resolve().parents[2]
+    original_compare = (repo_root / "src/traffictwin/ui/pages/compare.py").read_text(
+        encoding="utf-8"
+    )
+    original_hash = hashlib.sha256(original_compare.encode()).hexdigest()
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_root = _Path(tmp) / "repo"
+        # Copy minimal repo structure needed for import and validator
+        for rel in [
+            "src/traffictwin",
+            "src/traffictwin/ui/pages/compare.py",
+            "src/traffictwin/ui/navigation_v07.py",
+            "src/traffictwin/ui/labels.py",
+            "scripts/validate_v08_requirements_closure.py",
+        ]:
+            src = repo_root / rel
+            dst = tmp_root / rel
+            if src.is_dir():
+                shutil.copytree(
+                    src,
+                    dst,
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+                )
+            elif src.is_file():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+        # Also copy package metadata for import
+        for extra in ["pyproject.toml", "src/traffictwin/__init__.py"]:
+            src = repo_root / extra
+            dst = tmp_root / extra
+            if src.exists() and src.is_file():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+        # Mutate compare.py in temp copy: remove strip guard
+        comp_path = tmp_root / "src/traffictwin/ui/pages/compare.py"
+        if comp_path.exists():
+            txt = comp_path.read_text(encoding="utf-8")
+            mutated = (
+                txt.replace(".strip()", ".strip_without_guard()")
+                if ".strip()" in txt
+                else txt.replace("strip()", "no_strip()")
+            )
+            comp_path.write_text(mutated, encoding="utf-8")
+        # Prove mutation present in temp copy (separately from import check)
+        mutated_text = comp_path.read_text(encoding="utf-8")
+        assert ".strip_without_guard()" in mutated_text or "no_strip()" in mutated_text, (
+            "mutation not present in temp copy"
+        )
+        # Copy docs needed for validator
+        for rel in [
+            "docs/closure/v08_alignment",
+            "scripts",
+        ]:
+            src = repo_root / rel
+            dst = tmp_root / rel
+            if src.is_dir():
+                shutil.copytree(
+                    src,
+                    dst,
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+                )
+            elif src.is_file():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+        # In-process import-origin proof — deterministic, no subprocess
+        saved_path = list(sys.path)
+        saved_module = sys.modules.get("traffictwin")
+        try:
+            if "traffictwin" in sys.modules:
+                del sys.modules["traffictwin"]
+            sys.path.insert(0, str(tmp_root / "src"))
+            importlib.invalidate_caches()
+            import traffictwin as _temp_traffictwin
+
+            assert _temp_traffictwin.__file__ is not None, "traffictwin.__file__ is None"
+            assert str(tmp_root) in _temp_traffictwin.__file__, (
+                f"traffictwin not from temp: {_temp_traffictwin.__file__}"
+            )
+            assert _Path(_temp_traffictwin.__file__).resolve().is_relative_to(tmp_root.resolve()), (
+                f"traffictwin.__file__ not under temp root: {_temp_traffictwin.__file__}"
+            )
+        finally:
+            if "traffictwin" in sys.modules:
+                del sys.modules["traffictwin"]
+            if saved_module is not None:
+                sys.modules["traffictwin"] = saved_module
+            sys.path[:] = saved_path
+            importlib.invalidate_caches()
+        # Verify validator detects the mutation on temp copy (in-process, no subprocess)
+        env_key = "V08_VALIDATOR_ROOT"
+        old_env = os.environ.get(env_key)
+        old_validator = sys.modules.get("validate_v08_requirements_closure")
+        try:
+            os.environ[env_key] = str(tmp_root)
+            for key in list(sys.modules):
+                if key == "validate_v08_requirements_closure" or key.startswith("validate_v08"):
+                    del sys.modules[key]
+            spec = importlib.util.spec_from_file_location(
+                "validate_v08_requirements_closure",
+                tmp_root / "scripts/validate_v08_requirements_closure.py",
+            )
+            assert spec is not None and spec.loader is not None, "validator spec not found"
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules["validate_v08_requirements_closure"] = mod
+            spec.loader.exec_module(mod)
+            errors = mod.validate()
+            assert errors, "temp validator should fail on mutated compare.py"
+            assert any("strip" in e.lower() or "rollback" in e.lower() for e in errors), (
+                f"validator errors missing strip/rollback: {errors}"
+            )
+        finally:
+            if "validate_v08_requirements_closure" in sys.modules:
+                del sys.modules["validate_v08_requirements_closure"]
+            if old_validator is not None:
+                sys.modules["validate_v08_requirements_closure"] = old_validator
+            if old_env is None:
+                os.environ.pop(env_key, None)
+            else:
+                os.environ[env_key] = old_env
+            importlib.invalidate_caches()
+        # Prove real working tree stays byte-for-byte clean
+        after = (repo_root / "src/traffictwin/ui/pages/compare.py").read_text(encoding="utf-8")
+        assert after == original_compare, "real compare.py was mutated"
+        assert hashlib.sha256(after.encode()).hexdigest() == original_hash

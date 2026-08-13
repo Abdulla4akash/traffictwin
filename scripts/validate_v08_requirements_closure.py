@@ -18,12 +18,30 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+_DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _resolve_repo_root() -> Path:
+    for env in (
+        "V08_VALIDATOR_ROOT",
+        "V08_CLOSURE_VALIDATOR_ROOT",
+        "LANE12_VALIDATOR_ROOT",
+    ):
+        v = os.environ.get(env)
+        if v:
+            return Path(v)
+    if len(sys.argv) > 1 and Path(sys.argv[1]).is_dir():
+        return Path(sys.argv[1])
+    return _DEFAULT_REPO_ROOT
+
+
+REPO_ROOT = _resolve_repo_root()
 
 # ---------------------------------------------------------------------------
 # Expected canonical identities (embedded, self-contained)
@@ -51,6 +69,9 @@ EXPECTED_DEPENDENCIES: dict[str, str] = {
     "11": "958847d6b93450e7b8603adc127ab299f23d994a",
 }
 EXPECTED_MANIFEST_SHA256 = "6c716eb6de08791d1bcb207c15c6b2c51b46d735944dd851334d61d9183b3125"
+
+# Frozen vec_jax identity — present only in allowed_sha256_set (not in primitives/matrix)
+FROZEN_VEC_JAX_SHA = "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
 
 # Strategy matrix
 REQUIRED_STRATEGY_IDS = [
@@ -362,39 +383,62 @@ def validate_evidence_refs(errors: list[str]) -> None:
     if not isinstance(allowed, list) or len(allowed) == 0:
         errors.append("strategy_evidence_map missing allowed_sha256_set")
         return
+    allowed_set: set[str] = set()
     for sha in allowed:
         if not isinstance(sha, str) or not HEX64_RE.match(sha):
             errors.append(f"evidence_map allowed SHA not 64 hex: {sha!r}")
-            break
-    # Check that every strategy's experiment_evidence SHA appears in allowed or is known raw
-    # At minimum, allowed set must not be orphaned: matrix SHAs must be subset
+            return
+        allowed_set.add(sha)
+    # Derive unique SHA-256 set from strategy_evidence_map.json:strategies.*.evidence[].sha256
+    evidence_shas: set[str] = set()
+    strategies = evidence_map.get("strategies", {})
+    if not isinstance(strategies, dict):
+        errors.append("strategy_evidence_map strategies malformed")
+        return
+    for strat_id, strat in strategies.items():
+        ev_list = strat.get("evidence", []) if isinstance(strat, dict) else []
+        for ev in ev_list:
+            sha = ev.get("sha256") if isinstance(ev, dict) else None
+            if isinstance(sha, str) and HEX64_RE.match(sha):
+                evidence_shas.add(sha)
+            elif sha is not None:
+                errors.append(f"strategy_evidence_map {strat_id} evidence sha malformed {sha!r}")
+    # Derive primitive 64-hex identities recursively from tracked primitives
+    primitive_shas: set[str] = set()
+
+    def _collect_hex(obj: Any, out: set[str]) -> None:  # noqa: ANN401
+        if isinstance(obj, str) and HEX64_RE.match(obj):
+            out.add(obj)
+        elif isinstance(obj, dict):
+            for v in obj.values():
+                _collect_hex(v, out)
+        elif isinstance(obj, list):
+            for v in obj:
+                _collect_hex(v, out)
+
+    _collect_hex(evidence_map.get("primitives", {}), primitive_shas)
+    # Derive matrix evidence digests (experiment_evidence 64-hex values)
     matrix_shas: set[str] = set()
     for s in matrix.get("strategies", []):
         ev = s.get("experiment_evidence", {})
-        for _k, v in ev.items():
-            if isinstance(v, str) and HEX64_RE.match(v):
-                matrix_shas.add(v)
-    # Allow external raw digests outside allowed, but check at least half overlap
-    _orphan = matrix_shas - set(allowed)
-    # If orphan contains any SHA that should be in allowed but missing, fail
-    # We check specific known SHAs that must be present
-    must_present = {
-        "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f",
-        "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
-        "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
-    }
-    for must_sha in must_present:
-        if must_sha not in allowed:
-            errors.append(f"evidence_map missing required SHA {must_sha}")
-    # Check entries resolve
-    entries = evidence_map.get("entries", [])
-    if entries is not None and len(entries) == 0:
-        # allow empty but warn
-        pass
-    # Check for orphan evidence file: every SHA in allowed must be referenced somewhere or be known
-    # Discriminating: orphan evidence means adding a stray SHA
-    # not referenced -> should fail if extra?
-    # Instead we check that allowed set is not empty and not containing placeholder
+        if isinstance(ev, dict):
+            for _k, v in ev.items():
+                if isinstance(v, str) and HEX64_RE.match(v):
+                    matrix_shas.add(v)
+    # Expected allowed set: evidence ∪ primitives ∪ matrix ∪ frozen vec_jax
+    expected_allowed = evidence_shas | primitive_shas | matrix_shas | {FROZEN_VEC_JAX_SHA}
+    if allowed_set != expected_allowed:
+        missing = sorted(expected_allowed - allowed_set)
+        orphan = sorted(allowed_set - expected_allowed)
+        if missing:
+            errors.append(f"evidence_map allowed_sha256_set missing referenced SHA(s): {missing}")
+        if orphan:
+            errors.append(f"evidence_map allowed_sha256_set contains stray orphan SHA(s): {orphan}")
+    unresolved = sorted(matrix_shas - allowed_set)
+    if unresolved:
+        errors.append(
+            f"strategy_matrix experiment_evidence SHA(s) not in allowed_sha256_set: {unresolved}"
+        )
 
 
 def validate_accounting(errors: list[str]) -> None:
@@ -450,6 +494,57 @@ def validate_accounting(errors: list[str]) -> None:
         errors.append("waiting-room ceiling incorrectly described as compute power")
 
 
+EXPECTED_A_LABELS: dict[str, tuple[str, str]] = {
+    "bods_bus_positions": ("REAL MANCHESTER DATA", "REAL MANCHESTER DATA"),
+    "national_highways_operational": (
+        "REAL EXTERNAL NON-MANCHESTER DATA",
+        "REAL EXTERNAL NON-MANCHESTER DATA",
+    ),
+    "dft_historical_counts": ("REAL MANCHESTER DATA", "REAL MANCHESTER DATA"),
+    "webtris_historical": (
+        "REAL EXTERNAL NON-MANCHESTER DATA",
+        "REAL EXTERNAL NON-MANCHESTER DATA",
+    ),
+    "tfgm_signal_locations": ("REAL MANCHESTER DATA", "REAL MANCHESTER DATA"),
+    "ons_boundary": ("REAL MANCHESTER DATA", "REAL MANCHESTER DATA"),
+    "manual_incident_authored": ("SYNTHETIC DATA", "SYNTHETIC DATA"),
+    "synthetic_square_sumo": ("SIMULATION OUTPUT", "SIMULATION OUTPUT"),
+    "general_live_road_traffic_bods": ("DESIGN-ONLY CAPABILITY", "DESIGN-ONLY CAPABILITY"),
+    "live_city_wide_twin": ("DESIGN-ONLY CAPABILITY", "DESIGN-ONLY CAPABILITY"),
+    "social_media_ingestion": ("DESIGN-ONLY CAPABILITY", "DESIGN-ONLY CAPABILITY"),
+}
+
+EXPECTED_B_LABELS: dict[str, str] = {
+    "FINAL_AUDIT": "FINAL_NEGOTIATED_REQUIREMENTS_AUDIT",
+    "NEGOTIATED_V1_WHOLE_FILE": "FROZEN_REQUIREMENTS_BASELINE_CONTAINER",
+    "RESEARCH_AUDIT_SEMANTIC_CONTRACT": "ORIGINAL_RESEARCH_AUDIT_AND_SEMANTIC_CONTRACT",
+    "AUDIT_SOURCE_INDEX": "AUDIT_SOURCE_INDEX",
+    "S-007": "DIRECT_RANDY_QA",
+    "S-035 / SANDRA-DIRECT-BODY-2026-08-04": "DIRECT_SUPERVISOR_SOURCE_BODY",
+    "PRODUCT_DESIGN_V2": "CLASS_D_PRODUCT_DESIGN_PROPOSAL",
+}
+
+_ALLOWED_A_STANDINGS = {
+    "REAL MANCHESTER DATA",
+    "REAL EXTERNAL NON-MANCHESTER DATA",
+    "SYNTHETIC DATA",
+    "SIMULATION OUTPUT",
+    "DESIGN-ONLY CAPABILITY",
+}
+
+_ALLOWED_B_STANDINGS = {
+    "FINAL_NEGOTIATED_REQUIREMENTS_AUDIT",
+    "FROZEN_REQUIREMENTS_BASELINE_CONTAINER",
+    "ORIGINAL_RESEARCH_AUDIT_AND_SEMANTIC_CONTRACT",
+    "AUDIT_SOURCE_INDEX",
+    "DIRECT_RANDY_QA",
+    "DIRECT_SUPERVISOR_SOURCE_BODY",
+    "CLASS_D_PRODUCT_DESIGN_PROPOSAL",
+}
+
+_ALLOWED_ALL_STANDINGS = _ALLOWED_A_STANDINGS | _ALLOWED_B_STANDINGS | {"MIXED"}
+
+
 def validate_evidence_labels(errors: list[str]) -> None:
     # Evidence labels must distinguish SOURCE-DERIVED,
     # IMPLEMENTATION-VERIFIED, RESEARCH-EVIDENCE etc.
@@ -460,46 +555,69 @@ def validate_evidence_labels(errors: list[str]) -> None:
             has_label = any(label in text for label in HONESTY_LABELS)
             if not has_label:
                 errors.append(f"{md_path.relative_to(REPO_ROOT)} missing honesty vocabulary")
-    # Check use-case manifests have allowed evidence_standing values
-    allowed_standings = {
-        "REAL MANCHESTER DATA",
-        "REAL EXTERNAL NON-MANCHESTER DATA",
-        "SYNTHETIC DATA",
-        "SIMULATION OUTPUT",
-        "DESIGN-ONLY CAPABILITY",
-        "REAL HISTORICAL DATA",
-        "HISTORICAL MANCHESTER DATA",
-        "REAL HISTORICAL NON-MANCHESTER DATA",
-    }
-    for manifest_path in [USE_CASE_A_MANIFEST, USE_CASE_B_MANIFEST]:
-        if manifest_path.exists():
-            data = _load_json(manifest_path)
-            for src in data.get("sources", []):
-                standing = src.get("evidence_standing") or src.get("classification")
-                if (
-                    standing
-                    and standing not in allowed_standings
-                    and ("_" in standing or standing == "INVENTED STANDING")
-                ):
-                    errors.append(
-                        f"{manifest_path.name} source "
-                        f"{src.get('source_id')} has invented standing {standing!r}"
-                    )
-                # Check synthetic not relabelled as real
-                if (
-                    src.get("source_id")
-                    in (
-                        "general_live_road_traffic_bods",
-                        "live_city_wide_twin",
-                        "social_media_ingestion",
-                    )
-                    and standing == "REAL MANCHESTER DATA"
-                ):
-                    errors.append(
-                        "synthetic/design-only source "
-                        f"{src.get('source_id')} mislabelled as "
-                        "REAL MANCHESTER DATA"
-                    )
+    # Freeze exact manifest-specific map for every Use Case A source_id
+    if USE_CASE_A_MANIFEST.exists():
+        data = _load_json(USE_CASE_A_MANIFEST)
+        sources = {s.get("source_id"): s for s in data.get("sources", [])}
+        for sid, (exp_class, exp_standing) in EXPECTED_A_LABELS.items():
+            src = sources.get(sid)
+            if src is None:
+                errors.append(f"use_case_a missing source {sid}")
+                continue
+            cls = src.get("classification")
+            st = src.get("evidence_standing")
+            if cls != exp_class:
+                errors.append(
+                    f"use_case_a source {sid} classification "
+                    f"mismatch: got {cls!r} expected {exp_class!r}"
+                )
+            if st != exp_standing:
+                errors.append(
+                    f"use_case_a source {sid} evidence_standing "
+                    f"mismatch: got {st!r} expected {exp_standing!r}"
+                )
+            if cls != st:
+                errors.append(
+                    f"use_case_a source {sid} classification and "
+                    f"evidence_standing disagree: {cls!r} vs {st!r}"
+                )
+            if st and st not in _ALLOWED_A_STANDINGS:
+                errors.append(f"use_case_a source {sid} has unrecognised standing {st!r}")
+            if cls and cls not in _ALLOWED_A_STANDINGS:
+                errors.append(f"use_case_a source {sid} has unrecognised classification {cls!r}")
+        for sid in list(sources.keys()):
+            if sid not in EXPECTED_A_LABELS:
+                errors.append(f"use_case_a unexpected source {sid}")
+        for src in data.get("sources", []):
+            st = src.get("evidence_standing") or src.get("classification")
+            if st and st not in _ALLOWED_ALL_STANDINGS:
+                errors.append(
+                    f"use_case_a source {src.get('source_id')} has invented standing {st!r}"
+                )
+    # Freeze Use Case B source identity/standing map (authoritative vocab)
+    if USE_CASE_B_MANIFEST.exists():
+        data = _load_json(USE_CASE_B_MANIFEST)
+        sources = {s.get("id"): s for s in data.get("sources", [])}
+        for sid, exp_standing in EXPECTED_B_LABELS.items():
+            src = sources.get(sid)
+            if src is None:
+                errors.append(f"use_case_b missing source {sid}")
+                continue
+            st = src.get("standing")
+            if st != exp_standing:
+                errors.append(
+                    f"use_case_b source {sid} standing "
+                    f"mismatch: got {st!r} expected {exp_standing!r}"
+                )
+            if st and st not in _ALLOWED_B_STANDINGS:
+                errors.append(f"use_case_b source {sid} has unrecognised standing {st!r}")
+        for sid in list(sources.keys()):
+            if sid not in EXPECTED_B_LABELS:
+                errors.append(f"use_case_b unexpected source {sid}")
+        for src in data.get("sources", []):
+            st = src.get("standing")
+            if st and st not in _ALLOWED_ALL_STANDINGS:
+                errors.append(f"use_case_b source {src.get('id')} has invented standing {st!r}")
     # Also check manchester demo contract classification honesty
     # synthetic square must be SYNTHETIC etc.
 
@@ -760,24 +878,18 @@ def validate_no_unresolved_must_silently_met(errors: list[str]) -> None:
 
 def validate_rollback_identity(errors: list[str]) -> None:
     # Check that compare.py preserves transactional rollback and identity continuity
+    # Static check complements executable AppTest; both are retained
     if not COMPARE_PAGE.exists():
         errors.append(f"missing required file: {COMPARE_PAGE.relative_to(REPO_ROOT)}")
         return
     text = COMPARE_PAGE.read_text(encoding="utf-8")
-    # Must strip before Path construction to avoid Path("") == "." corruption
+    # Must strip before Path construction to avoid Path("") == Path(".") corruption
     if "strip()" not in text:
         errors.append(
             "compare page missing strip() before Path construction — "
             "Path('') corruption not prevented"
         )
-    if (
-        'Path("") == "."' not in text
-        and 'Path("") == ""."" not in text'
-        and 'Path("") == Path(".")' not in text
-        and 'Path("") == Path(".")' not in text
-        and 'Path("")' not in text
-        and "Only after pair is successfully usable" not in text
-    ):
+    if "Only after pair is successfully usable" not in text:
         errors.append("compare page missing transactional rollback comment")
     # Check that both selected_baseline_run and selected_variation_run are assigned atomically
     if (
@@ -794,7 +906,6 @@ def validate_rollback_identity(errors: list[str]) -> None:
         if "def page_script_for" not in nav:
             errors.append("navigation_v07 missing page_script_for function")
     # Check that data_mode_label preservation is not broken — labels include SYNTHETIC
-    # (checked via evidence labels above, but also check that compare preserves synthetic badge)
     if "_provenance_badge" not in text and "provenance_badge" not in text:
         errors.append(
             "compare page missing provenance badge (data_mode_label=SYNTHETIC preservation)"
@@ -813,30 +924,21 @@ def validate_closure_package_index(errors: list[str]) -> None:
             f"got {data.get('dependency_manifest_sha256')} "
             f"expected {EXPECTED_MANIFEST_SHA256}"
         )
-    deps = data.get("dependencies", {})
-    if not isinstance(deps, dict):
-        deps = (
-            {d.get("lane"): d.get("frozen_sha") for d in data.get("dependencies", [])}
-            if isinstance(data.get("dependencies"), list)
-            else {}
-        )
+    raw_deps = data.get("dependencies", {})
+    deps_dict: dict[str, str] = {}
+    if isinstance(raw_deps, dict):
+        deps_dict = {str(k): str(v) for k, v in raw_deps.items()}
+    elif isinstance(raw_deps, list):
+        for entry in raw_deps:
+            if isinstance(entry, dict) and "lane" in entry and "frozen_sha" in entry:
+                deps_dict[str(entry["lane"])] = str(entry["frozen_sha"])
     for lane, sha in EXPECTED_DEPENDENCIES.items():
-        _actual = deps.get(lane) if isinstance(deps, dict) else None
-        if isinstance(deps, dict) and lane not in deps:
-            # Try list form
-            found = False
-            for entry in (
-                data.get("dependencies", []) if isinstance(data.get("dependencies"), list) else []
-            ):
-                if entry.get("lane") == lane and entry.get("frozen_sha") == sha:
-                    found = True
-                    break
-            if not found:
-                errors.append(f"closure_package_index missing dependency lane {lane} SHA {sha}")
-        elif isinstance(deps, dict) and deps.get(lane) != sha:
+        actual = deps_dict.get(lane)
+        if actual is None:
+            errors.append(f"closure_package_index missing dependency lane {lane} SHA {sha}")
+        elif actual != sha:
             errors.append(
-                f"closure_package_index lane {lane} SHA mismatch "
-                f"got {deps.get(lane)} expected {sha}"
+                f"closure_package_index lane {lane} SHA mismatch got {actual} expected {sha}"
             )
     if data.get("prepared_base_sha") != EXPECTED_PREPARED_BASE_SHA:
         errors.append(
@@ -846,22 +948,6 @@ def validate_closure_package_index(errors: list[str]) -> None:
         )
     if data.get("campaign_base_sha") != EXPECTED_BASE_SHA:
         errors.append("closure_package_index campaign_base_sha mismatch")
-    # Check that index contains required keys
-    for key in [
-        "schema_version",
-        "campaign",
-        "lane",
-        "base_sha",
-        "prepared_base_sha",
-        "dependencies",
-    ]:
-        if key not in data and key != "base_sha":  # base_sha may be campaign_base_sha
-            # allow alternative naming but check presence of campaign_base_sha
-            if key == "base_sha" and "campaign_base_sha" in data:
-                continue
-            if key not in data:
-                # not all schemas require same keys; lenient
-                pass
 
 
 def validate_closure_report(errors: list[str]) -> None:

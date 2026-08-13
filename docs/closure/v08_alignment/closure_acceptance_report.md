@@ -69,7 +69,7 @@ Five strategies present with required fields (`admission`, `placement`, `experim
 | `common_target_dla` | JSQ common-target + DLA gate | joint | IMPLEMENTATION-VERIFIED + RESEARCH-EVIDENCE FACT + INFERENCE boundary |
 | `per_task_dla` | per-task recomputed argmin + immediate reservation | DLA gate per candidate | IMPLEMENTATION-VERIFIED + RESEARCH-EVIDENCE FACT (E2d bound) |
 
-Matrix authority payload/whole/S-035 SHAs consistent; experiment evidence SHAs are within `strategy_evidence_map.json:allowed_sha256_set` — **IMPLEMENTATION-VERIFIED FACT**.
+Matrix authority payload/whole/S-035 SHAs consistent; every 64-hex digest in `strategy_matrix.json:strategies[].experiment_evidence` resolves in `strategy_evidence_map.json:allowed_sha256_set`, and `allowed_sha256_set` equals the union of the unique SHA-256 set from `strategy_evidence_map.json:strategies.*.evidence[].sha256` (25) ∪ the 5 primitive 64-hex identities recursively derived from `strategy_evidence_map.json:primitives` (actor, trace, two evaluator identities, per-task helper) ∪ the matrix-referenced validation digest `e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1` ∪ the frozen vec_jax identity `73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff` (present only in `allowed_sha256_set`) — 32 total with exact set equality — missing, stray, or mismatched bindings fail with precise diagnostics — **IMPLEMENTATION-VERIFIED FACT**.
 
 ## 6. Improved-contract identity — IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT
 
@@ -81,8 +81,8 @@ Matrix authority payload/whole/S-035 SHAs consistent; experiment evidence SHAs a
 ## 7. Evidence refs — IMPLEMENTATION-VERIFIED FACT
 
 - `strategy_evidence_map.json:allowed_sha256_set` — every entry is 64 lowercase hex, no decorated prefix, no placeholder — **IMPLEMENTATION-VERIFIED FACT**.
-- Must-present SHAs (`e188ce07…` trace, `93c97059…` actor, `f77afb23…` manifest etc.) included — **IMPLEMENTATION-VERIFIED FACT**.
-- Each strategy's `experiment_evidence` SHAs resolve to an allowed entry or declared raw artifact; orphan evidence (stray SHA not in allowed) fails — **IMPLEMENTATION-VERIFIED FACT**.
+- The allowed set is exactly the union of the unique SHA-256 set derived from `strategy_evidence_map.json:strategies.*.evidence[].sha256` (25) ∪ the 5 primitive 64-hex identities recursively derived from `strategy_evidence_map.json:primitives` (actor `93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208`, trace `e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056`, evaluator `260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669`, evaluator `f9ec488528c52ce7cd6f7bb8b3a6c9c96aef532e5783a538bcac9763508519fe`, helper `a6e047265dd09365c0d4029afa76f8cb7caa444883e2f549a4254e3d0b53472a`) ∪ the matrix-referenced validation digest `e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1` ∪ the frozen vec_jax identity `73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff` (present only in `allowed_sha256_set`) — 32 total with exact set equality; removing a referenced digest (e.g., `f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740`) or adding a stray SHA fails; wrong matrix digest (`strongest_link_off` primary manifest `a`×64) fails — **IMPLEMENTATION-VERIFIED FACT**.
+- Every 64-hex digest in `strategy_matrix.json:strategies[].experiment_evidence` must resolve in the allowed set; unresolved/missing/orphan/mismatched bindings fail with precise diagnostics — **IMPLEMENTATION-VERIFIED FACT**.
 - No historical code import: E2 heads referenced read-only via `refs/harness/read-only/*`; no PR #43 production code copied.
 
 ## 8. Accounting conservation — IMPLEMENTATION-VERIFIED FACT
@@ -96,9 +96,9 @@ Matrix authority payload/whole/S-035 SHAs consistent; experiment evidence SHAs a
 ## 9. Evidence labels — SOURCE-DERIVED FACT + IMPLEMENTATION-VERIFIED FACT
 
 - Every material artifact distinguishes **SOURCE-DERIVED FACT, IMPLEMENTATION-VERIFIED FACT, RESEARCH-EVIDENCE FACT, INFERENCE, PROVISIONAL WORDING, EXTERNAL DECISION REQUIRED** where applicable — **IMPLEMENTATION-VERIFIED FACT**.
-- Manchesterserver honest labels: `REAL MANCHESTER DATA` (bus-positions, DfT counts, ONS boundary), `REAL EXTERNAL NON-MANCHESTER DATA` (National Highways DATEX2, WebTRIS), `SYNTHETIC DATA` (manual incident), `SIMULATION OUTPUT` (synthetic-square SUMO), `DESIGN-ONLY CAPABILITY` (general live-road BODS, live city-wide twin, social media) — no synthetic/design-only relabelled as `REAL MANCHESTER DATA`; invented standing (`real_manchester`) rejected — **IMPLEMENTATION-VERIFIED FACT**.
+- Use Case A: exact manifest-specific map for every `source_id` to its expected `classification`/`evidence_standing` (11 sources: `REAL MANCHESTER DATA` 4×, `REAL EXTERNAL NON-MANCHESTER DATA` 2×, `SYNTHETIC DATA`, `SIMULATION OUTPUT`, `DESIGN-ONLY CAPABILITY` 3×) — both fields must agree and match expected; use Case B: exact expected source identity/`standing` map in authoritative-source vocabulary (7 sources: `FINAL_NEGOTIATED_REQUIREMENTS_AUDIT`, `FROZEN_REQUIREMENTS_BASELINE_CONTAINER`, etc.) — **IMPLEMENTATION-VERIFIED FACT**. Honest Manchester `MIXED` standing preserved; real/external/synthetic/simulation/design-only boundaries retained.
+- Any unrecognised standing (e.g., `REAL LIVE CITY TWIN DATA`) is rejected unconditionally; synthetic→real (`manual_incident_authored` `SYNTHETIC DATA`→`REAL MANCHESTER DATA`), simulation→real (`synthetic_square_sumo` `SIMULATION OUTPUT`→`REAL MANCHESTER DATA`), design-only→invented (`live_city_wide_twin` `DESIGN-ONLY CAPABILITY`→`REAL LIVE CITY TWIN DATA`), and classification/standing disagreement all fail with precise diagnostics — **IMPLEMENTATION-VERIFIED FACT**.
 - Synthetic `data_mode_label=SYNTHETIC` preserved through What-If → Consequence → Compare → report chain — **IMPLEMENTATION-VERIFIED FACT**.
-- Labels are validated at runtime in validator; relabelling synthetic as real fails.
 
 ## 10. Manchester standing — IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT
 
@@ -142,21 +142,30 @@ Matrix authority payload/whole/S-035 SHAs consistent; experiment evidence SHAs a
 - `data_mode_label=SYNTHETIC` (via `synthetic==True` in current `ComparisonReport` / `ConsequenceLensReport`) preserved through portable receipt export (`receipt_to_portable_dict`) and consequence canonical payload (`to_portable_dict`) — filesystem-path-agnostic, verified in two temporary workspace roots with no absolute leakage and stable fingerprint — **IMPLEMENTATION-VERIFIED FACT**.
 - PR #18 used only as historical input for acceptance ideas; no production `compare.py` cherry-picked.
 
-## 15. Discriminating mutations (harness must fail, restore must pass)
+## 15. Discriminating mutations (harness must fail, restore must pass) — IMPLEMENTATION-VERIFIED FACT
 
-| # | Mutation | Expected result — IMPLEMENTATION-VERIFIED FACT |
+All mutations were executed against a disposable temp copy via `V08_VALIDATOR_ROOT` (or CLI root arg) — real working tree stayed byte-for-byte clean; each mutation failed validator (exit 1) and the unmutated temp copy restored/passed.
+
+| # | Mutation | Harness result |
 |---|---|---|
-| M1 | baseline hash: change `canonical_payload_sha256` | harness exits 1 (payload hash mismatch) |
-| M2 | duplicate service identity: set use_case_b workflow to use_case_a | harness exits 1 (duplicate service identity) |
-| M3 | orphan evidence: add stray SHA to `allowed_sha256_set` not in matrix | harness exits 1 (missing required SHA cross-check still fails via must-present) — alternative: remove one required SHA |
-| M4 | break accounting: set `offered=999` in hand_example | harness exits 1 (conservation failed) |
-| M5 | relabel synthetic real: set `general_live_road_traffic_bods` to `REAL MANCHESTER DATA` | harness exits 1 (design-only mislabelled) |
-| M6 | mark unresolved MUST MET: set `TT-REQ-005 status PARTIALLY_MET → VERIFIED_MET` | harness exits 1 (MUST arithmetic broken, gap missing) |
-| M7 | remove one video segment (delete row 3 from storyboard) | harness exits 1 (segments 7 !=8) |
-| M8 | break rollback/identity: remove `strip()` from compare page | harness exits 1 (rollback/identity guard missing) |
-| M9 | remove evidence standing from checklist | harness exits 1 (video evidence standing empty) |
-
-All mutations were executed as temporary in-place file edits and **restored to the original committed bytes before final validation** — both failing and restored outcomes were observed.
+| M1 | baseline hash: change `canonical_payload_sha256` to `0`×64 | exits 1 (payload hash mismatch) |
+| M2 | duplicate service identity: set use_case_b workflow to use_case_a | exits 1 (duplicate service identity) |
+| M3a | stray allowed digest: add `b`×64 to `strategy_evidence_map.json:allowed_sha256_set` | exits 1 (stray orphan SHA) |
+| M3b | removed referenced digest: remove `f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740` from allowed set | exits 1 (missing referenced SHA + unresolved matrix SHA) |
+| M3c | wrong matrix digest: replace `strongest_link_off.experiment_evidence.primary_manifest_sha256` with `a`×64 | exits 1 (SHA not in allowed set) |
+| M3d | orphan evidence: remove first allowed SHA (anchored) | exits 1 (missing referenced SHA) |
+| M4 | break accounting: set `offered` +1 in hand_example | exits 1 (conservation failed) |
+| M5a | synthetic→real: `manual_incident_authored` `SYNTHETIC DATA`→`REAL MANCHESTER DATA` | exits 1 (classification/standing mismatch) |
+| M5b | simulation→real: `synthetic_square_sumo` `SIMULATION OUTPUT`→`REAL MANCHESTER DATA` | exits 1 (classification/standing mismatch) |
+| M5c | design-only→invented: `live_city_wide_twin` `DESIGN-ONLY CAPABILITY`→`REAL LIVE CITY TWIN DATA` | exits 1 (unrecognised/invented standing) |
+| M5d | classification/standing disagreement: `manual_incident_authored` classification `REAL MANCHESTER DATA` vs standing `SYNTHETIC DATA` | exits 1 (disagreement) |
+| M5e | relabel synthetic real: `general_live_road_traffic_bods`→`REAL MANCHESTER DATA` | exits 1 (classification/standing mismatch) |
+| M6 | mark unresolved MUST MET: `TT-REQ-005` `PARTIALLY_MET`→`VERIFIED_MET` | exits 1 (MUST arithmetic broken, gap missing) |
+| M7 | remove one video segment (delete row 3 from storyboard, `1:15`) | exits 1 (segments 7 !=8) |
+| M8a | break rollback/identity (static): remove `strip()` from compare page | exits 1 (rollback guard missing) via temp-copy validator |
+| M8b | break rollback/identity (behavioral): blank/whitespace/invalid bundle paths via AppTest retains authoritative pair (executable) | AppTest asserts `selected_baseline_run` unchanged, never `"."` |
+| M8c | temp-copy mutation proves `traffictwin.__file__` under temp root via in-process import (no subprocess) before trusting temp result | in-process import proves `traffictwin.__file__` under temp root; temp `compare.py` mutation present; temp-root validator fails; real tree hash unchanged |
+| M9 | remove evidence standing from checklist (`SHOT-01` standing cell) | exits 1 (standing empty) |
 
 ## 16. Honesty boundaries
 
