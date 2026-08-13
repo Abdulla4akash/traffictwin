@@ -123,6 +123,7 @@ RejectionReason: TypeAlias = Literal[
     "RIGHTS_UNLICENSED",
     "NETWORK_HASH_MISMATCH",
     "PROVENANCE_BROKEN",
+    "PROVENANCE_CHAIN_MISMATCH",
     "MISSING_CALIBRATION",
     "MAP_MATCH_POLICY_UNAPPROVED",
     "BOUNDARY_MISMATCH",
@@ -130,6 +131,11 @@ RejectionReason: TypeAlias = Literal[
     "CANDIDATE_TAMPERED",
     "MISMATCHED_CANDIDATE_FINGERPRINT",
     "SECRET_OR_PATH_LEAKAGE",
+    "BUILD_RECEIPT_MISSING",
+    "EVIDENCE_NOT_PRODUCTION",
+    "TEMPORAL_VIOLATION",
+    "SOFTWARE_NOT_VALID",
+    "EXPLICIT_NON_ACCEPTANCE",
 ]
 
 # Bounded collection limits
@@ -536,6 +542,15 @@ class BaselineProvenance(BaselinePackageModel):
             raise ValueError("parent fingerprints must be unique")
         return v
 
+    @model_validator(mode="after")
+    def _validate_chain(self) -> BaselineProvenance:
+        if self.chain_fingerprint is not None:
+            # Chain must bind exact sorted parent set deterministically.
+            expected = _sha256_hex(_canonical_json(list(self.parent_fingerprints)).encode("utf-8"))
+            if self.chain_fingerprint != expected:
+                raise ValueError("chain_fingerprint must bind exact sorted parent fingerprints")
+        return self
+
 
 # ---------------------------------------------------------------------------
 # Candidate package — the frozen, fingerprint-bound candidate
@@ -707,6 +722,25 @@ class ManchesterBaselineSoftwareValidation(BaselinePackageModel):
 
 
 class ManchesterBaselineAcceptanceDecision(BaselinePackageModel):
+    """Explicit attributable scientific acceptance decision.
+
+    The decision is structurally self-consistent when ``decision_fingerprint``
+    matches the canonical JSON digest of its semantic fields. A
+    self-consistent payload is **not** scientific evidence on its own;
+    scientific standing is verified only by :func:`verify_baseline_acceptance`
+    against the exact candidate and software-validation receipt. The
+    fingerprint is a plain SHA-256 digest for binding, not cryptographic
+    authenticity.
+
+    An ``SCIENTIFICALLY_ACCEPTED_BASELINE`` decision immutably binds the
+    exact software-validation receipt
+    (``software_validation_fingerprint`` == ``ManchesterBaselineSoftwareValidation.fingerprint()``)
+    and the exact candidate build receipt
+    (``candidate_build_receipt_fingerprint`` == ``candidate.build_receipt_fingerprint``).
+    Non-accepted / provider-blocked decisions carry ``None`` for both bindings;
+    any other combination is rejected during model validation.
+    """
+
     schema_version: Literal["1.0"] = MANCHESTER_BASELINE_PACKAGE_SCHEMA_VERSION
     capability_id: Literal["MAN-09"] = MANCHESTER_BASELINE_PACKAGE_CAPABILITY_ID
     method_version: Literal["manchester-baseline-package-1.0"] = (
@@ -720,7 +754,13 @@ class ManchesterBaselineAcceptanceDecision(BaselinePackageModel):
     rationale: str = Field(min_length=1, max_length=800)
     prerequisites_verified: tuple[str, ...] = Field(min_length=1, max_length=16)
     rejection_reasons: tuple[RejectionReason, ...] = Field(default=())
+    # Immutable binding to the exact receipts used for acceptance.
+    # Accepted decisions must carry both; non-accepted must carry neither.
+    software_validation_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    candidate_build_receipt_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     # Attributable: decision fingerprint binds candidate + attribution + time
+    # + receipt bindings. See class docstring: binding is a plain digest, not
+    # cryptographic authenticity; verification requires exact objects.
     decision_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
 
     @field_validator("decided_by")
@@ -757,30 +797,80 @@ class ManchesterBaselineAcceptanceDecision(BaselinePackageModel):
             _reject_private_path(p, "prerequisite")
         return v
 
+    @field_validator("rejection_reasons")
+    @classmethod
+    def _validate_rejection_reasons(
+        cls, v: tuple[RejectionReason, ...]
+    ) -> tuple[RejectionReason, ...]:
+        if v != tuple(sorted(v)):
+            raise ValueError("rejection_reasons must be sorted")
+        if len(set(v)) != len(v):
+            raise ValueError("rejection_reasons must be unique")
+        return v
+
     @model_validator(mode="after")
     def _validate_decision(self) -> ManchesterBaselineAcceptanceDecision:
         payload = {
             "candidate_fingerprint": self.candidate_fingerprint,
             "candidate_package_id": self.candidate_package_id,
-            "scientific_standing": self.scientific_standing,
+            "candidate_build_receipt_fingerprint": self.candidate_build_receipt_fingerprint,
             "decided_by": self.decided_by,
             "decided_at_utc": self.decided_at_utc.isoformat(),
-            "rationale": self.rationale,
             "prerequisites_verified": list(self.prerequisites_verified),
+            "rationale": self.rationale,
+            "rejection_reasons": list(self.rejection_reasons),
+            "schema_version": self.schema_version,
+            "capability_id": self.capability_id,
+            "method_version": self.method_version,
+            "scientific_standing": self.scientific_standing,
+            "software_validation_fingerprint": self.software_validation_fingerprint,
         }
         expected = _sha256_hex(_canonical_json(payload).encode("utf-8"))
         if self.decision_fingerprint != expected:
             raise ValueError(
-                "decision_fingerprint must bind candidate, standing, attribution and time"
+                "decision_fingerprint must bind candidate, standing, attribution, "
+                "time, prerequisites, rejection_reasons and receipt bindings"
             )
-        if (
-            self.scientific_standing == "SCIENTIFICALLY_ACCEPTED_BASELINE"
-            and self.rejection_reasons
-        ):
-            raise ValueError("accepted decision cannot carry rejection reasons")
-        if self.scientific_standing == "PROVIDER_DATA_REQUIRED" and not self.rejection_reasons:
-            raise ValueError("PROVIDER_DATA_REQUIRED must carry rejection reasons")
+        if self.scientific_standing == "SCIENTIFICALLY_ACCEPTED_BASELINE":
+            if self.rejection_reasons:
+                raise ValueError("accepted decision cannot carry rejection reasons")
+            if self.software_validation_fingerprint is None:
+                raise ValueError("accepted decision must carry software_validation_fingerprint")
+            if self.candidate_build_receipt_fingerprint is None:
+                raise ValueError("accepted decision must carry candidate_build_receipt_fingerprint")
+        else:
+            if self.software_validation_fingerprint is not None:
+                raise ValueError(
+                    "non-accepted decision must not carry software_validation_fingerprint"
+                )
+            if self.candidate_build_receipt_fingerprint is not None:
+                raise ValueError(
+                    "non-accepted decision must not carry candidate_build_receipt_fingerprint"
+                )
+            if self.scientific_standing == "PROVIDER_DATA_REQUIRED" and not self.rejection_reasons:
+                raise ValueError("PROVIDER_DATA_REQUIRED must carry rejection reasons")
         return self
+
+    def verify(
+        self,
+        candidate: ManchesterBaselineCandidatePackage,
+        software_validation: ManchesterBaselineSoftwareValidation | None,
+    ) -> None:
+        """Verify this decision against the exact candidate and software validation.
+
+        Reuses the same prerequisite checker as the builder so the two cannot
+        drift. Fails closed via :class:`ManchesterBaselinePackageError` unless
+        every identity, standing, prerequisite, timestamp, and
+        provider/rights/map-match/calibration/build-receipt precondition still
+        matches. Does not invent or retrieve provider evidence and never
+        self-upgrades ``scientific_standing``.
+
+        Structural self-consistency (matching ``decision_fingerprint``) alone
+        does not confer scientific standing; only successful verification
+        against the exact objects does. The fingerprint is a plain digest, not
+        cryptographic authenticity.
+        """
+        verify_baseline_acceptance(self, candidate, software_validation)
 
 
 # ---------------------------------------------------------------------------
@@ -825,13 +915,35 @@ def validate_candidate_software(
     candidate: ManchesterBaselineCandidatePackage,
     *,
     validated_at_utc: datetime | None = None,
+    package_root: object | None = None,
 ) -> ManchesterBaselineSoftwareValidation:
     """Validate portable file/package structure only.
 
+    **Exact meaning of SOFTWARE_VALID** (narrow coherent design):
+    * Validates that portable identities are structurally sound, hash-bound,
+      sorted, unique, and free of traversal/secret/private-path leakage.
+    * Recomputes ``network_identity_sha256`` from the sorted portable file
+      inventory and checks the boundary fingerprint — i.e. self-consistency
+      of the *claimed* metadata.
+    * Does **not** prove actual file existence or byte-level hash correctness
+      on disk — a merely claimed ``sha256``/``byte_size`` is not silently
+      treated as proof of file validity. Actual artefact verification
+      requires either (a) an exact ``build_receipt_fingerprint`` carried in
+      the candidate and externally verified by the build system, or
+      (b) a caller-supplied explicit ``package_root`` that this function
+      verifies against the declared ``relative_path``/``sha256``/``byte_size``
+      without leaking absolute paths in errors. When ``package_root`` is
+      ``None`` only (a) self-consistency is checked, and production
+      scientific acceptance must still require (a).
+
     Never upgrades to scientific acceptance. Returns ``SOFTWARE_VALID`` only
-    when all portable identities are structurally sound, hash-bound, and
-    free of traversal/secret/path leakage — and without any
-    scientific-evidence claim.
+    when the above structural checks pass and temporal order
+    ``provenance.created_at_utc <= validated_at_utc`` holds (both aware UTC).
+    No internal ``datetime.now`` is used to decide validity of a frozen
+    artifact; ``validated_at_utc`` is the explicit evaluation time. When
+    ``validated_at_utc`` is ``None`` it defaults to ``datetime.now(UTC)``
+    for convenience but provenance is still compared to that explicit value,
+    so repeated calls with the same explicit timestamp are deterministic.
     """
     if validated_at_utc is None:
         validated_at_utc = datetime.now(UTC)
@@ -839,12 +951,49 @@ def validate_candidate_software(
         raise ManchesterBaselinePackageError(
             "TIMESTAMP_NOT_UTC", "validation timestamp must be UTC"
         )
+    if package_root is not None:
+        # Narrow explicit-root verification without leaking paths.
+        # Caller must supply a concrete filesystem root (path-like) when
+        # byte-level artefact verification is desired; errors never echo
+        # the absolute root. This branch is intentionally narrow and
+        # fail-closed on traversal/secret leakage rather than inventing
+        # observations.
+        from pathlib import Path
 
-    # Perform deterministic checks without reading filesystem/network.
-    # Candidate already validates its own structure via Pydantic, so leakage
-    # etc would have been refused at construction. Here we additionally
-    # ensure network_files are hash-bound and no secret leakage in
-    # limitations/provenance that may have been constructed via model_copy.
+        try:
+            root = Path(str(package_root))
+        except Exception as exc:
+            raise ManchesterBaselinePackageError(
+                "SECRET_OR_PATH_LEAKAGE", f"package_root invalid: {exc}"
+            ) from exc
+        # Do not leak root in messages; only validate declared relatives.
+        for pf in candidate.network_identity.network_files:
+            rel = pf.relative_path
+            # pf.relative_path already validated as safe relative; re-check
+            if _TRAVERSAL_RE.search(rel) or rel.startswith("/"):
+                raise ManchesterBaselinePackageError(
+                    "SECRET_OR_PATH_LEAKAGE", "network file path invalid"
+                )
+            target = root / rel
+            try:
+                data = target.read_bytes()
+            except Exception:
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH",
+                    "declared network file not verifiable at package_root",
+                ) from None
+            if len(data) != pf.byte_size:
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH", "byte_size mismatch for declared file"
+                )
+            actual = _sha256_hex(data)
+            if actual != pf.sha256:
+                raise ManchesterBaselinePackageError(
+                    "NETWORK_HASH_MISMATCH", "sha256 mismatch for declared file"
+                )
+
+    # Perform deterministic checks without reading filesystem/network beyond
+    # the optional explicit package_root above.
     reasons: list[RejectionReason] = []
     # Check network file hash binding already enforced; but double-check any candidate tampering
     # by recomputing network identity.
@@ -855,10 +1004,12 @@ def validate_candidate_software(
     expected_net = _sha256_hex(_canonical_json(inventory).encode("utf-8"))
     if expected_net != candidate.network_identity.network_identity_sha256:
         reasons.append("NETWORK_HASH_MISMATCH")
-    # Provenance time sanity (not in future beyond 5 minutes)
-    now = datetime.now(UTC)
-    if candidate.provenance.created_at_utc > now + timedelta(minutes=5):
+    # Deterministic temporal coherence: provenance must not be after validation.
+    if candidate.provenance.created_at_utc > validated_at_utc:
         reasons.append("PROVENANCE_BROKEN")
+    # Also reject naïve cross-field tamper where provenance chain is inconsistent
+    # — already enforced by BaselineProvenance model validator, but also
+    # surface here as rejection reason for stale candidates.
     # Boundary fingerprint already validated.
 
     standing: SoftwareStanding = "SOFTWARE_INVALID" if reasons else "SOFTWARE_VALID"
@@ -892,6 +1043,203 @@ def validate_candidate_software(
     )
 
 
+def _check_scientific_acceptance_preconditions(
+    *,
+    candidate: ManchesterBaselineCandidatePackage,
+    software_validation: ManchesterBaselineSoftwareValidation,
+    prerequisites_verified: tuple[str, ...],
+    decided_at_utc: datetime,
+) -> None:
+    """Shared prerequisite checker for builder and verifier.
+
+    Fails closed via :class:`ManchesterBaselinePackageError` unless every
+    identity, standing, prerequisite, timestamp, provider/rights/map-match/
+    calibration/build-receipt precondition for
+    ``SCIENTIFICALLY_ACCEPTED_BASELINE`` still holds. Does not invent or
+    retrieve provider evidence and does not self-upgrade standing. Reused by
+    :func:`decide_baseline_acceptance` and
+    :func:`verify_baseline_acceptance` so the two cannot drift.
+
+    Canonical revalidation
+    ~~~~~~~~~~~~~~~~~~~~~~
+    ``ManchesterBaselineCandidatePackage`` and
+    ``ManchesterBaselineSoftwareValidation`` are revalidated from
+    ``model_dump`` at this shared boundary before any standing is read.
+    This closes the ``model_copy(update=...)`` bypass where Pydantic
+    validators are skipped. Failures are mapped to stable typed error codes
+    with portable messages.
+
+    Canonical receipt
+    ~~~~~~~~~~~~~~~~~
+    The supplied ``software_validation`` must be the exact receipt that
+    :func:`validate_candidate_software` would produce for the same
+    ``candidate`` and explicit ``validated_at_utc``. All semantic fields
+    and the full ``checks_performed`` set are compared without filesystem
+    I/O or current time; package-root byte verification remains represented
+    by the candidate's external build receipt.
+    """
+    # Canonical revalidation: close model_copy/update bypass.
+    try:
+        ManchesterBaselineCandidatePackage.model_validate(candidate.model_dump())
+    except Exception as exc:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            f"candidate revalidation failed: {exc}",
+        ) from exc
+    try:
+        ManchesterBaselineSoftwareValidation.model_validate(software_validation.model_dump())
+    except Exception as exc:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            f"software validation revalidation failed: {exc}",
+        ) from exc
+    # Exact software validation binding and temporal ordering
+    if software_validation.candidate_fingerprint != candidate.fingerprint():
+        raise ManchesterBaselinePackageError(
+            "MISMATCHED_CANDIDATE_FINGERPRINT",
+            "software validation references a different candidate",
+        )
+    if software_validation.candidate_package_id != candidate.package_id:
+        raise ManchesterBaselinePackageError(
+            "MISMATCHED_CANDIDATE_FINGERPRINT",
+            "software validation package_id mismatch",
+        )
+    if software_validation.software_standing != "SOFTWARE_VALID":
+        raise ManchesterBaselinePackageError(
+            "SOFTWARE_NOT_VALID",
+            "scientifically accepted baseline requires SOFTWARE_VALID first",
+        )
+    if (
+        software_validation.network_identity_sha256
+        != candidate.network_identity.network_identity_sha256
+    ):
+        raise ManchesterBaselinePackageError(
+            "NETWORK_HASH_MISMATCH",
+            "network hash changed since software validation",
+        )
+    if not _is_utc(software_validation.validated_at_utc):
+        raise ManchesterBaselinePackageError(
+            "TIMESTAMP_NOT_UTC", "software validation timestamp must be UTC"
+        )
+    if candidate.provenance.created_at_utc > software_validation.validated_at_utc:
+        raise ManchesterBaselinePackageError(
+            "TEMPORAL_VIOLATION",
+            "software validation is before provenance creation",
+        )
+    if software_validation.validated_at_utc > decided_at_utc:
+        raise ManchesterBaselinePackageError(
+            "TEMPORAL_VIOLATION",
+            "decision is before software validation",
+        )
+    # Canonical receipt: supplied validation must equal the validator's
+    # deterministic output for the same candidate and explicit timestamp.
+    # No filesystem I/O or current time is used; package_root remains None.
+    try:
+        _expected_validation = validate_candidate_software(
+            candidate, validated_at_utc=software_validation.validated_at_utc
+        )
+    except ManchesterBaselinePackageError:
+        raise
+    except Exception as exc:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            f"software validation canonical check failed: {exc}",
+        ) from exc
+    if software_validation != _expected_validation:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            "software validation is not the canonical receipt for the exact candidate and validated_at_utc",  # noqa: E501
+        )
+    # Prerequisites exactness
+    declared = set(candidate.prerequisites)
+    verified = set(prerequisites_verified)
+    missing = declared - verified
+    if missing:
+        raise ManchesterBaselinePackageError(
+            "MISSING_PREREQUISITES",
+            f"acceptance requires prerequisites {sorted(missing)}",
+        )
+    extra = verified - declared
+    if extra:
+        raise ManchesterBaselinePackageError(
+            "MISSING_PREREQUISITES",
+            f"verified prerequisites not declared {sorted(extra)}",
+        )
+    # Production standing — never inflated from synthetic
+    if candidate.source_and_rights.source_standing != "OBSERVED_MANCHESTER_EVIDENCE":
+        raise ManchesterBaselinePackageError(
+            "EVIDENCE_NOT_PRODUCTION",
+            "scientific acceptance requires OBSERVED_MANCHESTER_EVIDENCE source",
+        )
+    if candidate.source_and_rights.evidence_standing != "OBSERVED_MANCHESTER_EVIDENCE":
+        raise ManchesterBaselinePackageError(
+            "EVIDENCE_NOT_PRODUCTION",
+            "scientific acceptance requires OBSERVED_MANCHESTER_EVIDENCE standing",
+        )
+    if candidate.source_and_rights.evidence_class != "production":
+        raise ManchesterBaselinePackageError(
+            "EVIDENCE_NOT_PRODUCTION",
+            "scientific acceptance requires production evidence_class",
+        )
+    if candidate.calibration_identity.evidence_class != "production":
+        raise ManchesterBaselinePackageError(
+            "EVIDENCE_NOT_PRODUCTION",
+            "scientific acceptance requires production calibration evidence_class",
+        )
+    if not candidate.demand_identity.provider_evidence_available:
+        raise ManchesterBaselinePackageError(
+            "PROVIDER_DATA_REQUIRED",
+            "production acceptance requires provider demand evidence",
+        )
+    if not candidate.demand_identity.source_snapshot_ids:
+        raise ManchesterBaselinePackageError(
+            "PROVIDER_DATA_REQUIRED",
+            "production acceptance requires nonempty provider snapshot identities",
+        )
+    if not candidate.map_match_policy_identity.approved_for_manchester:
+        raise ManchesterBaselinePackageError(
+            "MAP_MATCH_POLICY_UNAPPROVED",
+            "scientific acceptance requires approved map-match policy",
+        )
+    if not candidate.calibration_identity.calibration_performed:
+        raise ManchesterBaselinePackageError(
+            "MISSING_CALIBRATION",
+            "scientific acceptance requires calibration_performed=True",
+        )
+    if candidate.calibration_identity.contract_fingerprint is None:
+        raise ManchesterBaselinePackageError(
+            "MISSING_CALIBRATION",
+            "scientific acceptance requires calibration contract fingerprint",
+        )
+    if candidate.calibration_identity.receipt_fingerprint is None:
+        raise ManchesterBaselinePackageError(
+            "MISSING_CALIBRATION",
+            "scientific acceptance requires calibration receipt fingerprint",
+        )
+    if (
+        candidate.source_and_rights.rights_required_for_acceptance
+        and candidate.source_and_rights.rights_standing
+        in (
+            "UNKNOWN",
+            "UNLICENSED",
+        )
+    ):
+        code = (
+            "RIGHTS_UNKNOWN"
+            if candidate.source_and_rights.rights_standing == "UNKNOWN"
+            else "RIGHTS_UNLICENSED"
+        )
+        raise ManchesterBaselinePackageError(
+            code,
+            "acceptance requires known licensed rights",
+        )
+    if candidate.build_receipt_fingerprint is None:
+        raise ManchesterBaselinePackageError(
+            "BUILD_RECEIPT_MISSING",
+            "scientifically accepted baseline requires exact build receipt fingerprint",
+        )
+
+
 def decide_baseline_acceptance(
     candidate: ManchesterBaselineCandidatePackage,
     *,
@@ -904,37 +1252,65 @@ def decide_baseline_acceptance(
 ) -> ManchesterBaselineAcceptanceDecision:
     """Create an explicit attributable timestamped acceptance decision.
 
-    Fail-closed rules:
+    Fail-closed rules (scientific acceptance requires **all** of the following,
+    each bound into ``decision_fingerprint``):
 
-    * ``candidate_fingerprint`` must equal the frozen candidate's fingerprint.
-    * ``SOFTWARE_VALID`` is required for ``SCIENTIFICALLY_ACCEPTED_BASELINE``.
-    * Provider-data-absence must remain ``PROVIDER_DATA_REQUIRED`` (typed
-      blocked standing) — never silently accepted.
-    * Unknown/unlicensed rights where acceptance requires rights must block.
-    * Mismatched candidate hash, broken provenance, or secret/path leakage
-      is refused.
-    * ``SCIENTIFICALLY_ACCEPTED_BASELINE`` requires all declared prerequisites.
+    * Exact ``ManchesterBaselineSoftwareValidation`` for the **same**
+      candidate/network with ``SOFTWARE_VALID`` and coherent timestamp
+      ``provenance.created_at_utc <= software_validation.validated_at_utc
+      <= decided_at_utc`` (all aware UTC, deterministic, no internal
+      ``datetime.now``). ``software_validation=None`` is never accepted for
+      ``SCIENTIFICALLY_ACCEPTED_BASELINE``. Provider-blocked / explicit
+      non-acceptance (``PROVIDER_DATA_REQUIRED`` / ``SCIENTIFICALLY_NOT_ACCEPTED``)
+      may remain possible without software validation if truthfully typed.
+    * Production-class ``OBSERVED_MANCHESTER_EVIDENCE`` standing
+      (``source_standing``, ``evidence_standing``, ``evidence_class ==
+      "production"`` for both ``SourceAndRights`` and
+      ``CalibrationIdentity``). Any synthetic ``synthetic_test_only`` /
+      ``synthetic_development`` / ``SYNTHETIC_ENGINEERING`` is never
+      scientifically accepted, even if caller booleans are forged.
+    * Non-empty sorted ``source_snapshot_ids`` and
+      ``provider_evidence_available==True``.
+    * Known/licensed rights when ``rights_required_for_acceptance`` (no
+      ``UNKNOWN``/``UNLICENSED``).
+    * Approved map-match policy (``approved_for_manchester==True``).
+    * ``calibration_performed==True`` **and** both
+      ``contract_fingerprint`` and ``receipt_fingerprint`` present and
+      valid SHA-256.
+    * Exact ``build_receipt_fingerprint`` on the candidate (narrow design:
+      ``SOFTWARE_VALID`` as defined in ``validate_candidate_software`` only
+      checks claimed hash self-consistency, not live file bytes; production
+      acceptance therefore requires an externally verified receipt; see that
+      function's docstring).
+    * All declared ``prerequisites`` verified and no extras.
+    * Truthful ``rejection_reasons`` bound into the fingerprint; a
+      deliberately ``SCIENTIFICALLY_NOT_ACCEPTED`` decision never invents
+      ``CANDIDATE_TAMPERED`` — it uses ``EXPLICIT_NON_ACCEPTANCE`` or
+      the attributable ``rationale`` when no other blocker exists.
+    * Deterministic temporal coherence; reversed/future-relative-to-evaluation
+      timestamps are rejected with ``TEMPORAL_VIOLATION``/``PROVENANCE_BROKEN``.
     """
     _reject_private_path(decided_by, "decided_by")
     _reject_private_path(rationale, "rationale")
     if not _is_utc(decided_at_utc):
         raise ManchesterBaselinePackageError("TIMESTAMP_NOT_UTC", "decision timestamp must be UTC")
-    tmp_payload = {
-        "candidate_fingerprint": candidate.fingerprint(),
-        "candidate_package_id": candidate.package_id,
-        "scientific_standing": scientific_standing,
-        "decided_by": decided_by,
-        "decided_at_utc": decided_at_utc.isoformat(),
-        "rationale": rationale,
-        "prerequisites_verified": sorted(prerequisites_verified),
-    }
-    decision_fingerprint = _sha256_hex(_canonical_json(tmp_payload).encode("utf-8"))
+    # Deterministic temporal coherence: provenance <= decision always;
+    # software validation ordering checked below for ACCEPTED path.
+    # No internal datetime.now is used — decided_at_utc is the explicit evaluation time.
+    if candidate.provenance.created_at_utc > decided_at_utc:
+        raise ManchesterBaselinePackageError(
+            "TEMPORAL_VIOLATION",
+            "decision is before provenance creation",
+        )
 
+    # Build truthful rejection reasons for non-acceptance paths up-front
+    # (never invent CANDIDATE_TAMPERED for an explicit non-acceptance).
     rejection_reasons: list[RejectionReason] = []
 
     if (
         candidate.provider_data_required
         or candidate.source_and_rights.source_standing == "PROVIDER_DATA_REQUIRED"
+        or candidate.source_and_rights.evidence_standing == "PROVIDER_DATA_REQUIRED"
     ):
         if scientific_standing == "SCIENTIFICALLY_ACCEPTED_BASELINE":
             raise ManchesterBaselinePackageError(
@@ -965,88 +1341,78 @@ def decide_baseline_acceptance(
             else "RIGHTS_UNLICENSED"
         )
 
-    declared = set(candidate.prerequisites)
-    verified = set(prerequisites_verified)
     if scientific_standing == "SCIENTIFICALLY_ACCEPTED_BASELINE":
-        missing = declared - verified
-        if missing:
+        if software_validation is None:
             raise ManchesterBaselinePackageError(
-                "MISSING_PREREQUISITES",
-                f"acceptance requires prerequisites {sorted(missing)}",
+                "SOFTWARE_NOT_VALID",
+                "scientific acceptance requires an exact ManchesterBaselineSoftwareValidation",
             )
-        extra = verified - declared
-        if extra:
-            raise ManchesterBaselinePackageError(
-                "MISSING_PREREQUISITES",
-                f"verified prerequisites not declared {sorted(extra)}",
-            )
-        if software_validation is not None:
-            if software_validation.candidate_fingerprint != candidate.fingerprint():
-                raise ManchesterBaselinePackageError(
-                    "MISMATCHED_CANDIDATE_FINGERPRINT",
-                    "software validation references a different candidate",
-                )
-            if software_validation.software_standing != "SOFTWARE_VALID":
-                raise ManchesterBaselinePackageError(
-                    "SOFTWARE_INVALID",
-                    "scientifically accepted baseline requires SOFTWARE_VALID first",
-                )
-            if (
-                software_validation.network_identity_sha256
-                != candidate.network_identity.network_identity_sha256
-            ):
-                raise ManchesterBaselinePackageError(
-                    "NETWORK_HASH_MISMATCH",
-                    "network hash changed since software validation",
-                )
-
-        if not candidate.map_match_policy_identity.approved_for_manchester:
-            raise ManchesterBaselinePackageError(
-                "MAP_MATCH_POLICY_UNAPPROVED",
-                "scientific acceptance requires approved map-match policy",
-            )
-        if not candidate.calibration_identity.calibration_performed and (
-            "calibration" in declared
-            or "calibration_contract" in declared
-            or candidate.source_and_rights.evidence_class == "production"
-            or candidate.calibration_identity.evidence_class == "production"
-        ):
-            raise ManchesterBaselinePackageError(
-                "MISSING_CALIBRATION",
-                "scientific acceptance requires calibration",
-            )
-        if candidate.source_and_rights.evidence_class == "production":
-            if not candidate.map_match_policy_identity.approved_for_manchester:
-                raise ManchesterBaselinePackageError(
-                    "MAP_MATCH_POLICY_UNAPPROVED",
-                    "production acceptance requires approved map match",
-                )
-            if not candidate.calibration_identity.calibration_performed:
-                raise ManchesterBaselinePackageError(
-                    "MISSING_CALIBRATION",
-                    "production acceptance requires completed calibration",
-                )
-
-    if (
-        scientific_standing in ("PROVIDER_DATA_REQUIRED", "SCIENTIFICALLY_NOT_ACCEPTED")
-        and not rejection_reasons
-    ):
-        if candidate.provider_data_required:
-            rejection_reasons.append("PROVIDER_DATA_REQUIRED")
-        else:
-            rejection_reasons.append("CANDIDATE_TAMPERED")
-
-    # Additional provenance sanity: created_at not in future
-    now = datetime.now(UTC)
-    if candidate.provenance.created_at_utc > now + timedelta(minutes=5):
-        raise ManchesterBaselinePackageError(
-            "PROVENANCE_BROKEN", "candidate provenance timestamp is in the future"
+        # Reuse shared checker so builder and verifier cannot drift.
+        _check_scientific_acceptance_preconditions(
+            candidate=candidate,
+            software_validation=software_validation,
+            prerequisites_verified=prerequisites_verified,
+            decided_at_utc=decided_at_utc,
         )
+
+    # Truthful non-acceptance: never invent CANDIDATE_TAMPERED
+    if scientific_standing == "PROVIDER_DATA_REQUIRED":
+        if not rejection_reasons:
+            # Truthfully blocked only if provider data truly missing; otherwise require explicit
+            if candidate.provider_data_required:
+                rejection_reasons.append("PROVIDER_DATA_REQUIRED")
+            else:
+                raise ManchesterBaselinePackageError(
+                    "PROVIDER_DATA_REQUIRED",
+                    "PROVIDER_DATA_REQUIRED standing requires truthful provider-data absence",
+                )
+    elif scientific_standing == "SCIENTIFICALLY_NOT_ACCEPTED" and not rejection_reasons:
+        # Allow attributable rationale with no invented tamper. Use an explicit
+        # truthful reason so the decision remains attributable and the
+        # fingerprint binds it, but do not claim tamper evidence.
+        rejection_reasons.append("EXPLICIT_NON_ACCEPTANCE")
+
+    # PROVIDER_DATA_REQUIRED decisions must carry rejection reasons (model enforces)
+    # Non-accepted decisions without blocker now carry EXPLICIT_NON_ACCEPTANCE truthfully.
 
     sorted_prereq = tuple(sorted(prerequisites_verified))
     sorted_reasons = tuple(sorted(set(rejection_reasons)))
+    # For accepted baseline, model requires no rejection reasons — strip the
+    # synthetic explicit reason we may have added above for non-accepted only.
+    if scientific_standing == "SCIENTIFICALLY_ACCEPTED_BASELINE":
+        sorted_reasons = ()
 
-    # Build model — it will re-validate decision_fingerprint binding.
+    # Receipt bindings: accepted carries exact fingerprints; non-accepted carries None.
+    if scientific_standing == "SCIENTIFICALLY_ACCEPTED_BASELINE":
+        # software_validation presence already checked; candidate build receipt also
+        # checked inside the shared checker.
+        assert software_validation is not None
+        software_validation_fingerprint: str | None = software_validation.fingerprint()
+        candidate_build_receipt_fingerprint: str | None = candidate.build_receipt_fingerprint
+    else:
+        software_validation_fingerprint = None
+        candidate_build_receipt_fingerprint = None
+
+    # Fingerprint must bind every semantic decision field including receipt bindings.
+    fingerprint_payload = {
+        "candidate_fingerprint": candidate.fingerprint(),
+        "candidate_package_id": candidate.package_id,
+        "candidate_build_receipt_fingerprint": candidate_build_receipt_fingerprint,
+        "decided_by": decided_by,
+        "decided_at_utc": decided_at_utc.isoformat(),
+        "prerequisites_verified": sorted(sorted_prereq),
+        "rationale": rationale,
+        "rejection_reasons": sorted(sorted_reasons),
+        "schema_version": MANCHESTER_BASELINE_PACKAGE_SCHEMA_VERSION,
+        "capability_id": MANCHESTER_BASELINE_PACKAGE_CAPABILITY_ID,
+        "method_version": MANCHESTER_BASELINE_PACKAGE_METHOD_VERSION,
+        "scientific_standing": scientific_standing,
+        "software_validation_fingerprint": software_validation_fingerprint,
+    }
+    decision_fingerprint = _sha256_hex(_canonical_json(fingerprint_payload).encode("utf-8"))
+
+    # Build model — it will re-validate decision_fingerprint binding and
+    # receipt presence rules.
     return ManchesterBaselineAcceptanceDecision(
         candidate_fingerprint=candidate.fingerprint(),
         candidate_package_id=candidate.package_id,
@@ -1056,8 +1422,137 @@ def decide_baseline_acceptance(
         rationale=rationale,
         prerequisites_verified=sorted_prereq,
         rejection_reasons=sorted_reasons,
+        software_validation_fingerprint=software_validation_fingerprint,
+        candidate_build_receipt_fingerprint=candidate_build_receipt_fingerprint,
         decision_fingerprint=decision_fingerprint,
     )
+
+
+def verify_baseline_acceptance(
+    decision: ManchesterBaselineAcceptanceDecision,
+    candidate: ManchesterBaselineCandidatePackage,
+    software_validation: ManchesterBaselineSoftwareValidation | None,
+) -> None:
+    """Verify a decision against the exact candidate and software validation.
+
+    Fails closed via :class:`ManchesterBaselinePackageError` unless **every**
+    identity, standing, prerequisite, timestamp, provider/rights/map-match/
+    calibration/build-receipt precondition still matches the exact objects
+    supplied. Reuses :func:`_check_scientific_acceptance_preconditions` so
+    builder and verifier cannot drift.
+
+    The function does not invent or retrieve provider evidence, does not
+    perform I/O, does not consult current time, and never self-upgrades
+    ``scientific_standing`` — a ``SCIENTIFICALLY_NOT_ACCEPTED`` or
+    ``PROVIDER_DATA_REQUIRED`` decision remains non-accepted even when the
+    candidate would now satisfy production preconditions.
+
+    A structurally self-consistent decision (matching ``decision_fingerprint``)
+    is **not** sufficient for scientific standing; only successful verification
+    against the exact fingerprints proves the binding. The fingerprint itself
+    is a plain SHA-256 digest and does not provide cryptographic authenticity.
+    """
+    # 1. Canonical revalidation: fingerprint must still bind the decision's
+    #    own fields (catches model_copy mutation where fingerprint was not
+    #    updated, or where new binding fields were altered).
+    try:
+        ManchesterBaselineAcceptanceDecision.model_validate(decision.model_dump())
+    except Exception as exc:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            f"decision revalidation failed: {exc}",
+        ) from exc
+
+    # 2. Exact candidate binding
+    if decision.candidate_fingerprint != candidate.fingerprint():
+        raise ManchesterBaselinePackageError(
+            "MISMATCHED_CANDIDATE_FINGERPRINT",
+            "decision candidate_fingerprint does not match exact candidate",
+        )
+    if decision.candidate_package_id != candidate.package_id:
+        raise ManchesterBaselinePackageError(
+            "MISMATCHED_CANDIDATE_FINGERPRINT",
+            "decision candidate_package_id does not match exact candidate",
+        )
+
+    # 3. Standing-specific binding checks
+    if decision.scientific_standing == "SCIENTIFICALLY_ACCEPTED_BASELINE":
+        # Build-receipt binding for accepted: must match exact candidate receipt
+        if decision.candidate_build_receipt_fingerprint != candidate.build_receipt_fingerprint:
+            raise ManchesterBaselinePackageError(
+                "BUILD_RECEIPT_MISSING",
+                "decision build receipt binding does not match exact candidate",
+            )
+        if software_validation is None:
+            raise ManchesterBaselinePackageError(
+                "SOFTWARE_NOT_VALID",
+                "accepted decision verification requires exact software validation",
+            )
+        if decision.software_validation_fingerprint is None:
+            raise ManchesterBaselinePackageError(
+                "SOFTWARE_NOT_VALID",
+                "accepted decision lacks software_validation_fingerprint binding",
+            )
+        if decision.software_validation_fingerprint != software_validation.fingerprint():
+            raise ManchesterBaselinePackageError(
+                "MISMATCHED_CANDIDATE_FINGERPRINT",
+                "decision software_validation_fingerprint does not match exact validation",
+            )
+        # Software validation must itself be bound to the exact candidate
+        if software_validation.candidate_fingerprint != candidate.fingerprint():
+            raise ManchesterBaselinePackageError(
+                "MISMATCHED_CANDIDATE_FINGERPRINT",
+                "software validation references a different candidate than decision",
+            )
+        # Temporal ordering + all production preconditions via shared checker
+        _check_scientific_acceptance_preconditions(
+            candidate=candidate,
+            software_validation=software_validation,
+            prerequisites_verified=decision.prerequisites_verified,
+            decided_at_utc=decision.decided_at_utc,
+        )
+        # Also ensure decision's own verified prerequisites exactly equal
+        # candidate's declared prerequisites (already checked inside helper,
+        # but double-check decision field matches candidate).
+        if set(decision.prerequisites_verified) != set(candidate.prerequisites):
+            raise ManchesterBaselinePackageError(
+                "MISSING_PREREQUISITES",
+                "decision prerequisites_verified does not match candidate prerequisites",
+            )
+        # Rejection reasons must be empty for accepted (model already enforces)
+        if decision.rejection_reasons:
+            raise ManchesterBaselinePackageError(
+                "EVIDENCE_NOT_PRODUCTION",
+                "accepted decision must not carry rejection reasons",
+            )
+    else:
+        # Non-accepted / provider-blocked must carry no receipt bindings and
+        # must be coherent; verification must not upgrade standing.
+        if decision.software_validation_fingerprint is not None:
+            raise ManchesterBaselinePackageError(
+                "SOFTWARE_NOT_VALID",
+                "non-accepted decision must not carry software binding",
+            )
+        if decision.candidate_build_receipt_fingerprint is not None:
+            raise ManchesterBaselinePackageError(
+                "BUILD_RECEIPT_MISSING",
+                "non-accepted decision must not carry build receipt binding",
+            )
+        # For PROVIDER_DATA_REQUIRED, ensure truthful provider absence; do not
+        # invent evidence.
+        if decision.scientific_standing == "PROVIDER_DATA_REQUIRED":
+            if not candidate.provider_data_required:
+                raise ManchesterBaselinePackageError(
+                    "PROVIDER_DATA_REQUIRED",
+                    "PROVIDER_DATA_REQUIRED decision requires truthful provider_data_required",
+                )
+            if "PROVIDER_DATA_REQUIRED" not in decision.rejection_reasons:
+                raise ManchesterBaselinePackageError(
+                    "PROVIDER_DATA_REQUIRED",
+                    "PROVIDER_DATA_REQUIRED decision must carry that rejection reason",
+                )
+        # SCIENTIFICALLY_NOT_ACCEPTED remains non-accepted even if candidate now
+        # satisfies production — do not self-upgrade.
 
 
 def _helper_canonical_fingerprint_for_candidate(
@@ -1205,4 +1700,5 @@ __all__ = [
     "decide_baseline_acceptance",
     "make_synthetic_candidate",
     "validate_candidate_software",
+    "verify_baseline_acceptance",
 ]
