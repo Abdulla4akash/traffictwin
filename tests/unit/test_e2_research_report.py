@@ -301,3 +301,57 @@ def test_cross_format_fingerprint_value_agreement() -> None:
     for row in reader:
         if row["actor_sha256"]:
             assert row["actor_sha256"] == actor
+
+
+def test_reviewer_attack_forged_limitations_rejected_and_builtin_still_byte_stable() -> None:
+    """Regression for Opus review: forged limitations/non_claims bypass.
+
+    Attack: model_dump real package, replace limitations/non_claims with
+    over-claims, validate forged package (structurally valid), hand-build
+    a self-consistent receipt bound to forged package with recomputed
+    receipt_fingerprint. Old verifier accepted (self-consistent + bound);
+    Lane 04 admit rejects; new exporter must also reject fail-closed.
+    """
+    pkg, receipt = _load_admitted()
+    # Mutate limitations / non_claims to over-claims (structurally valid,
+    # but not owner-authorized). Keep at least one entry to satisfy
+    # non-empty validation.
+    raw: dict[str, object] = pkg.model_dump(mode="json")
+    raw["limitations"] = ["No limitations: universal superiority proven across all traffic regimes"]
+    raw["non_claims"] = ["None — all claims valid; no non-claims"]
+    forged_pkg = E2ResearchEvidencePackage.model_validate(raw)
+    # Forged package is structurally valid but fingerprint differs
+    assert forged_pkg.fingerprint() != pkg.fingerprint()
+    # admit_e2_research would reject forged package (contract)
+    from traffictwin.evidence_admission.e2_research import admit_e2_research
+
+    with pytest.raises(ValueError, match="mismatch|not owner-authorized|fingerprint"):
+        admit_e2_research(forged_pkg)
+
+    # Hand-build self-consistent receipt bound to forged package
+    real_dict: dict[str, object] = receipt.model_dump(mode="json")
+    forged_dict: dict[str, object] = dict(real_dict)
+    forged_dict["package_fingerprint"] = forged_pkg.fingerprint()
+    tmp: dict[str, object] = {k: v for k, v in forged_dict.items() if k != "receipt_fingerprint"}
+    canonical = json.dumps(
+        tmp, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+    ).encode("utf-8")
+    forged_fp = hashlib.sha256(canonical).hexdigest()
+    forged_dict["receipt_fingerprint"] = forged_fp
+    forged_receipt = E2ResearchAdmissionReceipt.model_validate(forged_dict)
+    # Forged receipt is self-consistent and bound to forged package
+    forged_receipt.verify()
+    assert forged_receipt.package_fingerprint == forged_pkg.fingerprint()
+
+    # Exporter must reject fail-closed (not merely self-consistent)
+    with pytest.raises(ValueError, match="not owner-authorized|not authoritative|mismatch"):
+        build_e2_research_exports(forged_pkg, forged_receipt)
+
+    # Normal built-in still exports byte-stably
+    b1 = build_e2_research_exports(pkg, receipt)
+    b2 = build_e2_research_exports(pkg, receipt)
+    assert b1.json == b2.json
+    assert b1.csv == b2.csv
+    assert b1.markdown == b2.markdown
+    assert "ADMITTED RESEARCH" in b1.json
+    assert "OWNER-AUTHORIZED PRODUCT ADMISSION" in b1.json

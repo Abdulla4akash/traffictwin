@@ -17,7 +17,10 @@ import json
 import re
 from dataclasses import dataclass
 
-from traffictwin.evidence_admission.e2_research import E2ResearchAdmissionReceipt
+from traffictwin.evidence_admission.e2_research import (
+    E2ResearchAdmissionReceipt,
+    admit_e2_research,
+)
 from traffictwin.experiments.e2_comparison import build_e2_comparison_view
 from traffictwin.experiments.e2_research_evidence import E2ResearchEvidencePackage
 from traffictwin.experiments.e2_strategy_semantics import e2_strategy_semantics
@@ -1069,14 +1072,17 @@ def build_e2_research_exports(
     """Build deterministic JSON, CSV and Markdown exports.
 
     Consumes the exact integrated typed package and owner-authorized
-    admission receipt, verifies the binding, and delegates all
-    scientific values to the strategy / comparison / task-accounting
-    services with source-declared intervals preserved.
+    admission receipt, verifies the binding via the Lane 04 admission
+    service as runtime authority, and delegates all scientific values to
+    the strategy / comparison / task-accounting services with
+    source-declared intervals preserved. A caller-supplied receipt that
+    is merely self-consistent but not the Lane 04 authoritative receipt
+    for the exact package is rejected fail-closed.
 
     Raises:
         TypeError: if package or receipt are not the exact typed instances.
         ValueError: if receipt is malformed, unadmitted, fingerprint mismatch,
-            or any path / secret / timestamp input is present.
+            not owner-authorized, or any path / secret / timestamp input is present.
     """
     if not isinstance(package, E2ResearchEvidencePackage):
         raise TypeError(f"package must be E2ResearchEvidencePackage, got {type(package).__name__}")
@@ -1086,7 +1092,15 @@ def build_e2_research_exports(
     _assert_no_forbidden_content(package.model_dump(mode="json"), "package")
     _assert_no_forbidden_content(receipt.model_dump(mode="json"), "receipt")
 
-    # Receipt verification — standing, hex, binding, no timestamps
+    # Lane 04 authoritative admission — re-derive from supplied package.
+    # Do not trust caller-supplied receipt alone; require it to equal the
+    # authoritative receipt in all security-relevant fields.
+    try:
+        authoritative = admit_e2_research(package)
+    except Exception as exc:
+        raise ValueError(f"package not owner-authorized: {exc}") from exc
+
+    # Receipt self-consistency (standing, hex, binding, no timestamps)
     try:
         receipt.verify()
     except Exception as exc:
@@ -1098,7 +1112,24 @@ def build_e2_research_exports(
             f"receipt package_fingerprint mismatch: {receipt.package_fingerprint!r} "
             f"!= {package_fingerprint!r}"
         )
-    # Cross-check research heads / manifests / actor / trace binding
+    # Require caller-supplied receipt to equal Lane 04 authoritative receipt.
+    # Compare all security-relevant fields/fingerprint — any divergence is
+    # fail-closed (including recomputed receipt_fingerprint for a forged package).
+    if receipt != authoritative:
+        # Provide specific mismatch for debugging without leaking secrets.
+        if receipt.receipt_fingerprint != authoritative.receipt_fingerprint:
+            raise ValueError(
+                "receipt not authoritative: receipt_fingerprint mismatch "
+                f"(got {receipt.receipt_fingerprint[:8]}… "
+                f"expected {authoritative.receipt_fingerprint[:8]}…)"
+            )
+        if receipt.package_fingerprint != authoritative.package_fingerprint:
+            raise ValueError(
+                f"receipt not authoritative: package_fingerprint mismatch "
+                f"{receipt.package_fingerprint!r} != {authoritative.package_fingerprint!r}"
+            )
+        raise ValueError("receipt not authoritative: does not match Lane 04 admission")
+    # Cross-check research heads / manifests / actor / trace binding (defense-in-depth)
     for name in ("e2b", "e2c", "e2d"):
         pkg_head = getattr(package.source_identities.research_heads, name)
         rec_head = receipt.research_heads.get(name)
