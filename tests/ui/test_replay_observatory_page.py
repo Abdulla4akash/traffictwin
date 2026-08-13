@@ -989,3 +989,136 @@ def test_aggregate_coincide_without_exact_event(monkeypatch: pytest.MonkeyPatch)
             assert "exact-event" not in str(cap).lower(), (
                 f"aggregate seek caption must not say exact-event: {cap}"
             )
+
+
+def test_seek_empty_stream_noop_3_0(monkeypatch: pytest.MonkeyPatch) -> None:
+    """SEEK 3.0 on aggregate-only empty stream is no-op INFO banner — never success/exact-event."""
+
+    app = _app(monkeypatch)
+    agg_btn = next(b for b in app.button if b.label == "Load aggregate-only demo")
+    agg_btn.click().run(timeout=30)
+    assert not app.exception
+    assert _metric(app, "Cursor index") == "0/0"
+    assert _metric(app, "Playback state") == "ended"
+    assert _metric(app, "Playhead time") == "0.00 s"
+    assert _metric(app, "Cursor event time") == "0.00 s"
+    # Set SEEK target 3.0
+    for s in app.slider:
+        if "Seek" in str(getattr(s, "label", "")):
+            s.set_value(3.0).run(timeout=30)
+            break
+    seek_btn = next(b for b in app.button if b.label == "SEEK")
+    seek_btn.click().run(timeout=30)
+    assert not app.exception, f"seek 3.0 on empty raised: {app.exception}"
+    # Metrics must remain ENDED 0/0 playhead 0.00 (no movement)
+    assert _metric(app, "Cursor index") == "0/0", (
+        f"empty seek must stay 0/0 got {_metric(app, 'Cursor index')}"
+    )
+    assert _metric(app, "Playback state") == "ended"
+    assert _metric(app, "Playhead time") == "0.00 s", (
+        f"empty seek playhead must stay 0.00 got {_metric(app, 'Playhead time')}"
+    )
+    assert _metric(app, "Cursor event time") == "0.00 s"
+    joined = _text(app)
+    joined_low = joined.lower()
+    # Banner must be INFO/no-op/unavailable, never success styling
+    # Check info banner contains required truthful fields
+    assert "seek" in joined_low and "unavailable" in joined_low, (
+        f"empty seek banner must say SEEK unavailable, got {joined}"
+    )
+    assert "empty stream" in joined_low and "zero events" in joined_low, (
+        f"must mention zero events, got {joined}"
+    )
+    assert "requested target 3.00" in joined_low or "requested target 3.00 s" in joined_low, (
+        f"must mention requested target 3.00, got {joined}"
+    )
+    assert "was not applied" in joined_low or "not applied" in joined_low, (
+        f"must say not applied, got {joined}"
+    )
+    assert "state remains ended" in joined_low or "state remains ended" in joined_low, (
+        f"must say state remains ENDED, got {joined}"
+    )
+    assert "playhead 0.00" in joined_low, f"must mention playhead 0.00, got {joined}"
+    assert "0/0" in joined, f"must mention cursor 0/0, got {joined}"
+    assert "ended" in joined_low, f"must mention ENDED, got {joined}"
+    # Explicitly reject forbidden success/movement claims
+    assert "Seeked to" not in joined, f"empty SEEK must never say Seeked to, got {joined}"
+    assert "seeked to" not in joined_low, f"must not claim Seeked to, got {joined}"
+    assert "exact-event" not in joined_low, f"must never say exact-event for empty, got {joined}"
+    assert "exact-event seek" not in joined_low
+    # Must never use precedes/follows for empty
+    # Check the receipt/banner portion does not contain those; whole page may contain unrelated precedes? Check info banner specifically
+    info_text = " ".join(str(getattr(v, "value", "")) for v in app.info)
+    assert "precedes" not in info_text.lower(), (
+        f"empty banner must not say precedes, got {info_text}"
+    )
+    assert "follows" not in info_text.lower(), f"empty banner must not say follows, got {info_text}"
+    # Check that banner is in info, not success (success styling)
+    assert any(
+        "SEEK unavailable" in str(getattr(v, "value", ""))
+        or "seek unavailable" in str(getattr(v, "value", "")).lower()
+        for v in app.info
+    ), (
+        f"banner must be info-styled, got info={[getattr(v, 'value', None) for v in app.info]} success={[getattr(v, 'value', None) for v in app.success]}"
+    )
+    assert not any("SEEK unavailable" in str(getattr(v, "value", "")) for v in app.success), (
+        f"empty SEEK banner must never be success, got success={[getattr(v, 'value', None) for v in app.success]}"
+    )
+    # Also ensure no success banner claims Seeked
+    success_text = " ".join(str(getattr(v, "value", "")) for v in app.success)
+    assert "Seeked to" not in success_text
+    assert "seeked to" not in success_text.lower()
+    # Ensure not implying movement: banner should not contain moved/seeked/advanced language with success
+    assert "advanced" not in info_text.lower() or "unavailable" in info_text.lower()
+
+
+def test_seek_empty_stream_noop_0_0_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """SEEK at default 0.0 on aggregate-only is equally no-op INFO — numeric coincidence must not yield exact-event."""
+
+    app = _app(monkeypatch)
+    agg_btn = next(b for b in app.button if b.label == "Load aggregate-only demo")
+    agg_btn.click().run(timeout=30)
+    assert not app.exception
+    assert _metric(app, "Cursor index") == "0/0"
+    assert _metric(app, "Playback state") == "ended"
+    # Do not change slider — default 0.0 (should be 0.0 for empty stream)
+    seek_slider = next(s for s in app.slider if "Seek" in str(getattr(s, "label", "")))
+    assert float(str(getattr(seek_slider, "value", 0.0))) == 0.0  # noqa: S101
+    seek_btn = next(b for b in app.button if b.label == "SEEK")
+    seek_btn.click().run(timeout=30)
+    assert not app.exception, f"seek 0.0 on empty raised: {app.exception}"
+    assert _metric(app, "Cursor index") == "0/0"
+    assert _metric(app, "Playback state") == "ended"
+    assert _metric(app, "Playhead time") == "0.00 s"
+    assert _metric(app, "Cursor event time") == "0.00 s"
+    joined = _text(app)
+    joined_low = joined.lower()
+    # Must be same no-op class as 3.0
+    assert "unavailable" in joined_low, f"empty seek 0.0 must say unavailable, got {joined}"
+    assert "empty stream" in joined_low and "zero events" in joined_low
+    assert "requested target 0.00" in joined_low, (
+        f"must mention requested target 0.00, got {joined}"
+    )
+    assert "was not applied" in joined_low or "not applied" in joined_low
+    assert "state remains ended" in joined_low
+    assert "playhead 0.00" in joined_low
+    assert "0/0" in joined
+    # Despite numeric coincidence 0.00 == 0.00, must NOT label as exact-event
+    assert "Seeked to" not in joined
+    assert "exact-event" not in joined_low
+    assert "exact-event seek" not in joined_low
+    assert "precedes" not in " ".join(str(getattr(v, "value", "")) for v in app.info).lower()
+    assert "follows" not in " ".join(str(getattr(v, "value", "")) for v in app.info).lower()
+    # Must be info-styled, not success
+    assert any(
+        "SEEK unavailable" in str(getattr(v, "value", ""))
+        or "unavailable" in str(getattr(v, "value", "")).lower()
+        for v in app.info
+    )
+    assert not any("Seeked to" in str(getattr(v, "value", "")) for v in app.success)
+    # Ensure generic captions for aggregate still not claiming exact-event despite coincidence
+    for cap in app.caption:
+        if "coincide" in str(cap.value).lower():
+            assert "exact-event" not in str(cap.value).lower(), (
+                f"aggregate coincide must not say exact-event: {cap.value}"
+            )

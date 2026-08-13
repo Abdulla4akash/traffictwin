@@ -214,6 +214,18 @@ def _describe_receipt(receipt: object, before: ReplayEngineState | None) -> tupl
                 f"playback {rs.playback_state.value}",
             )
         if control == "seek":
+            # Guard: Engine SEEK on empty/aggregate-only stream is a no-op — never claim success or movement.
+            if rs.empty_stream or int(rs.cursor.total_events) == 0:
+                try:
+                    t_raw = getattr(req, "target_time_s", rs.playhead_time_s)
+                    t_f = float(t_raw) if t_raw is not None else rs.playhead_time_s
+                except Exception:
+                    t_f = float(rs.playhead_time_s)
+                return (
+                    "info",
+                    f"SEEK unavailable — empty stream has zero events; requested target {t_f:.2f} s was not applied; "
+                    f"state remains ENDED (playhead {float(rs.playhead_time_s):.2f} s, cursor {rs.cursor.index}/{rs.cursor.total_events})",
+                )
             target = getattr(req, "target_time_s", rs.playhead_time_s)
             try:
                 t_f = float(target) if target is not None else rs.playhead_time_s
@@ -564,7 +576,7 @@ def render(config: object) -> None:  # noqa: ARG001
         f"Cursor index: {cursor.index}/{cursor.total_events} · Playback state: {state.playback_state.value}"
     )
     st.progress(
-        (cursor.index / max(1, cursor.total_events)) if not view.is_empty else 1.0,
+        (cursor.index / max(1, cursor.total_events)) if not view.is_empty else 0.0,
         text=f"Index {cursor.index} of {cursor.total_events}",
     )
     if view.is_empty:
