@@ -64,6 +64,13 @@ refused here.
 
 This module does not parse vehicle outputs into VEC tasks, does not launch
 research workloads, and does not touch Dynamic Resource/E3 artifacts.
+
+Post-construction ``model_copy`` cannot be globally prevented by a frozen
+model alone; this module guarantees canonical revalidation at every public
+preflight/run boundary before any file read, staging, or subprocess launch,
+and receipt/preflight validation ensures blocked/refusal semantics for forged
+requests without launching.
+
 """
 
 from __future__ import annotations
@@ -205,6 +212,64 @@ _FORBIDDEN_TAG_SUBSTRINGS: tuple[str, ...] = (
 )
 
 
+def _sanitize_xml_name(name: str) -> str:
+    """Stable safe label for untrusted XML tag/attribute names."""
+    if not name:
+        return "REDACTED_EMPTY"
+    if _SECRET_TOKEN_RE.search(name) or _PRIVATE_PATH_RE.search(name):
+        h = _sha256_hex(name.encode("utf-8"))[:8]
+        return f"REDACTED_NAME_{h}"
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", name)
+    if len(sanitized) > 64:
+        sanitized = sanitized[:64]
+    if not sanitized or not re.match(r"^[A-Za-z0-9][A-Za-z0-9._-]*$", sanitized):
+        sanitized = f"TAG_{_sha256_hex(name.encode('utf-8'))[:8]}"
+    # Final check: if still contains secret (e.g., sanitized still has token substring due to _ handling), fallback  # noqa: E501
+    if _SECRET_TOKEN_RE.search(sanitized):
+        sanitized = f"REDACTED_NAME_{_sha256_hex(name.encode('utf-8'))[:8]}"
+    return sanitized
+
+
+def _sanitize_finding_text(raw: str) -> str:
+    """Per-error sanitization: redact secrets/private paths without erasing the reason."""
+    if not raw or not raw.strip():
+        return "BLOCKED: unspecified"
+    # Redact secrets and private paths per error, preserving a non-empty blocker
+    safe = _SECRET_TOKEN_RE.sub("REDACTED", raw)
+    safe = _PRIVATE_PATH_RE.sub("{REDACTED}", safe)
+    # Remove control characters
+    safe = "".join(c if ord(c) >= 32 or c in "\n\t" else "_" for c in safe)
+    safe = safe.strip()
+    if len(safe) > 1000:
+        safe = safe[:1000]
+    if not safe:
+        return "BLOCKED: redacted"
+    # If still contains forbidden, fallback to generic
+    if _SECRET_TOKEN_RE.search(safe) or _PRIVATE_PATH_RE.search(safe):
+        return "CONFIG_SANITIZED_REJECTED: redacted"
+    return safe
+
+
+def _finalize_findings(findings: list[str]) -> list[str]:
+    """Sanitize each finding and deterministically cap to contract bound (32)."""
+    sanitized: list[str] = []
+    for f in findings:
+        s = _sanitize_finding_text(f)
+        # Ensure validator constraints (1..1000, no secret/private)
+        if not 1 <= len(s) <= 1000:
+            s = s[:1000] if len(s) > 1000 else "BLOCKED: truncated"
+        if _SECRET_TOKEN_RE.search(s) or _PRIVATE_PATH_RE.search(s):
+            s = "CONFIG_SANITIZED_REJECTED: redacted"
+        sanitized.append(s)
+    # Filter empty (should not occur) and ensure non-empty if originally non-empty? Keep as is
+    if len(sanitized) > 32:
+        truncated_n = len(sanitized) - 31
+        capped = sanitized[:31]
+        capped.append(f"FINDINGS_TRUNCATED: {truncated_n} further findings suppressed")
+        return capped
+    return sanitized
+
+
 def _canonical_json(payload: object) -> str:
     return json.dumps(
         payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
@@ -229,7 +294,9 @@ def _sha256_file(path: Path) -> str:
 
 
 class ManchesterClosedLoopModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, allow_inf_nan=False)
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, strict=True, allow_inf_nan=False, revalidate_instances="never"
+    )
 
     def canonical_json(self) -> str:
         return _canonical_json(self.model_dump(mode="json"))
@@ -459,12 +526,10 @@ class ClosedLoopExecutionPackage(ManchesterClosedLoopModel):
             raise ValueError("deterministic_run_identity must match canonical request+tool+argv")
         # Environment keys must be exactly the documented minimal set (order-insensitive)
         allowed = {"PATH", "HOME", "LANG", "LC_ALL"}
-        if set(self.environment_keys) != allowed and set(self.environment_keys) != allowed:
-            # Accept only exact minimal set; reject SUMO_HOME etc
+        if set(self.environment_keys) != allowed:
             if "SUMO_HOME" in self.environment_keys:
                 raise ValueError("SUMO_HOME must not be in environment_keys")
-            if set(self.environment_keys) != allowed:
-                raise ValueError("environment_keys must be exactly PATH,HOME,LANG,LC_ALL")
+            raise ValueError("environment_keys must be exactly PATH,HOME,LANG,LC_ALL")
         return self
 
 
@@ -902,6 +967,7 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
     admitted = {i.path for i in request.inputs}
     for elem in root.iter():
         tag = _strip_ns(elem.tag)
+        safe_tag = _sanitize_xml_name(tag)
         # Explicit refusal of additional-files in this narrow V1 runner
         if tag == "additional-files":
             errors.append(
@@ -911,9 +977,9 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
         if tag not in _ALLOWED_CONFIG_TAGS:
             low = tag.lower()
             if any(k in low for k in _FORBIDDEN_TAG_SUBSTRINGS):
-                errors.append(f"CONFIG_FORBIDDEN_OPTION_REJECTED: {tag} is not allowed")
+                errors.append(f"CONFIG_FORBIDDEN_OPTION_REJECTED: {safe_tag} is not allowed")
             else:
-                errors.append(f"CONFIG_UNREVIEWED_ELEMENT_REJECTED: {tag} is not allowlisted")
+                errors.append(f"CONFIG_UNREVIEWED_ELEMENT_REJECTED: {safe_tag} is not allowlisted")
             continue
         # Validate attributes
         for attr_name, attr_val in list(elem.attrib.items()):
@@ -923,8 +989,9 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
             ):
                 continue
             if attr_name != "value":
+                safe_attr = _sanitize_xml_name(attr_name)
                 errors.append(
-                    f"CONFIG_UNREVIEWED_ATTRIBUTE_REJECTED: {tag} attribute {attr_name} not allowed"
+                    f"CONFIG_UNREVIEWED_ATTRIBUTE_REJECTED: {safe_tag} attribute {safe_attr} not allowed"  # noqa: E501
                 )
                 continue
             val: str = attr_val
@@ -1153,12 +1220,23 @@ def create_closed_loop_request(
         if child.is_symlink():
             raise ManchesterClosedLoopError(
                 "INPUT_SYMLINK",
-                f"input must not be a symlink: {child.name}",
+                f"input must not be a symlink: {_sanitize_xml_name(child.name)}",
+            )
+        if child.is_dir():
+            raise ManchesterClosedLoopError(
+                "UNSUPPORTED_PACKAGE_ENTRY",
+                f"unsupported package entry (subdirectory not allowed): {_sanitize_xml_name(child.name)}",  # noqa: E501
             )
         if not child.is_file():
-            continue
+            raise ManchesterClosedLoopError(
+                "UNSUPPORTED_PACKAGE_ENTRY",
+                f"unsupported package entry: {_sanitize_xml_name(child.name)}",
+            )
         if not _SAFE_NAME_RE.match(child.name):
-            continue
+            raise ManchesterClosedLoopError(
+                "UNSAFE_PACKAGE_ENTRY",
+                f"unsafe package entry: {_sanitize_xml_name(child.name)}",
+            )
         # Enforce per-file bound before hashing where possible
         try:
             size = child.stat().st_size
@@ -1189,9 +1267,10 @@ def create_closed_loop_request(
         inputs.append(ClosedLoopInputDeclaration(path=child.name, sha256=sha, size_bytes=size))
 
     if cfg not in {i.path for i in inputs}:
-        placeholder_hash = _sha256_hex(b"missing:" + cfg.encode())
-        inputs.append(ClosedLoopInputDeclaration(path=cfg, sha256=placeholder_hash, size_bytes=0))
-        inputs = sorted(inputs, key=lambda x: x.path)
+        raise ManchesterClosedLoopError(
+            "CONFIG_FILE_MISSING",
+            f"config file {_sanitize_xml_name(cfg)} not in declared package inputs",
+        )
 
     package_fp = _compute_package_fingerprint(pkg, inputs)
     det_id = _compute_deterministic_identity(
@@ -1222,7 +1301,62 @@ def preflight_closed_loop_execution(
     Returns ``blocked`` when SUMO or any provider-required input is absent,
     ``accepted`` otherwise. ``blocked`` is a typed standing distinct from
     ``failed`` or ``accepted``.
+
+    Canonical revalidation is performed at the boundary before any file
+    access: a forged ``config_file``, inventory, timeout, or authorization
+    via ``model_copy`` is treated as typed blocked without launching.
     """
+    # Canonical revalidation before any file read / staging / subprocess
+    try:
+        canonical_request = ClosedLoopExecutionRequest.model_validate(
+            request.model_dump(mode="json")
+        )
+    except Exception as exc:  # noqa: BLE001
+        raw = []
+        try:
+            from pydantic import ValidationError as _VE  # noqa: N814
+
+            if isinstance(exc, _VE):
+                for err_detail in exc.errors():
+                    loc = ".".join(str(p) for p in err_detail.get("loc", ()))
+                    safe_loc = _sanitize_xml_name(loc) if loc else "request"
+                    msg = err_detail.get("msg", "")
+                    safe_msg = _SECRET_TOKEN_RE.sub("REDACTED", msg)
+                    safe_msg = _PRIVATE_PATH_RE.sub("{REDACTED}", safe_msg)
+                    safe_msg = safe_msg[:200]
+                    raw.append(f"REQUEST_VALIDATION_FAILED: {safe_loc} {safe_msg}")
+                if not raw:
+                    raw.append("REQUEST_VALIDATION_FAILED: invalid request")
+            else:
+                raw.append(f"REQUEST_VALIDATION_FAILED: {_sanitize_xml_name(str(exc))[:200]}")
+        except Exception:
+            raw.append("REQUEST_VALIDATION_FAILED: invalid request")
+        _forged_findings = _finalize_findings(raw)
+        # Ensure non-empty safe blocker
+        if not _forged_findings or not any(f.strip() for f in _forged_findings):
+            _forged_findings = ["REQUEST_VALIDATION_FAILED: blocked"]
+        # Use original request's fingerprint if possible, fallback to hash of raw
+        try:
+            fp = request.fingerprint()
+        except Exception:
+            fp = _sha256_hex(b"invalid:" + str(raw).encode())
+        # Use model_construct to avoid re-validating the forged nested request (which is intentionally invalid)  # noqa: E501
+        # This ensures a typed blocked artifact is returned without raising ValidationError,
+        # while still preserving safe findings and fingerprint binding.
+        return ClosedLoopPreflightReport.model_construct(
+            status="blocked",
+            tool=tool,
+            request=request,
+            request_fingerprint=fp,
+            findings=_forged_findings,
+            read_only=True,
+            mutations_performed=False,
+            schema_version=CLOSED_LOOP_SCHEMA_VERSION,
+            method_version=CLOSED_LOOP_METHOD_VERSION,
+            capability_id=CLOSED_LOOP_CAPABILITY_ID,
+        )
+    # Bind to canonical validated request thereafter
+    request = canonical_request
     findings: list[str] = []
 
     if request.confirmed_by_operator is not True:
@@ -1245,9 +1379,9 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    err = _validate_package_root(Path(package_root))
-    if err is not None:
-        findings.append(f"PACKAGE_ROOT_INVALID: {err}")
+    _pkg_err = _validate_package_root(Path(package_root))
+    if _pkg_err is not None:
+        findings.append(f"PACKAGE_ROOT_INVALID: {_pkg_err}")
         return ClosedLoopPreflightReport(
             status="blocked",
             tool=tool,
@@ -1256,9 +1390,9 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    err = _validate_output_root(Path(output_root), Path(package_root))
-    if err is not None:
-        findings.append(f"OUTPUT_ISOLATION_REFUSED: {err}")
+    _out_err = _validate_output_root(Path(output_root), Path(package_root))
+    if _out_err is not None:
+        findings.append(f"OUTPUT_ISOLATION_REFUSED: {_out_err}")
         return ClosedLoopPreflightReport(
             status="blocked",
             tool=tool,
@@ -1270,7 +1404,10 @@ def preflight_closed_loop_execution(
     input_errors = _verify_declared_inputs(Path(package_root), request)
     if input_errors:
         for e in input_errors:
-            findings.append(f"INPUT_VERIFICATION_FAILED: {e}")
+            findings.append(f"INPUT_VERIFICATION_FAILED: {_sanitize_finding_text(e)}")
+        findings = _finalize_findings(findings)
+        if not findings:
+            findings = ["INPUT_VERIFICATION_FAILED: blocked"]
         return ClosedLoopPreflightReport(
             status="blocked",
             tool=tool,
@@ -1283,7 +1420,10 @@ def preflight_closed_loop_execution(
     cfg_errors = _preflight_config_xml(Path(package_root), request)
     if cfg_errors:
         for e in cfg_errors:
-            findings.append(f"CONFIG_PREFLIGHT_FAILED: {e}")
+            findings.append(f"CONFIG_PREFLIGHT_FAILED: {_sanitize_finding_text(e)}")
+        findings = _finalize_findings(findings)
+        if not findings:
+            findings = ["CONFIG_PREFLIGHT_FAILED: blocked"]
         return ClosedLoopPreflightReport(
             status="blocked",
             tool=tool,
@@ -1293,6 +1433,7 @@ def preflight_closed_loop_execution(
         )
 
     findings.append("PREFLIGHT_ACCEPTED: package, inputs, tool, and output isolation verified")
+    findings = _finalize_findings(findings)
 
     return ClosedLoopPreflightReport(
         status="accepted",
@@ -1373,9 +1514,150 @@ def run_closed_loop_execution(
     tool: ClosedLoopToolIdentity,
     executable_path: Path,
 ) -> ClosedLoopExecutionReceipt:
-    """Execute the fixed argv locally with isolated staging and bounded receipts."""
+    """Execute the fixed argv locally with isolated staging and bounded receipts.
+
+    Canonical revalidation is performed at the boundary before any file
+    access or launch; forged requests are returned as typed blocked without
+    launching a subprocess and without echoing raw payload.
+    """
 
     started = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+    # Canonical revalidation before any file read, staging, or subprocess launch
+    try:
+        canonical_request = ClosedLoopExecutionRequest.model_validate(
+            request.model_dump(mode="json")
+        )
+    except Exception as exc:  # noqa: BLE001
+        # Build a safe blocked receipt without launching, without leaking raw payload
+        # Use generic safe argv (does not echo forged config_file)
+        safe_argv = [ALLOWED_EXECUTABLE_NAME, *list(CLOSED_LOOP_FIXED_ARGV)]
+        # Replace placeholders with safe sanitized values (no raw traversal)
+        # For blocked due to validation, use sanitized config_file placeholder
+        # to avoid leaking traversal payload in argv
+        try:
+            raw_cfg = str(getattr(request, "config_file", "config"))
+        except Exception:
+            raw_cfg = "config"
+        safe_cfg = _sanitize_xml_name(raw_cfg)
+        safe_argv = [
+            safe_cfg
+            if tok == "<config>"
+            else tok
+            if not tok.startswith("<")
+            else safe_cfg
+            if tok in {"<config>", "<seed>", "<tripinfo>", "<summary>"}
+            else tok
+            for tok in safe_argv
+        ]
+        # Actually reconstruct correctly: first token is executable, rest are fixed; handle properly
+        # Rebuild properly with safe values
+        safe_portable = []
+        for tok in CLOSED_LOOP_FIXED_ARGV:
+            if tok == "<config>":
+                safe_portable.append(safe_cfg)
+            elif tok == "<seed>":
+                safe_portable.append("0")
+            elif tok == "<tripinfo>":
+                safe_portable.append("tripinfo.xml")
+            elif tok == "<summary>":
+                safe_portable.append("summary.xml")
+            else:
+                safe_portable.append(tok)
+        safe_argv = [ALLOWED_EXECUTABLE_NAME, *safe_portable]
+        # Sanitize error reason per error
+        raw_reasons: list[str] = []
+        try:
+            from pydantic import ValidationError as _VE2  # noqa: N814
+
+            if isinstance(exc, _VE2):
+                for err_detail in exc.errors():
+                    loc = ".".join(str(p) for p in err_detail.get("loc", ()))
+                    safe_loc = _sanitize_xml_name(loc) if loc else "request"
+                    msg = err_detail.get("msg", "")
+                    safe_msg = _SECRET_TOKEN_RE.sub("REDACTED", msg)
+                    safe_msg = _PRIVATE_PATH_RE.sub("{REDACTED}", safe_msg)
+                    safe_msg = safe_msg[:200]
+                    raw_reasons.append(f"REQUEST_VALIDATION_FAILED: {safe_loc} {safe_msg}")
+                if not raw_reasons:
+                    raw_reasons.append("REQUEST_VALIDATION_FAILED: invalid request")
+            else:
+                raw_reasons.append(
+                    f"REQUEST_VALIDATION_FAILED: {_sanitize_xml_name(str(exc))[:200]}"
+                )
+        except Exception:
+            raw_reasons.append("REQUEST_VALIDATION_FAILED: invalid request")
+        sanitized_reasons = [_sanitize_finding_text(r) for r in raw_reasons]
+        reason = "; ".join(s for s in sanitized_reasons if s)
+        if not reason:
+            reason = "REQUEST_VALIDATION_FAILED: blocked"
+        # Build blocked receipt without launching
+        completed = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        try:
+            if datetime.fromisoformat(completed.replace("Z", "+00:00")) < datetime.fromisoformat(
+                started.replace("Z", "+00:00")
+            ):
+                completed = started
+        except Exception:
+            completed = started
+        try:
+            s_dt = datetime.fromisoformat(started.replace("Z", "+00:00"))
+            c_dt = datetime.fromisoformat(completed.replace("Z", "+00:00"))
+            duration = max(0.0, (c_dt - s_dt).total_seconds())
+        except Exception:
+            duration = 0.0
+        # Deterministic identity for blocked: bind request fingerprint (original) + tool + safe_argv
+        try:
+            fp = request.fingerprint()
+        except Exception:
+            fp = _sha256_hex(b"invalid:" + str(raw_reasons).encode())
+        # Use synthetic blocked preflight fingerprint
+        blocked_preflight = _sha256_hex(b"blocked:" + fp.encode())
+        # Compute canonical identity with safe argv
+        try:
+            det_identity = _canonical_run_identity(request, tool, safe_argv)
+        except Exception:
+            det_identity = _sha256_hex((fp + tool.executable_sha256 + "".join(safe_argv)).encode())
+        # Use model_construct to avoid re-validating forged request
+        return ClosedLoopExecutionReceipt.model_construct(
+            _fields_set=set(),
+            run_id=getattr(request, "run_id", "run-01")
+            if isinstance(getattr(request, "run_id", None), str)
+            else "run-01",
+            request=request,
+            request_fingerprint=fp,
+            preflight_fingerprint=blocked_preflight,
+            tool=tool,
+            argv=safe_argv,
+            working_directory="{PACKAGE_ROOT}",
+            output_directory="{OUTPUT_ROOT}",
+            started_at_utc=started,
+            completed_at_utc=completed,
+            duration_s=duration,
+            exit_code=None,
+            timed_out=False,
+            outcome="blocked",
+            stdout_excerpt="",
+            stderr_excerpt=_sanitize_text(reason)[:MAX_LOG_BYTES]
+            if reason
+            else "REQUEST_VALIDATION_FAILED: blocked",
+            outputs=[],
+            output_fingerprint=None,
+            inputs_verified=False,
+            deterministic_run_identity=det_identity,
+            engineering_standing=ENGINEERING_NOT_VALID,
+            scientific_standing=SCIENTIFICALLY_NOT_ACCEPTED,
+            limitations=list(CLOSED_LOOP_LIMITATIONS),
+            shell_used=False,
+            caller_supplied_arguments=False,
+            secrets_exposed=False,
+            schema_version=CLOSED_LOOP_SCHEMA_VERSION,
+            method_version=CLOSED_LOOP_METHOD_VERSION,
+            capability_id=CLOSED_LOOP_CAPABILITY_ID,
+        )
+
+    # Bind to canonical validated request thereafter
+    request = canonical_request
 
     pkg = Path(package_root)
     out = Path(output_root)
@@ -1477,12 +1759,20 @@ def run_closed_loop_execution(
     # Pre-launch input verification (includes size bounds)
     errors = _verify_declared_inputs(pkg, request)
     if errors:
-        return _blocked_receipt("; ".join(errors))
+        sanitized = [_sanitize_finding_text(e) for e in errors]
+        reason = "; ".join(s for s in sanitized if s)
+        if not reason:
+            reason = "INPUT_VERIFICATION_FAILED: blocked"
+        return _blocked_receipt(reason)
 
     # Config preflight — untrusted execution control
     cfg_errors = _preflight_config_xml(pkg, request)
     if cfg_errors:
-        return _blocked_receipt("; ".join(cfg_errors))
+        sanitized_cfg = [_sanitize_finding_text(e) for e in cfg_errors]
+        reason_cfg = "; ".join(s for s in sanitized_cfg if s)
+        if not reason_cfg:
+            reason_cfg = "CONFIG_PREFLIGHT_FAILED: blocked"
+        return _blocked_receipt(reason_cfg)
 
     # Output isolation
     iso_err = _validate_output_root(out, pkg)

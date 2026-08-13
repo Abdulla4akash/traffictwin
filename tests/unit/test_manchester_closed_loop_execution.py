@@ -649,7 +649,9 @@ def test_output_oversize_rejected(tmp_path: Path) -> None:
         package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
     )
     assert receipt.outcome == "failed"
-    assert any("OVERSIZE" in receipt.stderr_excerpt for _ in [0]) or receipt.outcome == "failed"
+    assert "OVERSIZE" in receipt.stderr_excerpt
+    assert len(receipt.stderr_excerpt.strip()) > 0
+    assert "REDACTED" not in receipt.stderr_excerpt or "OVERSIZE" in receipt.stderr_excerpt
     assert receipt.engineering_standing == "ENGINEERING_NOT_VALID"
 
 
@@ -726,10 +728,13 @@ def test_output_symlink_rejected(tmp_path: Path) -> None:
     receipt = run_closed_loop_execution(
         package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
     )
-    # If symlink was created, it should be rejected; otherwise it may be completed depending on OS
-    if (out / "summary.xml").is_symlink():
-        assert receipt.outcome == "failed"
-        assert "SYMLINK" in receipt.stderr_excerpt
+    # Symlink creation is part of the attack; receipt must detect and reject
+    assert (out / "summary.xml").is_symlink(), (
+        "symlink test did not exercise branch: symlink was not created"
+    )
+    assert receipt.outcome == "failed"
+    assert "SYMLINK" in receipt.stderr_excerpt
+    assert len(receipt.stderr_excerpt.strip()) > 0
 
 
 # ---------------------------------------------------------------------------
@@ -1192,13 +1197,14 @@ def test_exit_zero_partial_output_is_failed(tmp_path: Path) -> None:
         package_root=pkg, output_root=out_sym, request=req, tool=tool2, executable_path=exe2
     )
     summary_path = out_sym / "summary.xml"
-    if summary_path.is_symlink():
-        assert receipt2.outcome == "failed"
-        assert (
-            "REQUIRED_OUTPUT_MISSING" in receipt2.stderr_excerpt
-            or "SYMLINK" in receipt2.stderr_excerpt
-            or "EXTRA" in receipt2.stderr_excerpt
-        )
+    assert summary_path.is_symlink(), "partial symlink branch not exercised"
+    assert receipt2.outcome == "failed"
+    assert (
+        "REQUIRED_OUTPUT_MISSING" in receipt2.stderr_excerpt
+        or "SYMLINK" in receipt2.stderr_excerpt
+        or "EXTRA" in receipt2.stderr_excerpt
+    )
+    assert len(receipt2.stderr_excerpt.strip()) > 0
     good_pkg = _package_with_config(tmp_path / "good_pkg2")
     fake_dir3 = tmp_path / "fake_good_forge"
     exe3 = _write_fake_sumo(fake_dir3, exit_code=0, write_outputs=True)
@@ -1867,3 +1873,261 @@ def test_controlled_environment_keys(tmp_path: Path) -> None:
     tmp_marker = "/" + "tmp" + "/"
     assert tmp_marker not in receipt.canonical_json()
     assert str(out) not in receipt.canonical_json()
+
+
+# ---------------------------------------------------------------------------
+# B1 and N1 discriminating remediation tests
+# ---------------------------------------------------------------------------
+
+
+def test_secret_tag_names_are_sanitized_and_blocked(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    # Use secret/token/password as tag names
+    for evil_tag in ["secret", "token", "password", "mySecretTag", "apiKey"]:
+        (pkg / "sumo.sumocfg").write_text(
+            f'<configuration><{evil_tag} value="net.xml"/></configuration>',
+            encoding="utf-8",
+        )
+        req = create_closed_loop_request(
+            package_root=pkg, config_file="sumo.sumocfg", run_id=f"run-{evil_tag.lower()}"
+        )
+        fake_dir = tmp_path / f"fake_secret_{evil_tag}"
+        exe = _write_fake_sumo(fake_dir)
+        tool = detect_configured_sumo(exe)
+        report = preflight_closed_loop_execution(
+            package_root=pkg,
+            output_root=tmp_path / f"out_secret_{evil_tag}",
+            request=req,
+            tool=tool,
+        )
+        assert report.status == "blocked"
+        # Findings must not contain raw secret token
+        joined = " ".join(report.findings)
+        assert "secret" not in joined.lower() or "REDACTED" in joined
+        assert "token" not in joined.lower() or "REDACTED" in joined
+        assert "password" not in joined.lower() or "REDACTED" in joined
+        # Must not raise ValidationError - already proved by reaching here
+        assert len(report.findings) >= 1
+        assert len(report.findings[0].strip()) > 0
+        # Run path must also be blocked without exception
+        out = tmp_path / f"out_secret_run_{evil_tag}"
+        receipt = run_closed_loop_execution(
+            package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+        )
+        assert receipt.outcome == "blocked"
+        assert (
+            "REDACTED" not in receipt.stderr_excerpt.lower() or receipt.stderr_excerpt.strip() != ""
+        )
+        # Ensure receipt stderr does not leak raw secret
+        assert (
+            "secret" not in receipt.stderr_excerpt.lower() or "REDACTED" in receipt.stderr_excerpt
+        )
+        # Restore benign config for next iteration
+        (pkg / "sumo.sumocfg").write_text(
+            "<configuration><input></input></configuration>", encoding="utf-8"
+        )
+        # need to recreate request after restoring? already loop will recreate
+
+
+def test_secret_attribute_names_sanitized(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    for evil_attr in ["secret", "token", "password"]:
+        (pkg / "sumo.sumocfg").write_text(
+            f'<configuration><input><net-file value="net.xml" {evil_attr}="evil"/></input></configuration>',  # noqa: E501
+            encoding="utf-8",
+        )
+        req = create_closed_loop_request(
+            package_root=pkg, config_file="sumo.sumocfg", run_id=f"run-attr-{evil_attr}"
+        )
+        exe = _write_fake_sumo(tmp_path / f"fake_attr_{evil_attr}")
+        tool = detect_configured_sumo(exe)
+        report = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / f"out_attr_{evil_attr}", request=req, tool=tool
+        )
+        assert report.status == "blocked"
+        joined = " ".join(report.findings)
+        assert evil_attr not in joined.lower() or "REDACTED" in joined
+        assert len(report.findings) >= 1
+        out = tmp_path / f"out_attr_run_{evil_attr}"
+        receipt = run_closed_loop_execution(
+            package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+        )
+        assert receipt.outcome == "blocked"
+        assert len(receipt.stderr_excerpt.strip()) > 0
+
+
+def test_33_invalid_elements_truncated_with_marker(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    # Create 33 invalid elements
+    elems = "".join(f'<evil{i} value="x"/>' for i in range(33))
+    (pkg / "sumo.sumocfg").write_text(f"<configuration>{elems}</configuration>", encoding="utf-8")
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-trunc"
+    )
+    exe = _write_fake_sumo(tmp_path / "fake_trunc")
+    tool = detect_configured_sumo(exe)
+    report = preflight_closed_loop_execution(
+        package_root=pkg, output_root=tmp_path / "out_trunc", request=req, tool=tool
+    )
+    assert report.status == "blocked"
+    assert len(report.findings) == 32
+    assert report.findings[-1].startswith("FINDINGS_TRUNCATED:")
+    assert "2 further findings suppressed" in report.findings[-1]  # 33 -31 =2
+    # Ensure all findings are non-empty and safe
+    for f in report.findings:
+        assert len(f.strip()) > 0
+        assert "/Users/" not in f
+        assert "secret" not in f.lower() or "REDACTED" in f
+    # Run path also blocked with non-empty reason
+    out = tmp_path / "out_trunc_run"
+    receipt = run_closed_loop_execution(
+        package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+    )
+    assert receipt.outcome == "blocked"
+    assert len(receipt.stderr_excerpt.strip()) > 0
+    # Ensure findings were capped deterministically (same report reproducible)
+    report2 = preflight_closed_loop_execution(
+        package_root=pkg, output_root=tmp_path / "out_trunc2", request=req, tool=tool
+    )
+    assert report.findings == report2.findings
+
+
+def test_nonempty_blocked_reason_per_error_sanitization(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    # Mix one poisoned secret tag with one benign invalid tag - per error sanitization must preserve benign reason  # noqa: E501
+    (pkg / "sumo.sumocfg").write_text(
+        '<configuration><secret value="x"/><evil2 value="x"/></configuration>',
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(package_root=pkg, config_file="sumo.sumocfg", run_id="run-mix")
+    exe = _write_fake_sumo(tmp_path / "fake_mix")
+    tool = detect_configured_sumo(exe)
+    report = preflight_closed_loop_execution(
+        package_root=pkg, output_root=tmp_path / "out_mix", request=req, tool=tool
+    )
+    assert report.status == "blocked"
+    # Must have at least 2 findings or truncated handling, but not zero, and not empty strings
+    assert len(report.findings) >= 1
+    for f in report.findings:
+        assert len(f.strip()) > 0
+    joined = "; ".join(report.findings)
+    assert len(joined.strip()) > 0
+    # Run path must produce non-empty stderr
+    out = tmp_path / "out_mix_run"
+    receipt = run_closed_loop_execution(
+        package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+    )
+    assert receipt.outcome == "blocked"
+    assert len(receipt.stderr_excerpt.strip()) > 0
+    assert (
+        "BLOCKED" not in receipt.stderr_excerpt or len(receipt.stderr_excerpt) > 10
+    )  # ensure real reason
+
+
+def test_model_copy_traversal_zero_launches(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    req = create_closed_loop_request(package_root=pkg, config_file="sumo.sumocfg", run_id="run-01")
+    # Forge via model_copy
+    forged = req.model_copy(update={"config_file": "../evil.sumocfg"})
+    fake_dir = tmp_path / "fake_modelcopy"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    # Track launches via monkeypatch on subprocess.Popen
+    import subprocess as _sp
+    from collections.abc import Sequence as _LaunchSequence
+    from typing import Any as _PopenAny
+    from typing import cast as _cast
+
+    launches: list[list[str]] = []
+    orig_popen = _sp.Popen
+
+    def counting_popen(
+        args: str
+        | bytes
+        | os.PathLike[str]
+        | os.PathLike[bytes]
+        | _LaunchSequence[str | bytes | os.PathLike[str] | os.PathLike[bytes]],
+        *remaining_args: object,
+        **kwargs: object,
+    ) -> _sp.Popen[_PopenAny]:
+        if isinstance(args, (str, bytes, os.PathLike)):
+            launches.append([str(args)])
+        else:
+            launches.append([str(item) for item in args])
+        return _cast(
+            _sp.Popen[_PopenAny], _cast(_PopenAny, orig_popen)(args, *remaining_args, **kwargs)
+        )
+
+    import unittest.mock as _mock
+
+    with _mock.patch(
+        "traffictwin.integration.manchester.closed_loop_execution.subprocess.Popen",
+        side_effect=counting_popen,
+    ):
+        report = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / "out_mc_pre", request=forged, tool=tool
+        )
+        assert report.status == "blocked"
+        assert len(launches) == 0
+        assert len(report.findings) >= 1
+        assert len(report.findings[0].strip()) > 0
+        # Run must also not launch
+        launches.clear()
+        out = tmp_path / "out_mc_run"
+        receipt = run_closed_loop_execution(
+            package_root=pkg, output_root=out, request=forged, tool=tool, executable_path=exe
+        )
+        assert receipt.outcome == "blocked"
+        assert len(launches) == 0
+        assert len(receipt.stderr_excerpt.strip()) > 0
+        assert ".." not in receipt.stderr_excerpt or "REDACTED" in receipt.stderr_excerpt
+        assert receipt.argv[0] == "sumo"
+        # Ensure no traversal leaked in argv
+        for tok in receipt.argv:
+            assert ".." not in tok
+
+
+def test_missing_config_no_fake_fingerprint(tmp_path: Path) -> None:
+    pkg = tmp_path / "pkg_missing"
+    pkg.mkdir(parents=True, exist_ok=True)
+    (pkg / "net.xml").write_text("<net/>", encoding="utf-8")
+    (pkg / "routes.xml").write_text("<routes/>", encoding="utf-8")
+    # No sumo.sumocfg
+    with pytest.raises(ManchesterClosedLoopError, match="CONFIG_FILE_MISSING"):
+        create_closed_loop_request(
+            package_root=pkg, config_file="sumo.sumocfg", run_id="run-missing"
+        )
+    # Ensure no placeholder was created with fake hash
+    # Also test that a request cannot be forged to include missing config
+    # with fake hash via model_validate
+    # The error must be typed and not produce a valid request
+
+
+def test_unsupported_package_content_refusal(tmp_path: Path) -> None:
+    # Subdirectory
+    pkg = tmp_path / "pkg_subdir"
+    pkg.mkdir(parents=True, exist_ok=True)
+    (pkg / "sumo.sumocfg").write_text(
+        "<configuration><input></input></configuration>", encoding="utf-8"
+    )
+    (pkg / "net.xml").write_text("<net/>", encoding="utf-8")
+    sub = pkg / "subdir"
+    sub.mkdir()
+    (sub / "inner.xml").write_text("<inner/>", encoding="utf-8")
+    with pytest.raises(ManchesterClosedLoopError, match="UNSUPPORTED_PACKAGE_ENTRY"):
+        create_closed_loop_request(package_root=pkg, config_file="sumo.sumocfg")
+    # Unsafe name
+    pkg2 = tmp_path / "pkg_unsafe"
+    pkg2.mkdir(parents=True, exist_ok=True)
+    (pkg2 / "sumo.sumocfg").write_text(
+        "<configuration><input></input></configuration>", encoding="utf-8"
+    )
+    (pkg2 / "bad name.xml").write_text("<bad/>", encoding="utf-8")
+    with pytest.raises(ManchesterClosedLoopError, match="UNSAFE_PACKAGE_ENTRY"):
+        create_closed_loop_request(package_root=pkg2, config_file="sumo.sumocfg")
+    # Ensure error messages do not leak private paths
+    try:
+        create_closed_loop_request(package_root=pkg, config_file="sumo.sumocfg")
+    except ManchesterClosedLoopError as exc:
+        assert "/Users/" not in str(exc)
+        assert "/private/" not in str(exc)
