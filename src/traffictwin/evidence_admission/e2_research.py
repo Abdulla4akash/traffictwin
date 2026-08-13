@@ -15,6 +15,11 @@ Public API:
     -> tuple[E2ResearchEvidencePackage, E2ResearchAdmissionReceipt]
 Uses Lane 03 ``load_builtin_e2_research`` and strict validation; no fallback
 package, no alternate schema, no path-based reads, no Any adapters.
+
+Admission specification is a strict typed immutable in-module object derived
+from the pinned owner-authorized constants; no runtime dependency on
+``e2_research_admission_v1.json`` or ``resources.files`` for
+``traffictwin.evidence_admission``.
 """
 
 from __future__ import annotations
@@ -22,8 +27,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from importlib import resources
-from typing import Literal
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -37,6 +41,70 @@ SCHEMA_VERSION: Literal["e2_research_admission_v1"] = "e2_research_admission_v1"
 EXPECTED_PACKAGE_FINGERPRINT: str = (
     "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269"
 )
+
+# ---------------------------------------------------------------------------
+# Immutable in-module pinned admission specification — exact mirror of
+# e2_research_admission_v1.json "expected" (owner-authorized).
+# ---------------------------------------------------------------------------
+
+_PINNED_RESEARCH_HEADS: Final[dict[str, str]] = {
+    "e2b": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+    "e2c": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+    "e2d": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+}
+
+_PINNED_MANIFESTS: Final[dict[str, str]] = {
+    "e2b": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+    "e2c": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+    "e2d": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+}
+
+_PINNED_ACTOR_SHA256: Final[str] = (
+    "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+)
+_PINNED_TRACE_SHA256: Final[str] = (
+    "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+)
+
+_PINNED_REPLICATION_UNIT: Final[Literal["fleet_draw"]] = "fleet_draw"
+_PINNED_EVALUATOR_SEED: Final[Literal[0]] = 0
+
+_PINNED_E2B_OFFERED_ATTAINMENT: Final[dict[str, float]] = {
+    "off": 0.683619229,
+    "jsq": 0.675681775,
+    "ingress_dla": 0.715773211,
+    "dla": 0.694939919,
+}
+
+_PINNED_E2C_DLA_MINUS_INGRESS: Final[dict[str, object]] = {
+    "per_seed": [
+        -0.022097034972,
+        -0.020519134179,
+        -0.021447383092,
+        -0.020825491499,
+    ],
+    "mean": -0.021222260935,
+    "ci_lower": -0.02233525407,
+    "ci_upper": -0.0201092678,
+}
+
+_PINNED_E2D_PER_TASK_MINUS_INGRESS: Final[dict[str, object]] = {
+    "per_seed": [
+        0.004636732564,
+        0.005867285642,
+        0.005071796666,
+        0.005509919752,
+    ],
+    "mean": 0.005271433656,
+    "ci_lower": 0.004422143925,
+    "ci_upper": 0.006120723387,
+}
+
+_PINNED_E2D_PER_TASK_MINUS_COMMON_TARGET: Final[dict[str, float]] = {
+    "mean": 0.026493694591,
+    "ci_lower": 0.026210763951,
+    "ci_upper": 0.026776625232,
+}
 
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -129,48 +197,6 @@ def _validate_hex40(value: str, field_name: str) -> str:
     return s
 
 
-def _load_expected_spec() -> dict[str, object]:
-    try:
-        ref = resources.files("traffictwin.evidence_admission").joinpath(
-            "e2_research_admission_v1.json"
-        )
-        text: str = ref.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise E2ResearchAdmissionError(f"admission spec resource missing: {exc}") from exc
-    except OSError as exc:
-        raise E2ResearchAdmissionError(f"admission spec read failed: {exc}") from exc
-    try:
-        data = json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise E2ResearchAdmissionError(f"admission spec is not valid JSON: {exc}") from exc
-    if not isinstance(data, dict):
-        raise E2ResearchAdmissionError("admission spec top-level must be object")
-    _assert_no_paths_or_secrets(data, label="admission spec")
-    if data.get("schema_version") != SCHEMA_VERSION:
-        raise E2ResearchAdmissionError(f"admission spec schema_version must be {SCHEMA_VERSION!r}")
-    if data.get("standing") != STANDING:
-        raise E2ResearchAdmissionError(f"admission spec standing must be {STANDING!r}")
-    if data.get("admission_mode") != ADMISSION_MODE:
-        raise E2ResearchAdmissionError(f"admission spec admission_mode must be {ADMISSION_MODE!r}")
-    expected = data.get("expected")
-    if not isinstance(expected, dict):
-        raise E2ResearchAdmissionError("admission spec missing expected dict")
-    pkg_fp = expected.get("package_fingerprint")
-    if not isinstance(pkg_fp, str):
-        raise E2ResearchAdmissionError(
-            "admission spec expected.package_fingerprint is required and must be string"
-        )
-    try:
-        _validate_hex64(pkg_fp, "expected package_fingerprint")
-    except ValueError as exc:
-        raise E2ResearchAdmissionError(
-            f"admission spec package_fingerprint invalid: {exc}"
-        ) from exc
-    if pkg_fp.strip().lower() != EXPECTED_PACKAGE_FINGERPRINT:
-        raise E2ResearchAdmissionError("admission spec package_fingerprint drift")
-    return data
-
-
 class StrictModel(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -198,6 +224,98 @@ class MeanCISummary(StrictModel):
     mean: float = Field(description="mean")
     ci_lower: float = Field(description="ci_lower")
     ci_upper: float = Field(description="ci_upper")
+
+
+class _PinnedExpectedSpec(StrictModel):
+    """Strict typed immutable in-module admission specification."""
+
+    research_heads: dict[str, str] = Field(description="E2b/E2c/E2d heads 40 hex")
+    manifests: dict[str, str] = Field(description="E2b/E2c/E2d manifests 64 hex")
+    actor_sha256: str = Field(description="Actor SHA-256")
+    trace_sha256: str = Field(description="Trace SHA-256")
+    replication_unit: Literal["fleet_draw"] = Field(description="Replication unit")
+    evaluator_seed: Literal[0] = Field(description="Evaluator seed")
+    e2b_offered_attainment: dict[str, float] = Field(description="E2b values")
+    e2c_dla_minus_ingress: PerSeedSummary = Field(description="E2c summary")
+    e2d_per_task_minus_ingress: PerSeedSummary = Field(description="E2d summary")
+    e2d_per_task_minus_common_target: MeanCISummary = Field(description="E2d vs common")
+    package_fingerprint: str = Field(description="64 hex fingerprint")
+
+    @field_validator("research_heads")
+    @classmethod
+    def _validate_heads(cls, v: dict[str, str]) -> dict[str, str]:
+        if set(v.keys()) != {"e2b", "e2c", "e2d"}:
+            raise ValueError("research_heads must contain exactly e2b, e2c, e2d")
+        for k, val in v.items():
+            _validate_hex40(val, f"research_heads[{k}]")
+        return {k: val.strip().lower() for k, val in v.items()}
+
+    @field_validator("manifests")
+    @classmethod
+    def _validate_manifests(cls, v: dict[str, str]) -> dict[str, str]:
+        if set(v.keys()) != {"e2b", "e2c", "e2d"}:
+            raise ValueError("manifests must contain exactly e2b, e2c, e2d")
+        for k, val in v.items():
+            _validate_hex64(val, f"manifests[{k}]")
+        return {k: val.strip().lower() for k, val in v.items()}
+
+    @field_validator("actor_sha256", "trace_sha256", "package_fingerprint")
+    @classmethod
+    def _validate_hex64_field(cls, v: str) -> str:
+        return _validate_hex64(v, "fingerprint")
+
+
+# Single frozen instance — validated at import time; mutation raises.
+_PINNED_EXPECTED_SPEC: _PinnedExpectedSpec = _PinnedExpectedSpec(
+    research_heads=dict(_PINNED_RESEARCH_HEADS),
+    manifests=dict(_PINNED_MANIFESTS),
+    actor_sha256=_PINNED_ACTOR_SHA256,
+    trace_sha256=_PINNED_TRACE_SHA256,
+    replication_unit=_PINNED_REPLICATION_UNIT,
+    evaluator_seed=_PINNED_EVALUATOR_SEED,
+    e2b_offered_attainment=dict(_PINNED_E2B_OFFERED_ATTAINMENT),
+    e2c_dla_minus_ingress=PerSeedSummary.model_validate(_PINNED_E2C_DLA_MINUS_INGRESS),
+    e2d_per_task_minus_ingress=PerSeedSummary.model_validate(_PINNED_E2D_PER_TASK_MINUS_INGRESS),
+    e2d_per_task_minus_common_target=MeanCISummary.model_validate(
+        _PINNED_E2D_PER_TASK_MINUS_COMMON_TARGET
+    ),
+    package_fingerprint=EXPECTED_PACKAGE_FINGERPRINT,
+)
+
+
+def _get_expected_spec() -> dict[str, object]:
+    """Return immutable in-module admission spec — no file I/O."""
+    # Single runtime source: the validated typed frozen _PINNED_EXPECTED_SPEC.
+    # Fresh deep plain-data copy prevents caller mutation from altering pinned state.
+    expected: dict[str, object] = _PINNED_EXPECTED_SPEC.model_dump(mode="json")
+    spec: dict[str, object] = {
+        "schema_version": SCHEMA_VERSION,
+        "standing": STANDING,
+        "admission_mode": ADMISSION_MODE,
+        "expected": expected,
+    }
+    # Strict validation mirrors former JSON-file loader — fail-closed on drift.
+    _assert_no_paths_or_secrets(spec, label="admission spec")
+    if spec.get("schema_version") != SCHEMA_VERSION:
+        raise E2ResearchAdmissionError(f"admission spec schema_version must be {SCHEMA_VERSION!r}")
+    if spec.get("standing") != STANDING:
+        raise E2ResearchAdmissionError(f"admission spec standing must be {STANDING!r}")
+    if spec.get("admission_mode") != ADMISSION_MODE:
+        raise E2ResearchAdmissionError(f"admission spec admission_mode must be {ADMISSION_MODE!r}")
+    pkg_fp = expected.get("package_fingerprint")
+    if not isinstance(pkg_fp, str):
+        raise E2ResearchAdmissionError(
+            "admission spec expected.package_fingerprint is required and must be string"
+        )
+    try:
+        _validate_hex64(pkg_fp, "expected package_fingerprint")
+    except ValueError as exc:
+        raise E2ResearchAdmissionError(
+            f"admission spec package_fingerprint invalid: {exc}"
+        ) from exc
+    if pkg_fp.strip().lower() != EXPECTED_PACKAGE_FINGERPRINT:
+        raise E2ResearchAdmissionError("admission spec package_fingerprint drift")
+    return spec
 
 
 class E2ResearchAdmissionReceipt(StrictModel):
@@ -394,7 +512,7 @@ def _build_receipt(package_fingerprint: str, spec: dict[str, object]) -> E2Resea
 
 
 def _validate_package_exact(package: E2ResearchEvidencePackage) -> None:
-    spec = _load_expected_spec()
+    spec = _get_expected_spec()
     expected_obj = spec.get("expected")
     if not isinstance(expected_obj, dict):
         raise E2ResearchAdmissionError("spec missing expected")
@@ -550,7 +668,7 @@ def admit_e2_research(package: E2ResearchEvidencePackage) -> E2ResearchAdmission
     # Exhaustive pinned validation
     _validate_package_exact(package)
     package_fp = package.fingerprint()
-    spec = _load_expected_spec()
+    spec = _get_expected_spec()
     receipt = _build_receipt(package_fp, spec)
     try:
         receipt.verify()
