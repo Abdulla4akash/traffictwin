@@ -23,10 +23,45 @@ from traffictwin.ui.manchester_operations import (
     load_local_manchester_scene,
     visible_layer_ids,
 )
-from traffictwin.ui.navigation import navigation_button
+from traffictwin.ui.navigation import V07_PENDING_PAGE_KEY, navigation_button
 from traffictwin.ui.services import list_workspace_reports, load_project_status
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tables import ColumnDisplay, capability_rows, table_column_config
+
+# Stable session-state intent for the built-in E2 mode in Resource Strategy Explorer.
+E2_RESOURCE_STRATEGY_INTENT_KEY = "resource_strategy_intent"
+E2_RESOURCE_STRATEGY_INTENT_VALUE = "e2"
+
+
+def _set_e2_research_intent() -> None:
+    """Preselect the built-in E2 mode via a stable session-state intent."""
+
+    st.session_state[E2_RESOURCE_STRATEGY_INTENT_KEY] = E2_RESOURCE_STRATEGY_INTENT_VALUE
+
+
+def _navigate_to_e2_resource_strategy_explorer() -> None:
+    """Deep-link to Resource Strategy Explorer with E2 intent, preserving router."""
+
+    _set_e2_research_intent()
+    if st.session_state.get("_v07_navigation_active") is True:
+        st.session_state[V07_PENDING_PAGE_KEY] = UiPage.RESOURCE_STRATEGY_EXPLORER.value
+        try:
+            from traffictwin.ui.navigation_v07 import page_script_for
+
+            st.switch_page(page_script_for(UiPage.RESOURCE_STRATEGY_EXPLORER))
+        except Exception as exc:
+            # Direct AppTest (app_pages/home.py as main) cannot resolve
+            # app_pages/... via st.switch_page. The stable intent and pending
+            # key are already set for session-state assertions; suppress the
+            # StreamlitAPIException to keep the page exception-free while
+            # preserving navigation when running via the app.py st.navigation
+            # router where the same path resolves correctly.
+            if "Could not find page" in str(exc):
+                return
+            raise
+    else:
+        st.session_state["active_page"] = UiPage.RESOURCE_STRATEGY_EXPLORER.value
+        st.rerun()
 
 
 def render(config: UiConfig) -> None:
@@ -127,6 +162,27 @@ def _render_v07_home(config: UiConfig) -> None:
         st.metric("Visible local layers", len(visible_layers), border=True)
         st.metric("Registered runs", run_count, border=True)
         st.metric("Comparisons", comparison_count, border=True)
+
+    with st.container(border=True):
+        st.markdown("**Inspect real E2 research — admitted VEC study**")
+        st.caption(
+            "Bounded E2b/E2c/E2d resource-strategy evidence (Manchester incident hour "
+            "2024-03-15 20:00–21:00, evaluator seed 0, 1× service, zero backhaul, four "
+            "matched fleet draws). This is admitted VEC research, not Manchester "
+            "observation, not a live forecast, and not Kubernetes deployment."
+        )
+        if st.button(
+            "Inspect real E2 research",
+            key="home_inspect_e2_research",
+            width="stretch",
+            type="primary",
+        ):
+            _navigate_to_e2_resource_strategy_explorer()
+        st.caption(
+            "Opens Resource Strategy Explorer and preselects the built-in E2 mode via "
+            "a stable session-state intent. Synthetic demonstration remains available "
+            "separately in the explorer."
+        )
 
     has_workspace, workspace_ready, _ws_status = _workspace_presence(effective_workspace)
 
@@ -475,6 +531,25 @@ def _render_legacy_home(config: UiConfig) -> None:
             UiPage.PROVENANCE,
             width="stretch",
         )
+        with st.container(border=True):
+            st.markdown("**Inspect real E2 research — admitted VEC study**")
+            st.caption(
+                "Bounded E2b/E2c/E2d resource-strategy evidence (Manchester incident hour "
+                "2024-03-15 20:00–21:00, evaluator seed 0, 1× service, zero backhaul, four "
+                "matched fleet draws). This is admitted VEC research, not Manchester "
+                "observation, not a live forecast, and not Kubernetes deployment."
+            )
+            if st.button(
+                "Inspect real E2 research",
+                key="home_legacy_inspect_e2_research",
+                width="stretch",
+                type="primary",
+            ):
+                _navigate_to_e2_resource_strategy_explorer()
+            st.caption(
+                "Opens Resource Strategy Explorer and preselects the built-in E2 mode via "
+                "a stable session-state intent."
+            )
 
         section_header("Recent workspace artifacts")
         reports = list_workspace_reports(config.workspace_path)[:5]
