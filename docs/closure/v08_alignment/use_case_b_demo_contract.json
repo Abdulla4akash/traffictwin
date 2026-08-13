@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "service": "Use Case B — Deadline-Aware VEC Dynamic Service",
+  "lane": "04",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "lifecycle_binding": [
+    "offered tasks",
+    "frozen actor mode choice",
+    "ingress",
+    "admission",
+    "deterministic target selection",
+    "forwarding",
+    "service work",
+    "return",
+    "deadline assessment",
+    "comparison output"
+  ],
+  "distinct_stages_contract": {
+    "note": "forwarded, compute_completed, returned, deadline_success are distinct counters with distinct denominators. Conflating any pair is a semantic error.",
+    "counters": {
+      "forwarded": {
+        "definition": "Count of admitted tasks where execution RSU != ingress RSU and forwarding occurred",
+        "denominator": "admitted",
+        "distinct_from": ["compute_completed", "returned", "deadline_success"]
+      },
+      "compute_completed": {
+        "definition": "Count of tasks that finished service work at execution RSU (regardless of return or deadline)",
+        "denominator": "admitted",
+        "distinct_from": ["forwarded", "returned", "deadline_success"]
+      },
+      "returned": {
+        "definition": "Count of tasks whose computed result was delivered toward vehicle (distinct from service completion)",
+        "denominator": "admitted",
+        "distinct_from": ["forwarded", "compute_completed", "deadline_success"]
+      },
+      "deadline_success": {
+        "definition": "Count of tasks where end-to-end latency (queuing + service + forwarding + return) <= deadline",
+        "denominator": "offered (headline) and admitted (diagnostic)",
+        "distinct_from": ["forwarded", "compute_completed", "returned"]
+      }
+    }
+  },
+  "authority_binding": {
+    "vehicle_actor": {
+      "chooses": "mode in {Local, V2I, V2V}",
+      "does_not_choose": "exact RSU identity",
+      "note": "Exact V2I/V2V target is environment-selected (strongest-link by default). Actor lacks RSU load awareness."
+    },
+    "infrastructure_dispatcher": {
+      "chooses": "execution RSU (placement) via strongest-link / JSQ / P2C / DLA / DLA-P2C",
+      "handles": ["forwarding", "scaling"],
+      "admission_note": "DLA includes admission feasibility rule — not a pure placement effect"
+    },
+    "prohibited_claims": [
+      "Do not credit MAPPO actor with exact RSU choice",
+      "Do not equate waiting-room capacity with compute power",
+      "Do not call simulated scaling a Kubernetes deployment",
+      "Do not equate forwarded / compute_completed / returned / deadline_success"
+    ]
+  },
+  "vocabulary_distinctions": {
+    "vehicle_mode": "actor mode choice, not RSU choice",
+    "ingress_rsu": "first RSU receiving task via radio link",
+    "execution_rsu": "RSU where task queues and is served; may differ from ingress RSU after forwarding",
+    "admission": "waiting-room ceiling check; rejected tasks never queue",
+    "placement": "selection of execution RSU for admitted tasks",
+    "scaling": "per-RSU compute-rate adjustment; Kubernetes-style simulation, not deployment"
+  },
+  "demo_scenario": {
+    "description": "Deadline-aware comparison of vehicle-side offloading vs infrastructure load management under common information",
+    "trace": "Manchester incident trace 15 March 2024 20:00-21:00 as primary; weekend ordinary as control",
+    "fleet_seeds": [0, 1, 2, 3, 4],
+    "evaluator_seed": "fixed and disclosed per run",
+    "actors": ["frozen Paper-2A 17D MAPPO seed-100"],
+    "physical_semantics": "substep-queue=sequential, veh-queue=conserved, rsu-cap-mode=reject",
+    "admission_ceiling": "rsu-cap-per-veh or rsu-cap-abs; document conversion when comparing traces",
+    "backhaul_delay_ms": 2,
+    "compute_modes": ["fixed 1x", "static 3x", "reactive Kubernetes-style resource-scaling simulation"],
+    "placement_policies": ["strongest-link (LB off, no forwarding) — baseline", "JSQ / least-loaded", "P2C", "deadline-aware (DLA)"],
+    "note": "Every run binds code commit, trace checksum, actor checksum, vec_env commit, SUMO version, seeds, and output checksums"
+  },
+  "comparison_output": {
+    "arms": [
+      {
+        "id": "vehicle_side_baseline",
+        "label": "Existing vehicle-side offloading (frozen actor + strongest-link, LB off, fixed 1x)",
+        "authority": "vehicle actor chooses mode only; environment selects RSU"
+      },
+      {
+        "id": "deterministic_infrastructure",
+        "label": "DRL offloading + deterministic load balancing (A) — JSQ/P2C/DLA forwarding to quieter RSUs",
+        "classification": "requested investigation + proposed direction (S-035); not mandatory without additional confirmation"
+      },
+      {
+        "id": "learned_infrastructure",
+        "label": "DRL offloading + DRL-based scheduling (B) — learned execution-RSU policy (gated after deterministic baselines)",
+        "classification": "requested investigation + proposed direction; PROVISIONAL until controller spec approved"
+      },
+      {
+        "id": "ai_resource_control",
+        "label": "DRL offloading + AI-based infrastructure/resource control (C) — reactive/proactive scaling",
+        "classification": "requested investigation + proposed direction; provisional wording; simulated until real deployment exists"
+      }
+    ],
+    "headline_metric": "completion_offered = deadline_success / offered",
+    "conditional_metric": "completion_admitted = deadline_success / admitted (diagnostic only; not headline)",
+    "required_metrics": [
+      "offered, admitted, rejected, rejection reasons (offered = admitted + rejected)",
+      "forwarded count and forwarding delay/energy",
+      "compute_completed, returned, deadline_success as distinct counters",
+      "completion_offered and completion_admitted with explicit denominators",
+      "per-class completion T1/T2/T3",
+      "latency mean / p50 / p95 / p99 and deadline-met latency (admitted only; rejected tasks have no latency)",
+      "per-RSU load imbalance and time series",
+      "energy per offered and per admitted task",
+      "action shares Local/V2I/V2V",
+      "work conservation proof under physical semantics",
+      "resource denominator: mean multiplier, core-seconds, scale events, time-at-multiplier, first scale-up time"
+    ],
+    "condition_map": "Report conditional strengths/weaknesses per operating condition (incident vs ordinary) rather than universal winner",
+    "provenance_per_run": [
+      "code commit",
+      "trace checksum",
+      "actor checksum",
+      "vec_env commit",
+      "SUMO version",
+      "fleet draw + task RNG",
+      "cap + LB mode + backhaul + scaling mode",
+      "evaluator seed + fleet seed",
+      "output checksums"
+    ]
+  },
+  "s035_binding": {
+    "problem": "Task concentration at congested-road RSUs; farther RSUs idle; frozen policy lacks RSU capacity awareness; stale-broadcast concern",
+    "fail_fast_note": "2.5 -> 0.75 queue tightening reduced latency via quick rejection (fail-fast / accounting effect), not genuine improvement; motivates E1 semantic sweep",
+    "investigations_are": "requested investigations / proposed directions / hypothesised outcomes as body supports; not mandatory deliverables without additional authoritative evidence",
+    "tt_req_008_priority": "SHOULD unchanged; campaign status PARTIALLY_MET with raised direct source confidence"
+  },
+  "evidence_labels_used": [
+    "SOURCE-DERIVED FACT",
+    "IMPLEMENTATION-VERIFIED FACT",
+    "RESEARCH-EVIDENCE FACT",
+    "INFERENCE",
+    "PROVISIONAL WORDING",
+    "EXTERNAL DECISION REQUIRED"
+  ]
+}

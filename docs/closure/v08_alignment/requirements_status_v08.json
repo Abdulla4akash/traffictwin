@@ -1,0 +1,282 @@
+{
+  "schema_version": "1.0",
+  "campaign": "v08-requirements-closure",
+  "lane": "01",
+  "baseline_ref": "docs/closure/v08_alignment/requirements_baseline_v1.json",
+  "baseline_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+  "implementation_target": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "audit_source": ".harness/context/sources/FINAL_AUDIT__FINAL_TRAFFICTWIN_V08_AUDIT.md",
+  "generated_at": "2026-08-12T15:29:03Z",
+  "status_vocabulary": ["VERIFIED_MET", "PARTIALLY_MET", "NOT_APPLICABLE", "DECISION_REQUIRED"],
+  "status_vocabulary_note": "Closed vocabulary. MUST uses only VERIFIED_MET, PARTIALLY_MET, NOT_APPLICABLE (trigger not observed). SHOULD/MAY may additionally use DECISION_REQUIRED where primary source confirmation is missing, but S-035 now makes TT-REQ-008 PARTIALLY_MET. No NOT_APPLICABLE is scored as MET or waiver.",
+  "must_arithmetic": {
+    "total_must": 11,
+    "verified_met": 3,
+    "partially_met": 7,
+    "not_applicable_trigger_not_observed": 1,
+    "check": "3+7+1=11; 3+7+0=11 is prohibited false arithmetic",
+    "verified_met_ids": ["TT-REQ-006", "TT-REQ-010", "TT-REQ-012"],
+    "partially_met_ids": ["TT-REQ-001", "TT-REQ-002", "TT-REQ-003", "TT-REQ-004", "TT-REQ-005", "TT-REQ-007", "TT-REQ-011"],
+    "not_applicable_ids": ["TT-REQ-013"],
+    "fact_classification": "IMPLEMENTATION-VERIFIED FACT — recomputed from FINAL_AUDIT §5 and verified against bd4570fd"
+  },
+  "should_summary": {
+    "total_should": 2,
+    "verified_met": 1,
+    "partially_met": 1,
+    "details": [
+      {"id": "TT-REQ-009", "status": "VERIFIED_MET", "note": "IMPLEMENTATION-VERIFIED FACT: varied/controlled evaluation represented by committed project-bound campaigns (seeds, uncertainty, nulls/refutations) — audit did not independently rerun private inputs"},
+      {"id": "TT-REQ-008", "status": "PARTIALLY_MET", "note": "SOURCE-DERIVED FACT: S-035 direct body raises confidence to direct supervisor evidence and supports PARTIALLY_MET; TT-REQ-008 remains SHOULD with open decision YES. Historical campaigns exist but three-arm common-scenario comparison not yet executed with common QoS metrics — gap P1. Do not treat as MUST. S-035 investigations A/B/C are requested investigations, not mandatory implementations without further authoritative evidence."}
+    ]
+  },
+  "may_summary": {
+    "total_may": 1,
+    "partially_met": 1,
+    "details": [
+      {"id": "TT-REQ-014", "status": "PARTIALLY_MET", "note": "IMPLEMENTATION-VERIFIED FACT: bounded synthetic what-if workflow exists but sequencing condition 'after core/if time' not met because P0 core outcomes (TT-002,004,005) remain open"}
+    ]
+  },
+  "requirements": [
+    {
+      "id": "TT-REQ-001",
+      "priority": "MUST",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": "P1",
+      "gap_description": "Methodology/RQs exist in docs/dissertation_manuscript_20260801.md but not supervisor-approved; private-source reproducibility incomplete — EXTERNAL DECISION REQUIRED: obtain one direct Sandra RQ/method confirmation and package permitted artifacts for independent review.",
+      "evidence_refs": ["docs/dissertation_manuscript_20260801.md:118-135,325-505", "docs/dissertation_appendices/objectives_traceability.md:1-35"],
+      "implementation_verified_evidence": "Supporting platform tests/probes passed (implementation_i2.md §§3.2–3.4); committed campaign records exist but private chain not independently rerun — RESEARCH-EVIDENCE FACT",
+      "acceptance_criteria_coverage": "Criteria 1–3 partially demonstrated; justification and traceability present but external decision blocks closure",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "id": "TT-REQ-002",
+      "priority": "MUST",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": "P0",
+      "gap_description": "Capacity arms, trace regimes, and bus overlays not yet defended as 'a few' distinct ITS services each with purpose, workload, resources, QoS, and method linkage — named gap P0 blocks closure. INFERENCE: definition of 'distinct service' remains open.",
+      "evidence_refs": ["implementation_i1.md I1-CAP-002,009,014,015", "docs/evaluation/experiment_catalogue_20260730.md:18-267"],
+      "implementation_verified_evidence": "One-click pair generation and generic import/metrics paths passed; VEC execution not rerun — IMPLEMENTATION-VERIFIED FACT",
+      "acceptance_criteria_coverage": "Criterion 1 (≥2 differentiated services) not reconciled; criteria 2–3 partially met",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "id": "TT-REQ-003",
+      "priority": "MUST",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": "P1",
+      "gap_description": "Profiling is substantial across latency/deadlines/actions/queue/pressure but not reconciled to a final defensible multi-use-case set and only partly reproducible outside private inputs — gap P1.",
+      "evidence_refs": ["src/traffictwin/metrics/engine.py:40-151", "docs/dissertation_manuscript_20260801.md:387-515,516-749"],
+      "implementation_verified_evidence": "Direct metrics returned 63 typed values; historical five-paired-seed/ten-cell records exist but private inputs not rerun — RESEARCH-EVIDENCE FACT",
+      "acceptance_criteria_coverage": "Criteria 1–3 partially met; binding to final use-case set missing",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "id": "TT-REQ-004",
+      "priority": "MUST",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": "P0",
+      "gap_description": "No complete Project-237 assessment of named existing strategy families against declared services and common QoS criteria; comparison machinery exists but manuscript limits results to one checkpoint/environment — gap P0, EXTERNAL DECISION REQUIRED to name families and complete suitability table.",
+      "evidence_refs": ["src/traffictwin/ui/pages/resource_strategy_explorer.py:164-225", "docs/evaluation/experiment_catalogue_20260730.md:211-226"],
+      "implementation_verified_evidence": "Pairwise comparison behaviorally verified; historical actor/capacity comparisons exist — IMPLEMENTATION-VERIFIED FACT",
+      "acceptance_criteria_coverage": "Criterion 1 partially (machinery exists, families not authoritatively named); criteria 2–3 incomplete",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "id": "TT-REQ-005",
+      "priority": "MUST",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": "P0",
+      "gap_description": "B-CAP meaningful capacity-aware proposal exists but no admitted or adequate full QoS/trade-off assessment closes improved-strategy outcome; synthetic smoke only proves plumbing — gap P0.",
+      "evidence_refs": ["docs/evaluation/bcap_training_predeclaration_20260728.md:15-43,70-109", "docs/integration/evidence/bcap_engineering_smoke_20260728.json:5-29"],
+      "implementation_verified_evidence": "One-seed synthetic smoke passed; no full benefit evaluation admitted — RESEARCH-EVIDENCE FACT",
+      "acceptance_criteria_coverage": "Criteria 1–2 met as specification/traceability; criterion 3 (observed/trade-off evaluation) missing",
+      "fact_classification": "RESEARCH-EVIDENCE FACT"
+    },
+    {
+      "id": "TT-REQ-006",
+      "priority": "MUST",
+      "status": "VERIFIED_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": null,
+      "gap_description": null,
+      "evidence_refs": ["docs/dissertation_manuscript_20260801.md:118-161,325-515,516-810,820-910", "docs/dissertation_appendices/objectives_traceability.md:1-84"],
+      "implementation_verified_evidence": "1244 distinct selected tests and direct probes corroborate instrument; campaign claims correctly described as committed project evidence, not fresh rerun — IMPLEMENTATION-VERIFIED FACT",
+      "acceptance_criteria_coverage": "All 4 criteria represented in committed evidence",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT",
+      "confidence_note": "MEDIUM-HIGH because private campaign inputs not independently rerun — does not reopen gap"
+    },
+    {
+      "id": "TT-REQ-007",
+      "priority": "MUST",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": "P1",
+      "gap_description": "Complete 8396-word manuscript draft and exact 7:00 storyboard/script exist; final formatted/submitted dissertation and recorded 6–8 minute video file missing — gap P1. PROVISIONAL WORDING: storyboard is preparation, not recorded submission.",
+      "evidence_refs": ["docs/dissertation_manuscript_20260801.md:1-16", "docs/video_storyboard.md:1-39", "docs/video_narration_script.md:1-25"],
+      "implementation_verified_evidence": "Report/export paths passed; no final video file found — IMPLEMENTATION-VERIFIED FACT",
+      "acceptance_criteria_coverage": "Criteria 1 partially, 2–3 incomplete until video recorded",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "id": "TT-REQ-008",
+      "priority": "SHOULD",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": "P1",
+      "gap_description": "S-035 direct body provides supervisor-identified problem and three requested investigations (A deterministic Kubernetes, B DRL scheduling, C AI-based Kubernetes) — SOURCE-DERIVED FACT with raised confidence; however no common-scenario three-authority comparison with shared QoS metrics and conditional analysis has been executed or reported — gap P1. EXTERNAL DECISION REQUIRED for any additional mandatory scope beyond S-035.",
+      "evidence_refs": [".harness/context/sources/S-035__sandra-direct-email.md", "implementation_i1.md I1-CAP-014,015", "docs/evaluation/experiment_catalogue_20260730.md"],
+      "implementation_verified_evidence": "TOS/VEC study support exists; no three-arm common-scenario comparison rerun — IMPLEMENTATION-VERIFIED FACT maintains SHOULD priority; do not convert to MUST",
+      "acceptance_criteria_coverage": "Criteria 1–4 partially; explicit caveating present, executable comparison missing",
+      "fact_classification": "SOURCE-DERIVED FACT + IMPLEMENTATION-VERIFIED FACT",
+      "s_035_detail": "Direct body supports: RSU queue/waiting-room capacity (not compute), fail-fast accounting, no current RSU load awareness in vehicle policy, disproportionate congested-RSU load with idle distant RSUs, and infrastructure load management as supervisor-identified problem. Classifies each A/B/C only as requested investigation / proposed direction / hypothesised outcome as body supports. Does not establish Outlook provenance or make any direction mandatory assessed implementation — INFERENCE avoided."
+    },
+    {
+      "id": "TT-REQ-009",
+      "priority": "SHOULD",
+      "status": "VERIFIED_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": null,
+      "gap_description": null,
+      "evidence_refs": ["docs/dissertation_manuscript_20260801.md:387-515,516-810", "docs/evaluation/experiment_catalogue_20260730.md:18-267", "docs/evaluation/capacity_confirmatory_results_20260728.md:15-71"],
+      "implementation_verified_evidence": "Committed ten-cell/five-pair records with seeds, uncertainty, nulls/refutations — RESEARCH-EVIDENCE FACT; audit did not rerun",
+      "acceptance_criteria_coverage": "All 4 criteria represented in project-bound evidence",
+      "fact_classification": "RESEARCH-EVIDENCE FACT"
+    },
+    {
+      "id": "TT-REQ-010",
+      "priority": "MUST",
+      "status": "VERIFIED_MET",
+      "conditional_trigger_observed": true,
+      "gap_id": null,
+      "gap_description": null,
+      "evidence_refs": ["src/traffictwin/ui/pages/resource_strategy_explorer.py:164-225", "docs/dissertation_manuscript_20260801.md:47-61,146-172,749-810"],
+      "implementation_verified_evidence": "Direct probes preserved synthetic/unavailable states; Manchester scene_missing and forecast disclaimers verified — IMPLEMENTATION-VERIFIED FACT",
+      "acceptance_criteria_coverage": "All 4 criteria represented",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "id": "TT-REQ-011",
+      "priority": "MUST",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "conditional_trigger_text": "whenever it uses Randy's environment or results — trigger DOES occur in v0.8 TOS code",
+      "gap_id": "P1",
+      "gap_description": "TOS code defines rsu_load/rsu_max_concurrent as in-flight count/limit with terminal rejection semantics but no targeted capacity−1/capacity/capacity+1 probe demonstrates terminal rejection/no-queue/no-retry; manuscript wording 'per-vehicle RSU concurrency ceiling' not accepted as settled S-007 terminology — gap P1 requires boundary probe and formulation correction.",
+      "evidence_refs": ["src/traffictwin/integration/tos/contract.py:160-185", "src/traffictwin/integration/tos/validation.py:215-223", "docs/dissertation_manuscript_20260801.md:48,122,400,666"],
+      "implementation_verified_evidence": "TOS/UI tests passed; boundary probe missing — IMPLEMENTATION-VERIFIED FACT",
+      "acceptance_criteria_coverage": "Criteria 1–2 partially; criteria 3–4 require wording and probe fix",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "id": "TT-REQ-012",
+      "priority": "MUST",
+      "status": "VERIFIED_MET",
+      "conditional_trigger_observed": true,
+      "conditional_trigger_text": "whenever National Highways or TfGM information is used — trigger DOES occur for bounded provider/schema information",
+      "gap_id": null,
+      "gap_description": null,
+      "evidence_refs": ["src/traffictwin/integration/manchester/national_highways_acquisition.py:175-176", "src/traffictwin/integration/manchester/tfgm_acquisition.py:262-266", "src/traffictwin/ui/pages/manchester_operations.py:1558-1560"],
+      "implementation_verified_evidence": "102 provider-parser tests passed; restricted feeds fail closed; SCOOT template blockers verified no unauthorized adapter — IMPLEMENTATION-VERIFIED FACT",
+      "acceptance_criteria_coverage": "All 4 criteria represented for existing bounded data",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT",
+      "note": "VERIFIED_MET does not prove requested TfGM/NTIS measured-feed delivery — gap remains external, not a requirement failure"
+    },
+    {
+      "id": "TT-REQ-013",
+      "priority": "MUST",
+      "status": "NOT_APPLICABLE",
+      "conditional_trigger_observed": false,
+      "conditional_trigger_text": "before any work involving human participants, human issues, or personal data begins — trigger NOT observed in v0.8",
+      "gap_id": null,
+      "gap_description": null,
+      "not_applicable_justification": "SOURCE-DERIVED FACT + IMPLEMENTATION-VERIFIED FACT: manuscript states no ethics approval, participant dataset, recruitment, or usability score exists; audit observed no participant activity. NOT_APPLICABLE with trigger not observed is not a waiver and not scored as MET; must reopen immediately before any covered activity — prohibited to count as 3+7+0=11.",
+      "evidence_refs": ["docs/dissertation_manuscript_20260801.md:163-172,488-505,787-789", "docs/dissertation_appendices/objectives_traceability.md:57-84"],
+      "fact_classification": "SOURCE-DERIVED FACT + IMPLEMENTATION-VERIFIED FACT",
+      "external_decision_required": "University ethics decision required before any future covered activity — EXTERNAL DECISION REQUIRED remains open"
+    },
+    {
+      "id": "TT-REQ-014",
+      "priority": "MAY",
+      "status": "PARTIALLY_MET",
+      "conditional_trigger_observed": true,
+      "conditional_trigger_text": "if selected after completion of the core scientific work and if time permits",
+      "gap_id": "P3",
+      "gap_description": "Bounded synthetic /whatif-studio→/compare→/provenance→/reports flow exists and probes passed with honest synthetic standing, but sequencing condition 'after core/if time' not met because P0 core outcomes (TT-002,004,005) remain open — gap P3. Freeze optional growth; present only bounded synthetic path after core closure.",
+      "evidence_refs": ["implementation_i1.md I1-CAP-009,017-023", "implementation_i2.md §§3.4,4"],
+      "implementation_verified_evidence": "One-click pair generation and CLI input→metrics→comparison→provenance probes passed — IMPLEMENTATION-VERIFIED FACT with SYNTHETIC standing",
+      "acceptance_criteria_coverage": "Criteria 1–3 met for synthetic path; criterion 4 requires explicit omitted-elements declaration",
+      "fact_classification": "IMPLEMENTATION-VERIFIED FACT"
+    }
+  ],
+  "external_decisions": [
+    {
+      "id": "ED-001",
+      "requirement": "TT-REQ-001",
+      "decision": "Supervisor confirmation of final RQs and methodology — direct Sandra confirmation required",
+      "standing": "EXTERNAL DECISION REQUIRED",
+      "fact_classification": "EXTERNAL DECISION REQUIRED",
+      "source": "S-001 vs S-008..S-012,S-035 unresolved specialisation"
+    },
+    {
+      "id": "ED-002",
+      "requirement": "TT-REQ-008",
+      "decision": "Full 4 August direction confirmation including any additional scope beyond S-035 body; Outlook headers/timestamp remain unverified — S-035 body is direct evidence for content only, not provenance",
+      "standing": "EXTERNAL DECISION REQUIRED",
+      "fact_classification": "EXTERNAL DECISION REQUIRED",
+      "source": "S-011/S-012 Class C superseded by S-035 direct body for overlapping content only; transport metadata still missing"
+    },
+    {
+      "id": "ED-003",
+      "requirement": "TT-REQ-004/TT-REQ-005",
+      "decision": "Authority to name existing strategy families and complete suitability assessment — which families constitute 'existing' remains to be confirmed against final RQs",
+      "standing": "EXTERNAL DECISION REQUIRED",
+      "fact_classification": "EXTERNAL DECISION REQUIRED"
+    },
+    {
+      "id": "ED-004",
+      "requirement": "TT-REQ-011",
+      "decision": "Reconciliation of per-vehicle vs per-RSU arithmetic against S-007 evaluator interpretation",
+      "standing": "EXTERNAL DECISION REQUIRED",
+      "fact_classification": "EXTERNAL DECISION REQUIRED"
+    },
+    {
+      "id": "ED-005",
+      "requirement": "TT-REQ-013",
+      "decision": "University ethics approval/exemption if any future human-participant/personal-data activity is planned — trigger currently not observed, reopen gate before any covered activity",
+      "standing": "EXTERNAL DECISION REQUIRED",
+      "fact_classification": "EXTERNAL DECISION REQUIRED"
+    },
+    {
+      "id": "ED-006",
+      "requirement": "TT-REQ-014",
+      "decision": "Whether unseen later correspondence changes 'optional after core' priority — currently HIGH that S-010 remains latest accessible platform-specific note",
+      "standing": "EXTERNAL DECISION REQUIRED",
+      "fact_classification": "EXTERNAL DECISION REQUIRED"
+    },
+    {
+      "id": "ED-007",
+      "requirement": "TT-REQ-012",
+      "decision": "TfGM measured-data delivery and any subsequently agreed access conditions — academic-email/tutor-copy follow-up not evidenced",
+      "standing": "EXTERNAL DECISION REQUIRED",
+      "fact_classification": "EXTERNAL DECISION REQUIRED"
+    }
+  ],
+  "honesty_boundaries": {
+    "prohibited_claims": [
+      "No silent baseline amendment — frozen quotations preserved byte-for-byte",
+      "No treating NOT_APPLICABLE as MET or waiver — TT-013 explicitly 3+7+1, never 3+7+0",
+      "No source inflation — Class D product document V2 cannot amend Negotiated Version 1",
+      "No modification of source audit FINAL_AUDIT",
+      "No invented 3+7+0 arithmetic",
+      "No conversion of S-035 requested investigations A/B/C into mandatory assessed implementations without additional authoritative evidence",
+      "No inference of missing Outlook timestamp/headers from S-035 body"
+    ],
+    "source_honesty": "All S-035 classifications limited to supervisor-identified problem, requested investigation, proposed direction, hypothesised outcome as body supports — labels above reflect exact body support.",
+    "evidence_honesty": "Historical campaign artifacts (docs/evaluation/*, dissertation_manuscript) are RESEARCH-EVIDENCE FACT — committed project evidence, not independently rerun. Implementation probes are IMPLEMENTATION-VERIFIED FACT at bd4570fd."
+  }
+}

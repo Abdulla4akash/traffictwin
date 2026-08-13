@@ -1,0 +1,406 @@
+{
+  "version": "v08-closure-lane02-v1",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "baseline": {
+    "name": "Negotiated Version 1",
+    "canonical_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+    "frozen_timestamp": "2026-08-12T15:29:03Z",
+    "standing": "FROZEN",
+    "amendment_v2_standing": "DRAFT / NOT EFFECTIVE"
+  },
+  "sources": [
+    {
+      "id": "FINAL_AUDIT",
+      "path": ".harness/context/sources/FINAL_AUDIT__FINAL_TRAFFICTWIN_V08_AUDIT.md",
+      "sha256": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+      "source_class": "FINAL_NEGOTIATED_REQUIREMENTS_AUDIT",
+      "standing": "AUTHORITATIVE"
+    },
+    {
+      "id": "NEGOTIATED_V1_WHOLE_FILE",
+      "path": ".harness/context/sources/NEGOTIATED_V1_WHOLE_FILE__canonical_baseline_v1.md",
+      "sha256": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+      "canonical_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+      "source_class": "FROZEN_REQUIREMENTS_BASELINE_CONTAINER",
+      "standing": "FROZEN"
+    },
+    {
+      "id": "S-001",
+      "path": ".harness/context/sources/S-001__Project.pdf",
+      "sha256": "d2940e257e455de3f6694d59d66c4d3661471c732618700ad34b4d65240597b0",
+      "source_class": "A_AUTHORITATIVE",
+      "standing": "PRIMARY_PROJECT_BRIEF"
+    },
+    {
+      "id": "S-007",
+      "path": ".harness/context/sources/S-007__MSc Students QnA.docx",
+      "sha256": "e8dbbdfa43995870b7e79b8de00dd5e3d73d2988a3846c5bac178bb6b3ab4ec4",
+      "source_class": "B_CONFIRMED_NEGOTIATION",
+      "standing": "DIRECT_RANDY_QA"
+    },
+    {
+      "id": "S-035 / SANDRA-DIRECT-BODY-2026-08-04",
+      "path": ".harness/context/sources/S-035__sandra-direct-email.md",
+      "sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed",
+      "source_class": "DIRECT_SUPERVISOR_SOURCE_BODY",
+      "standing": "DIRECT_SUPERVISOR_SOURCE_BODY",
+      "supersedes": "SRC-010 for overlapping body content only",
+      "limitations": "Does not establish timestamp, message-id, transport headers, or Outlook provenance"
+    }
+  ],
+  "unresolved_decisions_frozen_seven": [
+    {
+      "id": "UD-001",
+      "title": "Final supervisor-approved direction",
+      "description": "Retrieve Sandra's original 4 August Outlook email, thread, attachments, replies to determine whether comparative RSU load management formally specialised or amended Project 237",
+      "source_class": "C_UNCONFIRMED_NOTE (S-011, S-012) partially B via S-035 body",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN \u2014 S-035 body now direct; headers/thread/attachments still missing; amendment DRAFT / NOT EFFECTIVE",
+      "mapped_asks": [
+        "SQ-SANDRA-01",
+        "SQ-SANDRA-02",
+        "SQ-SANDRA-05"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "UD-002",
+      "title": "Relationship between research and artefact",
+      "description": "Confirm whether assessed centre is strategy comparison/result, software that enables it, or both, and how few ITS service use cases obligation is instantiated",
+      "source_class": "A_AUTHORITATIVE (S-001) + C_UNCONFIRMED_NOTE (S-009-S-012)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-01",
+        "SQ-SANDRA-02",
+        "SQ-SANDRA-05"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "UD-003",
+      "title": "Platform priority after Meeting 3",
+      "description": "Confirm whether any later direct Sandra instruction restored bounded platform capability above MAY",
+      "source_class": "C_UNCONFIRMED_NOTE (S-010, S-012, S-021, S-022)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN \u2014 S-035 does not restore platform above MAY",
+      "mapped_asks": [
+        "SQ-SANDRA-02",
+        "SQ-SANDRA-04"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "UD-004",
+      "title": "Final title and research questions",
+      "description": "No signed dissertation proposal/title or supervisor-approved RQs found",
+      "source_class": "A_AUTHORITATIVE (S-003, S-004) + C_UNCONFIRMED_NOTE (S-023, S-027)",
+      "decision_owner": "Sandra / University assessment",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-05"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "UD-005",
+      "title": "Manchester, real data, and SUMO claim boundary",
+      "description": "Confirm which mobility/data layers if any Sandra expects to be real; whether TfGM academic-mail follow-up delivered data; whether SUMO is evaluation method, case-study generator, or optional product component",
+      "source_class": "A_AUTHORITATIVE (S-005, S-006) + C_UNCONFIRMED_NOTE (S-008-S-011)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-04"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "UD-006",
+      "title": "User evaluation route",
+      "description": "Decide whether no user study, expert walkthrough, or formal participant evaluation is expected and obtain ethics/exemption determination before any covered activity",
+      "source_class": "A_AUTHORITATIVE (S-004) + C_UNCONFIRMED_NOTE (S-009, S-023)",
+      "decision_owner": "Sandra / University ethics",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-05"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "UD-007",
+      "title": "Randy artifact permission",
+      "description": "If Randy's code, private data, or unpublished results are material, produce primary written grant privately and verify exact citation, data, publication scope",
+      "source_class": "C_UNCONFIRMED_NOTE (S-014, S-034)",
+      "decision_owner": "Randy / Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "RQ-RANDY-01",
+        "RQ-RANDY-05",
+        "RQ-RANDY-06"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY",
+      "external_decision_required": true
+    }
+  ],
+  "operational_questions_eight": [
+    {
+      "id": "OQ-001",
+      "title": "Final approved scientific direction",
+      "description": "Recover or replace Sandra's 4 August primary email to determine whether comparative RSU load management formally specialised Project 237 and what minimum arms she expects",
+      "source_class": "C_TO_B_BODY (S-011, S-012, S-035)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN \u2014 S-035 body now direct; scope still to confirm",
+      "mapped_asks": [
+        "SQ-SANDRA-01",
+        "SQ-SANDRA-02",
+        "SQ-SANDRA-05"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "OQ-002",
+      "title": "Use-case instantiation",
+      "description": "Agree which artifacts constitute formal few ITS service use cases and whether variants within one VEC offloading service count",
+      "source_class": "A_AUTHORITATIVE (S-001)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-01"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "OQ-003",
+      "title": "Research-versus-artefact centre",
+      "description": "Confirm whether assessed centre is resource-strategy result, enabling software, or both",
+      "source_class": "A_AUTHORITATIVE (S-001)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-02"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "OQ-004",
+      "title": "Platform priority",
+      "description": "Confirm whether later direct instruction restored bounded platform capability above MAY after Meeting 3",
+      "source_class": "C_UNCONFIRMED_NOTE (S-010, S-012)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-02",
+        "SQ-SANDRA-04"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "OQ-005",
+      "title": "Final title/RQs",
+      "description": "Obtain sign-off for current title and three RQs",
+      "source_class": "C_UNCONFIRMED_NOTE (S-023, S-027)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-05"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "OQ-006",
+      "title": "Manchester/data/SUMO boundary",
+      "description": "Confirm which mobility/data layers Sandra expects to be real and whether SUMO is evaluation method, generator, or optional component",
+      "source_class": "A_AUTHORITATIVE (S-005, S-006) + C_UNCONFIRMED_NOTE (S-008-S-011)",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-04"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "OQ-007",
+      "title": "User-evaluation route",
+      "description": "Decide no study / expert walkthrough / formal evaluation and obtain approval/exemption before covered work",
+      "source_class": "A_AUTHORITATIVE (S-004)",
+      "decision_owner": "Sandra / University ethics",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "SQ-SANDRA-05"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA",
+      "external_decision_required": true
+    },
+    {
+      "id": "OQ-008",
+      "title": "Randy artifact permission/semantics",
+      "description": "Privately verify exact permission scope and reconcile per-vehicle/per-RSU arithmetic against S-007 before final claims",
+      "source_class": "B_CONFIRMED_NEGOTIATION (S-007) + C_UNCONFIRMED_NOTE (S-014, S-034) + S-035",
+      "decision_owner": "Randy / Sandra",
+      "current_standing": "OPEN",
+      "mapped_asks": [
+        "RQ-RANDY-01",
+        "RQ-RANDY-05",
+        "RQ-RANDY-06"
+      ],
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY",
+      "external_decision_required": true
+    }
+  ],
+  "sandra_asks_five": [
+    {
+      "id": "SQ-SANDRA-01",
+      "topic": "final two ITS use cases",
+      "source_class": "A_AUTHORITATIVE (S-001) + RESEARCH-EVIDENCE FACT",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA"
+    },
+    {
+      "id": "SQ-SANDRA-02",
+      "topic": "core-vs-additional infrastructure VEC scheduling",
+      "source_class": "C_UNCONFIRMED_NOTE (S-010, S-011, S-012) + S-035 DIRECT_SUPERVISOR_SOURCE_BODY",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA"
+    },
+    {
+      "id": "SQ-SANDRA-03",
+      "topic": "whether sequential per-task least-busy placement is the proposed strategy",
+      "source_class": "S-035 direct body + INFERENCE",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA"
+    },
+    {
+      "id": "SQ-SANDRA-04",
+      "topic": "bounded Manchester demo acceptability",
+      "source_class": "A_AUTHORITATIVE (S-005, S-006) + IMPLEMENTATION-VERIFIED FACT",
+      "decision_owner": "Sandra",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA"
+    },
+    {
+      "id": "SQ-SANDRA-05",
+      "topic": "exact mandatory RQs/deliverables",
+      "source_class": "A_AUTHORITATIVE (S-001, S-003, S-004) + S-035",
+      "decision_owner": "Sandra / University assessment",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_SANDRA"
+    }
+  ],
+  "randy_asks_six": [
+    {
+      "id": "RQ-RANDY-01",
+      "topic": "RSU waiting-room meaning",
+      "source_class": "B_CONFIRMED_NEGOTIATION (S-007)",
+      "decision_owner": "Randy",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY"
+    },
+    {
+      "id": "RQ-RANDY-02",
+      "topic": "offered/admitted/rejected denominators",
+      "source_class": "B_CONFIRMED_NEGOTIATION (S-007) + S-035",
+      "decision_owner": "Randy",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY"
+    },
+    {
+      "id": "RQ-RANDY-03",
+      "topic": "deadline after return",
+      "source_class": "INFERENCE + EXTERNAL DECISION REQUIRED",
+      "decision_owner": "Randy",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY"
+    },
+    {
+      "id": "RQ-RANDY-04",
+      "topic": "actor mode-only authority vs downstream RSU selection",
+      "source_class": "B_CONFIRMED_NEGOTIATION (S-007) + S-035",
+      "decision_owner": "Randy",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY"
+    },
+    {
+      "id": "RQ-RANDY-05",
+      "topic": "gate vs capacity rejection",
+      "source_class": "B_CONFIRMED_NEGOTIATION (S-007)",
+      "decision_owner": "Randy",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY"
+    },
+    {
+      "id": "RQ-RANDY-06",
+      "topic": "authoritative lifecycle fields",
+      "source_class": "B_CONFIRMED_NEGOTIATION (S-007)",
+      "decision_owner": "Randy",
+      "current_standing": "OPEN \u2014 EXTERNAL DECISION REQUIRED",
+      "provisional_tag": "PROVISIONAL_PENDING_RANDY"
+    }
+  ],
+  "s035_investigations": [
+    {
+      "id": "S-035-A",
+      "description": "DRL offloading plus deterministic load balancing (Kubernetes)",
+      "classification": [
+        "supervisor-identified problem",
+        "requested investigation",
+        "proposed direction",
+        "hypothesised outcome"
+      ],
+      "hypothesised_outcome": "improved task completion rate in both free-flow and congested situations; no retraining required",
+      "standing": "PROVISIONAL_PENDING_SANDRA \u2014 not mandatory assessed implementation without additional authoritative evidence"
+    },
+    {
+      "id": "S-035-B",
+      "description": "DRL offloading plus DRL-based scheduling/load balancing",
+      "classification": [
+        "supervisor-identified problem",
+        "requested investigation",
+        "proposed direction",
+        "hypothesised outcome"
+      ],
+      "hypothesised_outcome": "improved tasks completion rates",
+      "standing": "PROVISIONAL_PENDING_SANDRA \u2014 not mandatory assessed implementation without additional authoritative evidence"
+    },
+    {
+      "id": "S-035-C",
+      "description": "DRL offloading plus AI-based infrastructure/resource control (AI-based Kubernetes)",
+      "classification": [
+        "supervisor-identified problem",
+        "requested investigation",
+        "proposed direction",
+        "hypothesised outcome"
+      ],
+      "hypothesised_outcome": "improved tasks completion rates",
+      "standing": "PROVISIONAL_PENDING_SANDRA \u2014 not mandatory assessed implementation without additional authoritative evidence"
+    }
+  ],
+  "tt_req_008": {
+    "priority": "SHOULD",
+    "campaign_status": "PARTIALLY_MET",
+    "note": "S-035 raises direct source confidence and supports PARTIALLY_MET, but does not change SHOULD priority or silently amend frozen requirement",
+    "standing": "PROVISIONAL_PENDING_SANDRA \u2014 EXTERNAL DECISION REQUIRED"
+  },
+  "evidence_classification_required": [
+    "SOURCE-DERIVED FACT",
+    "IMPLEMENTATION-VERIFIED FACT",
+    "RESEARCH-EVIDENCE FACT",
+    "INFERENCE",
+    "PROVISIONAL WORDING",
+    "EXTERNAL DECISION REQUIRED"
+  ]
+}

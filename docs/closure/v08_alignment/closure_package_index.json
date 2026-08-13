@@ -1,0 +1,136 @@
+{
+  "schema_version": "v08_closure_package_index_v1",
+  "campaign": "v08-requirements-closure",
+  "lane": "12",
+  "issue": 56,
+  "worker": "muse-12",
+  "campaign_base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "prepared_base_sha": "f157f3a9d711e96abad35e573dec43f902a6cd2a",
+  "frozen_baseline": {
+    "negotiated_v1_whole_file_sha256": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+    "negotiated_v1_canonical_payload_sha256": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+    "final_audit_sha256": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+    "source_index_sha256": "7ce9b43250d8b72e3c1aa9e0bbbc369b251bf7b7aedcae39ea8ed8cdda860d24",
+    "s035_direct_body_sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed"
+  },
+  "dependency_manifest_sha256": "6c716eb6de08791d1bcb207c15c6b2c51b46d735944dd851334d61d9183b3125",
+  "dependencies": {
+    "01": "2474cc10f92bf7af446c87cb05f7a605acb29bf4",
+    "02": "e63eaad4d70b5098c0ced62185fedb0bc900395b",
+    "03": "203f5c5d0153bf825fae0072657ea1ff22782c32",
+    "04": "7c32e9cbb0bcdb096e296156bc7d28e0aff78c61",
+    "05": "c2ae953702fe4e05e990e16977614919d7e76513",
+    "06": "42ef7e6b69e3f893afbd3849082cf2f457af66c3",
+    "07": "4a2f66a86a83a9fa5d1b9ac5db0d03fbbf2e3f6e",
+    "08": "0d17d56f9db215e6440a563635f76297ceaf96dd",
+    "09": "3c4a448f2d2789667dda69c164048157a61e878e",
+    "10": "69276c7c45136e63278d930e5ea5d4a5d01ca9cd",
+    "11": "958847d6b93450e7b8603adc127ab299f23d994a"
+  },
+  "dependency_details": [
+    {
+      "lane": "01",
+      "issue": 45,
+      "pr": 64,
+      "frozen_sha": "2474cc10f92bf7af446c87cb05f7a605acb29bf4"
+    },
+    {
+      "lane": "02",
+      "issue": 46,
+      "pr": 59,
+      "frozen_sha": "e63eaad4d70b5098c0ced62185fedb0bc900395b"
+    },
+    {
+      "lane": "03",
+      "issue": 47,
+      "pr": 63,
+      "frozen_sha": "203f5c5d0153bf825fae0072657ea1ff22782c32"
+    },
+    {
+      "lane": "04",
+      "issue": 48,
+      "pr": 60,
+      "frozen_sha": "7c32e9cbb0bcdb096e296156bc7d28e0aff78c61"
+    },
+    {
+      "lane": "05",
+      "issue": 49,
+      "pr": 62,
+      "frozen_sha": "c2ae953702fe4e05e990e16977614919d7e76513"
+    },
+    {
+      "lane": "06",
+      "issue": 50,
+      "pr": 57,
+      "frozen_sha": "42ef7e6b69e3f893afbd3849082cf2f457af66c3"
+    },
+    {
+      "lane": "07",
+      "issue": 51,
+      "pr": 61,
+      "frozen_sha": "4a2f66a86a83a9fa5d1b9ac5db0d03fbbf2e3f6e"
+    },
+    {
+      "lane": "08",
+      "issue": 52,
+      "pr": 58,
+      "frozen_sha": "0d17d56f9db215e6440a563635f76297ceaf96dd"
+    },
+    {
+      "lane": "09",
+      "issue": 53,
+      "pr": 65,
+      "frozen_sha": "3c4a448f2d2789667dda69c164048157a61e878e"
+    },
+    {
+      "lane": "10",
+      "issue": 54,
+      "pr": 66,
+      "frozen_sha": "69276c7c45136e63278d930e5ea5d4a5d01ca9cd"
+    },
+    {
+      "lane": "11",
+      "issue": 55,
+      "pr": 67,
+      "frozen_sha": "958847d6b93450e7b8603adc127ab299f23d994a"
+    }
+  ],
+  "closure_files": [
+    "docs/closure/v08_alignment/requirements_baseline_v1.json",
+    "docs/closure/v08_alignment/requirements_source_map.json",
+    "docs/closure/v08_alignment/requirements_status_v08.json",
+    "docs/closure/v08_alignment/strategy_matrix.json",
+    "docs/closure/v08_alignment/strategy_evidence_map.json",
+    "docs/closure/v08_alignment/improved_dynamic_strategy_contract.json",
+    "docs/closure/v08_alignment/improved_dynamic_strategy_contract.md",
+    "docs/closure/v08_alignment/improved_dynamic_strategy_pseudocode.txt",
+    "docs/closure/v08_alignment/improved_strategy_results.json",
+    "docs/closure/v08_alignment/improved_strategy_evidence_index.json",
+    "docs/closure/v08_alignment/improved_strategy_evidence_summary.md",
+    "docs/closure/v08_alignment/task_semantics_contract.json",
+    "docs/closure/v08_alignment/task_accounting_handcheck.json",
+    "docs/closure/v08_alignment/use_case_a_manifest.json",
+    "docs/closure/v08_alignment/use_case_b_manifest.json",
+    "docs/closure/v08_alignment/use_case_a_manchester_current_twin.md",
+    "docs/closure/v08_alignment/use_case_b_vec_dynamic_service.md",
+    "docs/closure/v08_alignment/dissertation_traceability.md",
+    "docs/closure/v08_alignment/dissertation_restructure_plan.md",
+    "docs/closure/v08_alignment/contribution_statement.md",
+    "docs/closure/v08_alignment/video_7min_script.md",
+    "docs/closure/v08_alignment/video_storyboard.md",
+    "docs/closure/v08_alignment/video_demo_click_path.md",
+    "docs/closure/v08_alignment/video_evidence_checklist.md",
+    "docs/closure/v08_alignment/manchester_demo/current_view_artifact.json",
+    "docs/closure/v08_alignment/manchester_demo/source_receipt.json",
+    "docs/closure/v08_alignment/manchester_demo/quality_report.json",
+    "docs/closure/v08_alignment/manchester_demo/data_contract.json",
+    "docs/closure/v08_alignment/stakeholder_confirmation_packet.md",
+    "docs/closure/v08_alignment/stakeholder_decision_register.json",
+    "docs/closure/v08_alignment/limitations_register.md",
+    "docs/closure/v08_alignment/closure_acceptance_report.md",
+    "docs/closure/v08_alignment/closure_package_index.json"
+  ],
+  "validator": "scripts/validate_v08_requirements_closure.py",
+  "self_contained_note": "No .harness runtime dependency; .harness/context/dependency_sha_manifest.json may be used only as additional controller cross-check when present.",
+  "standing": "PARTIALLY_ALIGNED — see closure_acceptance_report.md for honesty boundaries and external decisions"
+}

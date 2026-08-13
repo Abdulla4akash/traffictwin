@@ -1,0 +1,80 @@
+{
+  "schema_version": "manchester_demo_reproducibility_receipt_v1",
+  "campaign": "v08-requirements-closure",
+  "lane": "09",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "prepared_base_sha": "6f760a5e59808005ae43db43eb05a9c546f217a7",
+  "standing": "MIXED",
+  "deterministic_fixture_marker": {
+    "fixed_value": "2026-08-12T15:29:03Z",
+    "note": "non-observational deterministic fixture, not an observed generation time; no generation receipt invented"
+  },
+  "declared_inputs": {
+    "source_receipt": "docs/closure/v08_alignment/manchester_demo/source_receipt.json",
+    "data_contract": "docs/closure/v08_alignment/manchester_demo/data_contract.json",
+    "current_view_artifact": "docs/closure/v08_alignment/manchester_demo/current_view_artifact.json",
+    "scenario_or_analysis": "docs/closure/v08_alignment/manchester_demo/scenario_or_analysis.json",
+    "limitations": "docs/closure/v08_alignment/manchester_demo/limitations.md",
+    "source_hashes": {
+      "FINAL_AUDIT": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+      "NEGOTIATED_V1_WHOLE_FILE": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+      "NEGOTIATED_V1_CANONICAL_PAYLOAD": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+      "S-035_SANDRA_DIRECT_BODY": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed",
+      "synthetic_square_pins": {
+        "square.sumocfg": "f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d",
+        "square.net.xml": "9dba208715f894606119533ab3c6d3d95133cabe32a910eecc96fd1a47d52126",
+        "square.rou.xml": "377e955571566c625c82ee43b5c2e63e55a595960a46491dfbb14d540b6ec4a1"
+      },
+      "ons_boundary": {
+        "greater_manchester_combined_authority.geojson": "1bf8a1293de43f1573ec87685e0772ec8b9bd4cb14ec0ae0b0c21cd80d9a313a",
+        "manchester_local_authority.geojson": "31b78ea21882ec80a82b0cc584a57e0b1d1a4f1c8269e1bfc54826fb9981a51c"
+      }
+    },
+    "committed_evidence_shas_recomputed_by_validator": {
+      "docs/integration/evidence/manchester_bods_bee_network_probe_20260723.json": "e60ee7e2a0b1c201e99658d9f8cf8f3105b820b3d32ec6392d98901389508387",
+      "docs/integration/evidence/manchester_dft_gate_b_probe_20260725.json": "c0a59f4377499ee0226ce90dc5869544b2e701190d691c6a2366a5cb92869081",
+      "docs/integration/evidence/manchester_dft_observation_acquisition_20260725.json": "f33cfeab2c2d68c8cf789a20391699d5adff6a8d8fcd06ed773def358d3d6d29",
+      "docs/integration/evidence/manchester_webtris_recency_probe_20260724.json": "229a840ab8d38d6f4b6b219edd338f26d6df9551ed4b7291fb62934782bad13a",
+      "docs/integration/evidence/national_highways_operational_acceptance_20260724.json": "5329b1fb183c2616c289f7a36c66df77f01dfb8c881cf0c7fa1476851593bbbc",
+      "src/traffictwin/integration/manchester/boundary_data/greater_manchester_combined_authority.geojson": "1bf8a1293de43f1573ec87685e0772ec8b9bd4cb14ec0ae0b0c21cd80d9a313a",
+      "src/traffictwin/integration/manchester/boundary_data/manchester_local_authority.geojson": "31b78ea21882ec80a82b0cc584a57e0b1d1a4f1c8269e1bfc54826fb9981a51c",
+      "tests/fixtures/manchester/tfgm/signals-manchester-3.csv.b64": "1780fd67eec131cdb54106fc1778c4b273da89da487abe96c1077ef6f71699a9",
+      "src/traffictwin/integration/manchester/tfgm_signals.py": "071748447e62984f1afd6f7f4574be2a2efe0d0aa62e1b1ca5484574f57fbb9d"
+    }
+  },
+  "determinism": {
+    "bounded": true,
+    "no_network_in_deterministic_path": true,
+    "no_credentials_required": true,
+    "same_workspace_same_sha": true,
+    "validator_recomputes_every_committed_sha256_from_current_tree": true,
+    "fixture_replay": "Stored SHAs and local fixtures + honest unavailable markers; no live BODS/National Highways retrieval assumed; private raw bytes remain workspace-only and not bundled"
+  },
+  "replay_steps": [
+    "1. Verify source hashes against .harness/context/source_map.json and pinned SHAs above \u2014 exit non-zero on mismatch.",
+    "2. Validator recomputes SHA-256 of every committed_evidence_locator file from current exact tree and fails on wrong-but-valid 64-hex or missing locator.",
+    "3. Run `uv run --frozen python scripts/run_v08_manchester_alignment_demo.py` \u2014 generates/validates all five JSON artifacts and limitations.md deterministically.",
+    "4. Run `uv run --frozen python scripts/run_v08_manchester_alignment_demo.py --check` \u2014 verifies existing artifacts reproduce without regeneration.",
+    "5. Run focused validation `uv run --frozen pytest -q tests/integration/test_v08_manchester_alignment_demo.py` \u2014 asserts standing MIXED via committed receipts, bounded retrieval, provenance hashes recomputed, no prohibited claims, and that mutations (pseudo-digest, wrong SHA, missing locator, placeholder counted as observed, synthetic/bus-only relabel) all fail."
+  ],
+  "commands": {
+    "generate": "uv run --frozen python scripts/run_v08_manchester_alignment_demo.py",
+    "check": "uv run --frozen python scripts/run_v08_manchester_alignment_demo.py --check",
+    "focused_test": "uv run --frozen pytest -q tests/integration/test_v08_manchester_alignment_demo.py"
+  },
+  "static_gates": {
+    "ruff_format_check": "uv run --frozen ruff format --check",
+    "ruff_check": "uv run --frozen ruff check",
+    "mypy": "uv run --frozen mypy scripts/run_v08_manchester_alignment_demo.py"
+  },
+  "fingerprint_derivation": "Packet SHA derived from sorted-keys canonical JSON of declared inputs (SHA-256) \u2014 no timestamp or random nonce in fingerprint; deterministic_fixture_marker is non-observational",
+  "provenance_removal_is_failure": "Removing any provenance_sha256 or committed_evidence_sha256 or pinned SHA from source_receipt.json must cause validation to fail; validator recomputes from tree so wrong 64-hex also fails.",
+  "relabel_is_failure": "Relabelling SYNTHETIC DATA or bus-only REAL MANCHESTER DATA as measured general-road Manchester (DESIGN-ONLY CAPABILITY) must cause validation to fail; discriminating tests cover this mutation plus placeholder counting.",
+  "credentials_sensitivity": "No credential or raw private data enters Git; reproducibility requires no secret; private raw bytes distinguished from committed receipt SHAs.",
+  "limits_ref": "docs/closure/v08_alignment/manchester_demo/limitations.md",
+  "honesty_labels_used": [
+    "SOURCE-DERIVED FACT",
+    "IMPLEMENTATION-VERIFIED FACT",
+    "INFERENCE"
+  ]
+}

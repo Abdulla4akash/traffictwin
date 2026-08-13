@@ -1,0 +1,103 @@
+{
+  "schema_version": "manchester_demo_quality_report_v1",
+  "campaign": "v08-requirements-closure",
+  "lane": "09",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "standing": "MIXED",
+  "deterministic_fixture_marker": {
+    "fixed_value": "2026-08-12T15:29:03Z",
+    "note": "non-observational deterministic fixture, not an observed generation time"
+  },
+  "credentials_sensitivity_boundary": {
+    "credentials_used": "none in deterministic demo",
+    "raw_private_data_in_git": false,
+    "sensitive_data_handling": "No raw sensitive, no PII, no credential enters Git; only SHA-256 of committed receipts and fixtures; private raw bytes workspace-only",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "real_synthetic_split": {
+    "REAL_MANCHESTER_DATA_count": 3,
+    "REAL_EXTERNAL_NON_MANCHESTER_DATA_count": 2,
+    "SYNTHETIC_DATA_count": 1,
+    "SIMULATION_OUTPUT_count": 1,
+    "DESIGN_ONLY_CAPABILITY_unavailable_count": 4,
+    "details": {
+      "REAL_MANCHESTER_DATA": [
+        "ons_boundary (static GeoJSON committed)",
+        "dft_historical_counts (historical, two committed receipts)",
+        "bods_bus_positions (bus-only offline replay committed receipt)"
+      ],
+      "REAL_EXTERNAL_NON_MANCHESTER_DATA": [
+        "national_highways_operational (strategic-road private receipt, not Manchester)",
+        "webtris_historical (strategic-road, one historical site)"
+      ],
+      "SYNTHETIC_DATA": [
+        "manual_incident_authored (canonical payload SHA a0deb68b...)"
+      ],
+      "SIMULATION_OUTPUT": [
+        "synthetic_square_sumo (pinned square)"
+      ]
+    },
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "provenance": {
+    "all_real_have_sha": true,
+    "all_synthetic_have_ledger_sha": true,
+    "all_simulation_have_pinned_shas": true,
+    "unavailable_have_null_with_reason": true,
+    "validator_recomputes_committed_sha256": true,
+    "private_raw_distinguished_from_committed_receipt_sha256": true,
+    "pinned_synthetic_square": {
+      "square.sumocfg": "f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d",
+      "square.net.xml": "9dba208715f894606119533ab3c6d3d95133cabe32a910eecc96fd1a47d52126",
+      "square.rou.xml": "377e955571566c625c82ee43b5c2e63e55a595960a46491dfbb14d540b6ec4a1"
+    },
+    "ons_boundary_shas": {
+      "greater_manchester_combined_authority.geojson": "1bf8a1293de43f1573ec87685e0772ec8b9bd4cb14ec0ae0b0c21cd80d9a313a",
+      "manchester_local_authority.geojson": "31b78ea21882ec80a82b0cc584a57e0b1d1a4f1c8269e1bfc54826fb9981a51c"
+    },
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "freshness": {
+    "ons_boundary": "static",
+    "tfgm_signal_locations": "unavailable (full archive workspace-only private; marked design-only)",
+    "dft_historical_counts": "historical (never live)",
+    "webtris_historical": "historical (never near_live)",
+    "bods_bus_positions": "historical_replay_offline_bus_only (live path no_live placeholder, committed offline replay bound)",
+    "national_highways_operational": "historical_snapshot_private_receipt (live path unavailable blocker)",
+    "manual_incident_authored": "synthetic",
+    "synthetic_square_sumo": "synthetic",
+    "general_live_road_traffic_bods": "unavailable",
+    "live_city_wide_twin": "unavailable",
+    "social_media_ingestion": "unavailable",
+    "no_promotion_detected": true,
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "missingness": {
+    "bods_live_vehicle_when_unconfigured": "no_live placeholder for live path; committed offline replay (1565 positions) provides historical bound \u2014 honest missingness with receipt",
+    "national_highways_when_unconfigured": "not_ready_credential_missing blocker for live path; committed private receipt provides historical bound; raw not committed",
+    "dft_when_no_snapshot": "bound via two committed receipts (gate_b and observation_acquisition); not fabricated",
+    "webtris_when_no_snapshot": "bound via committed probe receipt; near-live correctly rejected",
+    "tfgm_full_archive": "full archive workspace-only private; only 3-row derived fixture and code committed; marked unavailable/design-only rather than inventing provenance",
+    "general_live_road_traffic_bods": "unavailable DESIGN-ONLY CAPABILITY \u2014 contributes no quality, honest ceiling",
+    "live_city_wide_twin": "unavailable DESIGN-ONLY CAPABILITY \u2014 honest ceiling",
+    "social_media_ingestion": "unavailable DESIGN-ONLY CAPABILITY \u2014 DEFERRED, honest ceiling",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "quality_axes": {
+    "completeness": "Bounded by source ceiling; static/historical sources complete within their scope; live bus/strategic-road honestly incomplete without credentials but bounded via committed offline receipts; unavailable sources contribute zero completeness without fabrication",
+    "correctness": "Evidence standing vocabulary exact: REAL MANCHESTER DATA / REAL EXTERNAL NON-MANCHESTER DATA / SYNTHETIC DATA / SIMULATION OUTPUT / DESIGN-ONLY CAPABILITY; no underscored variants; validator enforces plus recomputes every committed SHA from current tree",
+    "timeliness": "Declared per source; no source promoted fresher than implementation truth; WebTRIS historical never near_live; DfT historical never live; BODS replay is historical_offline",
+    "provenance_integrity": "Every REAL/EXTERNAL/SYNTHETIC/SIMULATION source has SHA-256 / ledger SHA / pinned SHA that validator recomputes; decorated pseudo-digests and wrong-but-valid-64hex are rejected; removal causes failure",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT + INFERENCE"
+  },
+  "limitations_ref": "docs/closure/v08_alignment/manchester_demo/limitations.md",
+  "reproducibility_ref": "docs/closure/v08_alignment/manchester_demo/reproducibility_receipt.json",
+  "overall_assessment": "Quality is bounded by source ceiling, not by UI rendering. ONS static boundaries and DfT historical (two receipts) plus BODS bus-only offline replay form REAL MANCHESTER DATA via committed receipts. National Highways/WebTRIS are REAL EXTERNAL strategic-road. Synthetic incident (canonical SHA a0deb68b) and synthetic-square simulation provide labelled synthetic content. TfGM full archive honestly unavailable (workspace-only private). No prohibited claim present; validator recomputes all committed SHAs.",
+  "honesty_labels_used": [
+    "SOURCE-DERIVED FACT",
+    "IMPLEMENTATION-VERIFIED FACT",
+    "INFERENCE",
+    "PROVISIONAL WORDING",
+    "EXTERNAL DECISION REQUIRED"
+  ]
+}
