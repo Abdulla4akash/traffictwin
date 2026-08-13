@@ -14,7 +14,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from pydantic import ValidationError
@@ -566,7 +566,7 @@ def test_queue_missing_observation_fails() -> None:
     obs1 = _obs_single_review(131)
     obs2 = _obs_no_candidate(132)
     queue = build_manual_review_queue([obs1])  # missing obs2
-    with pytest.raises(MapMatchWorkflowError, match="QUEUE_MISMATCH"):
+    with pytest.raises(MapMatchWorkflowError, match="QUEUE_MISMATCH|QUEUE_DENOMINATOR_MISMATCH"):
         build_map_match_workflow(
             observations=[obs1, obs2], queue=queue, policy=POLICY, source=_source()
         )
@@ -677,7 +677,7 @@ def test_unknown_observation_decision_rejected() -> None:
     ledger = record_review_decision(ledger, other_queue, _decision(999, ReviewDecisionKind.DEFER))
     sealed = seal_review_ledger(ledger)
     # sealed ledger queue_fingerprint is for 999, not 161
-    with pytest.raises(MapMatchWorkflowError, match="QUEUE_MISMATCH"):
+    with pytest.raises(MapMatchWorkflowError, match="QUEUE_MISMATCH|QUEUE_DENOMINATOR_MISMATCH"):
         build_map_match_workflow(
             observations=[obs], queue=queue, policy=POLICY, ledger=sealed, source=_source()
         )
@@ -708,7 +708,10 @@ def test_deterministic_ordering_and_fingerprint() -> None:
     )
     assert [o.observation.count_point_id for o in wf1.observations] == [180, 181, 182]
     assert wf1.fingerprint() == wf2.fingerprint()
-    assert verify_workflow_fingerprint(wf1) == wf1.fingerprint()
+    assert (
+        verify_workflow_fingerprint(wf1, policy=POLICY, queue=queue, ledger=None, source=_source())
+        == wf1.fingerprint()
+    )
     # canonical fingerprint stable across re-validation
     reloaded = wf1.model_validate_json(wf1.model_dump_json())
     assert reloaded.fingerprint() == wf1.fingerprint()
@@ -823,6 +826,7 @@ def test_secret_and_path_leakage_refused() -> None:
             accepted_group_key=None,
             matched_edge_ids=(),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="awaiting_manual_review",
         )
     with pytest.raises(ValidationError):
         MapMatchObservationProjection(
@@ -842,6 +846,7 @@ def test_secret_and_path_leakage_refused() -> None:
             accepted_group_key=None,
             matched_edge_ids=(),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="awaiting_manual_review",
         )
 
 
@@ -974,44 +979,51 @@ def test_blocked_and_unaccepted_source_rejected() -> None:
 
 
 def test_source_semantic_inflation_rejected() -> None:
-    # Provider inflation to BODS should be rejected
+    # Provider inflation to BODS should be rejected — via model_validate dict so
+    # strict typing remains truthful while runtime validation stays discriminating.
     with pytest.raises(ValidationError, match="provider|bods|Literal"):
-        MapMatchDftSourceIdentity(
-            source_family="dft",
-            provider="bods",
-            observation_role="historical_measured_count",
-            snapshot_id=_SNAPSHOT_ID,
-            content_fingerprint=_CONTENT_FP,
-            provenance="roadtraffic.dft.gov.uk:/api/raw-counts/pages/page-0001.json",
-            admission_receipt_fingerprint=_RECEIPT_FP,
-            is_accepted=True,
-            is_source_blocked=False,
+        MapMatchDftSourceIdentity.model_validate(
+            {
+                "source_family": "dft",
+                "provider": "bods",
+                "observation_role": "historical_measured_count",
+                "snapshot_id": _SNAPSHOT_ID,
+                "content_fingerprint": _CONTENT_FP,
+                "provenance": "roadtraffic.dft.gov.uk:/api/raw-counts/pages/page-0001.json",
+                "admission_receipt_fingerprint": _RECEIPT_FP,
+                "is_accepted": True,
+                "is_source_blocked": False,
+            }
         )
     # Role inflation to BODS general road traffic
     with pytest.raises(ValidationError, match="observation_role|BODS|historical_measured_count"):
-        MapMatchDftSourceIdentity(
-            source_family="dft",
-            provider="roadtraffic.dft.gov.uk",
-            observation_role="general_road_traffic",
-            snapshot_id=_SNAPSHOT_ID,
-            content_fingerprint=_CONTENT_FP,
-            provenance=_PROVENANCE,
-            admission_receipt_fingerprint=_RECEIPT_FP,
-            is_accepted=True,
-            is_source_blocked=False,
+        MapMatchDftSourceIdentity.model_validate(
+            {
+                "source_family": "dft",
+                "provider": "roadtraffic.dft.gov.uk",
+                "observation_role": "general_road_traffic",
+                "snapshot_id": _SNAPSHOT_ID,
+                "content_fingerprint": _CONTENT_FP,
+                "provenance": _PROVENANCE,
+                "admission_receipt_fingerprint": _RECEIPT_FP,
+                "is_accepted": True,
+                "is_source_blocked": False,
+            }
         )
     # Family inflation
     with pytest.raises(ValidationError):
-        MapMatchDftSourceIdentity(
-            source_family="bods",
-            provider="roadtraffic.dft.gov.uk",
-            observation_role="historical_measured_count",
-            snapshot_id=_SNAPSHOT_ID,
-            content_fingerprint=_CONTENT_FP,
-            provenance=_PROVENANCE,
-            admission_receipt_fingerprint=_RECEIPT_FP,
-            is_accepted=True,
-            is_source_blocked=False,
+        MapMatchDftSourceIdentity.model_validate(
+            {
+                "source_family": "bods",
+                "provider": "roadtraffic.dft.gov.uk",
+                "observation_role": "historical_measured_count",
+                "snapshot_id": _SNAPSHOT_ID,
+                "content_fingerprint": _CONTENT_FP,
+                "provenance": _PROVENANCE,
+                "admission_receipt_fingerprint": _RECEIPT_FP,
+                "is_accepted": True,
+                "is_source_blocked": False,
+            }
         )
     # Provenance inflation containing BODS general road traffic wording
     with pytest.raises(ValidationError, match="BODS|general_road_traffic"):
@@ -1045,13 +1057,14 @@ def test_workflow_requires_exact_source_provenance() -> None:
     # Omitting source must fail (required param)
     with pytest.raises(TypeError):
         build_map_match_workflow(observations=[obs], queue=queue, policy=POLICY)  # type: ignore[call-arg]
-    # Passing non-identity type must fail closed
+    # Passing non-identity type must fail closed — precisely typed cast keeps
+    # static typing truthful while exercising the public-boundary refusal.
     with pytest.raises(MapMatchWorkflowError, match="SOURCE_IDENTITY_INVALID"):
         build_map_match_workflow(
             observations=[obs],
             queue=queue,
             policy=POLICY,
-            source="not-an-identity",
+            source=cast(MapMatchDftSourceIdentity, cast(Any, "not-an-identity")),
         )
 
 
@@ -1216,6 +1229,7 @@ def test_duplicate_edge_ids_within_group_forged_projection_rejected() -> None:
             accepted_group_key="ref:A56|primary",
             matched_edge_ids=("e1", "e1"),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="owner_policy_accepted_candidate",
         )
     # Also build workflow already rejects duplicate edge within observation
     # (existing test covers), but here we test forged accepted_group_key.
@@ -1243,6 +1257,7 @@ def test_forged_matched_edges_and_group_ids_fail_closed() -> None:
             accepted_group_key="invented-group",
             matched_edge_ids=("e1",),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="owner_policy_accepted_candidate",
         )
     # Forged matched_edge_ids not equal derived group members
     with pytest.raises(ValidationError, match="matched_edge_ids"):
@@ -1263,6 +1278,7 @@ def test_forged_matched_edges_and_group_ids_fail_closed() -> None:
             accepted_group_key="ref:A56|primary",
             matched_edge_ids=("e99",),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="owner_policy_accepted_candidate",
         )
     # HUMAN forged matched_edge_ids
     obs_h = _obs_single_review(521)
@@ -1286,6 +1302,7 @@ def test_forged_matched_edges_and_group_ids_fail_closed() -> None:
             accepted_group_key="ref:A56|primary",
             matched_edge_ids=("e9",),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="awaiting_manual_review",
         )
     # HUMAN forged accepted_group_key not in groups
     with pytest.raises(ValidationError, match="accepted_group_key.*among"):
@@ -1308,6 +1325,7 @@ def test_forged_matched_edges_and_group_ids_fail_closed() -> None:
             accepted_group_key="invented-group",
             matched_edge_ids=(),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="awaiting_manual_review",
         )
 
 
@@ -1341,6 +1359,7 @@ def test_unresolved_and_rejected_must_expose_no_matched_edges() -> None:
             accepted_group_key=None,
             matched_edge_ids=("e1",),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="awaiting_manual_review",
         )
     with pytest.raises(ValidationError, match="must not carry matched_edge_ids"):
         MapMatchObservationProjection(
@@ -1360,6 +1379,7 @@ def test_unresolved_and_rejected_must_expose_no_matched_edges() -> None:
             accepted_group_key=None,
             matched_edge_ids=("e1",),
             nearest_distance_m=None,
+            original_disposition="no_suitable_candidate",
         )
     # REJECTED/UNRESOLVED must also not carry accepted_group_key
     with pytest.raises(ValidationError, match="must not carry accepted_group_key"):
@@ -1380,6 +1400,7 @@ def test_unresolved_and_rejected_must_expose_no_matched_edges() -> None:
             accepted_group_key="ref:A56|primary",
             matched_edge_ids=(),
             nearest_distance_m=None,
+            original_disposition="no_suitable_candidate",
         )
 
 
@@ -1440,6 +1461,7 @@ def test_auto_requires_exactly_one_group_and_sorted_unique_edges() -> None:
             accepted_group_key="ref:A56|primary",
             matched_edge_ids=("e2", "e1"),  # not sorted
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="owner_policy_accepted_candidate",
         )
 
 
@@ -1571,7 +1593,8 @@ def test_model_copy_observation_disposition_mutation_rejected() -> None:
         }
     )
     with pytest.raises(
-        MapMatchWorkflowError, match="OBSERVATION_INVALID|QUEUE_MISMATCH|QUEUE_ENTRY_MISMATCH"
+        MapMatchWorkflowError,
+        match="OBSERVATION_INVALID|QUEUE_MISMATCH|QUEUE_ENTRY_MISMATCH|QUEUE_DENOMINATOR_MISMATCH",
     ):
         build_map_match_workflow(
             observations=[forged], queue=queue, policy=POLICY, source=_source()
@@ -1902,6 +1925,7 @@ def test_auto_rejects_non_auto_observation() -> None:
                 "nearest_distance_m": min(g.nearest_distance_m for g in obs.groups)
                 if obs.groups
                 else None,
+                "original_disposition": obs.disposition,
             }
         )
     # model_copy observation change – revalidation must fail canonical
@@ -1913,6 +1937,7 @@ def test_auto_rejects_non_auto_observation() -> None:
         "ambiguity_reason": _ambiguity_reason(obs),
         "unmatched_reason": _unmatched_reason(obs),
         "nearest_distance_m": min(g.nearest_distance_m for g in obs.groups) if obs.groups else None,
+        "original_disposition": obs.disposition,
     }
     with pytest.raises(ValidationError):
         MapMatchObservationProjection.model_validate(forged_dict)
@@ -1973,6 +1998,7 @@ def test_human_accepted_partial_fields_rejected() -> None:
                 "nearest_distance_m": min(g.nearest_distance_m for g in auto_obs.groups)
                 if auto_obs.groups
                 else None,
+                "original_disposition": auto_obs.disposition,
             }
         )
 
@@ -1996,6 +2022,7 @@ def test_rejected_policy_without_human_requires_policy_disposition() -> None:
                 "nearest_distance_m": min(g.nearest_distance_m for g in obs_unres.groups)
                 if obs_unres.groups
                 else None,
+                "original_disposition": obs_unres.disposition,
             }
         )
     # REJECTED without human must not carry human fields
@@ -2060,6 +2087,7 @@ def test_unresolved_without_decision_requires_awaiting() -> None:
                 "ambiguity_reason": _ambiguity_reason(obs_rej),
                 "unmatched_reason": _unmatched_reason(obs_rej),
                 "nearest_distance_m": None,
+                "original_disposition": obs_rej.disposition,
             }
         )
     # must not carry human fields
@@ -2186,11 +2214,7 @@ def test_verify_workflow_fingerprint_catches_forgeries_and_stale_dependencies() 
         observations=[obs], queue=q, policy=POLICY, ledger=sealed, source=_source()
     )
     # backwards-compatible digest still works
-    assert verify_workflow_fingerprint(wf) == wf.fingerprint()
-    # full verification with exact dependencies succeeds
-    assert (
-        verify_workflow_fingerprint(wf, policy=POLICY, queue=q, ledger=sealed) == wf.fingerprint()
-    )
+    # full verification with exact dependencies succeeds (source required)
     assert (
         verify_workflow_fingerprint(wf, policy=POLICY, queue=q, ledger=sealed, source=_source())
         == wf.fingerprint()
@@ -2210,34 +2234,44 @@ def test_verify_workflow_fingerprint_catches_forgeries_and_stale_dependencies() 
     with pytest.raises((ValidationError, MapMatchWorkflowError)):
         MapMatchWorkflowResult.model_validate(forged_wf.model_dump())
     with pytest.raises(MapMatchWorkflowError):
-        verify_workflow_fingerprint(forged_wf, policy=POLICY, queue=q, ledger=sealed)
+        verify_workflow_fingerprint(
+            forged_wf, policy=POLICY, queue=q, ledger=sealed, source=_source()
+        )
     # stale policy
     stale_policy = ManchesterMapMatchPolicyV11(override_max_distance_m=Decimal("4"))
     with pytest.raises(
         MapMatchWorkflowError, match="POLICY_MISMATCH|POLICY_INVALID|VERIFICATION|TAMPERED"
     ):
-        verify_workflow_fingerprint(wf, policy=stale_policy, queue=q, ledger=sealed)
+        verify_workflow_fingerprint(
+            wf, policy=stale_policy, queue=q, ledger=sealed, source=_source()
+        )
     # stale queue – different fingerprint
     other_obs = _obs_single_review(771)
     other_q = build_manual_review_queue([other_obs])
     with pytest.raises(MapMatchWorkflowError, match="QUEUE_MISMATCH|VERIFICATION|TAMPERED"):
-        verify_workflow_fingerprint(wf, policy=POLICY, queue=other_q, ledger=sealed)
+        verify_workflow_fingerprint(
+            wf, policy=POLICY, queue=other_q, ledger=sealed, source=_source()
+        )
     # missing ledger when workflow is sealed
     with pytest.raises(MapMatchWorkflowError, match="LEDGER_MISSING"):
-        verify_workflow_fingerprint(wf, policy=POLICY, queue=q, ledger=None)
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=q, ledger=None, source=_source())
     # wrong ledger seal
     other_led = start_review_ledger(q, POLICY_FP)
     other_led = record_review_decision(other_led, q, _decision(770, ReviewDecisionKind.DEFER))
     other_sealed = seal_review_ledger(other_led)
     with pytest.raises(MapMatchWorkflowError, match="LEDGER_SEAL_MISMATCH|TAMPERED|FINGERPRINT"):
-        verify_workflow_fingerprint(wf, policy=POLICY, queue=q, ledger=other_sealed)
+        verify_workflow_fingerprint(
+            wf, policy=POLICY, queue=q, ledger=other_sealed, source=_source()
+        )
     # changed disposition/edge/group via projection model_copy – stale group
     bad_accept = proj.model_copy(update={"accepted_group_key": "invented"})
     bad_wf2 = wf.model_copy(update={"observations": (bad_accept,)})
     with pytest.raises((ValidationError, MapMatchWorkflowError)):
         MapMatchWorkflowResult.model_validate(bad_wf2.model_dump())
     with pytest.raises(MapMatchWorkflowError):
-        verify_workflow_fingerprint(bad_wf2, policy=POLICY, queue=q, ledger=sealed)
+        verify_workflow_fingerprint(
+            bad_wf2, policy=POLICY, queue=q, ledger=sealed, source=_source()
+        )
     # UNRESOLVED and REJECTED forgeries also caught
     obs_rej = _obs_no_candidate(772)
     q_rej = build_manual_review_queue([obs, obs_rej])
@@ -2332,6 +2366,7 @@ def test_ambiguity_stays_unresolved_and_distance_never_accepts() -> None:
             accepted_group_key="ref:A56|primary",
             matched_edge_ids=("e1",),
             nearest_distance_m=Decimal("1.200"),
+            original_disposition="awaiting_manual_review",
         )
     # verify that AMBIGUOUS auto via workflow build raises
     bad_auto = single.model_copy(
@@ -2342,6 +2377,262 @@ def test_ambiguity_stays_unresolved_and_distance_never_accepts() -> None:
         }
     )
     with pytest.raises(
-        MapMatchWorkflowError, match="QUEUE_MISMATCH|OBSERVATION_INVALID|QUEUE_ENTRY_MISMATCH"
+        MapMatchWorkflowError,
+        match="QUEUE_MISMATCH|OBSERVATION_INVALID|QUEUE_ENTRY_MISMATCH|QUEUE_DENOMINATOR_MISMATCH",
     ):
         build_map_match_workflow(observations=[bad_auto], queue=q2, policy=POLICY, source=_source())
+
+
+# ---------------------------------------------------------------------------
+# Additional discriminating tests for Opus remediation (blocking + non-blocking)
+# ---------------------------------------------------------------------------
+
+
+def test_sanctioned_no_candidate_reject_yields_rejected() -> None:
+    obs = _obs_no_candidate(900)
+    queue = build_manual_review_queue([obs])
+    ledger = start_review_ledger(queue, POLICY_FP)
+    ledger = record_review_decision(
+        ledger, queue, _decision(900, ReviewDecisionKind.REJECT_ALL_CANDIDATES)
+    )
+    sealed = seal_review_ledger(ledger)
+    wf = build_map_match_workflow(
+        observations=[obs], queue=queue, policy=POLICY, ledger=sealed, source=_source()
+    )
+    assert wf.rejected_ids == (900,)
+    proj = wf.observations[0]
+    assert proj.standing == "REJECTED"
+    assert proj.original_disposition == "no_suitable_candidate"
+    assert proj.decision_kind == ReviewDecisionKind.REJECT_ALL_CANDIDATES
+    assert proj.ledger_seal == sealed.seal
+    # Verify passes with exact dependencies
+    assert (
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue, ledger=sealed, source=_source())
+        == wf.fingerprint()
+    )
+
+
+def test_sanctioned_unavailable_defer_yields_unresolved() -> None:
+    obs = _obs_unavailable(901)
+    queue = build_manual_review_queue([obs])
+    ledger = start_review_ledger(queue, POLICY_FP)
+    ledger = record_review_decision(ledger, queue, _decision(901, ReviewDecisionKind.DEFER))
+    sealed = seal_review_ledger(ledger)
+    wf = build_map_match_workflow(
+        observations=[obs], queue=queue, policy=POLICY, ledger=sealed, source=_source()
+    )
+    assert wf.unresolved_ids == (901,)
+    assert wf.observations[0].standing == "UNRESOLVED"
+    assert wf.observations[0].original_disposition == "unavailable_missing_evidence"
+    assert wf.observations[0].decision_kind == ReviewDecisionKind.DEFER
+    assert (
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue, ledger=sealed, source=_source())
+        == wf.fingerprint()
+    )
+
+
+def test_impossible_accept_on_no_candidate_fails_closed() -> None:
+    obs = _obs_no_candidate(902)
+    queue = build_manual_review_queue([obs])
+    # Forge a ledger that tries to accept on a no-candidate row (bypassing record_review_decision)
+    bad_decision = _decision(902, ReviewDecisionKind.ACCEPT_GROUP, group_key="invented-group")
+    bad_ledger = MatchReviewLedger(
+        queue_fingerprint=queue.fingerprint(),
+        policy_fingerprint=POLICY_FP,
+        decisions=(bad_decision,),
+    )
+    sealed = seal_review_ledger(bad_ledger)
+    with pytest.raises(MapMatchWorkflowError, match="GROUP_MISMATCH|PROJECTION_INVALID"):
+        build_map_match_workflow(
+            observations=[obs], queue=queue, policy=POLICY, ledger=sealed, source=_source()
+        )
+    # Also unavailable row cannot be accepted
+    obs2 = _obs_unavailable(903)
+    q2 = build_manual_review_queue([obs2])
+    bad2 = _decision(903, ReviewDecisionKind.ACCEPT_GROUP, group_key="invented-group")
+    bad_ledger2 = MatchReviewLedger(
+        queue_fingerprint=q2.fingerprint(),
+        policy_fingerprint=POLICY_FP,
+        decisions=(bad2,),
+    )
+    sealed2 = seal_review_ledger(bad_ledger2)
+    with pytest.raises(MapMatchWorkflowError, match="GROUP_MISMATCH|PROJECTION_INVALID"):
+        build_map_match_workflow(
+            observations=[obs2], queue=q2, policy=POLICY, ledger=sealed2, source=_source()
+        )
+
+
+def test_verify_requires_exact_dependencies() -> None:
+    obs = _obs_single_review(910)
+    queue = build_manual_review_queue([obs])
+    wf = build_map_match_workflow(observations=[obs], queue=queue, policy=POLICY, source=_source())
+    # Missing required args should raise TypeError (no digest fallback)
+    with pytest.raises(TypeError):
+        verify_workflow_fingerprint(wf)  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue)  # type: ignore[call-arg]
+    # Explicit None source should fail closed with coded error
+    with pytest.raises(MapMatchWorkflowError, match="VERIFICATION_REQUIRES_DEPENDENCIES|SOURCE"):
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue, ledger=None, source=None)  # type: ignore[arg-type]
+    # Correct verification still works
+    assert (
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue, ledger=None, source=_source())
+        == wf.fingerprint()
+    )
+
+
+def test_verify_refuses_fabricated_named_human() -> None:
+    obs = _obs_single_review(920)
+    queue = build_manual_review_queue([obs])
+    wf = build_map_match_workflow(observations=[obs], queue=queue, policy=POLICY, source=_source())
+    # Forge a human accepted projection without a ledger
+    proj = wf.observations[0]
+    forged = proj.model_copy(
+        update={
+            "standing": "HUMAN_ACCEPTED",
+            "decision_kind": ReviewDecisionKind.ACCEPT_GROUP,
+            "accepted_group_key": "ref:A56|primary",
+            "reviewer_name": "A. Analyst",
+            "reviewer_role": "research analyst",
+            "decision_fingerprint": "a" * 64,
+            "ledger_seal": "b" * 64,
+            "decided_at_utc": proj.decided_at_utc
+            or __import__("datetime")
+            .datetime.fromisoformat(DECIDED_AT.replace("Z", "+00:00"))
+            .astimezone(UTC),
+            "matched_edge_ids": ("e1",),
+            "standing_reason": "sealed named review accepted group ref:A56|primary by A. Analyst",
+            "original_disposition": "awaiting_manual_review",
+        }
+    )
+    # Direct result validation should already fail ledger binding, but verify must also refuse
+    forged_wf = wf.model_copy(update={"observations": (forged,)})
+    with pytest.raises((ValidationError, MapMatchWorkflowError)):
+        MapMatchWorkflowResult.model_validate(forged_wf.model_dump())
+    with pytest.raises(MapMatchWorkflowError):
+        verify_workflow_fingerprint(
+            forged_wf, policy=POLICY, queue=queue, ledger=None, source=_source()
+        )
+
+
+def test_verify_wrong_source_refused() -> None:
+    obs = _obs_auto(930)
+    queue = build_manual_review_queue([obs])
+    src1 = _source()
+    src2 = _source(admission_receipt_fingerprint=_ALT_RECEIPT_FP)
+    wf = build_map_match_workflow(observations=[obs], queue=queue, policy=POLICY, source=src1)
+    with pytest.raises(MapMatchWorkflowError, match="SOURCE_MISMATCH"):
+        verify_workflow_fingerprint(wf, policy=POLICY, queue=queue, ledger=None, source=src2)
+
+
+def test_diagnostics_truncation_marker_and_count() -> None:
+    # Create an observation with many diagnostics parts exceeding MAX_DIAGNOSTICS
+    base_obs = _obs_single_review(940)
+    many_reasons = tuple(f"reason {i} with detail" for i in range(70))
+    # Use model_copy to inject many reasons (bypass but then revalidate via model_validate)
+    obs = base_obs.model_copy(update={"reasons": many_reasons})
+    # Revalidate to ensure it's accepted (still awaiting, but with many reasons)
+    obs = ObservationMatchV11.model_validate(obs.model_dump())
+    diags = _diagnostics_for(obs)
+    assert len(diags) == 64
+    assert diags[-1].endswith("diagnostics omitted")
+    # Check omitted count is deterministic: 70 reasons + review_reasons
+    # The parts list includes reasons (70) + review_reasons (1) =71,
+    # plus maybe other, but we can compute expected omitted
+    # = len(parts) - (MAX_DIAGNOSTICS-1)
+    # For this obs, parts = 70 reasons + 1 review_reason =71, so omitted = 71 -63 =8
+    # Marker should contain "8 diagnostics omitted" or more
+    assert "omitted" in diags[-1]
+    # The count should be >0 and marker should be deterministic
+    count_str = diags[-1]
+    # Extract count
+    import re
+
+    m = re.search(r"(\d+) diagnostics omitted", count_str)
+    assert m is not None, f"marker missing count: {count_str}"
+    count = int(m.group(1))
+    assert count == 8  # 71 parts -63 kept =8 omitted
+
+
+def test_sanitized_bad_timestamp() -> None:
+    obs = _obs_single_review(950)
+    queue = build_manual_review_queue([obs])
+    # Create a decision with a bad timestamp containing private path
+    bad_decision = MatchReviewDecision(
+        count_point_id=950,
+        kind=ReviewDecisionKind.DEFER,
+        reason="inspected geometry and signed references against queue evidence",
+        reviewer=_reviewer(),
+        decided_at_utc="/tmp/secret/private/path",  # noqa: S108
+    )
+    ledger = MatchReviewLedger(
+        queue_fingerprint=queue.fingerprint(),
+        policy_fingerprint=POLICY_FP,
+        decisions=(bad_decision,),
+    )
+    sealed = seal_review_ledger(ledger)
+    with pytest.raises(MapMatchWorkflowError) as excinfo:
+        build_map_match_workflow(
+            observations=[obs], queue=queue, policy=POLICY, ledger=sealed, source=_source()
+        )
+    msg = str(excinfo.value)
+    # Must be sanitized - not echo raw private path or secret
+    assert "/tmp" not in msg  # noqa: S108
+    assert "secret" not in msg.lower()
+    assert "INVALID_TIMESTAMP" in msg or "invalid" in msg.lower()
+    # Also test with secret in timestamp
+    bad2 = MatchReviewDecision(
+        count_point_id=950,
+        kind=ReviewDecisionKind.DEFER,
+        reason="inspected geometry and signed references against queue evidence",
+        reviewer=_reviewer(),
+        decided_at_utc="not-a-datetime api_key=secret123",
+    )
+    ledger2 = MatchReviewLedger(
+        queue_fingerprint=queue.fingerprint(),
+        policy_fingerprint=POLICY_FP,
+        decisions=(bad2,),
+    )
+    sealed2 = seal_review_ledger(ledger2)
+    with pytest.raises(MapMatchWorkflowError) as excinfo2:
+        build_map_match_workflow(
+            observations=[obs], queue=queue, policy=POLICY, ledger=sealed2, source=_source()
+        )
+    msg2 = str(excinfo2.value)
+    assert "api_key" not in msg2.lower()
+    assert "secret" not in msg2.lower()
+
+
+def test_contradictory_and_duplicate_queue_refused() -> None:
+    obs1 = _obs_single_review(960)
+    obs2 = _obs_no_candidate(961)
+    queue = build_manual_review_queue([obs1, obs2])
+    # Contradictory denominator: tamper accepted_total
+    tampered = queue.model_copy(update={"accepted_total": 99})
+    with pytest.raises(MapMatchWorkflowError, match="QUEUE_DENOMINATOR_MISMATCH|QUEUE_INVALID"):
+        build_map_match_workflow(
+            observations=[obs1, obs2], queue=tampered, policy=POLICY, source=_source()
+        )
+    # Duplicate point IDs in queue
+    # craft a queue that passes its own validator but has duplicate ids
+    dup_entry = queue.entries[0]
+    dup_queue = ManualReviewQueue(
+        observations_total=queue.observations_total,
+        accepted_total=queue.accepted_total,
+        queued_total=queue.queued_total,
+        entries=(dup_entry, dup_entry),
+    )
+    with pytest.raises(
+        MapMatchWorkflowError,
+        match="DUPLICATE_QUEUE_ENTRY|QUEUE_DENOMINATOR_MISMATCH|QUEUE_INVALID",
+    ):
+        build_map_match_workflow(
+            observations=[obs1, obs2], queue=dup_queue, policy=POLICY, source=_source()
+        )
+    # Also test duplicate observation IDs vs queue
+    # Build a queue that claims wrong observations_total
+    bad_queue2 = queue.model_copy(update={"observations_total": 1})
+    with pytest.raises(MapMatchWorkflowError, match="QUEUE_DENOMINATOR_MISMATCH|QUEUE_INVALID"):
+        build_map_match_workflow(
+            observations=[obs1, obs2], queue=bad_queue2, policy=POLICY, source=_source()
+        )

@@ -46,6 +46,7 @@ from traffictwin.integration.manchester.observation_matching_v11 import (
     MAP_MATCH_POLICY_V11_ID,
     ManualReviewQueue,
     ObservationMatchV11,
+    TerminalDispositionV11,
 )
 from traffictwin.integration.manchester.observation_review import (
     MatchReviewDecision,
@@ -92,10 +93,13 @@ def _parse_utc_datetime(value: str) -> datetime:
     raw = value.strip().replace("Z", "+00:00")
     try:
         dt = datetime.fromisoformat(raw)
-    except ValueError as exc:
-        raise ValueError(f"invalid UTC datetime {value!r}") from exc
+    except ValueError:  # noqa: BLE001
+        # Sanitized coded error – never echo raw input which may contain paths/secrets.
+        raise MapMatchWorkflowError("INVALID_TIMESTAMP", "invalid UTC datetime") from None
     if dt.tzinfo is None or dt.utcoffset() != timedelta(0):
-        raise ValueError("datetime must be timezone-aware UTC")
+        raise MapMatchWorkflowError(
+            "INVALID_TIMESTAMP", "datetime must be timezone-aware UTC"
+        ) from None
     return dt.astimezone(UTC)
 
 
@@ -119,7 +123,7 @@ def _sanitize_workflow_error(exc: Exception) -> str:
     if _PRIVATE_PATH_RE.search(msg) or _SECRET_RE.search(msg):
         return "invalid input"
     # Truncate and avoid leaking large dumps.
-    return msg[:500] if len(msg) <= 500 else msg[:500]
+    return msg[:500]
 
 
 class MapMatchDftSourceIdentity(MapMatchWorkflowModel):
@@ -267,6 +271,7 @@ class MapMatchObservationProjection(MapMatchWorkflowModel):
     accepted_group_key: str | None = Field(default=None, max_length=220)
     matched_edge_ids: tuple[str, ...] = Field(default=())
     nearest_distance_m: Decimal | None = Field(default=None, ge=0)
+    original_disposition: TerminalDispositionV11
     scientifically_validated: Literal[False] = False
     observational_truth_claimed: Literal[False] = False
     baseline_acceptance_claimed: Literal[False] = False
@@ -337,6 +342,9 @@ class MapMatchObservationProjection(MapMatchWorkflowModel):
     @model_validator(mode="after")
     def _validate_projection(self) -> MapMatchObservationProjection:
         obs = self.observation
+        # Preserve original observation standing for auditability.
+        if self.original_disposition != obs.disposition:
+            raise ValueError("original_disposition must equal observation disposition")
         expected_nearest: Decimal | None = None
         if obs.groups:
             expected_nearest = min(g.nearest_distance_m for g in obs.groups)
@@ -458,8 +466,17 @@ class MapMatchObservationProjection(MapMatchWorkflowModel):
                     raise ValueError(
                         "human REJECTED requires sealed named reviewer with role/time/fingerprint"
                     )
-                if obs.disposition != "awaiting_manual_review":
-                    raise ValueError("human REJECTED requires awaiting_manual_review observation")
+                if obs.disposition not in (
+                    "awaiting_manual_review",
+                    "no_suitable_candidate",
+                    "unavailable_missing_evidence",
+                ):
+                    raise ValueError(
+                        "human REJECTED requires a queued disposition: awaiting_manual_review, "
+                        "no_suitable_candidate or unavailable_missing_evidence"
+                    )
+                if self.original_disposition != obs.disposition:
+                    raise ValueError("human REJECTED original_disposition must match observation")
                 if self.accepted_group_key is not None:
                     raise ValueError("REJECTED must not carry accepted_group_key")
                 if self.matched_edge_ids:
@@ -513,8 +530,15 @@ class MapMatchObservationProjection(MapMatchWorkflowModel):
                     raise ValueError(
                         "UNRESOLVED DEFER requires sealed named reviewer with role/time/fingerprint"
                     )
-                if obs.disposition != "awaiting_manual_review":
-                    raise ValueError("UNRESOLVED DEFER requires awaiting_manual_review observation")
+                if obs.disposition not in (
+                    "awaiting_manual_review",
+                    "no_suitable_candidate",
+                    "unavailable_missing_evidence",
+                ):
+                    raise ValueError(
+                        "UNRESOLVED DEFER requires a queued disposition: awaiting_manual_review, "
+                        "no_suitable_candidate or unavailable_missing_evidence"
+                    )
                 expected_defer = (
                     f"sealed review deferred by {self.reviewer_name}; remains unresolved"
                 )
@@ -675,11 +699,16 @@ def _diagnostics_for(obs: ObservationMatchV11) -> tuple[str, ...]:
         parts.append(f"family_mismatch: {obs.family_mismatch}")
     if not parts:
         parts.append(f"disposition {obs.disposition} confidence {obs.confidence}")
-    # bound length, preserve order deterministically
-    capped = tuple(p[:MAX_DIAGNOSTIC_LEN] for p in parts[:MAX_DIAGNOSTICS])
-    if len(capped) != len(parts[:MAX_DIAGNOSTICS]):
-        raise AssertionError("diagnostics bound violated")
-    return capped
+    # Per-item length truncation deterministically.
+    truncated = [p[:MAX_DIAGNOSTIC_LEN] for p in parts]
+    if len(truncated) <= MAX_DIAGNOSTICS:
+        return tuple(truncated)
+    # Explicitly mark omitted count; keep deterministic order.
+    omitted = len(truncated) - (MAX_DIAGNOSTICS - 1)
+    keep = truncated[: MAX_DIAGNOSTICS - 1]
+    marker = f"... {omitted} diagnostics omitted"
+    marker = marker[:MAX_DIAGNOSTIC_LEN]
+    return tuple(keep + [marker])
 
 
 def _ambiguity_reason(obs: ObservationMatchV11) -> str | None:
@@ -825,6 +854,34 @@ def build_map_match_workflow(
     queue_fp = queue.fingerprint()
     if queue.policy_id != MAP_MATCH_POLICY_V11_ID:
         raise MapMatchWorkflowError("QUEUE_POLICY_MISMATCH", "queue policy_id mismatch")
+    # Validate queue denominators and duplicate point IDs against exact observation set.
+    if queue.observations_total != len(observations):
+        raise MapMatchWorkflowError(
+            "QUEUE_DENOMINATOR_MISMATCH",
+            "queue observations_total contradicts observation set",
+        )
+    _expected_accepted = sum(
+        1 for o in observations if o.disposition == "owner_policy_accepted_candidate"
+    )
+    if queue.accepted_total != _expected_accepted:
+        raise MapMatchWorkflowError(
+            "QUEUE_DENOMINATOR_MISMATCH",
+            "queue accepted_total contradicts observation set",
+        )
+    if queue.queued_total != len(queue.entries):
+        raise MapMatchWorkflowError(
+            "QUEUE_DENOMINATOR_MISMATCH",
+            "queue queued_total contradicts entries length",
+        )
+    if queue.queued_total != (len(observations) - _expected_accepted):
+        raise MapMatchWorkflowError(
+            "QUEUE_DENOMINATOR_MISMATCH",
+            "queue queued_total contradicts observation dispositions",
+        )
+    if len({e.count_point_id for e in queue.entries}) != len(queue.entries):
+        raise MapMatchWorkflowError(
+            "DUPLICATE_QUEUE_ENTRY", "queue contains duplicate count_point_id"
+        )
     # queue must bind all non-accepted observations exactly
     queue_ids = {e.count_point_id for e in queue.entries}
     queue_by_id = {e.count_point_id: e for e in queue.entries}
@@ -953,24 +1010,32 @@ def build_map_match_workflow(
                 )
             _reject_private_paths(standing_reason, "standing_reason")
             _reject_secrets(standing_reason, "standing_reason")
-            proj = MapMatchObservationProjection(
-                observation=obs,
-                queue_fingerprint=queue_fp,
-                ledger_seal=ledger_seal,
-                standing=standing,
-                standing_reason=standing_reason,
-                diagnostics=diagnostics,
-                ambiguity_reason=amb,
-                unmatched_reason=unmatched,
-                reviewer_name=reviewer_name,
-                reviewer_role=reviewer_role,
-                decision_fingerprint=decision_fp,
-                decided_at_utc=decided_at,
-                decision_kind=kind,
-                accepted_group_key=accepted_key,
-                matched_edge_ids=matched_ids,
-                nearest_distance_m=nearest,
-            )
+            try:
+                proj = MapMatchObservationProjection(
+                    observation=obs,
+                    queue_fingerprint=queue_fp,
+                    ledger_seal=ledger_seal,
+                    standing=standing,
+                    standing_reason=standing_reason,
+                    diagnostics=diagnostics,
+                    ambiguity_reason=amb,
+                    unmatched_reason=unmatched,
+                    reviewer_name=reviewer_name,
+                    reviewer_role=reviewer_role,
+                    decision_fingerprint=decision_fp,
+                    decided_at_utc=decided_at,
+                    decision_kind=kind,
+                    accepted_group_key=accepted_key,
+                    matched_edge_ids=matched_ids,
+                    nearest_distance_m=nearest,
+                    original_disposition=obs.disposition,
+                )
+            except MapMatchWorkflowError:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                raise MapMatchWorkflowError(
+                    "PROJECTION_INVALID", _sanitize_workflow_error(exc)
+                ) from None
             projections.append(proj)
         else:
             if obs.disposition == "owner_policy_accepted_candidate":
@@ -1033,24 +1098,32 @@ def build_map_match_workflow(
                 )
             _reject_private_paths(standing_reason, "standing_reason")
             _reject_secrets(standing_reason, "standing_reason")
-            proj = MapMatchObservationProjection(
-                observation=obs,
-                queue_fingerprint=queue_fp,
-                ledger_seal=None,
-                standing=standing,
-                standing_reason=standing_reason,
-                diagnostics=diagnostics,
-                ambiguity_reason=amb,
-                unmatched_reason=unmatched,
-                reviewer_name=reviewer_name,
-                reviewer_role=reviewer_role,
-                decision_fingerprint=decision_fp,
-                decided_at_utc=decided_at,
-                decision_kind=kind,
-                accepted_group_key=accepted_key,
-                matched_edge_ids=matched_ids,
-                nearest_distance_m=nearest,
-            )
+            try:
+                proj = MapMatchObservationProjection(
+                    observation=obs,
+                    queue_fingerprint=queue_fp,
+                    ledger_seal=None,
+                    standing=standing,
+                    standing_reason=standing_reason,
+                    diagnostics=diagnostics,
+                    ambiguity_reason=amb,
+                    unmatched_reason=unmatched,
+                    reviewer_name=reviewer_name,
+                    reviewer_role=reviewer_role,
+                    decision_fingerprint=decision_fp,
+                    decided_at_utc=decided_at,
+                    decision_kind=kind,
+                    accepted_group_key=accepted_key,
+                    matched_edge_ids=matched_ids,
+                    nearest_distance_m=nearest,
+                    original_disposition=obs.disposition,
+                )
+            except MapMatchWorkflowError:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                raise MapMatchWorkflowError(
+                    "PROJECTION_INVALID", _sanitize_workflow_error(exc)
+                ) from None
             projections.append(proj)
 
     projections_sorted = tuple(sorted(projections, key=lambda p: p.observation.count_point_id))
@@ -1062,45 +1135,44 @@ def build_map_match_workflow(
             )
         )
 
-    result = MapMatchWorkflowResult(
-        policy_fingerprint=policy_fp,
-        queue_fingerprint=queue_fp,
-        ledger_seal=ledger_seal,
-        ledger_fingerprint=ledger_fp,
-        source=source,
-        observations=projections_sorted,
-        pending_queue=_ids("UNRESOLVED"),
-        auto_accepted_ids=_ids("AUTO_ACCEPTED"),
-        human_accepted_ids=_ids("HUMAN_ACCEPTED"),
-        rejected_ids=_ids("REJECTED"),
-        unresolved_ids=_ids("UNRESOLVED"),
-    )
+    try:
+        result = MapMatchWorkflowResult(
+            policy_fingerprint=policy_fp,
+            queue_fingerprint=queue_fp,
+            ledger_seal=ledger_seal,
+            ledger_fingerprint=ledger_fp,
+            source=source,
+            observations=projections_sorted,
+            pending_queue=_ids("UNRESOLVED"),
+            auto_accepted_ids=_ids("AUTO_ACCEPTED"),
+            human_accepted_ids=_ids("HUMAN_ACCEPTED"),
+            rejected_ids=_ids("REJECTED"),
+            unresolved_ids=_ids("UNRESOLVED"),
+        )
+    except MapMatchWorkflowError:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise MapMatchWorkflowError(
+            "WORKFLOW_RESULT_INVALID", _sanitize_workflow_error(exc)
+        ) from None
     return result
 
 
 def verify_workflow_fingerprint(
     workflow: MapMatchWorkflowResult,
-    policy: object | None = None,
-    queue: object | None = None,
-    ledger: object | None = None,
+    policy: object,
+    queue: object,
+    ledger: object | None,
     *,
-    source: MapMatchDftSourceIdentity | None = None,
+    source: MapMatchDftSourceIdentity,
 ) -> str:
     """Verify a workflow canonically and return its fingerprint.
 
-    Always canonically revalidates the supplied workflow (defeating
-    ``model_copy`` bypass).  When the exact ``policy``, ``queue`` and
-    optional ``ledger`` (and optionally ``source``) are provided, this
-    becomes a genuine canonical verification boundary: every dependency
-    is revalidated, the workflow is deterministically rebuilt via
-    :func:`build_map_match_workflow`, and the supplied result is refused
-    unless it exactly equals (and fingerprints) the rebuilt result.  This
-    catches forged HUMAN_ACCEPTED/REJECTED/UNRESOLVED projections and
-    stale source/policy/queue/ledger identities.
-
-    Without dependencies the call remains a backwards-compatible digest
-    helper but is not a verification – it only proves canonical validity,
-    not dependency freshness.
+    Requires exact ``policy``, ``queue``, ``ledger`` and ``source`` dependencies,
+    canonically revalidates all, deterministically rebuilds the workflow via
+    :func:`build_map_match_workflow`, and refuses any fabricated human decision,
+    ledger identity or source.  No digest fallback is provided – a verify call
+    must prove freshness, not just canonical validity.
     """
 
     # Canonical revalidation – defeats model_copy bypass.
@@ -1109,20 +1181,17 @@ def verify_workflow_fingerprint(
     except Exception as exc:  # noqa: BLE001
         raise MapMatchWorkflowError("WORKFLOW_INVALID", _sanitize_workflow_error(exc)) from None
 
-    # Backwards-compatible digest path: no dependency proof requested.
-    if policy is None and queue is None and ledger is None and source is None:
-        return workflow.fingerprint()
-
-    # Full verification path – require exact policy and queue.
     from traffictwin.integration.manchester.observation_matching_v11 import (
         ManchesterMapMatchPolicyV11,
     )
 
-    if policy is None or queue is None:
+    # Require exact dependencies – no optional digest path.
+    if policy is None or queue is None or source is None:
         raise MapMatchWorkflowError(
             "VERIFICATION_REQUIRES_DEPENDENCIES",
-            "full verification requires policy and queue (and ledger if workflow is sealed)",
+            "verification requires exact policy, queue, ledger and source",
         )
+    # ledger may be None for unsealed workflows but must be explicitly passed.
     # Revalidate supplied dependencies canonically.
     if not isinstance(policy, ManchesterMapMatchPolicyV11):
         raise MapMatchWorkflowError(
@@ -1151,23 +1220,23 @@ def verify_workflow_fingerprint(
             raise MapMatchWorkflowError(
                 "LEDGER_NOT_SEALED", "ledger must be sealed for verification"
             )
-
-    if source is not None:
-        if not isinstance(source, MapMatchDftSourceIdentity):
-            raise MapMatchWorkflowError("SOURCE_IDENTITY_INVALID", "source invalid")
-        try:
-            source = MapMatchDftSourceIdentity.model_validate(source.model_dump())
-        except Exception as exc:  # noqa: BLE001
-            raise MapMatchWorkflowError(
-                "SOURCE_IDENTITY_INVALID", _sanitize_workflow_error(exc)
-            ) from None
-        if source.fingerprint() != workflow.source.fingerprint():
-            raise MapMatchWorkflowError(
-                "SOURCE_MISMATCH", "supplied source does not match workflow source"
-            )
-        effective_source = source
     else:
-        effective_source = workflow.source
+        # Explicit None ledger requires workflow be unsealed; checked below.
+        pass
+
+    if not isinstance(source, MapMatchDftSourceIdentity):
+        raise MapMatchWorkflowError("SOURCE_IDENTITY_INVALID", "source invalid")
+    try:
+        source = MapMatchDftSourceIdentity.model_validate(source.model_dump())
+    except Exception as exc:  # noqa: BLE001
+        raise MapMatchWorkflowError(
+            "SOURCE_IDENTITY_INVALID", _sanitize_workflow_error(exc)
+        ) from None
+    if source.fingerprint() != workflow.source.fingerprint():
+        raise MapMatchWorkflowError(
+            "SOURCE_MISMATCH", "supplied source does not match workflow source"
+        )
+    effective_source = source
 
     # Ledger presence must match workflow.
     if (workflow.ledger_seal is None) != (ledger is None):
