@@ -44,7 +44,7 @@ def _minimal_valid(
         "evidence_standing": evidence,
         "admission_status": admission,
     }
-    base.update(overrides)  # type: ignore[arg-type]
+    base.update(overrides)
     return ResearchStudyRecord.model_validate(base)
 
 
