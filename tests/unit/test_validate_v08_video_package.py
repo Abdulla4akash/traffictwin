@@ -265,6 +265,208 @@ def test_nonexistent_checklist_locator_must_fail() -> None:
         CHECKLIST.write_text(original, encoding="utf-8")
 
 
+def test_click_path_invented_route_must_fail() -> None:
+    """Invented route in click path must fail route check."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace("/manchester-evidence-hub", "/invented-fake-route-xyz", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("route" in e.lower() and "not found" in e.lower() for e in errs), (
+            f"expected invented route failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_invented_url_path_must_fail() -> None:
+    """Invented url_path in click path locator column must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace(
+        'url_path="manchester-evidence-hub"', 'url_path="invented-fake-route-xyz"', 1
+    )
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("url_path" in e.lower() and "not found" in e.lower() for e in errs), (
+            f"expected invented url_path failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_wrong_sha_prefix_must_fail() -> None:
+    """Wrong local SHA prefix must fail (5329b1 – service/artifact cell)."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    # Mutate the national_highways receipt prefix 5329b1 to deadbeef
+    mutated = original.replace("5329b1", "deadbeef", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("sha prefix" in e.lower() and "does not match" in e.lower() for e in errs), (
+            f"expected wrong SHA failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_wrong_c0a59f_prefix_must_fail() -> None:
+    """Wrong DfT receipt c0a59f prefix (expected-output cell, now with explicit path) must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace("c0a59f", "deadbeef", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("sha prefix" in e.lower() and "does not match" in e.lower() for e in errs), (
+            f"expected c0a59f wrong SHA failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_wrong_f33cfe_prefix_must_fail() -> None:
+    """Wrong DfT receipt f33cfe prefix (expected-output cell, now with explicit path) must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace("f33cfe", "deadbeef", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("sha prefix" in e.lower() and "does not match" in e.lower() for e in errs), (
+            f"expected f33cfe wrong SHA failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_wrong_af128cf08_prefix_must_fail() -> None:
+    """Wrong fingerprint af128cf08 (structured identity in contract) must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace("af128cf08", "deadbeef", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("sha prefix" in e.lower() and "does not match" in e.lower() for e in errs), (
+            f"expected af128cf08 wrong SHA failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_wrong_f77afb23_prefix_must_fail() -> None:
+    """Wrong manifest prefix f77afb23 (evidence-index binding) must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace("f77afb23", "deadbeef", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("sha prefix" in e.lower() and "does not match" in e.lower() for e in errs), (
+            f"expected f77afb23 wrong SHA failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_all_local_sha_mutations_fail_real_passes() -> None:
+    """Discriminating: every local prefix mutation fails, real document passes."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    # Real document must pass
+    assert validator.validate() == [], f"real document should pass, got {validator.validate()}"
+    for prefix in ["5329b1", "c0a59f", "f33cfe", "af128cf08", "f77afb23"]:
+        mutated = original.replace(prefix, "deadbeef", 1)
+        assert mutated != original, f"prefix {prefix} not found for mutation"
+        CLICK_PATH.write_text(mutated, encoding="utf-8")
+        try:
+            errs = validator.validate()
+            assert any("sha prefix" in e.lower() and "does not match" in e.lower() for e in errs), (
+                f"expected {prefix} mutation to fail with sha prefix error, got {errs}"
+            )
+        finally:
+            CLICK_PATH.write_text(original, encoding="utf-8")
+    # After restoring, must still pass
+    assert validator.validate() == [], f"restored document should pass, got {validator.validate()}"
+
+
+def test_click_path_harness_sha_excluded() -> None:
+    """Controller-only .harness SHA must remain excluded (no false positive)."""
+    errs = validator.validate()
+    # Should pass; harness commit SHAs should not be flagged as local SHA mismatches
+    assert not any("harness" in e.lower() and "sha" in e.lower() for e in errs), (
+        f"harness SHA incorrectly flagged: {errs}"
+    )
+    assert errs == [], f"validator should pass with harness provenance excluded, got {errs}"
+
+
+def test_click_path_malformed_time_must_fail() -> None:
+    """Malformed clock time must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace("~5:15", "~5-15", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("malformed" in e.lower() for e in errs), (
+            f"expected malformed time failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_overrun_must_fail() -> None:
+    """Step duration >12s must fail (overrun)."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    # Change step 2 clock from 5:25 to 5:30 -> step1 duration 15s >12
+    mutated = original.replace("~5:25", "~5:30", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("overrun" in e.lower() or "exceeds 12" in e.lower() for e in errs), (
+            f"expected overrun failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_gap_overlap_must_fail() -> None:
+    """Gap/overlap (duplicate clock) must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    # Duplicate step1 clock for step2 creates zero duration -> gap/overlap
+    mutated = original.replace("~5:25", "~5:15", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("gap/overlap" in e.lower() for e in errs), (
+            f"expected gap/overlap failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
+def test_click_path_wrong_total_must_fail() -> None:
+    """Wrong total (window not 60s or sum mismatch) must fail."""
+    original = CLICK_PATH.read_text(encoding="utf-8")
+    mutated = original.replace("5:15–6:15", "5:15–6:20", 1)
+    if mutated == original:
+        mutated = original.replace("5:15-6:15", "5:15-6:20", 1)
+    assert mutated != original
+    CLICK_PATH.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("wrong total" in e.lower() or "total" in e.lower() for e in errs), (
+            f"expected wrong total failure, got {errs}"
+        )
+    finally:
+        CLICK_PATH.write_text(original, encoding="utf-8")
+
+
 def test_pristine_temporary_package_without_harness_must_pass(
     tmp_path: pathlib.Path,
 ) -> None:
