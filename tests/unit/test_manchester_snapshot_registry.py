@@ -845,15 +845,19 @@ def test_provenance_not_relabelled_as_validation_receipt() -> None:
         ),
         SF.DFT: SourceRuntimeMetadata(
             source_family=SF.DFT,
-            current_standing=SCS.HISTORICAL_ONLY,
+            current_standing=SCS.UNAVAILABLE,
             credential_presence=CP.NOT_REQUIRED,
-            freshness=SFS.HISTORICAL,
+            freshness=SFS.UNAVAILABLE,
+            blocker="HISTORICAL_UNAVAILABLE",
+            owner_action="Provide historical snapshot",
         ),
         SF.WEBTRIS: SourceRuntimeMetadata(
             source_family=SF.WEBTRIS,
-            current_standing=SCS.HISTORICAL_ONLY,
+            current_standing=SCS.UNAVAILABLE,
             credential_presence=CP.NOT_REQUIRED,
-            freshness=SFS.HISTORICAL,
+            freshness=SFS.UNAVAILABLE,
+            blocker="HISTORICAL_UNAVAILABLE",
+            owner_action="Provide historical snapshot",
         ),
         SF.NATIONAL_HIGHWAYS: SourceRuntimeMetadata(
             source_family=SF.NATIONAL_HIGHWAYS,
@@ -1047,3 +1051,62 @@ def test_valid_happy_paths_with_exact_receipts() -> None:
     assert get_snapshot(r2, "reg-happy-acc-001") == reg_acc
     fp = snapshot_registry_fingerprint(r2)
     assert len(fp) == 64
+
+
+def test_provenance_fingerprint_must_differ_from_validation_receipt() -> None:
+    same = _fp("same-seed")
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-prov-distinct-001",
+            snapshot_identity="snap-prov-distinct-001",
+            provenance_fingerprint=same,
+            validation_receipt_fingerprint=same,
+        )
+    # Distinct succeeds
+    ok = _make_reg(
+        registration_id="reg-prov-distinct-002",
+        snapshot_identity="snap-prov-distinct-002",
+        provenance_fingerprint=_fp("prov-distinct"),
+        validation_receipt_fingerprint=_fp("val-distinct"),
+    )
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    reg = register_snapshot(empty, ok)
+    assert (
+        reg.snapshots[0].provenance_fingerprint != reg.snapshots[0].validation_receipt_fingerprint
+    )
+
+
+def test_snapshot_registry_bounded_maximum_is_enforced() -> None:
+    from traffictwin.integration.manchester.snapshot_registry import MAX_SNAPSHOTS
+
+    # Direct construction over limit must fail
+    regs = tuple(
+        _make_reg(
+            registration_id=f"reg-bound-{i:04d}",
+            snapshot_identity=f"snap-bound-{i:04d}",
+            content_fingerprint=_fp(f"bound-content-{i}"),
+            retrieved_at_utc=UTC_TS_A,
+        )
+        for i in range(MAX_SNAPSHOTS + 1)
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=regs)
+    # register_snapshot limit enforced at boundary
+    regs_at_limit = tuple(
+        _make_reg(
+            registration_id=f"reg-limit-{i:04d}",
+            snapshot_identity=f"snap-limit-{i:04d}",
+            content_fingerprint=_fp(f"limit-content-{i}"),
+            retrieved_at_utc=UTC_TS_A,
+        )
+        for i in range(MAX_SNAPSHOTS)
+    )
+    full = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=regs_at_limit)
+    overflow = _make_reg(
+        registration_id="reg-overflow-001",
+        snapshot_identity="snap-overflow-001",
+        content_fingerprint=_fp("overflow"),
+        retrieved_at_utc=UTC_TS_A,
+    )
+    with pytest.raises(SnapshotRegistryError, match="LIMIT_EXCEEDED"):
+        register_snapshot(full, overflow)

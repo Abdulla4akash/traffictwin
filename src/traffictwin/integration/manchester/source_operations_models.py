@@ -252,7 +252,11 @@ class SourceRuntimeMetadata(SourceOperationsModel):
             SourceCurrentStanding.NOT_DETECTED,
             SourceCurrentStanding.UNAVAILABLE,
         }
-        if blocked != (self.blocker is not None and self.owner_action is not None):
+        has_blocker = self.blocker is not None
+        has_action = self.owner_action is not None
+        if has_blocker != has_action:
+            raise ValueError("blocker and owner action must be provided together")
+        if blocked != has_blocker:
             raise ValueError("blocked standing requires both blocker and owner action")
 
         if (
@@ -314,8 +318,6 @@ class SourceRuntimeMetadata(SourceOperationsModel):
                 raise ValueError("SYNTHETIC_AVAILABLE requires an operational receipt")
             if self.operational_receipt.source_family is not self.source_family:
                 raise ValueError("SYNTHETIC_AVAILABLE receipt family must match")
-        # DFT/WebTRIS HISTORICAL_ONLY is evidenced by accepted snapshot validation receipt,
-        # not by operational receipt; no receipt required here. UNAVAILABLE etc remain blocked.
         return self
 
 
@@ -426,8 +428,25 @@ class SourceReadiness(SourceOperationsModel):
             SourceCurrentStanding.NOT_DETECTED,
             SourceCurrentStanding.UNAVAILABLE,
         }
-        if blocked != (self.blocker is not None and self.owner_action is not None):
+        has_blocker = self.blocker is not None
+        has_action = self.owner_action is not None
+        if has_blocker != has_action:
+            raise ValueError("blocker and owner action must be provided together")
+        if blocked != has_blocker:
             raise ValueError("blocked standing requires both blocker and owner action")
+        # HISTORICAL_ONLY must be backed by an accepted immutable snapshot receipt
+        if self.current_standing is SourceCurrentStanding.HISTORICAL_ONLY:
+            if self.source.family not in {SourceFamily.DFT, SourceFamily.WEBTRIS}:
+                raise ValueError("HISTORICAL_ONLY is only valid for DFT and WebTRIS")
+            if self.latest_accepted_snapshot is None:
+                raise ValueError("HISTORICAL_ONLY requires an accepted snapshot")
+            if (
+                self.latest_accepted_snapshot.validation_state
+                is not SnapshotValidationState.ACCEPTED
+            ):
+                raise ValueError("HISTORICAL_ONLY requires ACCEPTED validation state")
+            if self.latest_accepted_snapshot.source_family is not self.source.family:
+                raise ValueError("HISTORICAL_ONLY pointer family must match row family")
         if (
             self.current_standing is SourceCurrentStanding.CREDENTIAL_REQUIRED
             and self.credential_presence is not CredentialPresence.ABSENT
@@ -484,9 +503,6 @@ class SourceReadiness(SourceOperationsModel):
             and self.receipt is None
         ):
             raise ValueError("SYNTHETIC_AVAILABLE requires an operational receipt")
-        # DFT/WebTRIS HISTORICAL_ONLY is evidenced by an accepted
-        # snapshot validation receipt, not by an operational receipt
-
         # Pointer family and validation_state binding
         if self.latest_accepted_snapshot is not None:
             if self.latest_accepted_snapshot.source_family is not self.source.family:
@@ -520,15 +536,6 @@ class SourceReadiness(SourceOperationsModel):
         else:
             if self.latest_retrieval_at_utc is not None:
                 raise ValueError("latest retrieval must be None when no pointers exist")
-
-        # BODS unavailable with credentials present and no blocker must fail
-        if (
-            self.source.family is SourceFamily.BODS
-            and self.current_standing is SourceCurrentStanding.UNAVAILABLE
-            and self.credential_presence is CredentialPresence.PRESENT
-            and self.blocker is None
-        ):
-            raise ValueError("BODS unavailable with credentials present requires blocker")
 
         return self
 
@@ -623,13 +630,11 @@ _SOURCE_DEFINITIONS: dict[SourceFamily, SourceDefinition] = {
         ),
         allowed_current_standings=(
             SourceCurrentStanding.AVAILABLE,
-            SourceCurrentStanding.HISTORICAL_ONLY,
             SourceCurrentStanding.CREDENTIAL_REQUIRED,
             SourceCurrentStanding.UNAVAILABLE,
         ),
         allowed_freshness=(
             SourceFreshnessStanding.LIVE_VEHICLE,
-            SourceFreshnessStanding.HISTORICAL,
             SourceFreshnessStanding.STALE,
             SourceFreshnessStanding.UNAVAILABLE,
         ),
@@ -703,13 +708,11 @@ _SOURCE_DEFINITIONS: dict[SourceFamily, SourceDefinition] = {
         ),
         allowed_current_standings=(
             SourceCurrentStanding.AVAILABLE,
-            SourceCurrentStanding.HISTORICAL_ONLY,
             SourceCurrentStanding.CREDENTIAL_REQUIRED,
             SourceCurrentStanding.UNAVAILABLE,
         ),
         allowed_freshness=(
             SourceFreshnessStanding.NEAR_LIVE,
-            SourceFreshnessStanding.HISTORICAL,
             SourceFreshnessStanding.STALE,
             SourceFreshnessStanding.UNAVAILABLE,
         ),

@@ -118,17 +118,91 @@ def _valid_runtime() -> dict[SourceFamily, SourceRuntimeMetadata]:
     }
 
 
+def _registry_with_dft_webtris() -> SnapshotRegistry:
+    dft_reg = SnapshotRegistration(
+        registration_id="reg-dft-001",
+        snapshot_identity="snap-dft-001",
+        content_fingerprint=_fp("dft-001"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.DFT,
+        coverage_summary="Admitted DfT count points in Manchester; bounded historical acquisition.",
+        record_count=100,
+        parser_version="dft-parser-1.0",
+        schema_version="dft-schema-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://snapshots/dft-001",
+        provenance_fingerprint=_fp("prov-dft-001"),
+        validation_receipt_fingerprint=_fp("reg-dft-001-val"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+    )
+    webtris_reg = SnapshotRegistration(
+        registration_id="reg-webtris-001",
+        snapshot_identity="snap-webtris-001",
+        content_fingerprint=_fp("webtris-001"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.WEBTRIS,
+        coverage_summary=(
+            "Selected strategic-road sites only; external to Manchester city-road coverage."
+        ),
+        record_count=100,
+        parser_version="webtris-parser-1.0",
+        schema_version="webtris-schema-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://snapshots/webtris-001",
+        provenance_fingerprint=_fp("prov-webtris-001"),
+        validation_receipt_fingerprint=_fp("reg-webtris-001-val"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA,
+    )
+    empty = SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
+    r1 = register_snapshot(empty, dft_reg)
+    return register_snapshot(r1, webtris_reg)
+
+
+def _unavailable_runtime() -> dict[SourceFamily, SourceRuntimeMetadata]:
+    base = _valid_runtime()
+    base[SourceFamily.DFT] = SourceRuntimeMetadata(
+        source_family=SourceFamily.DFT,
+        current_standing=SourceCurrentStanding.UNAVAILABLE,
+        credential_presence=CredentialPresence.NOT_REQUIRED,
+        freshness=SourceFreshnessStanding.UNAVAILABLE,
+        blocker="HISTORICAL_UNAVAILABLE",
+        owner_action="Provide historical snapshot",
+    )
+    base[SourceFamily.WEBTRIS] = SourceRuntimeMetadata(
+        source_family=SourceFamily.WEBTRIS,
+        current_standing=SourceCurrentStanding.UNAVAILABLE,
+        credential_presence=CredentialPresence.NOT_REQUIRED,
+        freshness=SourceFreshnessStanding.UNAVAILABLE,
+        blocker="HISTORICAL_UNAVAILABLE",
+        owner_action="Provide historical snapshot",
+    )
+    return base
+
+
 def _empty_registry() -> SnapshotRegistry:
     return SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
 
 
 def test_build_complete_catalogue_from_verified_metadata() -> None:
-    runtime = _valid_runtime()
+    # Empty registry with DFT/WEBTRIS unavailable must succeed
+    unavailable = _unavailable_runtime()
     empty = _empty_registry()
-    # Build with empty registry (no snapshots) via registry-only path
-    catalogue = build_source_operations_catalogue(
+    catalogue_unavail = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
         snapshot_registry=empty,
+        runtime_by_family=unavailable,
+    )
+    assert isinstance(catalogue_unavail, SourceOperationsCatalogue)
+    # With accepted DFT/WebTRIS snapshots, HISTORICAL_ONLY succeeds
+    runtime = _valid_runtime()
+    with_registry = _registry_with_dft_webtris()
+    catalogue = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_NOW,
+        snapshot_registry=with_registry,
         runtime_by_family=runtime,
     )
     assert isinstance(catalogue, SourceOperationsCatalogue)
@@ -158,7 +232,7 @@ def test_build_complete_catalogue_from_verified_metadata() -> None:
     assert tfgm_row.source.evidence_standing == EvidenceStanding.DESIGN_ONLY_CAPABILITY
     assert tfgm_row.current_standing == SourceCurrentStanding.PROVIDER_DATA_REQUIRED
     assert tfgm_row.latest_accepted_snapshot is None
-    # Now with one BODS accepted snapshot via registry
+    # Now with one BODS accepted snapshot via registry (also need DFT/WebTRIS)
     bods_reg = SnapshotRegistration(
         registration_id="reg-bods-001",
         snapshot_identity="snap-bods-001",
@@ -177,7 +251,7 @@ def test_build_complete_catalogue_from_verified_metadata() -> None:
         validated_at_utc=UTC_A,
         evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
     )
-    reg1 = register_snapshot(empty, bods_reg)
+    reg1 = register_snapshot(with_registry, bods_reg)
     cat2 = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
         snapshot_registry=reg1,
@@ -280,7 +354,7 @@ def test_secret_and_path_leakage_rejected() -> None:
         )
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry=_empty_registry(),
+            snapshot_registry=_registry_with_dft_webtris(),
             runtime_by_family={**_valid_runtime(), SourceFamily.BODS: bad},
         )
     # /etc must also be rejected
@@ -339,10 +413,31 @@ def test_accepted_rejected_latest_ordering_and_service_validation() -> None:
     )
     r1 = register_snapshot(empty, reg_acc)
     r2 = register_snapshot(r1, reg_rej)
+    webtris_acc = SnapshotRegistration(
+        registration_id="reg-webtris-acc-test2",
+        snapshot_identity="snap-webtris-acc-test2",
+        content_fingerprint=_fp("webtris-acc-test2"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.WEBTRIS,
+        coverage_summary=(
+            "Selected strategic-road sites only; external to Manchester city-road coverage."
+        ),
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/webtris-acc-test2",
+        provenance_fingerprint=_fp("prov-webtris-test2"),
+        validation_receipt_fingerprint=_fp("reg-webtris-acc-test2-val"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA,
+    )
+    r3 = register_snapshot(r2, webtris_acc)
 
     catalogue = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry=r2,
+        snapshot_registry=r3,
         runtime_by_family=runtime,
     )
     dft_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.DFT)
@@ -434,16 +529,31 @@ def test_tfgm_has_no_accepted_snapshot_via_service() -> None:
 
 
 def test_idempotence_and_catalogue_fingerprint_stable() -> None:
-    runtime = _valid_runtime()
+    # empty with unavailable
+    empty_unavail = _unavailable_runtime()
     empty = _empty_registry()
-    c1 = build_source_operations_catalogue(
+    c1e = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
         snapshot_registry=empty,
+        runtime_by_family=empty_unavail,
+    )
+    c2e = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_NOW,
+        snapshot_registry=empty,
+        runtime_by_family=empty_unavail,
+    )
+    assert c1e.canonical_json() == c2e.canonical_json()
+    # with registry containing DFT/WebTRIS accepted
+    reg = _registry_with_dft_webtris()
+    runtime = _valid_runtime()
+    c1 = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_NOW,
+        snapshot_registry=reg,
         runtime_by_family=runtime,
     )
     c2 = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry=empty,
+        snapshot_registry=reg,
         runtime_by_family=runtime,
     )
     assert c1.canonical_json() == c2.canonical_json()
@@ -493,7 +603,8 @@ def test_catalogue_from_registry_derives_pointers() -> None:
     )
     reg1 = register_snapshot(empty, bods_reg)
     reg2 = register_snapshot(reg1, dft_reg)
-    runtime = _valid_runtime()
+    # DFT rejected-only with HISTORICAL_ONLY would fail; use UNAVAILABLE for this probe
+    runtime = _unavailable_runtime()
     catalogue = catalogue_from_registry(UTC_NOW, reg2, runtime)
     bods_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.BODS)
     dft_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.DFT)
@@ -512,7 +623,7 @@ def test_incomplete_runtime_rejected() -> None:
     with pytest.raises(SourceOperationsServiceError, match="INCOMPLETE_RUNTIME"):
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry=_empty_registry(),
+            snapshot_registry=_registry_with_dft_webtris(),
             runtime_by_family=incomplete,  # type: ignore[arg-type]
         )
 
@@ -531,9 +642,10 @@ def test_never_uses_directory_existence_and_no_credential_values() -> None:
     assert "credential_value" not in SourceRuntimeMetadata.model_fields
     assert "api_key" not in SourceRuntimeMetadata.model_fields
     runtime = _valid_runtime()
+    reg = _registry_with_dft_webtris()
     cat = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry=_empty_registry(),
+        snapshot_registry=reg,
         runtime_by_family=runtime,
     )
     j = cat.model_dump_json()
@@ -606,7 +718,7 @@ def test_future_evidence_fails_closed() -> None:
     with pytest.raises(SourceOperationsServiceError, match="FUTURE_EVIDENCE"):
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry=_empty_registry(),
+            snapshot_registry=_registry_with_dft_webtris(),
             runtime_by_family=bad_runtime,
         )
 
@@ -752,7 +864,7 @@ def test_model_copy_inflates_pointer_family_via_service() -> None:
     with pytest.raises(SourceOperationsServiceError):
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry=_empty_registry(),
+            snapshot_registry=_registry_with_dft_webtris(),
             runtime_by_family=bad_runtime,
         )
 
@@ -894,7 +1006,7 @@ def test_secret_path_not_leaked_in_service_error() -> None:
     try:
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry=_empty_registry(),
+            snapshot_registry=_registry_with_dft_webtris(),
             runtime_by_family=crafted,
         )
         raise AssertionError("should have failed")
@@ -932,7 +1044,7 @@ def test_provenance_as_receipt_confusion_rejected() -> None:
     )
     empty = SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
     reg2 = register_snapshot(empty, reg)
-    runtime = _valid_runtime()
+    runtime = _unavailable_runtime()
     cat = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
         snapshot_registry=reg2,
@@ -1099,7 +1211,7 @@ def test_receipt_reused_across_families_fails_via_service() -> None:
     with pytest.raises((ValidationError, SourceOperationsServiceError, ValueError)):
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry=_empty_registry(),
+            snapshot_registry=_registry_with_dft_webtris(),
             runtime_by_family=bad_runtime,
         )
 
@@ -1128,7 +1240,7 @@ def test_available_with_absent_credential_or_no_receipt_fails_via_service() -> N
     with pytest.raises((SourceOperationsServiceError, ValidationError, ValueError)):
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry=_empty_registry(),
+            snapshot_registry=_registry_with_dft_webtris(),
             runtime_by_family=bad1,
         )
     # Also test direct construction with absent fails (second instance)
@@ -1286,9 +1398,30 @@ def test_exact_valid_happy_paths() -> None:
         validated_at_utc=UTC_A,
         evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
     )
+    webtris_reg = SnapshotRegistration(
+        registration_id="reg-webtris-happy-001",
+        snapshot_identity="snap-webtris-happy-001",
+        content_fingerprint=_fp("webtris-happy-content"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.WEBTRIS,
+        coverage_summary=(
+            "Selected strategic-road sites only; external to Manchester city-road coverage."
+        ),
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/webtris-happy",
+        provenance_fingerprint=_fp("prov-webtris-happy"),
+        validation_receipt_fingerprint=_fp("val-webtris-happy"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA,
+    )
     empty = SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
     r1 = register_snapshot(empty, bods_reg)
     r2 = register_snapshot(r1, dft_reg)
+    r3 = register_snapshot(r2, webtris_reg)
     runtime = {
         SourceFamily.BODS: SourceRuntimeMetadata(
             source_family=SourceFamily.BODS,
@@ -1349,7 +1482,7 @@ def test_exact_valid_happy_paths() -> None:
     }
     cat = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry=r2,
+        snapshot_registry=r3,
         runtime_by_family=runtime,
     )
     assert len(cat.sources) == 8
@@ -1373,3 +1506,247 @@ def test_exact_valid_happy_paths() -> None:
     assert "/Users" not in j
     assert "/etc" not in j
     assert "api_key" not in j.lower()
+
+
+# ---- Lane 13 B1 SERVICE discriminating tests ----
+
+
+def test_historical_only_refused_on_empty_registry_via_service() -> None:
+    empty = _empty_registry()
+    runtime = _valid_runtime()
+    with pytest.raises(SourceOperationsServiceError, match="HISTORICAL_ONLY_WITHOUT_ACCEPTED"):
+        build_source_operations_catalogue(
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=empty,
+            runtime_by_family=runtime,
+        )
+    # Empty with unavailable succeeds
+    unavail = _unavailable_runtime()
+    cat = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_NOW,
+        snapshot_registry=empty,
+        runtime_by_family=unavail,
+    )
+    assert cat.snapshot_registry_fingerprint is not None
+
+
+def test_historical_only_accepted_pointer_success_for_dft_and_webtris_via_service() -> None:
+    reg = _registry_with_dft_webtris()
+    runtime = _valid_runtime()
+    cat = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_NOW,
+        snapshot_registry=reg,
+        runtime_by_family=runtime,
+    )
+    for fam in (SourceFamily.DFT, SourceFamily.WEBTRIS):
+        row = next(s for s in cat.sources if s.source.family is fam)
+        assert row.current_standing is SourceCurrentStanding.HISTORICAL_ONLY
+        assert row.latest_accepted_snapshot is not None
+        assert row.latest_accepted_snapshot.validation_state is OpsValidationState.ACCEPTED
+        assert row.latest_accepted_snapshot.source_family is fam
+        assert row.latest_accepted_snapshot.validation_receipt_fingerprint is not None
+        assert row.latest_accepted_snapshot.validated_at_utc is not None
+        assert row.latest_retrieval_at_utc == row.latest_accepted_snapshot.retrieved_at_utc
+
+
+def test_historical_only_refused_when_only_rejected_via_service() -> None:
+    empty = SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
+    dft_rej = SnapshotRegistration(
+        registration_id="reg-dft-rej-only",
+        snapshot_identity="snap-dft-rej-only",
+        content_fingerprint=_fp("dft-rej-only"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.DFT,
+        coverage_summary="Admitted DfT count points",
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.REJECTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/dft-rej-only",
+        provenance_fingerprint=_fp("prov-dft-rej-only"),
+        validation_receipt_fingerprint=_fp("reg-dft-rej-only-val"),
+        validated_at_utc=UTC_A,
+        rejection_code="VALIDATION_FAILED",
+        rejection_reason="Sample rejection reason for testing.",
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+    )
+    reg = register_snapshot(empty, dft_rej)
+    # Need also WebTRIS accepted to isolate DFT failure, but WebTRIS will need accepted
+    webtris_acc = SnapshotRegistration(
+        registration_id="reg-webtris-acc-002",
+        snapshot_identity="snap-webtris-acc-002",
+        content_fingerprint=_fp("webtris-acc-002"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.WEBTRIS,
+        coverage_summary=(
+            "Selected strategic-road sites only; external to Manchester city-road coverage."
+        ),
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/webtris-acc-002",
+        provenance_fingerprint=_fp("prov-webtris-acc-002"),
+        validation_receipt_fingerprint=_fp("reg-webtris-acc-002-val"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA,
+    )
+    reg2 = register_snapshot(reg, webtris_acc)
+    runtime = _valid_runtime()
+    with pytest.raises(SourceOperationsServiceError, match="HISTORICAL_ONLY_WITHOUT_ACCEPTED"):
+        build_source_operations_catalogue(
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=reg2,
+            runtime_by_family=runtime,
+        )
+
+
+def test_bods_historical_only_refused_via_service() -> None:
+    bods_acc = SnapshotRegistration(
+        registration_id="reg-bods-hist-001",
+        snapshot_identity="snap-bods-hist-001",
+        content_fingerprint=_fp("bods-hist-001"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.BODS,
+        coverage_summary="Bus transit positions in admitted GM box",
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.LIVE_VEHICLE,
+        storage_reference="opaque://x/bods-hist-001",
+        provenance_fingerprint=_fp("prov-bods-hist-001"),
+        validation_receipt_fingerprint=_fp("reg-bods-hist-001-val"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+    )
+    empty = SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
+    reg = register_snapshot(empty, bods_acc)
+    # Add DFT/WebTRIS accepted so service reaches BODS check
+    dft_acc = SnapshotRegistration(
+        registration_id="reg-dft-acc-bods-test",
+        snapshot_identity="snap-dft-acc-bods-test",
+        content_fingerprint=_fp("dft-acc-bods-test"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.DFT,
+        coverage_summary="Admitted DfT count points",
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/dft-acc-bods-test",
+        provenance_fingerprint=_fp("prov-dft-acc-bods-test"),
+        validation_receipt_fingerprint=_fp("reg-dft-acc-bods-test-val"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+    )
+    webtris_acc = SnapshotRegistration(
+        registration_id="reg-webtris-acc-bods-test",
+        snapshot_identity="snap-webtris-acc-bods-test",
+        content_fingerprint=_fp("webtris-acc-bods-test"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.WEBTRIS,
+        coverage_summary=(
+            "Selected strategic-road sites only; external to Manchester city-road coverage."
+        ),
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/webtris-acc-bods-test",
+        provenance_fingerprint=_fp("prov-webtris-acc-bods-test"),
+        validation_receipt_fingerprint=_fp("reg-webtris-acc-bods-test-val"),
+        validated_at_utc=UTC_A,
+        evidence_standing=EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA,
+    )
+    reg2 = register_snapshot(reg, dft_acc)
+    reg3 = register_snapshot(reg2, webtris_acc)
+    # Direct construction of BODS HISTORICAL_ONLY must fail at model boundary
+    with __import__("pytest").raises((__import__("pydantic").ValidationError, ValueError)):
+        SourceRuntimeMetadata(
+            source_family=SourceFamily.BODS,
+            current_standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential_presence=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+        )
+    # Test via model_copy bypass at service boundary
+    # Create valid BODS then copy-inflate to HISTORICAL_ONLY
+    valid_bods = _valid_runtime()[SourceFamily.BODS]
+    forged = valid_bods.model_copy(
+        update={
+            "current_standing": SourceCurrentStanding.HISTORICAL_ONLY,
+            "freshness": SourceFreshnessStanding.HISTORICAL,
+            "credential_presence": CredentialPresence.NOT_REQUIRED,
+            "operational_receipt": None,
+        }
+    )
+    bad_runtime2 = dict(_valid_runtime())
+    bad_runtime2[SourceFamily.BODS] = forged
+    with pytest.raises(SourceOperationsServiceError):
+        build_source_operations_catalogue(
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=reg3,
+            runtime_by_family=bad_runtime2,
+        )
+
+
+def test_historical_only_model_copy_refusal_via_service() -> None:
+    reg = _registry_with_dft_webtris()
+    runtime = _valid_runtime()
+    # Valid should succeed
+    cat = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_NOW,
+        snapshot_registry=reg,
+        runtime_by_family=runtime,
+    )
+    assert cat is not None
+    # Model_copy removal of accepted snapshot is not via runtime but via registry forgery
+    # Forge registry via model_copy to remove DFT accepted but keep runtime HISTORICAL_ONLY
+    forged_reg = reg.model_copy(
+        update={
+            "snapshots": tuple(s for s in reg.snapshots if s.source_family is not SourceFamily.DFT)
+        }
+    )
+    with pytest.raises(SourceOperationsServiceError, match="HISTORICAL_ONLY_WITHOUT_ACCEPTED"):
+        build_source_operations_catalogue(
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=forged_reg,
+            runtime_by_family=runtime,
+        )
+    # Forge runtime via model_copy to claim HISTORICAL_ONLY without registry
+    unavail = _unavailable_runtime()
+    inflated = unavail[SourceFamily.DFT].model_copy(
+        update={
+            "current_standing": SourceCurrentStanding.HISTORICAL_ONLY,
+            "freshness": SourceFreshnessStanding.HISTORICAL,
+            "blocker": None,
+            "owner_action": None,
+        }
+    )
+    bad = dict(unavail)
+    bad[SourceFamily.DFT] = inflated
+    # Use empty registry – should fail
+    empty = _empty_registry()
+    with pytest.raises(SourceOperationsServiceError):
+        build_source_operations_catalogue(
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=empty,
+            runtime_by_family=bad,
+        )
+
+
+def test_historical_only_direct_construction_refusal_via_service() -> None:
+    # Direct SourceReadiness construction without pointer already covered in model tests;
+    # service must also fail closed when HISTORICAL_ONLY runtime has no accepted snapshot
+    empty = _empty_registry()
+    runtime = _valid_runtime()
+    with pytest.raises(SourceOperationsServiceError, match="HISTORICAL_ONLY_WITHOUT_ACCEPTED"):
+        build_source_operations_catalogue(
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=empty,
+            runtime_by_family=runtime,
+        )

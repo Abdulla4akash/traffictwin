@@ -437,11 +437,14 @@ def test_model_copy_inflates_bods_coverage_via_pointer_family_not_allowed() -> N
 
 def test_model_copy_inflates_source_family_and_evidence_standing() -> None:
     # DFT historical source cannot take credentials etc. model_copy to inflate family
+    dft_ptr = _pointer(family=SourceFamily.DFT, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
     ok = _readiness(
         family=SourceFamily.DFT,
         standing=SourceCurrentStanding.HISTORICAL_ONLY,
         credential=CredentialPresence.NOT_REQUIRED,
         freshness=SourceFreshnessStanding.HISTORICAL,
+        latest=UTC_A,
+        accepted=dft_ptr,
     )
     # Try to inflate to BODS family without changing definition (source field)
     # The source field would mismatch frozen definition, caught via canonical revalidation
@@ -523,12 +526,15 @@ def test_model_copy_inflates_future_time() -> None:
                 )
             )
         elif fam == SourceFamily.DFT or fam == SourceFamily.WEBTRIS:
+            ptr = _pointer(family=fam, state=SnapshotValidationState.ACCEPTED, at=UTC_FUTURE)
             rows.append(
                 _readiness(
                     family=fam,
                     standing=SourceCurrentStanding.HISTORICAL_ONLY,
                     credential=CredentialPresence.NOT_REQUIRED,
                     freshness=SourceFreshnessStanding.HISTORICAL,
+                    latest=UTC_FUTURE,
+                    accepted=ptr,
                 )
             )
         elif fam == SourceFamily.NATIONAL_HIGHWAYS:
@@ -623,11 +629,12 @@ def test_forged_registry_tuple_direct_construction_via_catalogue() -> None:
         SourceOperationsCatalogue,
     )
 
-    # Need 8 rows, make bad readiness first row
+    # Need 8 rows, make bad readiness first row – use UNAVAILABLE
+    # for DFT/WEBTRIS to avoid needing accepted pointer in this forgery test
     other_rows = [
         _readiness(
             family=fam,
-            standing=SourceCurrentStanding.HISTORICAL_ONLY
+            standing=SourceCurrentStanding.UNAVAILABLE
             if fam in {SourceFamily.DFT, SourceFamily.WEBTRIS}
             else SourceCurrentStanding.AVAILABLE
             if fam is SourceFamily.NATIONAL_HIGHWAYS
@@ -651,22 +658,22 @@ def test_forged_registry_tuple_direct_construction_via_catalogue() -> None:
             }
             else CredentialPresence.PRESENT,
             freshness=SourceFreshnessStanding.UNAVAILABLE
-            if fam is SourceFamily.TFGM
-            else SourceFreshnessStanding.HISTORICAL
-            if fam in {SourceFamily.DFT, SourceFamily.WEBTRIS}
+            if fam in {SourceFamily.DFT, SourceFamily.WEBTRIS, SourceFamily.TFGM, SourceFamily.SUMO}
             else SourceFreshnessStanding.NEAR_LIVE
             if fam is SourceFamily.NATIONAL_HIGHWAYS
-            else SourceFreshnessStanding.UNAVAILABLE
-            if fam is SourceFamily.SUMO
             else SourceFreshnessStanding.SYNTHETIC
             if fam is SourceFamily.MANUAL_INCIDENT
             else SourceFreshnessStanding.STATIC,
-            blocker="PROVIDER_DATA_REQUIRED"
+            blocker="HISTORICAL_UNAVAILABLE"
+            if fam in {SourceFamily.DFT, SourceFamily.WEBTRIS}
+            else "PROVIDER_DATA_REQUIRED"
             if fam is SourceFamily.TFGM
             else "SUMO_NOT_DETECTED"
             if fam is SourceFamily.SUMO
             else None,
-            owner_action="Await provider"
+            owner_action="Provide historical snapshot"
+            if fam in {SourceFamily.DFT, SourceFamily.WEBTRIS}
+            else "Await provider"
             if fam is SourceFamily.TFGM
             else "Install SUMO"
             if fam is SourceFamily.SUMO
@@ -854,32 +861,44 @@ def test_static_synthetic_without_receipt_fails() -> None:
 def test_historical_dft_webtris_supported_by_validation_receipt() -> None:
     """Historical DFT/WebTRIS HISTORICAL_ONLY does NOT require operational receipt;
     it is evidenced by accepted snapshot validation receipt. Exact rule documented."""
-    # No receipt should succeed for historical
+    dft_ptr = _pointer(family=SourceFamily.DFT, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
+    wt_ptr = _pointer(family=SourceFamily.WEBTRIS, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
+    # No receipt should succeed for historical when accepted pointer present
     dft_ok = _readiness(
         family=SourceFamily.DFT,
         standing=SourceCurrentStanding.HISTORICAL_ONLY,
         credential=CredentialPresence.NOT_REQUIRED,
         freshness=SourceFreshnessStanding.HISTORICAL,
+        latest=UTC_A,
+        accepted=dft_ptr,
         receipt=None,
     )
     assert dft_ok.receipt is None
+    assert dft_ok.latest_accepted_snapshot is not None
     wt_ok = _readiness(
         family=SourceFamily.WEBTRIS,
         standing=SourceCurrentStanding.HISTORICAL_ONLY,
         credential=CredentialPresence.NOT_REQUIRED,
         freshness=SourceFreshnessStanding.HISTORICAL,
+        latest=UTC_A,
+        accepted=wt_ptr,
         receipt=None,
     )
     assert wt_ok.receipt is None
     # Even with receipt, historical still passes because receipt is optional
     # for historical (but if present, family must match, so BODS receipt
-    # for WEBTRIS should fail)
+    # for WEBTRIS should fail) – need pointer to satisfy HISTORICAL_ONLY
+    wt_ptr2 = _pointer(
+        family=SourceFamily.WEBTRIS, state=SnapshotValidationState.ACCEPTED, at=UTC_A
+    )
     with pytest.raises((ValidationError, ValueError)):
         _readiness(
             family=SourceFamily.WEBTRIS,
             standing=SourceCurrentStanding.HISTORICAL_ONLY,
             credential=CredentialPresence.NOT_REQUIRED,
             freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=UTC_A,
+            accepted=wt_ptr2,
             receipt=OperationalReceipt(
                 receipt_id="bods-for-wt-001",
                 receipt_fingerprint=_fp("bods-for-wt"),
@@ -975,13 +994,280 @@ def test_valid_happy_paths_with_exact_receipts() -> None:
     )
     assert ok_bods.current_standing is SourceCurrentStanding.AVAILABLE
     # HISTORICAL_ONLY for DFT without receipt but with validation receipt via
-    # snapshot is the documented truth. This is tested via service layer
-    # pointer, but here we ensure readiness itself allows no receipt
+    # snapshot is the documented truth – requires accepted pointer even at model level
+    dft_ptr = _pointer(family=SourceFamily.DFT, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
     ok_dft = _readiness(
         family=SourceFamily.DFT,
         standing=SourceCurrentStanding.HISTORICAL_ONLY,
         credential=CredentialPresence.NOT_REQUIRED,
         freshness=SourceFreshnessStanding.HISTORICAL,
+        latest=UTC_A,
+        accepted=dft_ptr,
         receipt=None,
     )
     assert ok_dft.freshness is SourceFreshnessStanding.HISTORICAL
+
+
+# ---- Lane 13 B1 discriminating tests: HISTORICAL_ONLY binding ----
+
+
+def test_historical_only_empty_registry_refusal_via_direct_readiness() -> None:
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=None,
+            accepted=None,
+            rejected=None,
+            receipt=None,
+        )
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.WEBTRIS,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=None,
+            accepted=None,
+            receipt=None,
+        )
+
+
+def test_historical_only_accepted_pointer_success_for_dft_and_webtris() -> None:
+    for fam in (SourceFamily.DFT, SourceFamily.WEBTRIS):
+        ptr = _pointer(family=fam, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
+        ok = _readiness(
+            family=fam,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=UTC_A,
+            accepted=ptr,
+            receipt=None,
+        )
+        assert ok.latest_accepted_snapshot is not None
+        assert (
+            ok.latest_accepted_snapshot.validation_receipt_fingerprint
+            == ptr.validation_receipt_fingerprint
+        )
+        assert ok.latest_accepted_snapshot.validated_at_utc == ptr.validated_at_utc
+        assert ok.latest_accepted_snapshot.source_family is fam
+
+
+def test_historical_only_rejected_missing_wrong_family_wrong_receipt_refusal() -> None:
+    # Rejected-only cannot yield HISTORICAL_ONLY
+    rej_ptr = _pointer(family=SourceFamily.DFT, state=SnapshotValidationState.REJECTED, at=UTC_A)
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=UTC_A,
+            accepted=None,
+            rejected=rej_ptr,
+            receipt=None,
+        )
+    # Rejected pointer in accepted slot also fails
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=UTC_A,
+            accepted=rej_ptr,
+            receipt=None,
+        )
+    # Wrong family pointer fails
+    wrong_ptr = _pointer(
+        family=SourceFamily.WEBTRIS, state=SnapshotValidationState.ACCEPTED, at=UTC_A
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=UTC_A,
+            accepted=wrong_ptr,
+            receipt=None,
+        )
+    # Missing pointer fails
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=None,
+            accepted=None,
+            receipt=None,
+        )
+
+
+def test_bods_historical_only_refused_even_with_accepted_pointer() -> None:
+    bods_ptr = _pointer(family=SourceFamily.BODS, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.BODS,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.PRESENT,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=UTC_A,
+            accepted=bods_ptr,
+            receipt=OperationalReceipt(
+                receipt_id="bods-hist-001",
+                receipt_fingerprint=_fp("bods-hist"),
+                source_family=SourceFamily.BODS,
+                check_id="bods-check-001",
+                observed_at_utc=UTC_A,
+            ),
+        )
+    # Also without pointer still fails at definition ceiling
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.BODS,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=None,
+            accepted=None,
+            receipt=None,
+        )
+
+
+def test_historical_only_model_copy_refusal() -> None:
+    dft_ptr = _pointer(family=SourceFamily.DFT, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
+    valid = _readiness(
+        family=SourceFamily.DFT,
+        standing=SourceCurrentStanding.HISTORICAL_ONLY,
+        credential=CredentialPresence.NOT_REQUIRED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        latest=UTC_A,
+        accepted=dft_ptr,
+        receipt=None,
+    )
+    # Remove pointer via model_copy must fail revalidation
+    stripped = valid.model_copy(
+        update={"latest_accepted_snapshot": None, "latest_retrieval_at_utc": None}
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        SourceReadiness.model_validate(stripped.model_dump(mode="python"))
+    # Change to UNAVAILABLE from HISTORICAL_ONLY via copy is allowed only
+    # if pointer removed and blocker added
+    # But copying HISTORICAL_ONLY to UNAVAILABLE without blocker must still fail
+    bad_unavail = valid.model_copy(
+        update={
+            "current_standing": SourceCurrentStanding.UNAVAILABLE,
+            "freshness": SourceFreshnessStanding.UNAVAILABLE,
+        }
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        SourceReadiness.model_validate(bad_unavail.model_dump(mode="python"))
+    # Start from UNAVAILABLE and inflate to HISTORICAL_ONLY without pointer must fail
+    una = _readiness(
+        family=SourceFamily.DFT,
+        standing=SourceCurrentStanding.UNAVAILABLE,
+        credential=CredentialPresence.NOT_REQUIRED,
+        freshness=SourceFreshnessStanding.UNAVAILABLE,
+        blocker="HISTORICAL_UNAVAILABLE",
+        owner_action="Provide snapshot",
+    )
+    inflated = una.model_copy(
+        update={
+            "current_standing": SourceCurrentStanding.HISTORICAL_ONLY,
+            "freshness": SourceFreshnessStanding.HISTORICAL,
+        }
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        SourceReadiness.model_validate(inflated.model_dump(mode="python"))
+
+
+def test_historical_only_direct_construction_refusal() -> None:
+    # Direct construction without pointer must fail closed
+    with pytest.raises((ValidationError, ValueError)):
+        SourceReadiness(
+            source=source_definition(SourceFamily.DFT),
+            current_standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential_presence=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest_retrieval_at_utc=None,
+            latest_accepted_snapshot=None,
+            latest_rejected_snapshot=None,
+            schema_version=None,
+            receipt=None,
+            blocker=None,
+            owner_action=None,
+        )
+    # Direct construction with BODS HISTORICAL_ONLY must also fail
+    with pytest.raises((ValidationError, ValueError)):
+        SourceReadiness(
+            source=source_definition(SourceFamily.BODS),
+            current_standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential_presence=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest_retrieval_at_utc=None,
+            latest_accepted_snapshot=None,
+            latest_rejected_snapshot=None,
+            receipt=None,
+            blocker=None,
+            owner_action=None,
+        )
+
+
+def test_blocker_and_owner_action_together_only_on_blocked() -> None:
+    # Blocked standing without blocker/action must fail
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.UNAVAILABLE,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.UNAVAILABLE,
+            blocker=None,
+            owner_action=None,
+        )
+    # Blocked with only one of blocker/action must fail
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.UNAVAILABLE,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.UNAVAILABLE,
+            blocker="HISTORICAL_UNAVAILABLE",
+            owner_action=None,
+        )
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.UNAVAILABLE,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.UNAVAILABLE,
+            blocker=None,
+            owner_action="Provide snapshot",
+        )
+    # Non-blocked with blocker/action must fail
+    dft_ptr = _pointer(family=SourceFamily.DFT, state=SnapshotValidationState.ACCEPTED, at=UTC_A)
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.DFT,
+            standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest=UTC_A,
+            accepted=dft_ptr,
+            blocker="HISTORICAL_UNAVAILABLE",
+            owner_action="Provide snapshot",
+        )
+    # Non-blocked with solitary blocker must also fail (distinct from above)
+    with pytest.raises((ValidationError, ValueError)):
+        _readiness(
+            family=SourceFamily.BODS,
+            standing=SourceCurrentStanding.AVAILABLE,
+            credential=CredentialPresence.PRESENT,
+            freshness=SourceFreshnessStanding.LIVE_VEHICLE,
+            blocker="SOME_BLOCKER",
+            owner_action=None,
+        )

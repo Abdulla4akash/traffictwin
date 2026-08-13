@@ -22,14 +22,13 @@ from traffictwin.integration.manchester.snapshot_registry import (
     SnapshotRegistration,
     SnapshotRegistry,
     SnapshotRegistryError,
-    latest_accepted_for_family,
-    latest_rejected_for_family,
-    latest_snapshot_for_family,
     snapshot_registry_fingerprint,
 )
 from traffictwin.integration.manchester.source_operations_models import (
     SOURCE_FAMILY_ORDER,
     SnapshotPointer,
+    SnapshotValidationState,
+    SourceCurrentStanding,
     SourceFamily,
     SourceOperationsCatalogue,
     SourceReadiness,
@@ -169,11 +168,6 @@ def build_source_operations_catalogue(
                     "RECEIPT_FAMILY_MISMATCH",
                     "operational receipt family must match runtime family",
                 )
-            if runtime.operational_receipt.source_family is not runtime.source_family:
-                raise SourceOperationsServiceError(
-                    "RECEIPT_FAMILY_MISMATCH",
-                    "operational receipt family must match runtime family",
-                )
             if runtime.operational_receipt.observed_at_utc > evaluated_at_utc:
                 raise SourceOperationsServiceError(
                     "FUTURE_EVIDENCE",
@@ -185,9 +179,30 @@ def build_source_operations_catalogue(
     derived_latest: dict[SourceFamily, datetime | None] = {}
 
     for family in SOURCE_FAMILY_ORDER:
-        accepted_reg = latest_accepted_for_family(snapshot_registry, family)
-        rejected_reg = latest_rejected_for_family(snapshot_registry, family)
-        latest_reg = latest_snapshot_for_family(snapshot_registry, family)
+        # Single canonical registry already validated; derive without repeated O(n) revalidation
+        accepted_reg: SnapshotRegistration | None = None
+        rejected_reg: SnapshotRegistration | None = None
+        latest_reg: SnapshotRegistration | None = None
+        for snap in snapshot_registry.snapshots:
+            if snap.source_family is not family:
+                continue
+            if latest_reg is None or (snap.retrieved_at_utc, snap.registration_id) > (
+                latest_reg.retrieved_at_utc,
+                latest_reg.registration_id,
+            ):
+                latest_reg = snap
+            if snap.validation_state is SnapshotValidationState.ACCEPTED and (
+                accepted_reg is None
+                or (snap.retrieved_at_utc, snap.registration_id)
+                > (accepted_reg.retrieved_at_utc, accepted_reg.registration_id)
+            ):
+                accepted_reg = snap
+            elif snap.validation_state is SnapshotValidationState.REJECTED and (
+                rejected_reg is None
+                or (snap.retrieved_at_utc, snap.registration_id)
+                > (rejected_reg.retrieved_at_utc, rejected_reg.registration_id)
+            ):
+                rejected_reg = snap
         derived_accepted[family] = (
             _pointer_from_registration(accepted_reg) if accepted_reg is not None else None
         )
@@ -264,6 +279,28 @@ def build_source_operations_catalogue(
                 "TFGM_ACCEPTED_REJECTED",
                 "TfGM measured traffic has no accepted snapshot",
             )
+        # HISTORICAL_ONLY requires an accepted snapshot receipt from the registry
+        if runtime.current_standing is SourceCurrentStanding.HISTORICAL_ONLY:
+            if family not in {SourceFamily.DFT, SourceFamily.WEBTRIS}:
+                raise SourceOperationsServiceError(
+                    "HISTORICAL_ONLY_FAMILY",
+                    "HISTORICAL_ONLY is only valid for DFT and WebTRIS",
+                )
+            if acc is None:
+                raise SourceOperationsServiceError(
+                    "HISTORICAL_ONLY_WITHOUT_ACCEPTED",
+                    "HISTORICAL_ONLY requires an accepted snapshot in registry",
+                )
+            if acc.validation_state is not SnapshotValidationState.ACCEPTED:
+                raise SourceOperationsServiceError(
+                    "HISTORICAL_ONLY_WITHOUT_ACCEPTED",
+                    "HISTORICAL_ONLY requires ACCEPTED validation state",
+                )
+            if acc.source_family is not family:
+                raise SourceOperationsServiceError(
+                    "HISTORICAL_ONLY_FAMILY_MISMATCH",
+                    "HISTORICAL_ONLY pointer family must match row family",
+                )
         try:
             row = SourceReadiness(
                 source=definition,

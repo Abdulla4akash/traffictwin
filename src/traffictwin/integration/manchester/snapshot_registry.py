@@ -30,6 +30,7 @@ from traffictwin.integration.manchester.source_operations_models import (
 
 SNAPSHOT_REGISTRY_SCHEMA_VERSION = "1.0"
 SNAPSHOT_REGISTRY_METHOD_VERSION = "manchester-snapshot-registry-1.0"
+MAX_SNAPSHOTS = 500
 
 _SAFE_LABEL_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
 _PRIVATE_PATH_RE = re.compile(r"(/Users/|/home/|/private/|/var/|/tmp/|/etc/|~/|[A-Za-z]:\\)")
@@ -172,6 +173,8 @@ class SnapshotRegistration(SnapshotRegistryModel):
                 and "external to" not in lowered
             ):
                 raise ValueError("strategic-road source cannot claim Manchester city-road")
+        if self.provenance_fingerprint == self.validation_receipt_fingerprint:
+            raise ValueError("provenance and validation receipt fingerprints must be distinct")
         # Truthful chronology: retrieval <= validation
         if self.retrieved_at_utc > self.validated_at_utc:
             raise ValueError("retrieved time must not be later than validation time")
@@ -182,7 +185,6 @@ class SnapshotRegistration(SnapshotRegistryModel):
         elif self.validation_state is SnapshotValidationState.REJECTED:
             if self.rejection_code is None or self.rejection_reason is None:
                 raise ValueError("rejected snapshot requires rejection code and reason")
-            # rejection_reason already length-checked; portability screened by base
             if not self.rejection_reason or not self.rejection_reason.strip():
                 raise ValueError("rejection reason must be a truthful nonempty summary")
             if not self.rejection_code or not self.rejection_code.strip():
@@ -228,6 +230,8 @@ class SnapshotRegistry(SnapshotRegistryModel):
                 SnapshotRegistration.model_validate(snap.model_dump(mode="python"))
             except Exception as exc:
                 raise ValueError("snapshot registration failed canonical revalidation") from exc
+        if len(self.snapshots) > MAX_SNAPSHOTS:
+            raise ValueError(f"snapshot registry exceeds maximum of {MAX_SNAPSHOTS}")
         ids = [s.registration_id for s in self.snapshots]
         if len(ids) != len(set(ids)):
             raise ValueError("registration ids must be unique")
@@ -259,15 +263,6 @@ class SnapshotRegistry(SnapshotRegistryModel):
                 ):
                     raise ValueError(
                         "canonical terminal state conflict for identical content fingerprint"
-                    )
-                if (
-                    first.snapshot_identity == second.snapshot_identity
-                    and first.content_fingerprint == second.content_fingerprint
-                    and first.validation_state != second.validation_state
-                ):
-                    raise ValueError(
-                        "canonical terminal state conflict for identical snapshot "
-                        "identity and content"
                     )
         return self
 
@@ -346,18 +341,13 @@ def register_snapshot(
                 f"snapshot identity {registration.snapshot_identity!r} already registered "
                 f"under {existing.registration_id!r}",
             )
+    if len(registry.snapshots) >= MAX_SNAPSHOTS:
+        raise SnapshotRegistryError(
+            "LIMIT_EXCEEDED",
+            f"snapshot registry would exceed maximum of {MAX_SNAPSHOTS}",
+        )
     # Canonical terminal state: same content fingerprint cannot have conflicting states
     for existing in registry.snapshots:
-        if (
-            existing.snapshot_identity == registration.snapshot_identity
-            and existing.content_fingerprint == registration.content_fingerprint
-            and existing.validation_state != registration.validation_state
-        ):
-            raise SnapshotRegistryError(
-                "CONFLICT",
-                f"canonical terminal state conflict for identical snapshot "
-                f"identity {registration.snapshot_identity!r} and content",
-            )
         if (
             existing.content_fingerprint == registration.content_fingerprint
             and existing.validation_state != registration.validation_state
@@ -457,6 +447,7 @@ def snapshot_registry_fingerprint(registry: SnapshotRegistry) -> str:
 
 
 __all__ = [
+    "MAX_SNAPSHOTS",
     "SNAPSHOT_REGISTRY_METHOD_VERSION",
     "SNAPSHOT_REGISTRY_SCHEMA_VERSION",
     "SnapshotRegistration",
