@@ -188,7 +188,7 @@ def test_fabricated_zero_would_be_rejected() -> None:
         # Demonstrate ValidationError if someone tried to set 0 as truthy
         # unavailable — model forbids int for these fields (typed None)
         with pytest.raises(ValidationError):
-            E2TaskAccountingView.model_validate({**v.model_dump(), field: 0})  # type: ignore[arg-type]
+            E2TaskAccountingView.model_validate({**v.model_dump(), field: 0})
 
 
 def test_no_fabricated_physical_return() -> None:
