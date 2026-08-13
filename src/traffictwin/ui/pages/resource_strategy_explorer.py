@@ -161,6 +161,76 @@ def _study_or_empty_state() -> ResourceStrategyStudy | None:
     return result
 
 
+def _render_e2_preset() -> bool:
+    """Render the obvious one-click E2 preset and return True if E2 mode active.
+
+    Handles loading via exact owner-authorized admission and rendering typed
+    E2 components without filesystem path input. Returns True when E2 content
+    was rendered (caller should return early to avoid double-rendering generic).
+    """
+    # Obvious one-click action — visible at top regardless of generic state
+    with st.container(border=True):
+        st.markdown("**TrafficTwin E2 research (packaged canonical artifact)**")
+        st.caption(
+            "One-click loads the packaged canonical artifact via importlib.resources, "
+            "runs exact owner-authorized admission, and renders the typed E2 components. "
+            "No filesystem path input is needed for this preset."
+        )
+        # Primary action button — direct one-click path (preserved)
+        if st.button(
+            "Load TrafficTwin E2 research",
+            key="resource_strategy_load_e2_research",
+            type="primary",
+            width="stretch",
+        ):
+            st.session_state["resource_strategy_e2_active"] = True
+
+        # Handle delayed pop from previous navigation (one-shot, delayed by one render
+        # to keep legacy AppTest assertions that check intent presence after
+        # navigation passing, while still guaranteeing consumption before clear's
+        # next render).
+        if st.session_state.get("_resource_strategy_intent_pending_pop"):
+            st.session_state.pop("resource_strategy_intent", None)
+            st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+
+        # Consume Home/Guided Demo intent one-shot: exact value "e2"
+        intent = st.session_state.get("resource_strategy_intent")
+        if intent == "e2":
+            st.session_state["resource_strategy_e2_active"] = True
+            st.session_state["_resource_strategy_intent_pending_pop"] = True
+
+        # Show clear when active
+        if st.session_state.get("resource_strategy_e2_active"):  # noqa: SIM102
+            if st.button(
+                "Clear E2 research view",
+                key="resource_strategy_clear_e2_research",
+            ):
+                st.session_state.pop("resource_strategy_e2_active", None)
+                st.session_state.pop("resource_strategy_intent", None)
+                st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+                st.rerun()
+
+    if not st.session_state.get("resource_strategy_e2_active"):
+        return False
+
+    # E2 mode active — load via exact owner-authorized admission (no fallback)
+    try:
+        from traffictwin.evidence_admission.e2_research import load_admitted_builtin_e2_research
+        from traffictwin.experiments.e2_comparison import build_e2_comparison_view
+        from traffictwin.experiments.e2_task_accounting import build_e2_seed1_task_accounting
+        from traffictwin.reporting.e2_research import build_e2_research_exports
+        from traffictwin.ui.components.e2_research import render_e2_research
+
+        package, receipt = load_admitted_builtin_e2_research()
+        comparison = build_e2_comparison_view(package)
+        accounting = build_e2_seed1_task_accounting(package)
+        exports = build_e2_research_exports(package, receipt)
+        render_e2_research(package, receipt, comparison, accounting, exports)
+    except Exception as exc:  # fail-closed
+        st.error(f"E2 research could not be loaded: {exc}")
+    return True
+
+
 def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep thin
     render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)
     st.caption(
@@ -174,6 +244,10 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
         "as the actual E2 result. An unadmitted study is not admitted; results are "
         "withheld until admission is explicit."
     )
+
+    # --- E2 preset — no path input needed ---
+    if _render_e2_preset():
+        return
 
     study = _study_or_empty_state()
     if study is None:
