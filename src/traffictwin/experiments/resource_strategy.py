@@ -70,6 +70,7 @@ class ResourceStrategyReplicationUnit(StrEnum):
 
     REPLICATION_ID = "replication_id"
     RANDOM_SEED = "random_seed"
+    FLEET_DRAW = "fleet_draw"
 
 
 class ResourceStrategyMetricDenominator(StrEnum):
@@ -184,6 +185,7 @@ class ResourceStrategyExclusionCode(StrEnum):
     RESOURCE_COST_UNAVAILABLE = "RESOURCE_COST_UNAVAILABLE"
     MANUAL_EXCLUSION = "MANUAL_EXCLUSION"
     DUPLICATE_REPLICATION_ID = "DUPLICATE_REPLICATION_ID"
+    DUPLICATE_FLEET_DRAW = "DUPLICATE_FLEET_DRAW"
 
 
 # ---------------------------------------------------------------------------
