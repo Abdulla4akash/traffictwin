@@ -153,6 +153,54 @@ EXPECTED_WAITING_ROOM_FORBIDDEN = [
     "queue ceiling scaled with compute units",
     "making unavailable lifecycle fields available or zero",
 ]
+EXPECTED_PIN_VECTOR_0: dict[str, Any] = {
+    "B_post": 3000,
+    "B_pre": 4000,
+    "D": 1000,
+    "L_post": 3,
+    "L_pre": 4,
+    "tasks_drained": 1,
+    "u": 1,
+}
+EXPECTED_PIN_VECTOR_1: dict[str, Any] = {
+    "B_post": 0,
+    "B_pre": 500,
+    "D": 500,
+    "L_post": 0,
+    "L_pre": 4,
+    "note": "full drain, L_post=0",
+    "tasks_drained": 4,
+    "u": 3,
+}
+EXPECTED_PIN_VECTOR_2: dict[str, Any] = {
+    "B_post": 3000,
+    "B_pre": 4000,
+    "D": 1000,
+    "L_post": 1,
+    "L_pre": 1,
+    "note": "floor removal=0, L_post=1",
+    "tasks_drained": 0,
+    "u": 1,
+}
+EXPECTED_PIN_VECTORS: list[dict[str, Any]] = [
+    EXPECTED_PIN_VECTOR_0,
+    EXPECTED_PIN_VECTOR_1,
+    EXPECTED_PIN_VECTOR_2,
+]
+EXPECTED_PIN_VECTOR_0_KEYS: frozenset[str] = frozenset(
+    {"B_post", "B_pre", "D", "L_post", "L_pre", "tasks_drained", "u"}
+)
+EXPECTED_PIN_VECTOR_1_KEYS: frozenset[str] = frozenset(
+    {"B_post", "B_pre", "D", "L_post", "L_pre", "note", "tasks_drained", "u"}
+)
+EXPECTED_PIN_VECTOR_2_KEYS: frozenset[str] = frozenset(
+    {"B_post", "B_pre", "D", "L_post", "L_pre", "note", "tasks_drained", "u"}
+)
+EXPECTED_PIN_VECTOR_KEYS: list[frozenset[str]] = [
+    EXPECTED_PIN_VECTOR_0_KEYS,
+    EXPECTED_PIN_VECTOR_1_KEYS,
+    EXPECTED_PIN_VECTOR_2_KEYS,
+]
 EXPECTED_COMPARATOR_KEYS = frozenset(
     {
         "applies_to",
@@ -315,6 +363,10 @@ def _check_exact_keys(
         _err(errors, f"{path} missing keys: {missing}")
     if unknown:
         _err(errors, f"{path} unknown keys: {unknown}")
+
+
+def _strict_equal(a: object, b: object) -> bool:
+    return type(a) is type(b) and a == b
 
 
 def _canonical_dump(data: dict[str, Any]) -> str:
@@ -3775,7 +3827,7 @@ def validate_contract(
                 )
             if (
                 not isinstance(if_full, dict)
-                or if_full.get("L_post") != 0
+                or not _strict_equal(if_full.get("L_post"), 0)
                 or if_full.get("tasks_drained") != "L_pre"
                 or if_full.get("condition") != "B_post <= 0"
             ):
@@ -3784,6 +3836,12 @@ def validate_contract(
                     "waiting_room_occupancy_transition if_B_post_lte_0 must be tasks_drained=L_pre "
                     "L_post=0 "
                     "condition B_post <= 0",
+                )
+            if isinstance(if_full, dict) and type(if_full.get("L_post")) is bool:
+                _err(
+                    errors,
+                    "waiting_room_occupancy_transition.transition.if_B_post_lte_0.L_post "
+                    "must be exactly int 0 (bool False forbidden)",
                 )
             else_partial = trans.get("else_B_post_gt_0", {})
             if (
@@ -3830,10 +3888,13 @@ def validate_contract(
                 "waiting_room_occupancy_transition never_multiplies_waiting_room_ceiling must be "
                 "true",
             )
-        if occ.get("waiting_room_ceiling_tasks_per_rsu") != 6220:
+        _wct = occ.get("waiting_room_ceiling_tasks_per_rsu")
+        if not _strict_equal(_wct, 6220):
             _err(
                 errors,
-                "waiting_room_occupancy_transition waiting_room_ceiling_tasks_per_rsu must be 6220",
+                "waiting_room_occupancy_transition waiting_room_ceiling_tasks_per_rsu "
+                "must be exactly int 6220 "
+                f"(type {type(_wct).__name__} got {_wct!r})",
             )
         if occ.get("waiting_room_ceiling_never_scaled_with_compute_units") is not True:
             _err(
@@ -3890,55 +3951,37 @@ def validate_contract(
         if not isinstance(pin, list) or len(pin) != 3:
             _err(errors, "waiting_room_occupancy_transition pin_vectors must be list of 3")
         else:
-            # Pin 1: B=4000 L=4 u=1 -> D=1000 B_post=3000 tasks_drained=1 L_post=3
-            v0 = pin[0] if isinstance(pin[0], dict) else {}
-            if (
-                v0.get("B_pre") != 4000
-                or v0.get("L_pre") != 4
-                or v0.get("u") != 1
-                or v0.get("D") != 1000
-                or v0.get("B_post") != 3000
-                or v0.get("tasks_drained") != 1
-                or v0.get("L_post") != 3
-            ):
-                _err(
-                    errors,
-                    "waiting_room_occupancy_transition pin_vectors[0] must be B=4000 L=4 u=1 "
-                    "D=1000 "
-                    "B_post=3000 tasks_drained=1 L_post=3",
-                )
-            v1p = pin[1] if isinstance(pin[1], dict) else {}
-            if (
-                v1p.get("B_pre") != 500
-                or v1p.get("L_pre") != 4
-                or v1p.get("u") != 3
-                or v1p.get("D") != 500
-                or v1p.get("B_post") != 0
-                or v1p.get("tasks_drained") != 4
-                or v1p.get("L_post") != 0
-            ):
-                _err(
-                    errors,
-                    "waiting_room_occupancy_transition pin_vectors[1] must be B=500 L=4 u=3 full "
-                    "drain "
-                    "L_post=0",
-                )
-            v2p = pin[2] if isinstance(pin[2], dict) else {}
-            if (
-                v2p.get("B_pre") != 4000
-                or v2p.get("L_pre") != 1
-                or v2p.get("u") != 1
-                or v2p.get("D") != 1000
-                or v2p.get("B_post") != 3000
-                or v2p.get("tasks_drained") != 0
-                or v2p.get("L_post") != 1
-            ):
-                _err(
-                    errors,
-                    "waiting_room_occupancy_transition pin_vectors[2] must be B=4000 L=1 u=1 floor "
-                    "removal=0 "
-                    "L_post=1",
-                )
+            for idx, expected in enumerate(EXPECTED_PIN_VECTORS):
+                vec = pin[idx]
+                dot_path = f"waiting_room_occupancy_transition.pin_vectors[{idx}]"
+                if not isinstance(vec, dict):
+                    _err(errors, f"{dot_path} must be dict got {type(vec).__name__}")
+                    continue
+                _check_exact_keys(vec, EXPECTED_PIN_VECTOR_KEYS[idx], dot_path, errors)
+                for k, exp_val in expected.items():
+                    actual = vec.get(k)
+                    if not _strict_equal(actual, exp_val):
+                        _err(
+                            errors,
+                            f"{dot_path} {k} must be exactly {exp_val!r} "
+                            f"(type {type(exp_val).__name__}) got {actual!r} "
+                            f"(type {type(actual).__name__})",
+                        )
+                # Also enforce exact note string when present; suffix or missing fails via above
+                if idx == 0 and "note" in vec:
+                    _err(
+                        errors,
+                        f"{dot_path} note must be absent for pin_vectors[0] "
+                        f"got {vec.get('note')!r}",
+                    )
+                if idx in (1, 2):
+                    exp_note = expected.get("note")
+                    act_note = vec.get("note")
+                    if not _strict_equal(act_note, exp_note):
+                        _err(
+                            errors,
+                            f"{dot_path}.note must be exactly {exp_note!r} got {act_note!r}",
+                        )
             # Verify math: D = min(B_pre, u*1000), B_post = B_pre - D, partial floor logic
             for idx, vec in enumerate(pin):
                 if not isinstance(vec, dict):
@@ -4219,6 +4262,13 @@ def validate_contract(
                     errors,
                     "comparator_rejection_precedence cross "
                     "individual_V2I_rejection_classes_are_mechanism_diagnostics "
+                    "must be true",
+                )
+            if cross.get("forbidden_presentation_is_identically_constructed_contrast") is not True:
+                _err(
+                    errors,
+                    "comparator_rejection_precedence.cross_strategy_comparability."
+                    "forbidden_presentation_is_identically_constructed_contrast "
                     "must be true",
                 )
             if (

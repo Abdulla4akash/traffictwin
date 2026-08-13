@@ -3772,3 +3772,151 @@ def test_hostile_v2_unknown_key_regenerated_markdown_still_fails() -> None:
     md_errors_against_canonical = validate_markdown(regen, canonical_data)
     assert len(md_errors_against_canonical) > 0
     _ = md_errors_against_mutated
+
+
+def test_fail_closed_pin_vectors_0_queue_ceiling_scales_unknown() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"][0]["queue_ceiling_scales"] = True
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[0]" in e and "queue_ceiling_scales" in e for e in result["errors"])
+    assert any("unknown" in e.lower() for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_1_note_suffix_contradictory() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"][1]["note"] = (
+        mutated["waiting_room_occupancy_transition"]["pin_vectors"][1]["note"]
+        + " contradictory suffix"
+    )
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[1]" in e and "note" in e for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_bool_substitution_u() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"][0]["u"] = True
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[0]" in e and "u" in e for e in result["errors"])
+    # type-sensitive: True == 1 must not pass
+    assert any("bool" in e.lower() or "type" in e.lower() for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_bool_substitution_tasks_drained() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"][1]["tasks_drained"] = True
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[1]" in e and "tasks_drained" in e for e in result["errors"])
+    assert any("bool" in e.lower() or "type" in e.lower() for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_bool_substitution_l_post() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"][2]["L_post"] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[2]" in e and "L_post" in e for e in result["errors"])
+    assert any("bool" in e.lower() or "type" in e.lower() for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_waiting_room_ceiling_float_substitution() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["waiting_room_ceiling_tasks_per_rsu"] = 6220.0
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("waiting_room_ceiling_tasks_per_rsu" in e for e in result["errors"])
+    assert any("int" in e.lower() and "float" in e.lower() for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_transition_l_post_false_bool() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["transition"]["if_B_post_lte_0"]["L_post"] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("transition.if_B_post_lte_0.L_post" in e for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_cross_strategy_forbidden_presentation_false() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["comparator_rejection_precedence"]["cross_strategy_comparability"][
+        "forbidden_presentation_is_identically_constructed_contrast"
+    ] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any(
+        "forbidden_presentation_is_identically_constructed_contrast" in e for e in result["errors"]
+    )
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_reordered_fails() -> None:
+    mutated = copy.deepcopy(canonical())
+    pin = mutated["waiting_room_occupancy_transition"]["pin_vectors"]
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"] = [pin[1], pin[0], pin[2]]
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[0]" in e for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_extra_vector_fails() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"].append(
+        copy.deepcopy(mutated["waiting_room_occupancy_transition"]["pin_vectors"][0])
+    )
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors" in e for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_missing_key_fails() -> None:
+    mutated = copy.deepcopy(canonical())
+    del mutated["waiting_room_occupancy_transition"]["pin_vectors"][0]["u"]
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[0]" in e and "missing" in e.lower() for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
+
+
+def test_fail_closed_pin_vectors_unknown_key_fails() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["waiting_room_occupancy_transition"]["pin_vectors"][2]["extra_unknown"] = 123
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("pin_vectors[2]" in e and "unknown" in e.lower() for e in result["errors"])
+    regen = render_markdown(mutated)
+    assert not validate_contract(mutated)["pass"]
+    _ = regen
