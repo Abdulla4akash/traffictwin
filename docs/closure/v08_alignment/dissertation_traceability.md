@@ -114,6 +114,6 @@ uv run --frozen python scripts/validate_v08_dissertation_traceability.py
 uv run --frozen pytest -q tests/unit/test_validate_v08_dissertation_traceability.py
 ```
 
-Validator checks: 14 IDs exactly once, no duplication, status matches `requirements_status_v08.json`, P0/P1 visible, chapter references resolve to `dissertation_restructure_plan.md`, product entry points exist at `a244776a`, contribution/limitations cross-checks, prohibited claims absent, honesty labels present, MUST arithmetic 3+7+1 preserved, external decisions explicit. Mutation of one MUST mapping or promotion of a PARTIALLY_MET to MET must fail — restore must pass.
+Validator checks: 14 IDs exactly once, no duplication, status and priority match `requirements_status_v08.json` vs `requirements_baseline_v1.json` (TT-REQ-008 SHOULD), P0/P1 visible, chapter references resolve to `dissertation_restructure_plan.md`, every product entry point exists at `a244776a` (trace + contribution), no unmastered TT-REQ ID in downstream or restructure plan, every PARTIALLY_MET has a limitations row with named gap, contribution hygiene (three classes, per-entry frozen hash/path, inference distinctness), prohibited claims absent, honesty labels present, MUST arithmetic 3+7+1 preserved, external decisions explicit. Mutation of one MUST mapping, priority SHOULD→MUST, entry-point path, unknown downstream ID, or PARTIALLY_MET promotion/row removal must fail — restore must pass.
 
 *No SUMO, VEC, evaluator, or E-series experiment is launched. No email or GitHub write is performed.*

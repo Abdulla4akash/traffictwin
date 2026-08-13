@@ -150,6 +150,6 @@ No change to frozen baseline priority/status; S-035 investigations A/B/C remain 
 - Every chapter header in the final manuscript must carry its resident requirement IDs and honesty label for each material sentence.
 - Historical campaign artifacts are cited by SHA-256 of committed JSON, not by republished raw outputs — RESEARCH-EVIDENCE FACT.
 - The manuscript remains a complete unapproved draft until Sandra confirms the RQ/strategy-family/service-confirmation decisions and the assessors accept submission — EXTERNAL DECISION REQUIRED.
-- Validation command: `uv run --frozen python scripts/validate_v08_dissertation_traceability.py` checks that every TT-REQ appears once, every chapter reference resolves to §2 above, and no chapter introduces an unmastered ID.
+- Validation command: `uv run --frozen python scripts/validate_v08_dissertation_traceability.py` checks that every TT-REQ appears once, every chapter reference resolves to §2 above, no chapter/section introduces an unmastered ID (trace downstream and restructure plan both checked), and every product entry point exists.
 
 *No SUMO, VEC, evaluator, or E-series experiment is launched by this plan. No email or GitHub write is performed.*

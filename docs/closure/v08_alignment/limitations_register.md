@@ -58,4 +58,4 @@ No decision is pre-resolved; no amendment is effective until a new primary sourc
 - S-035 investigations A/B/C remain **requested investigations / proposed directions / hypothesised outcomes**, not mandatory implementations — PROVISIONAL WORDING.
 - No FULLY ALIGNED, Sandra confirmation, final submission, or raw private evidence claim is made — validator rejects any such string.
 
-*Validation: `uv run --frozen python scripts/validate_v08_dissertation_traceability.py` checks every PARTIALLY_MET has named gap + external decision, every P0 appears in limitations, and forbidden claims are absent.*
+*Validation: `uv run --frozen python scripts/validate_v08_dissertation_traceability.py` checks every PARTIALLY_MET (9 IDs) has a limitations row with a named gap and severity, every P0/P1 appears with EXTERNAL DECISION REQUIRED, and forbidden claims are absent; removing any PARTIALLY_MET row (e.g. TT-REQ-011) fails.*

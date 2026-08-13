@@ -55,9 +55,9 @@ Every RESEARCH-EVIDENCE FACT is bounded: Manchester incident hour 2024-03-15 20:
 
 Validator `validate_v08_dissertation_traceability.py` checks:
 
-- Every software entry resolves to a committed file at `a244776a` (probe existence).
-- Every scientific-evidence entry cites an exact frozen manifest/commit/SHA (not a bare row count).
-- Every inference is labelled INFERENCE and does not masquerade as RESEARCH-EVIDENCE FACT.
+- Every product entry point resolves to a file existing at `a244776a` (probe existence; trace master entry-point column and contribution software rows).
+- Every scientific-evidence entry cites a frozen hash/path fragment (each evidence row must contain a hex SHA `...` or committed path) — not a bare row count.
+- Every inference is labelled INFERENCE and does not masquerade as RESEARCH-EVIDENCE FACT (inference rows containing RESEARCH-EVIDENCE FACT must also contain INFERENCE).
 - No forbidden claim (Sandra confirmation, final submission, raw bytes, FULLY ALIGNED) appears.
 
 *No email, GitHub write, or experiment launch is performed.*
