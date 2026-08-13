@@ -85,6 +85,16 @@ ATTAINMENT_MAX = 1.0
 PAIRED_DIFF_MIN = -1.0
 PAIRED_DIFF_MAX = 1.0
 
+# Strict explicit tolerances for deterministic reconciliation of declared
+# summaries against paired-difference per-draw values. Keep explicit so
+# failure is loud on drift, and keep narrow to avoid hiding rounding.
+MEAN_RECONCILIATION_TOL: float = 1e-12
+SD_RECONCILIATION_TOL: float = 1e-12
+SE_RECONCILIATION_TOL: float = 1e-12
+
+# Comparison IDs where source declares no sd/se — must remain None/UNAVAILABLE.
+SECONDARY_UNAVAILABLE_SD_SE_IDS: frozenset[str] = frozenset({"e2d_per_task_minus_dla"})
+
 
 def _is_finite(v: float) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(float(v))
@@ -658,13 +668,82 @@ class E2ResearchEvidencePackage(BaseModel):
                     f"provenance manifest {prov.manifest_sha256!r} not in source identities"
                 )
 
-        # Check that paired difference IDs appear in declared summaries? Optional but we enforce presence.
+        # Fail-closed binding: every declared summary must map to a
+        # paired_differences comparison_id and reconcile deterministically.
+        # - declared mean must equal arithmetic mean of per_seed_values
+        #   within MEAN_RECONCILIATION_TOL
+        # - for source-declared sd/se comparisons, reconcile sample_sd and
+        #   standard_error within strict tolerances
+        # - for secondary (source-absent) ids, sd/se must remain None/UNAVAILABLE
+        # Do not recompute CI with a different statistical method — only
+        # strict mean/sd/se binding.
         pd_ids = {pd.comparison_id for pd in self.paired_differences}
         ds_ids = {ds.comparison_id for ds in self.declared_summaries}
-        # At least e2c and e2d primary must be present
-        if not pd_ids.issubset(ds_ids) and not ds_ids.issuperset(pd_ids):
-            # Not strict failure — allow superset but warn via check
-            pass
+        if len(pd_ids) != len(self.paired_differences):
+            raise ValueError("paired_differences comparison_id must be unique")
+        if len(ds_ids) != len(self.declared_summaries):
+            raise ValueError("declared_summaries comparison_id must be unique")
+        # Every paired_difference must have a declared summary and vice versa
+        # (fail-closed linkage). Exact equality ensures no orphan summary or
+        # missing comparison.
+        if pd_ids != ds_ids:
+            raise ValueError(
+                f"declared_summaries and paired_differences comparison_ids must match exactly: "
+                f"paired {sorted(pd_ids)} vs declared {sorted(ds_ids)}"
+            )
+        pd_by_id: dict[str, PairedDifferenceSet] = {
+            pd.comparison_id: pd for pd in self.paired_differences
+        }
+        for ds in self.declared_summaries:
+            pd_opt = pd_by_id.get(ds.comparison_id)
+            if pd_opt is None:
+                raise ValueError(
+                    f"declared summary {ds.comparison_id!r} has no matching paired_differences entry"
+                )
+            matched_pd: PairedDifferenceSet = pd_opt
+            # Deterministic mean reconciliation within strict explicit tolerance
+            expected_mean = sum(matched_pd.per_seed_values) / len(matched_pd.per_seed_values)
+            if abs(ds.mean - expected_mean) > MEAN_RECONCILIATION_TOL:
+                raise ValueError(
+                    f"declared summary {ds.comparison_id!r} mean {ds.mean} drifts from "
+                    f"paired per_seed_values mean {expected_mean} by "
+                    f"{abs(ds.mean - expected_mean)} > {MEAN_RECONCILIATION_TOL}"
+                )
+            if ds.comparison_id in SECONDARY_UNAVAILABLE_SD_SE_IDS:
+                if ds.sample_sd is not None or ds.standard_error is not None:
+                    raise ValueError(
+                        f"declared summary {ds.comparison_id!r} sample_sd/standard_error must be "
+                        f"None/UNAVAILABLE — source declares no such fields and fabricated values "
+                        f"contradict per-draw values/CI; got sample_sd={ds.sample_sd!r}, "
+                        f"standard_error={ds.standard_error!r}"
+                    )
+            else:
+                # Primary source-declared sd/se — must be present and consistent
+                if ds.sample_sd is None or ds.standard_error is None:
+                    raise ValueError(
+                        f"declared summary {ds.comparison_id!r} missing source-declared "
+                        f"sample_sd/standard_error"
+                    )
+                n = len(matched_pd.per_seed_values)
+                # sample standard deviation with Bessel's correction (ddof=1)
+                mean = expected_mean
+                var = (
+                    sum((x - mean) ** 2 for x in matched_pd.per_seed_values) / (n - 1)
+                    if n > 1
+                    else 0.0
+                )
+                expected_sd = math.sqrt(var)
+                expected_se = expected_sd / math.sqrt(n) if n > 0 else 0.0
+                if abs(ds.sample_sd - expected_sd) > SD_RECONCILIATION_TOL:
+                    raise ValueError(
+                        f"declared summary {ds.comparison_id!r} sample_sd {ds.sample_sd} drifts from "
+                        f"expected {expected_sd} by {abs(ds.sample_sd - expected_sd)} > {SD_RECONCILIATION_TOL}"
+                    )
+                if abs(ds.standard_error - expected_se) > SE_RECONCILIATION_TOL:
+                    raise ValueError(
+                        f"declared summary {ds.comparison_id!r} standard_error {ds.standard_error} drifts from "
+                        f"expected {expected_se} by {abs(ds.standard_error - expected_se)} > {SE_RECONCILIATION_TOL}"
+                    )
 
         # Fail-closed on started equality claim: owner contract forbids claiming
         # started == admitted as a measured fact. The faithful bounded reason is

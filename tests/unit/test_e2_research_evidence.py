@@ -9,6 +9,7 @@ from __future__ import annotations
 import copy
 import json
 import math
+from typing import Any
 
 import pytest
 from pydantic import ValidationError
@@ -19,7 +20,7 @@ from traffictwin.experiments.e2_research_evidence import (
 )
 
 
-def _valid_payload() -> dict[str, object]:
+def _valid_payload() -> dict[str, Any]:
     return {
         "schema_version": "v08_e2_research_evidence_v1",
         "campaign": "v08-requirements-closure",
@@ -310,8 +311,8 @@ def _valid_payload() -> dict[str, object]:
                 "mean": 0.026493694591,
                 "lower": 0.026210763951,
                 "upper": 0.026776625232,
-                "sample_sd": 0.0002,
-                "standard_error": 0.0001,
+                "sample_sd": None,
+                "standard_error": None,
                 "degrees_of_freedom": 3,
                 "method": "two-sided Student-t 95% interval over fleet-draw differences",
                 "includes_zero": False,
@@ -442,7 +443,7 @@ def test_fingerprint_changes_on_value_mutation() -> None:
     base = _valid_payload()
     pkg1 = load_e2_research_evidence_json(json.dumps(base))
     mutated = copy.deepcopy(base)
-    mutated["observations"][0]["value"] = 0.99  # type: ignore[index]
+    mutated["observations"][0]["value"] = 0.99
     pkg2 = load_e2_research_evidence_json(json.dumps(mutated))
     assert pkg1.fingerprint() != pkg2.fingerprint()
 
@@ -454,49 +455,49 @@ def test_fingerprint_changes_on_value_mutation() -> None:
 
 def test_rejects_identity_mutation_actor_sha() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["source_identities"]["actor"]["sha256"] = "0" * 64  # type: ignore[index]
+    bad["source_identities"]["actor"]["sha256"] = "0" * 64
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_identity_mutation_base_sha() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["source_identities"]["base_sha"] = "a" * 40  # type: ignore[index]
+    bad["source_identities"]["base_sha"] = "a" * 40
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_identity_mutation_trace_sha() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["source_identities"]["trace"]["sha256"] = "b" * 64  # type: ignore[index]
+    bad["source_identities"]["trace"]["sha256"] = "b" * 64
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_identity_mutation_manifest() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["source_identities"]["manifest_sha256_by_study"]["e2b"] = "c" * 64  # type: ignore[index]
+    bad["source_identities"]["manifest_sha256_by_study"]["e2b"] = "c" * 64
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_identity_mutation_code_commit() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["observations"][0]["code_commit"] = "d" * 40  # type: ignore[index]
+    bad["observations"][0]["code_commit"] = "d" * 40
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_hash_shape_invalid() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["source_identities"]["actor"]["sha256"] = "not-hex"  # type: ignore[index]
+    bad["source_identities"]["actor"]["sha256"] = "not-hex"
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_hash_shape_wrong_length() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["source_identities"]["base_sha"] = "abc123"  # type: ignore[index]
+    bad["source_identities"]["base_sha"] = "abc123"
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -508,7 +509,7 @@ def test_rejects_hash_shape_wrong_length() -> None:
 
 def test_rejects_infinite_value() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["observations"][0]["value"] = math.inf  # type: ignore[index]
+    bad["observations"][0]["value"] = math.inf
     # json cannot serialise inf; use direct model validation
     with pytest.raises((ValidationError, ValueError)):
         E2ResearchEvidencePackage.model_validate(bad)
@@ -516,21 +517,21 @@ def test_rejects_infinite_value() -> None:
 
 def test_rejects_nan_value() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["observations"][0]["value"] = math.nan  # type: ignore[index]
+    bad["observations"][0]["value"] = math.nan
     with pytest.raises((ValidationError, ValueError)):
         E2ResearchEvidencePackage.model_validate(bad)
 
 
 def test_rejects_evaluator_seed_nonzero() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["evaluator_seed"] = 1  # type: ignore[assignment]
+    bad["evaluator_seed"] = 1
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_replication_unit_task() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["replication_unit"] = "task"  # type: ignore[assignment]
+    bad["replication_unit"] = "task"
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -538,35 +539,35 @@ def test_rejects_replication_unit_task() -> None:
 def test_rejects_incomplete_draw_set() -> None:
     bad = copy.deepcopy(_valid_payload())
     # e2c must have [1,2,3,4]; truncate
-    bad["fleet_draw_sets"][1]["fleet_seeds"] = [1, 2, 3]  # type: ignore[index]
+    bad["fleet_draw_sets"][1]["fleet_seeds"] = [1, 2, 3]
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_duplicate_figure_id() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["observations"][1]["figure_id"] = bad["observations"][0]["figure_id"]  # type: ignore[index]
+    bad["observations"][1]["figure_id"] = bad["observations"][0]["figure_id"]
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_duplicate_strategy_id() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["strategies"].append(bad["strategies"][0])  # type: ignore[attr-defined]
+    bad["strategies"].append(bad["strategies"][0])
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_missing_required_strategy() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["strategies"] = [s for s in bad["strategies"] if s["strategy_id"] != "per_task_dla"]  # type: ignore[attr-defined]
+    bad["strategies"] = [s for s in bad["strategies"] if s["strategy_id"] != "per_task_dla"]
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_unknown_strategy_id() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["strategies"][0]["strategy_id"] = "evil_strategy"  # type: ignore[index]
+    bad["strategies"][0]["strategy_id"] = "evil_strategy"
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -578,8 +579,8 @@ def test_rejects_unknown_strategy_id() -> None:
 
 def test_rejects_ci_ordering_violation() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["declared_summaries"][0]["lower"] = 0.5  # type: ignore[index]
-    bad["declared_summaries"][0]["upper"] = -0.5  # type: ignore[index]
+    bad["declared_summaries"][0]["lower"] = 0.5
+    bad["declared_summaries"][0]["upper"] = -0.5
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -587,14 +588,14 @@ def test_rejects_ci_ordering_violation() -> None:
 def test_rejects_ci_includes_zero_mismatch() -> None:
     bad = copy.deepcopy(_valid_payload())
     # CI clearly excludes zero but mark includes_zero True
-    bad["declared_summaries"][0]["includes_zero"] = True  # type: ignore[index]
+    bad["declared_summaries"][0]["includes_zero"] = True
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_mean_outside_ci() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["declared_summaries"][0]["mean"] = 99.0  # type: ignore[index]
+    bad["declared_summaries"][0]["mean"] = 99.0
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -606,14 +607,14 @@ def test_rejects_mean_outside_ci() -> None:
 
 def test_rejects_private_absolute_path_in_payload() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["limitations"][0] = "/Users/akashx/secret/path " + bad["limitations"][0]  # type: ignore[index]
+    bad["limitations"][0] = "/Users/akashx/secret/path " + bad["limitations"][0]
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_private_path_in_task_reason() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["task_lifecycle"]["unavailable_reasons"]["gate_rejected"] = "/home/user/data/file.txt"  # type: ignore[index]
+    bad["task_lifecycle"]["unavailable_reasons"]["gate_rejected"] = "/home/user/data/file.txt"
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -621,14 +622,14 @@ def test_rejects_private_path_in_task_reason() -> None:
 def test_rejects_secret_keyword_assignment() -> None:
     bad = copy.deepcopy(_valid_payload())
     # Add a limitation containing secret assignment pattern
-    bad["limitations"].append("api_key: secret123")  # type: ignore[attr-defined]
+    bad["limitations"].append("api_key: secret123")
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_extra_fields_forbid() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["extra_field"] = 123  # type: ignore[assignment]
+    bad["extra_field"] = 123
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -641,7 +642,7 @@ def test_rejects_extra_fields_forbid() -> None:
 def test_rejects_missing_reason_coherence_none_without_reason() -> None:
     bad = copy.deepcopy(_valid_payload())
     # gate_rejected is None but remove its reason
-    bad["task_lifecycle"]["unavailable_reasons"].pop("gate_rejected")  # type: ignore[attr-defined]
+    bad["task_lifecycle"]["unavailable_reasons"].pop("gate_rejected")
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -658,7 +659,7 @@ def test_rejects_unavailable_field_converted_to_zero_gate_rejected() -> None:
     base = _valid_payload()
     mutated = copy.deepcopy(base)
     mutated["task_lifecycle"]["gate_rejected"] = 0
-    mutated["task_lifecycle"]["unavailable_reasons"].pop("gate_rejected", None)  # type: ignore[attr-defined]
+    mutated["task_lifecycle"]["unavailable_reasons"].pop("gate_rejected", None)
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -667,7 +668,7 @@ def test_rejects_unavailable_field_converted_to_zero_capacity_rejected() -> None
     base = _valid_payload()
     mutated = copy.deepcopy(base)
     mutated["task_lifecycle"]["capacity_rejected"] = 0
-    mutated["task_lifecycle"]["unavailable_reasons"].pop("capacity_rejected", None)  # type: ignore[attr-defined]
+    mutated["task_lifecycle"]["unavailable_reasons"].pop("capacity_rejected", None)
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -676,7 +677,7 @@ def test_rejects_unavailable_field_converted_to_zero_started() -> None:
     base = _valid_payload()
     mutated = copy.deepcopy(base)
     mutated["task_lifecycle"]["started"] = 0
-    mutated["task_lifecycle"]["unavailable_reasons"].pop("started", None)  # type: ignore[attr-defined]
+    mutated["task_lifecycle"]["unavailable_reasons"].pop("started", None)
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -685,7 +686,7 @@ def test_rejects_unavailable_field_converted_to_zero_compute_completed() -> None
     base = _valid_payload()
     mutated = copy.deepcopy(base)
     mutated["task_lifecycle"]["compute_completed"] = 0
-    mutated["task_lifecycle"]["unavailable_reasons"].pop("compute_completed", None)  # type: ignore[attr-defined]
+    mutated["task_lifecycle"]["unavailable_reasons"].pop("compute_completed", None)
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -694,7 +695,7 @@ def test_rejects_unavailable_field_converted_to_zero_returned() -> None:
     base = _valid_payload()
     mutated = copy.deepcopy(base)
     mutated["task_lifecycle"]["returned"] = 0
-    mutated["task_lifecycle"]["unavailable_reasons"].pop("returned", None)  # type: ignore[attr-defined]
+    mutated["task_lifecycle"]["unavailable_reasons"].pop("returned", None)
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -703,7 +704,7 @@ def test_rejects_unavailable_field_converted_to_zero_dropped() -> None:
     base = _valid_payload()
     mutated = copy.deepcopy(base)
     mutated["task_lifecycle"]["dropped"] = 0
-    mutated["task_lifecycle"]["unavailable_reasons"].pop("dropped", None)  # type: ignore[attr-defined]
+    mutated["task_lifecycle"]["unavailable_reasons"].pop("dropped", None)
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -719,8 +720,8 @@ def test_rejects_unavailable_fields_converted_to_zero_all_six_parametrized() -> 
     ):
         base = _valid_payload()
         mutated = copy.deepcopy(base)
-        mutated["task_lifecycle"][field] = 0  # type: ignore[index]
-        mutated["task_lifecycle"]["unavailable_reasons"].pop(field, None)  # type: ignore[attr-defined]
+        mutated["task_lifecycle"][field] = 0
+        mutated["task_lifecycle"]["unavailable_reasons"].pop(field, None)
         with pytest.raises((ValidationError, ValueError)):
             load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -736,8 +737,8 @@ def test_rejects_unavailable_field_converted_to_nonzero_number() -> None:
     ]:
         base = _valid_payload()
         mutated = copy.deepcopy(base)
-        mutated["task_lifecycle"][field] = val  # type: ignore[index]
-        mutated["task_lifecycle"]["unavailable_reasons"].pop(field, None)  # type: ignore[attr-defined]
+        mutated["task_lifecycle"][field] = val
+        mutated["task_lifecycle"]["unavailable_reasons"].pop(field, None)
         with pytest.raises((ValidationError, ValueError)):
             load_e2_research_evidence_json(json.dumps(mutated))
 
@@ -776,7 +777,7 @@ def test_started_reason_is_bounded_not_equality_claim() -> None:
 
 def test_rejects_empty_reason() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["missingness"][0]["reason"] = ""  # type: ignore[index]
+    bad["missingness"][0]["reason"] = ""
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -791,14 +792,14 @@ def test_rejects_empty_unavailable_reason_for_each_field() -> None:
         "dropped",
     ):
         bad = copy.deepcopy(_valid_payload())
-        bad["task_lifecycle"]["unavailable_reasons"][field] = ""  # type: ignore[index]
+        bad["task_lifecycle"]["unavailable_reasons"][field] = ""
         with pytest.raises((ValidationError, ValueError)):
             load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_whitespace_only_unavailable_reason() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["task_lifecycle"]["unavailable_reasons"]["started"] = "   "  # type: ignore[index]
+    bad["task_lifecycle"]["unavailable_reasons"]["started"] = "   "
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
@@ -813,7 +814,7 @@ def test_rejects_absent_unavailable_reason_for_each_field() -> None:
         "dropped",
     ):
         bad = copy.deepcopy(_valid_payload())
-        bad["task_lifecycle"]["unavailable_reasons"].pop(field, None)  # type: ignore[attr-defined]
+        bad["task_lifecycle"]["unavailable_reasons"].pop(field, None)
         with pytest.raises((ValidationError, ValueError)):
             load_e2_research_evidence_json(json.dumps(bad))
 
@@ -821,7 +822,7 @@ def test_rejects_absent_unavailable_reason_for_each_field() -> None:
 def test_rejects_started_reason_with_equality_claim() -> None:
     bad = copy.deepcopy(_valid_payload())
     bad["task_lifecycle"]["unavailable_reasons"]["started"] = (
-        "not separately instrumented; == admitted with explicit note"  # type: ignore[index]
+        "not separately instrumented; == admitted with explicit note"
     )
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
@@ -833,8 +834,8 @@ def test_rejects_started_reason_with_equality_claim() -> None:
         else {
             "field": "started",
             "reason": "not separately instrumented; treated as admitted with explicit note",
-        }  # type: ignore[attr-defined]
-        for m in bad2["missingness"]  # type: ignore[attr-defined]
+        }
+        for m in bad2["missingness"]
     ]
     # missingness itself doesn't fail closed on equality claim alone, but lifecycle does
     # Ensure the authoritative reason is required for lifecycle, so this still would be
@@ -842,13 +843,13 @@ def test_rejects_started_reason_with_equality_claim() -> None:
     # not the valid fixture (we enforce via direct check below)
     assert (
         bad2["missingness"][2]["reason"] != "UNAVAILABLE as an independently instrumented quantity"
-    )  # type: ignore[index]
+    )
 
 
 def test_rejects_empty_missingness_reason_for_each_field() -> None:
-    for idx in range(len(_valid_payload()["missingness"])):  # type: ignore[attr-defined]
+    for idx in range(len(_valid_payload()["missingness"])):
         bad = copy.deepcopy(_valid_payload())
-        bad["missingness"][idx]["reason"] = ""  # type: ignore[index]
+        bad["missingness"][idx]["reason"] = ""
         with pytest.raises((ValidationError, ValueError)):
             load_e2_research_evidence_json(json.dumps(bad))
 
@@ -860,13 +861,144 @@ def test_rejects_empty_missingness_reason_for_each_field() -> None:
 
 def test_rejects_lifecycle_conservation_violation() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["task_lifecycle"]["offered"] = 999  # type: ignore[index]
+    bad["task_lifecycle"]["offered"] = 999
     with pytest.raises((ValidationError, ValueError)):
         load_e2_research_evidence_json(json.dumps(bad))
 
 
 def test_rejects_non_finite_paired_difference() -> None:
     bad = copy.deepcopy(_valid_payload())
-    bad["paired_differences"][0]["per_seed_values"][0] = float("inf")  # type: ignore[index]
+    bad["paired_differences"][0]["per_seed_values"][0] = float("inf")
     with pytest.raises((ValidationError, ValueError)):
         E2ResearchEvidencePackage.model_validate(bad)
+
+
+# ---------------------------------------------------------------------------
+# Fail-closed summary ⇄ paired-difference linkage and reconciliation
+# ---------------------------------------------------------------------------
+
+
+def test_secondary_summary_sd_se_must_be_none() -> None:
+    pkg = _load_valid()
+    secondary = [s for s in pkg.declared_summaries if s.comparison_id == "e2d_per_task_minus_dla"]
+    assert len(secondary) == 1
+    assert secondary[0].sample_sd is None
+    assert secondary[0].standard_error is None
+
+
+def test_rejects_fabricated_secondary_sd_se_values() -> None:
+    bad = copy.deepcopy(_valid_payload())
+    # The committed secondary must be UNAVAILABLE; these fabricated numbers
+    # contradict per-draw values/CI and have no authoritative source.
+    for ds in bad["declared_summaries"]:
+        if ds["comparison_id"] == "e2d_per_task_minus_dla":
+            ds["sample_sd"] = 0.0002
+            ds["standard_error"] = 0.0001
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad))
+
+
+def test_rejects_secondary_sd_se_converted_to_any_number() -> None:
+    for sd_val, se_val in [(0.0, 0.0), (0.0001778, 0.0000889), (1e-6, 5e-7), (0.0002, 0.0001)]:
+        bad = copy.deepcopy(_valid_payload())
+        for ds in bad["declared_summaries"]:
+            if ds["comparison_id"] == "e2d_per_task_minus_dla":
+                ds["sample_sd"] = sd_val
+                ds["standard_error"] = se_val
+        with pytest.raises((ValidationError, ValueError)):
+            load_e2_research_evidence_json(json.dumps(bad))
+    # Single field fabricated while other stays None must also fail
+    for field, val in [("sample_sd", 0.0001778), ("standard_error", 0.0000889)]:
+        bad = copy.deepcopy(_valid_payload())
+        for ds in bad["declared_summaries"]:
+            if ds["comparison_id"] == "e2d_per_task_minus_dla":
+                ds[field] = val
+        with pytest.raises((ValidationError, ValueError)):
+            load_e2_research_evidence_json(json.dumps(bad))
+
+
+def test_rejects_missing_summary_to_paired_difference_linkage() -> None:
+    # Orphan declared summary with no matching paired_differences entry
+    bad = copy.deepcopy(_valid_payload())
+    bad["declared_summaries"].append(
+        {
+            "comparison_id": "e2d_orphan_minus_nonexistent",
+            "mean": 0.0,
+            "lower": -0.001,
+            "upper": 0.001,
+            "sample_sd": None,
+            "standard_error": None,
+            "degrees_of_freedom": 3,
+            "method": "two-sided Student-t 95% interval over fleet-draw differences",
+            "includes_zero": True,
+            "decision": "no_evidence",
+        }
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad))
+
+
+def test_rejects_wrong_summary_to_paired_difference_linkage() -> None:
+    # Mismatched linkage: rename a declared summary so it no longer matches
+    bad = copy.deepcopy(_valid_payload())
+    for ds in bad["declared_summaries"]:
+        if ds["comparison_id"] == "e2d_per_task_minus_dla":
+            ds["comparison_id"] = "e2d_per_task_minus_dla_renamed"
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad))
+
+
+def test_rejects_paired_difference_without_declared_summary() -> None:
+    bad = copy.deepcopy(_valid_payload())
+    bad["paired_differences"].append(
+        {
+            "comparison_id": "e2c_extra_without_summary",
+            "fleet_seeds": [1, 2, 3, 4],
+            "per_seed_values": [0.0, 0.0, 0.0, 0.0],
+            "replication_unit": "fleet_draw",
+        }
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad))
+
+
+def test_rejects_mean_drift_outside_strict_tolerance() -> None:
+    # Drift declared mean far beyond 1e-12 from per-draw arithmetic mean
+    bad = copy.deepcopy(_valid_payload())
+    for ds in bad["declared_summaries"]:
+        if ds["comparison_id"] == "e2d_per_task_minus_dla":
+            ds["mean"] = ds["mean"] + 1e-6
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad))
+    # Also for a primary comparison
+    bad2 = copy.deepcopy(_valid_payload())
+    for ds in bad2["declared_summaries"]:
+        if ds["comparison_id"] == "e2c_dla_minus_ingress":
+            ds["mean"] = ds["mean"] - 1e-9
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad2))
+
+
+def test_rejects_mean_drift_just_outside_tolerance_boundary() -> None:
+    # 1e-12 is the explicit tolerance; 5e-12 must fail
+    bad = copy.deepcopy(_valid_payload())
+    for ds in bad["declared_summaries"]:
+        if ds["comparison_id"] == "e2d_per_task_minus_ingress":
+            ds["mean"] = ds["mean"] + 5e-12
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad))
+
+
+def test_rejects_primary_sd_se_drift_outside_tolerance() -> None:
+    bad = copy.deepcopy(_valid_payload())
+    for ds in bad["declared_summaries"]:
+        if ds["comparison_id"] == "e2c_dla_minus_ingress":
+            ds["sample_sd"] = 0.0008
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad))
+    bad2 = copy.deepcopy(_valid_payload())
+    for ds in bad2["declared_summaries"]:
+        if ds["comparison_id"] == "e2d_per_task_minus_ingress":
+            ds["standard_error"] = 0.0003
+    with pytest.raises((ValidationError, ValueError)):
+        load_e2_research_evidence_json(json.dumps(bad2))
