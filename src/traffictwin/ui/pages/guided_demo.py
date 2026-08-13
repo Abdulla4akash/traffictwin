@@ -15,7 +15,7 @@ from traffictwin.ui.guided_runtime import (
     resume_guided_workflow,
 )
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation import V07_PENDING_PAGE_KEY, render_page_header
+from traffictwin.ui.navigation import activate_page, render_page_header
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tos_context import active_tos_package
 
@@ -24,32 +24,11 @@ E2_RESOURCE_STRATEGY_INTENT_KEY = "resource_strategy_intent"
 E2_RESOURCE_STRATEGY_INTENT_VALUE = "e2"
 
 
-def _set_e2_research_intent() -> None:
+def _on_inspect_e2_research() -> None:
+    """Record E2 intent then navigate via the proven callback router."""
+
     st.session_state[E2_RESOURCE_STRATEGY_INTENT_KEY] = E2_RESOURCE_STRATEGY_INTENT_VALUE
-
-
-def _navigate_to_e2_resource_strategy_explorer() -> None:
-    _set_e2_research_intent()
-    if st.session_state.get("_v07_navigation_active") is True:
-        st.session_state[V07_PENDING_PAGE_KEY] = UiPage.RESOURCE_STRATEGY_EXPLORER.value
-        try:
-            from traffictwin.ui.navigation_v07 import page_script_for
-
-            st.switch_page(page_script_for(UiPage.RESOURCE_STRATEGY_EXPLORER))
-        except Exception as exc:
-            # Direct AppTest (app_pages/guided_demo.py as main) cannot resolve
-            # app_pages/... via st.switch_page. Preserve the stable intent and
-            # pending key for the test's indexed session-state checks; suppress
-            # the exception to keep the page exception-free while keeping
-            # navigation intact when run via the app.py st.navigation router.
-            # Only suppress the expected 'Could not find page' error for direct
-            # AppTest; let other errors propagate.
-            if "Could not find page" in str(exc):
-                return
-            raise
-    else:
-        st.session_state["active_page"] = UiPage.RESOURCE_STRATEGY_EXPLORER.value
-        st.rerun()
+    activate_page(UiPage.RESOURCE_STRATEGY_EXPLORER)
 
 
 def render(config: UiConfig) -> None:
@@ -70,13 +49,13 @@ def render(config: UiConfig) -> None:
             "stable session-state intent. This is admitted VEC research, not Manchester "
             "observation, not a live forecast, and not Kubernetes deployment."
         )
-        if st.button(
+        st.button(
             "Inspect real E2 research",
             key="guided_demo_inspect_e2_research",
             width="stretch",
             type="primary",
-        ):
-            _navigate_to_e2_resource_strategy_explorer()
+            on_click=_on_inspect_e2_research,
+        )
         st.caption(
             "Opens Resource Strategy Explorer with the built-in E2 mode preselected. "
             "Synthetic demonstration remains available separately in the explorer."
