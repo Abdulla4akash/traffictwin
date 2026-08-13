@@ -1,0 +1,9 @@
+{
+  "BASE_INTEGRATION_SHA": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
+  "base_head_message": "Merge Lane 10 built-in E2 strategy explorer mode",
+  "controller_campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
+  "description": "Controller-recorded cumulative integration checkpoint base for Lane 12 END-TO-END ACCEPTANCE + DOCUMENTATION",
+  "integrated_lanes_up_to": 11,
+  "lane": 12,
+  "receipt_schema_version": "e2_product_lane12_base_receipt_v1"
+}

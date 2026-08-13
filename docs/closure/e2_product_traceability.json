@@ -1,0 +1,203 @@
+{
+  "schema_version": "e2_product_traceability_v1",
+  "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
+  "base_integration_sha": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
+  "branch": "agent/e2-product-lane12-acceptance-docs",
+  "lane": 12,
+  "issue": "END-TO-END ACCEPTANCE + DOCUMENTATION",
+  "frozen_source_of_truth": {
+    "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+    "improved_strategy_results": "docs/closure/v08_alignment/improved_strategy_results.json",
+    "strategy_matrix": "docs/closure/v08_alignment/strategy_matrix.json",
+    "strategy_evidence_map": "docs/closure/v08_alignment/strategy_evidence_map.json",
+    "improved_dynamic_strategy_contract": "docs/closure/v08_alignment/improved_dynamic_strategy_contract.json",
+    "task_accounting_handcheck": "docs/closure/v08_alignment/task_accounting_handcheck.json",
+    "task_semantics_contract": "docs/closure/v08_alignment/task_semantics_contract.json",
+    "evidence_summary": "docs/closure/v08_alignment/improved_strategy_evidence_summary.md"
+  },
+  "pinned_identities": {
+    "e2b_head": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+    "e2b_manifest": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+    "e2c_head": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+    "e2c_manifest": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+    "e2d_head": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+    "e2d_manifest": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "replication_unit": "fleet_draw",
+    "evaluator_seed": 0
+  },
+  "pinned_numerics": {
+    "e2b_offered_attainment": {
+      "off": 0.683619229,
+      "jsq": 0.675681775,
+      "ingress_dla": 0.715773211,
+      "dla": 0.694939919
+    },
+    "e2c_dla_minus_ingress_per_seed": [
+      -0.022097034972,
+      -0.020519134179,
+      -0.021447383092,
+      -0.020825491499
+    ],
+    "e2c_declared": {
+      "mean": -0.021222260935,
+      "ci95": [-0.02233525407, -0.0201092678]
+    },
+    "e2d_per_task_minus_ingress_per_seed": [
+      0.004636732564,
+      0.005867285642,
+      0.005071796666,
+      0.005509919752
+    ],
+    "e2d_per_task_minus_ingress_declared": {
+      "mean": 0.005271433656,
+      "ci95": [0.004422143925, 0.006120723387]
+    },
+    "e2d_per_task_minus_dla_per_seed": [
+      0.026733767536,
+      0.026386419821,
+      0.026519179758,
+      0.026335411251
+    ],
+    "e2d_per_task_minus_dla_declared": {
+      "mean": 0.026493694591,
+      "ci95": [0.026210763951, 0.026776625232]
+    },
+    "e2d_seed1_accounting": {
+      "offered": 13076234,
+      "admitted": 10594205,
+      "rejected_total": 2482029,
+      "forwarded": 600885,
+      "deadline_success": 9475948,
+      "offered_attainment": 0.724669503,
+      "admitted_diagnostic": 0.8944463506228169
+    }
+  },
+  "lane_to_artifact": [
+    {
+      "lane": "01",
+      "artifact": "fleet_draw replication identity and compatibility",
+      "module": "traffictwin.experiments.resource_strategy",
+      "verified_by": "src/traffictwin/experiments/resource_strategy.py"
+    },
+    {
+      "lane": "02",
+      "artifact": "E2ResearchEvidencePackage + fingerprint",
+      "module": "traffictwin.experiments.e2_research_evidence",
+      "verified_by": "traffictwin.experiments.e2_research_artifact.validate_e2_research_artifact"
+    },
+    {
+      "lane": "03",
+      "artifact": "builtin_e2_research_json via importlib.resources",
+      "module": "traffictwin.experiments.e2_research_artifact",
+      "verified_by": "src/traffictwin/resources/research/e2_resource_strategy_v1.json"
+    },
+    {
+      "lane": "04",
+      "artifact": "OWNER-AUTHORIZED PRODUCT ADMISSION receipt",
+      "module": "traffictwin.evidence_admission.e2_research",
+      "verified_by": "admit_e2_research / load_admitted_builtin_e2_research"
+    },
+    {
+      "lane": "05",
+      "artifact": "E2StrategySemantics for off/jsq/ingress_dla/dla/per_task_dla",
+      "module": "traffictwin.experiments.e2_strategy_semantics",
+      "verified_by": "e2_strategy_semantics()"
+    },
+    {
+      "lane": "06",
+      "artifact": "E2ResearchComparisonView (E2b/E2c/E2d + direction reversal)",
+      "module": "traffictwin.experiments.e2_comparison",
+      "verified_by": "build_e2_comparison_view"
+    },
+    {
+      "lane": "07",
+      "artifact": "E2TaskAccountingView (E2d seed1 + UNAVAILABLE)",
+      "module": "traffictwin.experiments.e2_task_accounting",
+      "verified_by": "build_e2_seed1_task_accounting"
+    },
+    {
+      "lane": "08",
+      "artifact": "E2ResearchExportBundle (.json/.csv/.markdown) deterministic",
+      "module": "traffictwin.reporting.e2_research",
+      "verified_by": "build_e2_research_exports"
+    },
+    {
+      "lane": "09",
+      "artifact": "reusable Streamlit render helpers + render_e2_research",
+      "module": "traffictwin.ui.components.e2_research",
+      "verified_by": "AppTest render_e2_research"
+    },
+    {
+      "lane": "10",
+      "artifact": "Resource Strategy Explorer built-in E2 mode (one-click, no path)",
+      "module": "traffictwin.ui.pages.resource_strategy_explorer",
+      "verified_by": "AppTest test_resource_strategy_explorer_e2"
+    },
+    {
+      "lane": "11",
+      "artifact": "Home entry Inspect real E2 research -> intent e2",
+      "module": "traffictwin.ui.pages.home",
+      "verified_by": "AppTest home->explorer journey"
+    },
+    {
+      "lane": "12",
+      "artifact": "END-TO-END validator + AppTest journey + docs",
+      "module": "scripts/validate_e2_research_product.py + tests/integration/test_e2_research_product_acceptance.py",
+      "verified_by": "validator fail-closed + AppTest journey"
+    }
+  ],
+  "admission": {
+    "standing": "OWNER-AUTHORIZED PRODUCT ADMISSION",
+    "admission_mode": "ADMITTED_RESEARCH",
+    "not_claims": ["supervisor approval", "Randy confirmation", "Kubernetes deployment"],
+    "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",
+    "receipt_fingerprint": "45e8c2782ff40495e472bc0e6de3ba3be1610fdb974f88b7ffd12a754d031ebc",
+    "receipt_verified_by": "traffictwin.evidence_admission.e2_research.E2ResearchAdmissionReceipt.verify",
+    "binding": "receipt_fingerprint is canonical fingerprint of receipt payload including package_fingerprint; distinct values prove correct labeling"
+  },
+  "strategies": {
+    "ids": ["off", "jsq", "ingress_dla", "dla", "per_task_dla"],
+    "truth": "off strongest-link; jsq least-busy without gate; ingress_dla strongest-link+deadline gate; dla one common-target per substep; per_task_dla sequential per-task least-busy. MAPPO frozen, does not observe load nor select RSU. Placement deterministic, Kubernetes-inspired, not Kubernetes deployment, not learned.",
+    "module": "traffictwin.experiments.e2_strategy_semantics"
+  },
+  "provenance": {
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "manifests": [
+      "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+      "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+      "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+    ]
+  },
+  "limitations_and_non_claims": {
+    "limitations_present_in": "traffictwin.resources.research.e2_resource_strategy_v1.json -> E2ResearchEvidencePackage.limitations",
+    "non_claims_present_in": "same -> E2ResearchEvidencePackage.non_claims",
+    "required_limitation_substrings": 15,
+    "required_non_claim_substrings": 17,
+    "note": "Validator fails if any required substring missing; docs/e2_research_product.md repeats them verbatim without adding approval claims."
+  },
+  "exports": {
+    "bundle": "traffictwin.reporting.e2_research.E2ResearchExportBundle",
+    "fields": ["json", "csv", "markdown"],
+    "determinism": "two builds byte-identical; no timestamps, no absolute paths, no secrets",
+    "routes": [
+      "src/traffictwin/ui/pages/home.py -> Inspect real E2 research (session_state intent e2)",
+      "src/traffictwin/ui/app_pages/resource_strategy.py -> Resource Strategy Explorer",
+      "src/traffictwin/ui/pages/resource_strategy_explorer.py -> Load TrafficTwin E2 research (one-click, no path)"
+    ]
+  },
+  "validator_checks": [
+    "numeric/source drift",
+    "missing admission",
+    "absolute path/secret leakage",
+    "false Kubernetes claim",
+    "task-replication wording",
+    "missing limitation or offered denominator",
+    "unavailable->zero",
+    "broken route",
+    "export mismatch"
+  ],
+  "acceptance_test": "tests/integration/test_e2_research_product_acceptance.py (AppTest launch->navigate->load builtin->exact values->admission->strategies->E2b/E2c/E2d->accounting->unavailable->provenance->limitations->deterministic export)"
+}
