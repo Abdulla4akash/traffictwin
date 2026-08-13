@@ -1,0 +1,285 @@
+{
+  "schema_version": "manchester_demo_source_receipt_v1",
+  "campaign": "v08-requirements-closure",
+  "lane": "09",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "prepared_base_sha": "6f760a5e59808005ae43db43eb05a9c546f217a7",
+  "standing": "MIXED",
+  "standing_definition": "MIXED = contains REAL MANCHESTER DATA (static/historical) + REAL EXTERNAL NON-MANCHESTER DATA + SYNTHETIC DATA + SIMULATION OUTPUT, with DESIGN-ONLY CAPABILITY honestly marked unavailable; no measured general-road live traffic claimed.",
+  "retrieval_bound": "Bounded: no live network retrieval in deterministic demo; replay from stored SHAs and local fixtures; credentials absent; BODS/National Highways gated.",
+  "deterministic_fixture_marker": {
+    "fixed_value": "2026-08-12T15:29:03Z",
+    "note": "non-observational deterministic fixture, not an observed generation time; no replacement timestamp invented; for reproducibility only"
+  },
+  "source_hashes_verified": {
+    "FINAL_AUDIT": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+    "NEGOTIATED_V1_WHOLE_FILE": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+    "NEGOTIATED_V1_CANONICAL_PAYLOAD": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+    "S-035_SANDRA_DIRECT_BODY": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed"
+  },
+  "fact_classification_legend": {
+    "SOURCE-DERIVED FACT": "directly supported by S-001/S-003/S-004/S-007 or S-035 body",
+    "IMPLEMENTATION-VERIFIED FACT": "verified against exact v0.8 tree at bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+    "RESEARCH-EVIDENCE FACT": "historical campaign artifact, not independently rerun",
+    "INFERENCE": "author reasoning, not source",
+    "PROVISIONAL WORDING": "would change with external decision",
+    "EXTERNAL DECISION REQUIRED": "blocked until authority decides"
+  },
+  "sources": [
+    {
+      "source_id": "bods_bus_positions",
+      "display_name": "BODS SIRI-VM bus positions (GM bounding box)",
+      "evidence_standing": "REAL MANCHESTER DATA",
+      "sub_classification": "bus-only, NOT general private-vehicle traffic",
+      "freshness": "historical_replay_offline_bus_only",
+      "credential_state": "BODS_API_KEY absent in deterministic demo \u2014 honest no_live placeholder for live path, offline replay evidence bound via committed receipt; no live retrieval",
+      "committed_evidence_locator": "docs/integration/evidence/manchester_bods_bee_network_probe_20260723.json",
+      "committed_evidence_sha256": "e60ee7e2a0b1c201e99658d9f8cf8f3105b820b3d32ec6392d98901389508387",
+      "private_raw_snapshot_not_committed": true,
+      "source_raw_fingerprint": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+      "source_wire_member_sha256": "adaf5bd20a179f218d4dff9c52a60d9c120c1f983d13512085b385d80a231367",
+      "source_parser_payload_sha256": "975957c76855502c52a656688e2952e745f90f2c725e2ce2c1c6985eb2cf3528",
+      "provenance": "src/traffictwin/integration/manchester/bods_live.py; committed receipt docs/integration/evidence/manchester_bods_bee_network_probe_20260723.json",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "SOURCE-DERIVED FACT: BODS ceiling is bus-only (S-005/S-006). Bounded offline replay of accepted private snapshot; 1565 accepted bus positions, 27 operator refs. Private raw snapshot bytes not committed; SHA above identifies committed receipt, not private raw. Never presented as general_live_road_traffic_bods (DESIGN-ONLY). INFERENCE: deterministic demo shows no_live placeholder for live path; committed receipt provides historical replay."
+    },
+    {
+      "source_id": "national_highways_operational",
+      "display_name": "National Highways DATEX2 operational snapshots (strategic road only)",
+      "evidence_standing": "REAL EXTERNAL NON-MANCHESTER DATA",
+      "freshness": "historical_snapshot_private_receipt",
+      "credential_state": "NATIONAL_HIGHWAYS_API_KEY absent \u2014 honest not_ready_credential_missing blocker for live path, committed receipt bound; no live retrieval",
+      "committed_evidence_locator": "docs/integration/evidence/national_highways_operational_acceptance_20260724.json",
+      "committed_evidence_sha256": "5329b1fb183c2616c289f7a36c66df77f01dfb8c881cf0c7fa1476851593bbbc",
+      "private_raw_bytes_not_committed": true,
+      "source_product_raw_entity_sha256_examples": [
+        "79596321b0841578015ed7633a97e57c600b5ee88ea090fee8d08dc3acc69b7a",
+        "91bce8243a169551d8a77b2c2cc4c9076ae4b1c9d58153c7741b5fadb28a23d3"
+      ],
+      "coverage_scope": "Strategic road network only \u2014 NOT Manchester city-road",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Private strategic-road operational acceptance receipt; raw bytes not committed; not Manchester measured general traffic. SHA identifies committed receipt. External non-Manchester; never relabelled as REAL MANCHESTER DATA."
+    },
+    {
+      "source_id": "dft_historical_counts",
+      "display_name": "DfT traffic count survey (raw counts / AADF at count points)",
+      "evidence_standing": "REAL MANCHESTER DATA",
+      "freshness": "historical",
+      "availability": "historical bounded; not full bulk sync; retained fixtures present",
+      "committed_evidence_locators": [
+        {
+          "locator": "docs/integration/evidence/manchester_dft_gate_b_probe_20260725.json",
+          "sha256": "c0a59f4377499ee0226ce90dc5869544b2e701190d691c6a2366a5cb92869081"
+        },
+        {
+          "locator": "docs/integration/evidence/manchester_dft_observation_acquisition_20260725.json",
+          "sha256": "f33cfeab2c2d68c8cf789a20391699d5adff6a8d8fcd06ed773def358d3d6d29"
+        }
+      ],
+      "retained_fixtures": [
+        {
+          "locator": "tests/fixtures/manchester/dft/raw-count-43177.json.b64",
+          "payload_sha256": "06869d2d3ff2606a719bd043bcf8f3e30ad7fca17df1084c12598912c4a56c22"
+        },
+        {
+          "locator": "tests/fixtures/manchester/dft/count-point-6046.json.b64",
+          "payload_sha256": "525250e7df43cbd8738e841fccf1d3b1a2787c229f87c6dd7d00ca019c122635"
+        }
+      ],
+      "historical_standing": "historical Manchester acquisition standing; never live traffic per f33cfe receipt",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Real non-synthetic bounded DfT rows and retained fixtures; not a full bulk sync. Historical only; WebTRIS must not be promoted to near_live."
+    },
+    {
+      "source_id": "webtris_historical",
+      "display_name": "WebTRIS strategic-road site/day reports (strategic road only)",
+      "evidence_standing": "REAL EXTERNAL NON-MANCHESTER DATA",
+      "freshness": "historical",
+      "availability": "historical only; one accepted site/day, near-live rejected per evidence",
+      "committed_evidence_locator": "docs/integration/evidence/manchester_webtris_recency_probe_20260724.json",
+      "committed_evidence_sha256": "229a840ab8d38d6f4b6b219edd338f26d6df9551ed4b7291fb62934782bad13a",
+      "private_probe_is_metadata_not_raw_traffic_bundle": true,
+      "coverage_scope": "Strategic road only \u2014 external non-Manchester; must never be presented as near_live or REAL MANCHESTER DATA",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Real-source private probe metadata; one accepted historical site/day (M56/8150A 2026-06-24), near-live rejected (204). Historical only."
+    },
+    {
+      "source_id": "tfgm_signal_locations",
+      "display_name": "TfGM signal location archive (2,529 locations)",
+      "evidence_standing": "DESIGN-ONLY CAPABILITY",
+      "freshness": "unavailable",
+      "availability": "unavailable_for_current_view \u2014 full archive workspace-only private; only derived sample and code committed",
+      "provenance_sha256": null,
+      "unavailable_reason": "Full TfGM TrafficSignals archive (2529 locations, archive SHA 85a52992ba2ef30b4bdb4aca4162a2ffd8a5244f7139be50e0b0ffbee7a4f3fa, CSV SHA c45ad8439c9058a239f7e0ad33f39e2da8d79a80194229ad3b67a50f12fc3a81) is workspace-only private and not committed. Only derived 3-row fixture tests/fixtures/manchester/tfgm/signals-manchester-3.csv.b64 (SHA 1780fd67eec131cdb54106fc1778c4b273da89da487abe96c1077ef6f71699a9) and code identities src/traffictwin/integration/manchester/tfgm_signals.py (071748447e62984f1afd6f7f4574be2a2efe0d0aa62e1b1ca5484574f57fbb9d) and src/traffictwin/integration/manchester/tfgm_acquisition.py (458be642a8043729a948b2d426eec3d4b55f74981053b26d0d40864997171be1) are committed. No sufficient committed receipt for current view to claim full static archive as observed layer; marked unavailable/design-only rather than inventing provenance.",
+      "committed_code_locators": [
+        {
+          "locator": "src/traffictwin/integration/manchester/tfgm_signals.py",
+          "sha256": "071748447e62984f1afd6f7f4574be2a2efe0d0aa62e1b1ca5484574f57fbb9d"
+        },
+        {
+          "locator": "src/traffictwin/integration/manchester/tfgm_acquisition.py",
+          "sha256": "458be642a8043729a948b2d426eec3d4b55f74981053b26d0d40864997171be1"
+        }
+      ],
+      "committed_fixture_locator": "tests/fixtures/manchester/tfgm/signals-manchester-3.csv.b64",
+      "committed_fixture_sha256": "1780fd67eec131cdb54106fc1778c4b273da89da487abe96c1077ef6f71699a9",
+      "private_archive_sha256": "85a52992ba2ef30b4bdb4aca4162a2ffd8a5244f7139be50e0b0ffbee7a4f3fa",
+      "private_csv_sha256": "c45ad8439c9058a239f7e0ad33f39e2da8d79a80194229ad3b67a50f12fc3a81",
+      "private_archive_not_committed": true,
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Static infrastructure reference only \u2014 no traffic volume. Honestly marked unavailable for current view."
+    },
+    {
+      "source_id": "ons_boundary",
+      "display_name": "ONS December 2025 Greater Manchester / Manchester boundary",
+      "evidence_standing": "REAL MANCHESTER DATA",
+      "freshness": "static",
+      "availability": "static_available via packaged GeoJSON",
+      "committed_evidence_locators": [
+        {
+          "locator": "src/traffictwin/integration/manchester/boundary_data/greater_manchester_combined_authority.geojson",
+          "sha256": "1bf8a1293de43f1573ec87685e0772ec8b9bd4cb14ec0ae0b0c21cd80d9a313a",
+          "bytes": 7410
+        },
+        {
+          "locator": "src/traffictwin/integration/manchester/boundary_data/manchester_local_authority.geojson",
+          "sha256": "31b78ea21882ec80a82b0cc584a57e0b1d1a4f1c8269e1bfc54826fb9981a51c",
+          "bytes": 3051
+        }
+      ],
+      "provenance_sha256_greater_manchester": "1bf8a1293de43f1573ec87685e0772ec8b9bd4cb14ec0ae0b0c21cd80d9a313a",
+      "provenance_sha256_manchester": "31b78ea21882ec80a82b0cc584a57e0b1d1a4f1c8269e1bfc54826fb9981a51c",
+      "asset_bytes": {
+        "greater_manchester_combined_authority.geojson": 7410,
+        "manchester_local_authority.geojson": 3051
+      },
+      "licence": "OGL-3.0",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+    },
+    {
+      "source_id": "manual_incident_authored",
+      "display_name": "Authored incident / event definition (Scenario Builder)",
+      "evidence_standing": "SYNTHETIC DATA",
+      "freshness": "synthetic",
+      "provenance": "src/traffictwin/ui/pages/scenario_builder.py; src/traffictwin/experiments/scenario_mutation.py; synthetic bundle canonical payload SHA",
+      "provenance_sha256": "a0deb68b86f56f58b19f41367af3c33e42e38bed38da558810e087d36179b449",
+      "canonical_payload": {
+        "bounds": "Deterministic, bounded, authored locally \u2014 no live data, no Manchester observation claim",
+        "definition": "Authored bounded synthetic incident: single corridor slowdown \u2014 duration 60 simulated seconds, speed cap 30 percent reduction, extent one edge of synthetic square",
+        "evidence_standing": "SYNTHETIC DATA",
+        "freshness": "synthetic",
+        "source_id": "manual_incident_authored"
+      },
+      "canonical_payload_note": "SHA-256 computed over sorted-keys canonical JSON of canonical_payload; validator deterministically reproduces",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Bounded authored input, never presented as observed Manchester traffic. Digest is real SHA-256 over declared bytes."
+    },
+    {
+      "source_id": "synthetic_square_sumo",
+      "display_name": "Hand-authored TrafficTwin synthetic-square smoke scenario",
+      "evidence_standing": "SIMULATION OUTPUT",
+      "freshness": "synthetic",
+      "provenance": "src/traffictwin/integration/sumo_execution/scenario_synthetic_square/; traffictwin.integration.sumo_execution.models / service._PINNED_INPUTS",
+      "provenance_detail": "Original TrafficTwin-authored synthetic scenario: one edge tracing a 100 m square perimeter with six deterministic vehicles. Not derived from Eclipse SUMO scenario files.",
+      "pinned_inputs": {
+        "square.sumocfg": {
+          "sha256": "f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d",
+          "bytes": 538
+        },
+        "square.net.xml": {
+          "sha256": "9dba208715f894606119533ab3c6d3d95133cabe32a910eecc96fd1a47d52126",
+          "bytes": 1048
+        },
+        "square.rou.xml": {
+          "sha256": "377e955571566c625c82ee43b5c2e63e55a595960a46491dfbb14d540b6ec4a1",
+          "bytes": 1048
+        }
+      },
+      "hand_authored_identity": "hand-authored TrafficTwin synthetic-square \u2014 not netconvert 1.27.1",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Not Manchester observation; SIMULATION OUTPUT only; not netconvert product."
+    },
+    {
+      "source_id": "general_live_road_traffic_bods",
+      "display_name": "Measured general private-vehicle road traffic from BODS",
+      "evidence_standing": "DESIGN-ONLY CAPABILITY",
+      "freshness": "unavailable",
+      "availability": "unavailable \u2014 BODS ceiling is bus-only; no adapter",
+      "provenance": "No adapter; evidence hub explicitly records this ceiling",
+      "provenance_sha256": null,
+      "unavailable_reason": "BODS ceiling is bus-only; no adapter for measured general road traffic; explicit unavailable input",
+      "honesty_label": "SOURCE-DERIVED FACT (S-005/S-006) + IMPLEMENTATION-VERIFIED FACT",
+      "notes": "EXTERNAL DECISION REQUIRED: explicit unavailable input; must never be relabelled as REAL MANCHESTER DATA."
+    },
+    {
+      "source_id": "live_city_wide_twin",
+      "display_name": "Continuous city-wide live twin fusion",
+      "evidence_standing": "DESIGN-ONLY CAPABILITY",
+      "freshness": "unavailable",
+      "availability": "unavailable \u2014 no deployment; design-only per docs/implementation-status.md",
+      "provenance": null,
+      "provenance_sha256": null,
+      "unavailable_reason": "Continuous city-wide live twin fusion not deployed; design-only",
+      "honesty_label": "INFERENCE + IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Explicit unavailable input; must not be claimed available."
+    },
+    {
+      "source_id": "social_media_ingestion",
+      "display_name": "Social media event ingestion",
+      "evidence_standing": "DESIGN-ONLY CAPABILITY",
+      "freshness": "unavailable",
+      "availability": "unavailable \u2014 deferred per design; src/traffictwin/ui/manchester_evidence_hub.py DEFERRED",
+      "provenance": null,
+      "provenance_sha256": null,
+      "unavailable_reason": "Adapter deferred per design; unavailable",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "notes": "Explicit unavailable; must not be presented as implemented."
+    }
+  ],
+  "credentials_sensitivity_boundary": {
+    "credentials_used": "none in deterministic demo; BODS_API_KEY and NATIONAL_HIGHWAYS_API_KEY are optional and absent",
+    "sensitivity": "No raw private data, no PII, no credential enters Git; only SHA-256 of local fixtures and committed receipts; private raw bytes are not bundled",
+    "boundary_statement": "Credentials/sensitivity boundary respected: live retrieval gated, deterministic path uses no secret; Git contains only synthetic/bounded placeholders, honest unavailable markers, and SHA-256 of committed receipts. Private raw bytes remain workspace-only."
+  },
+  "real_synthetic_split": {
+    "REAL_MANCHESTER_DATA": [
+      "ons_boundary",
+      "dft_historical_counts",
+      "bods_bus_positions (bus-only, offline replay)"
+    ],
+    "REAL_EXTERNAL_NON_MANCHESTER_DATA": [
+      "national_highways_operational",
+      "webtris_historical"
+    ],
+    "SYNTHETIC_DATA": [
+      "manual_incident_authored"
+    ],
+    "SIMULATION_OUTPUT": [
+      "synthetic_square_sumo"
+    ],
+    "DESIGN_ONLY_CAPABILITY_unavailable": [
+      "tfgm_signal_locations (full archive unavailable, only derived 3-row fixture committed)",
+      "general_live_road_traffic_bods",
+      "live_city_wide_twin",
+      "social_media_ingestion"
+    ]
+  },
+  "provenance_chain": "Every REAL/EXTERNAL/SYNTHETIC/SIMULATION source carries provenance_sha256 or committed_evidence_sha256 that validator recomputes from current exact tree; unavailable DESIGN-ONLY sources carry null with explicit unavailable_reason.",
+  "quality_summary_ref": "docs/closure/v08_alignment/manchester_demo/quality_report.json",
+  "s_035_handling": {
+    "campaign_key": "S-035 / SANDRA-DIRECT-BODY-2026-08-04",
+    "staged_path": ".harness/context/sources/S-035__sandra-direct-email.md",
+    "sha256": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed",
+    "supports_as_supervisor_identified_problem": [
+      "RSU queue/waiting-room capacity not compute; fail-fast accounting; no RSU load awareness in vehicle policy; disproportionate load at congested RSUs; infrastructure load management as problem"
+    ],
+    "requested_investigations": [
+      "(A) DRL+deterministic Kubernetes load balancing",
+      "(B) DRL+DRL scheduling/load balancing",
+      "(C) DRL+AI-based Kubernetes"
+    ],
+    "classification_rule": "Each of A/B/C is supervisor-identified problem + requested investigation + proposed direction + hypothesised outcome (improved completion) as body supports; none is mandatory assessed implementation without additional authoritative evidence",
+    "tt_req_008_status": "PARTIALLY_MET remains SHOULD with open decision YES; S-035 raises confidence but does not silently amend frozen baseline",
+    "honesty_label": "SOURCE-DERIVED FACT"
+  }
+}
