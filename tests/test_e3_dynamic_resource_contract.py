@@ -152,6 +152,10 @@ def test_mutation_unavailable_lifecycle_zero_rejected() -> None:
     mutated3["task_accounting"]["unavailable_lifecycle"]["returned"] = 0
     assert_fails(mutated3, "unavailable returned zero")
 
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["task_accounting"]["unavailable_lifecycle"]["dropped"] = 0
+    assert_fails(mutated4, "unavailable dropped zero not null")
+
 
 def test_mutation_monetary_cost_rejected() -> None:
     mutated = copy.deepcopy(canonical())
@@ -720,6 +724,204 @@ def test_mutation_research_question_factorial_overclaim_rejected() -> None:
         "with full factorial crossing",
     )
     assert_fails(mutated6, "research_question must state does not fully cross")
+
+
+def test_mutation_exact_numeric_200_and_600_boundaries() -> None:
+    # 200->250 and 600->700 must be rejected; also 200/600 must be word-boundary
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_scaling"]["reactive"]["scale_down_threshold_ms"] = 250
+    assert_fails(mutated, "reactive 200->250 must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_scaling"]["reactive"]["threshold_gap_ms"] = 700
+    assert_fails(mutated2, "reactive 600->700 must be rejected")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_scaling"]["proactive"]["scale_down_threshold_ms"] = 250
+    assert_fails(mutated3, "proactive 200->250 must be rejected")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["compute_scaling"]["proactive"]["threshold_gap_ms"] = 700
+    assert_fails(mutated4, "proactive 600->700 must be rejected")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["compute_scaling"]["dynamic_bounds"]["threshold_gap_ms"] = 700
+    assert_fails(mutated5, "dynamic_bounds 600->700 must be rejected")
+
+
+def test_mutation_markdown_word_boundary_numeric() -> None:
+    # Direct word-boundary helper check: 200 inside 2000 should not count
+    from validate_e3_dynamic_resource_contract import _word_boundary_present
+
+    assert _word_boundary_present("scale down 200 ms", "200") is True
+    assert _word_boundary_present("delay 2000 ms", "200") is False
+    assert _word_boundary_present("threshold 600 gap", "600") is True
+    assert _word_boundary_present("value 3600 steps", "600") is False
+    assert not _word_boundary_present("outer_tick 2000", "200")
+
+
+def test_mutation_monetary_recursive_rejection() -> None:
+    # Recursive monetary fields anywhere must be rejected, while monetary:false allowed
+    mutated = copy.deepcopy(canonical())
+    mutated["cost"]["price_usd"] = 10
+    assert_fails(mutated, "monetary price_usd field forbidden")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_scaling"]["billing"] = "usd"
+    assert_fails(mutated2, "monetary billing nested field forbidden")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["scenario"]["currency"] = "USD"
+    assert_fails(mutated3, "monetary currency field forbidden")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["extra"] = {"cost_dollars": 5}
+    assert_fails(mutated4, "monetary cost_dollars nested forbidden")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["notes"] = "price is 10 dollars"
+    assert_fails(mutated5, "monetary string with price/dollar forbidden")
+    # Allowed phrase monetary:false should still pass (already canonical)
+    data = canonical()
+    assert data["cost"]["monetary"] is False
+    result = validate_contract(data)
+    assert result["pass"], f"canonical with monetary:false should pass but got {result['errors']}"
+
+
+def test_mutation_scenario_frozen_constants_exact() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["scenario"]["steps"] = 3600 + 1
+    assert_fails(mutated, "scenario steps must be 3600")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["scenario"]["backhaul_ms"] = 5.0
+    assert_fails(mutated2, "scenario backhaul_ms must be 0.0")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["scenario"]["rsus"] = 12
+    assert_fails(mutated3, "scenario rsus must be 10")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["scenario"]["waiting_room_cap_per_vehicle"] = 3.0
+    assert_fails(mutated4, "waiting_room_cap must be 2.5")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["compute_scaling"]["fixed_1x"]["rsu_service_mult"] = 2.0
+    assert_fails(mutated5, "fixed_1x rsu_service_mult must be 1.0")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["compute_scaling"]["static_overprovisioned"]["rsu_service_mult"] = 2.0
+    assert_fails(mutated6, "static_overprovisioned rsu_service_mult must be 3.0")
+    mutated7 = copy.deepcopy(canonical())
+    mutated7["compute_scaling"]["static_overprovisioned"]["active_units_per_rsu"] = 2
+    assert_fails(mutated7, "static_overprovisioned active_units must be 3")
+
+
+def test_mutation_inference_exact_fields() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["inference"]["sample_sd"] = "n"
+    assert_fails(mutated, "sample_sd must be Bessel n-1")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["inference"]["se"] = "s/sqrt"
+    assert_fails(mutated2, "se must be s / sqrt(n)")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["inference"]["interval"] = "95% Student-t, df=5, t=2.5"
+    assert_fails(mutated3, "interval must contain df=3 and 3.182")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["inference"]["fleet_seeds"] = [1, 2, 3]
+    assert_fails(mutated4, "inference fleet_seeds must be [1,2,3,4]")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["inference"]["n"] = 5
+    assert_fails(mutated5, "inference n must be 4")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["inference"]["includes_zero_flag"] = False
+    assert_fails(mutated6, "includes_zero_flag must be true")
+    mutated7 = copy.deepcopy(canonical())
+    mutated7["inference"]["forbidden"] = ["task_as_n"]
+    assert_fails(mutated7, "inference forbidden must include seed_0_in_primary etc")
+
+
+def test_mutation_staged_cross_computation_and_factorial() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["staged_design"]["e3a"]["stale_ms"] = [0, 1000]
+    assert_fails(mutated, "e3a stale_ms must be [0]")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["staged_design"]["e3b"]["placement"] = ["per_task_dla", "ingress_dla"]
+    assert_fails(mutated2, "e3b placement must be exactly per_task_dla")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["staged_design"]["e3c"]["contrasts"] = [
+        {"comparison": "per_task_dla vs p2c_dla", "over_stale_ms": [0, 1000, 3000]}
+    ]
+    assert_fails(mutated3, "e3c must have exactly 2 contrasts")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["staged_design"]["e3c"]["contrasts"][0]["over_stale_ms"] = [0, 1000]
+    assert_fails(mutated4, "e3c over_stale_ms must be [0,1000,3000]")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["staged_design"]["e3c"]["additional_stale_variant_cells_max"] = 30
+    assert_fails(mutated5, "e3c additional must be 32")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["staged_design"]["maximum_candidate_unique_cells"] = 144
+    assert_fails(mutated6, "pseudo-full-factorial 144 must be rejected")
+
+
+def test_mutation_markdown_inverse_claims_all_classes() -> None:
+    data = canonical()
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    # Each inverse mutation should cause markdown validation to fail
+    # Canonical block equality may also kill these, but we demonstrate each dies via markdown checks
+    inverse_mutations = [
+        ("queue ceiling is compute capacity", "queue==compute"),
+        ("actor observes RSU load", "actor observes"),
+        ("actor selects execution RSU", "actor selects"),
+        ("rejected work executes and is counted as deadline-met", "rejected executes"),
+        ("unbounded scaling is allowed", "unbounded"),
+        ("free scaling", "free"),
+        ("static3x is preferred", "synonyms preferred"),
+        ("tasks are replicates so N is number of tasks", "task-as-N"),
+        # replicate-label erasure: remove fleet_seed mention
+        ("replication_key is hidden", "replicate-label erasure"),
+        ("this is a conclusion", "hypothesis->conclusion"),
+        ("expected truth for H1", "hypothesis->expected truth"),
+        ("cost is 10 USD", "monetary USD"),
+        ("price $10", "monetary $"),
+        ("outer_tick_ms is 200", "tick 200"),
+        ("within_tick_task_slots is 10", "slot drift"),
+        ("df is 5 and t is 2.5", "df/t drift"),
+        ("cells total is 144", "cell drift"),
+        ("predeclared contract is already executed", "already-executed"),
+    ]
+    for needle, label in inverse_mutations:
+        # Inject inverse claim into narrative part (before validation)
+        mutated_md = md_text.replace(
+            "## 2. Frozen prerequisites", f"{needle}\n\n## 2. Frozen prerequisites"
+        )
+        errors = validate_markdown_contains(mutated_md, data)
+        assert errors, f"markdown inverse claim {label!r} with {needle!r} should fail but passed"
+
+
+def test_mutation_markdown_replicate_label_erasure() -> None:
+    data = canonical()
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    # Erase fleet_seed label should fail
+    mutated_md = md_text.replace("fleet_seed", "hidden_seed")
+    errors = validate_markdown_contains(mutated_md, data)
+    assert errors, "markdown replicate-label erasure should fail"
+
+
+def test_mutation_canonical_block_byte_equivalence() -> None:
+    data = canonical()
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    # Tamper canonical block to be non-deterministic (different whitespace)
+    mutated_md = md_text.replace(
+        '"status": "predeclared_before_any_e3_trace_execution"',
+        '"status" :  "predeclared_before_any_e3_trace_execution"',
+    )
+    errors = validate_markdown_contains(mutated_md, data)
+    assert errors, "canonical block non-byte-equivalence should fail"
+    # Also test deep equality failure
+    tampered = copy.deepcopy(data)
+    tampered["campaign"] = "tampered"
+    import re
+
+    # Replace campaign in block
+    mutated_md2 = re.sub(r'"campaign": "e3-dynamic-resource-v2"', '"campaign": "tampered"', md_text)
+    errors2 = validate_markdown_contains(mutated_md2, data)
+    assert errors2, "canonical block deep equality failure should be caught"
+
+
+def test_mutation_markdown_canonical_block_missing() -> None:
+    data = canonical()
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    mutated_md = md_text.replace("<!-- BEGIN_E3_CANONICAL_JSON -->", "<!-- REMOVED -->")
+    errors = validate_markdown_contains(mutated_md, data)
+    assert errors, "missing canonical block should fail"
 
 
 def test_mutation_markdown_factorial_overclaim_rejected() -> None:

@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-"""Fail-closed validator for E3 dynamic-resource v2 contract v1."""
+"""Fail-closed predeclaration validator for E3 dynamic-resource v2 contract v1.
+
+Scope: This validator enforces the predeclaration scientific contract only
+(JSON twin parity, bounded staged grid, identities, thresholds, and claim
+boundaries) before any E3 trace execution. Later result ledger, record, and
+manifest validators remain dependency-gated and are not implied by a passing
+predeclaration check.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -33,18 +41,44 @@ EXPECTED_COUNTER_FIELDS = [
     "sequential_ordinal",
 ]
 
+# Canonical block markers
+CANONICAL_BLOCK_START = "<!-- BEGIN_E3_CANONICAL_JSON -->"
+CANONICAL_BLOCK_END = "<!-- END_E3_CANONICAL_JSON -->"
+
 
 def _err(errors: list[str], msg: str) -> None:
     errors.append(msg)
 
 
+def _canonical_dump(data: dict[str, Any]) -> str:
+    return json.dumps(data, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
+
+
+def _extract_canonical_block(md_text: str) -> tuple[str | None, str | None]:
+    # Find fenced JSON block between markers
+    # Pattern: START marker then ```json ... ``` then END marker
+    pattern = re.compile(
+        re.escape(CANONICAL_BLOCK_START)
+        + r"\s*```json\s*\n(.*?)\n```\s*"
+        + re.escape(CANONICAL_BLOCK_END),
+        re.DOTALL,
+    )
+    m = pattern.search(md_text)
+    if not m:
+        return None, "canonical JSON block missing or malformed (expected START/```json/```/END)"
+    raw = m.group(1)
+    return raw, None
+
+
+def _word_boundary_present(text: str, token: str) -> bool:
+    return re.search(r"\b" + re.escape(token) + r"\b", text) is not None
+
+
 def _contains_forbidden_arm_ids(obj: object) -> list[str]:
-    """Recursively find forbidden arm IDs."""
     found: list[str] = []
     forbidden = {"static3x", "static_3x", "fixed1x"}
     if isinstance(obj, dict):
         for k, v in obj.items():
-            # Allow documenting forbidden synonyms in specific keys
             if k in {"forbidden_synonyms_rejected", "forbidden_synonyms"}:
                 continue
             if k in forbidden:
@@ -58,6 +92,88 @@ def _contains_forbidden_arm_ids(obj: object) -> list[str]:
                 found.append(f"forbidden arm ID value {item!r}")
             found.extend(_contains_forbidden_arm_ids(item))
     return found
+
+
+def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noqa: ANN401
+    violations: list[str] = []
+    forbidden_key_subs = ["currency", "price", "billing", "usd", "dollar", "$"]
+    forbidden_val_subs = ["currency", "price", "billing", "$", "usd", "dollar"]
+    # Allow phrases containing these are okay if they are explicit normative false statements
+    allowed_phrases = [
+        "not monetary",
+        "never monetary",
+        "monetary: false",
+        'monetary": false',
+        "monetary' : false",
+    ]
+    # Keys that are explicitly allowed to contain monetary-like terms as documentation
+    allowed_key_exact = {"monetary", "forbidden_fields"}
+
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            kl = str(k).lower()
+            # Check key for monetary substrings
+            if kl not in allowed_key_exact:
+                for sub in forbidden_key_subs:
+                    if sub in kl:
+                        # Special allow: cost_currency etc inside forbidden_fields list is handled by skipping that list  # noqa: E501
+                        # But key itself like "cost_currency" should be forbidden everywhere
+                        # If k is exactly forbidden_fields we skip, otherwise error
+                        violations.append(
+                            f"monetary-like key forbidden at {path}.{k!r}: contains {sub!r}"
+                        )
+                        break
+            # Recurse unless this is the allowlisted documentation list
+            if k == "forbidden_fields" and isinstance(v, list):
+                # Documentation of forbidden fields is allowed to list monetary names
+                continue
+            # For key "monetary", value must be false; any other monetary-like value is checked below  # noqa: E501
+            if kl == "monetary":
+                if v is not False:
+                    # If monetary is not false, any monetary claim is violation unless it's part of allowed phrase?  # noqa: E501
+                    # monetary: false is only allowed normative phrase
+                    violations.append(f"monetary must be false at {path}.{k!r} (got {v!r})")
+                # don't recurse into boolean false
+                continue
+            # Recurse into value
+            violations.extend(_find_monetary_violations(v, f"{path}.{k}"))
+            # Also check if value is string containing forbidden substrings (for dict values that are strings)  # noqa: E501
+            if isinstance(v, str):
+                vl = v.lower()
+                # allow if contains explicit normative false phrase
+                if any(p in vl for p in allowed_phrases):
+                    continue
+                for sub in forbidden_val_subs:
+                    if sub in vl:
+                        violations.append(
+                            f"monetary-like string forbidden at {path}.{k!r}: {v!r} contains {sub!r}"  # noqa: E501
+                        )
+                        break
+    elif isinstance(obj, list):
+        for idx, item in enumerate(obj):
+            if isinstance(item, str):
+                vl = item.lower()
+                if any(p in vl for p in allowed_phrases):
+                    continue
+                # For lists, if this list is forbidden_fields we already skipped above
+                for sub in forbidden_val_subs:
+                    if sub in vl:
+                        violations.append(
+                            f"monetary-like string forbidden at {path}[{idx}]: {item!r} contains {sub!r}"  # noqa: E501
+                        )
+                        break
+            violations.extend(_find_monetary_violations(item, f"{path}[{idx}]"))
+    elif isinstance(obj, str):
+        vl = obj.lower()
+        if any(p in vl for p in allowed_phrases):
+            return violations
+        for sub in forbidden_val_subs:
+            if sub in vl:
+                violations.append(
+                    f"monetary-like string forbidden at {path}: {obj!r} contains {sub!r}"  # noqa: E501
+                )
+                break
+    return violations
 
 
 def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
@@ -80,24 +196,18 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
     for needle in ["ingress_dla", "per_task_dla", "p2c_dla"]:
         if needle not in rq:
             _err(errors, f"research_question must explicitly contain {needle}")
-    # Must mention fixed_1x and static_overprovisioned
     for needle in ["fixed_1x", "static_overprovisioned"]:
         if needle not in rq:
             _err(errors, f"research_question must contain scaling arm {needle}")
-    # Reject reduced phrasing "strongest-link vs P2C" without the three-way explicit
-    # If research_question contains that reduction and lacks explicit three, already caught
-    # Also reject if it contains the exact reduced phrase
     low_rq = rq.lower()
     if "strongest-link vs p2c" in low_rq or "strongest-link vs. p2c" in low_rq:
-        # This phrase is forbidden as reduction; we already require three-way, so fail
         _err(errors, "research_question must not reduce placement to 'strongest-link vs P2C'")
-    # Factorial overclaim regression: 'alone and jointly' implied full factorial crossing which boun  # noqa: E501
     if "alone and jointly" in low_rq:
         _err(
             errors,
-            "research_question must not contain 'alone and jointly' (bounded staged grid does not fully cross every placement/scaler)",  # noqa: E501
+            "research_question must not contain 'alone and jointly' "  # noqa: E501
+            "(bounded staged grid does not fully cross every placement/scaler)",
         )
-    # Staged isolation must be precise: E3a isolates placement, E3b holds placement fixed, E3c tests selected stale-state contrasts  # noqa: E501
     if "e3a isolates placement" not in low_rq:
         _err(errors, "research_question must state E3a isolates placement")
     if "e3b holds placement fixed" not in low_rq:
@@ -107,10 +217,10 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
     if "without fully crossing every placement with every scaler" not in low_rq:
         _err(
             errors,
-            "research_question must state bounded grid does not fully cross every placement with every scaler",  # noqa: E501
+            "research_question must state bounded grid does not fully cross "  # noqa: E501
+            "every placement with every scaler",
         )
 
-    # Forbidden arm IDs anywhere
     forbid = _contains_forbidden_arm_ids(data)
     for f in forbid:
         _err(errors, f)
@@ -169,7 +279,7 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         if "padded-slot assignment" not in note and "padded-slot" not in note:
             _err(errors, "fleet_draw_note must clarify padded-slot assignment not per-SUMO-vehicle")
 
-    # Hypotheses H1-H5: must be hypotheses, not expected truths
+    # Hypotheses H1-H5
     hypotheses = data.get("hypotheses")
     if not isinstance(hypotheses, dict):
         _err(errors, "hypotheses missing or not dict (H1-H5 required)")
@@ -364,20 +474,27 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
 
     # Compute scaling
     cs = data.get("compute_scaling", {})
-    # fixed_1x
     if cs.get("fixed_1x", {}).get("active_units_per_rsu") != 1:
         _err(errors, "fixed_1x must be 1 active unit")
     if cs.get("fixed_1x", {}).get("multiplier") != 1:
         _err(errors, "fixed_1x multiplier must be 1")
-    # static_overprovisioned
+    if cs.get("fixed_1x", {}).get("rsu_service_mult") != 1.0:
+        _err(errors, "fixed_1x rsu_service_mult must be 1.0")
+    if cs.get("fixed_1x", {}).get("active_units_per_rsu") != cs.get("fixed_1x", {}).get(
+        "multiplier"
+    ):
+        _err(errors, "fixed_1x active_units and multiplier must couple (1)")
     so = cs.get("static_overprovisioned", {})
     if so.get("active_units_per_rsu") != 3:
         _err(errors, "static_overprovisioned must be fixed 3 active units")
     if so.get("multiplier") != 3:
         _err(errors, "static_overprovisioned multiplier must be 3")
+    if so.get("rsu_service_mult") != 3.0:
+        _err(errors, "static_overprovisioned rsu_service_mult must be 3.0")
+    if so.get("active_units_per_rsu") != so.get("multiplier"):
+        _err(errors, "static_overprovisioned active_units and multiplier must couple (3)")
     if so.get("is_compute_not_queue") is not True:
         _err(errors, "static_overprovisioned is_compute_not_queue must be true")
-    # reject old keys explicitly if present
     for old in ["fixed1x", "static3x", "static_3x"]:
         if old in cs:
             _err(errors, f"forbidden legacy scaling key {old!r} must be absent")
@@ -406,11 +523,8 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "hysteresis_is_gap must be true (gap is hysteresis)")
     if db.get("hysteresis_ms_extra_forbidden") is not True:
         _err(errors, "hysteresis_ms_extra_forbidden must be true")
-    # reject if any hysteresis_ms field is present as extra excursion
     if "hysteresis_ms" in db and db.get("hysteresis_ms") not in (None, False):
-        # allow if explicitly False, but not numeric extra
         _err(errors, "hysteresis_ms extra excursion forbidden; gap is hysteresis")
-    # Reactive exact
     reactive = cs.get("reactive", {})
     if reactive.get("signal") != "service_workload_ms":
         _err(errors, "reactive signal must be service_workload_ms")
@@ -452,10 +566,8 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "reactive prediction must be false")
     if reactive.get("state_age_ms_values") != [0, 1000, 3000]:
         _err(errors, "reactive state_age_ms_values must be [0,1000,3000]")
-    # reject reactive hysteresis_ms numeric if present
     if "hysteresis_ms" in reactive and isinstance(reactive.get("hysteresis_ms"), int):
         _err(errors, "reactive hysteresis_ms extra excursion forbidden")
-    # Proactive exact
     proactive = cs.get("proactive", {})
     if proactive.get("ml") is not False:
         _err(errors, "proactive ml must be false (transparent/no ML)")
@@ -493,7 +605,6 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
             _err(errors, "proactive trend must be recent_mean - older_mean")
         if formulas.get("forecast") != "max(0, mean(W) + 2*trend)":
             _err(errors, "proactive forecast must be max(0, mean(W) + 2*trend)")
-        # alternative phrasing check
         raw_formula = json.dumps(formulas)
         if (
             "linear regression" in raw_formula.lower()
@@ -542,11 +653,10 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "proactive uses_only_samples_at_or_before_observation_time must be true")
     if proactive.get("alternative_formula_forbidden") is not True:
         _err(errors, "proactive alternative_formula_forbidden must be true")
-    # also check top-level proactive doesn't contain e.g. phrase
     if "e.g. linear regression" in json.dumps(proactive).lower():
         _err(errors, "proactive e.g. linear regression phrase forbidden")
 
-    # Cost
+    # Cost with recursive monetary check
     cost = data.get("cost", {})
     if cost.get("metric") != "resource_unit_seconds":
         _err(errors, "cost metric must be resource_unit_seconds (missing denominator)")
@@ -556,14 +666,10 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "cost formula must be sum(active_compute_units * interval_seconds)")
     if cost.get("monetary") is not False:
         _err(errors, "cost monetary must be false (never monetary)")
-    for bf in cost.get("forbidden_fields") or []:
-        if bf in data:
-            _err(errors, f"forbidden monetary field present: {bf}")
-    for k in ["cost_currency", "cost_dollars", "cost_price", "cost_billing"]:
-        if k in data:
-            _err(errors, f"monetary cost field forbidden: {k}")
-        if k in cost:
-            _err(errors, f"monetary cost field forbidden in cost: {k}")
+    # Recursive monetary check across entire JSON (strict, allows normative phrases)
+    monetary_violations = _find_monetary_violations(data)
+    for v in monetary_violations:
+        _err(errors, v)
 
     # Task accounting
     ta = data.get("task_accounting", {})
@@ -592,7 +698,40 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
     if ta.get("rejected_never_executes") is not True:
         _err(errors, "rejected_never_executes must be true")
 
-    # Staged design
+    # Scenario frozen constants field-by-field
+    scen = data.get("scenario", {})
+    expected_scenario = {
+        "scenario": "Manchester incident trace",
+        "date": "2024-03-15",
+        "window_local": "20:00-21:00 Europe/London",
+        "steps": 3600,
+        "smoke_steps": 10,
+        "rsus": 10,
+        "padded_fleet_width": 2488,
+        "fleet": "uk2030",
+        "fleet_status": "provisional",
+        "arrival_lambda": 1.5,
+        "waiting_room_cap_per_vehicle": 2.5,
+        "resolved_cap_tasks_per_rsu": 6220,
+        "substep_queue": "sequential",
+        "substep_queue_iterations": 3,
+        "vehicle_queue": "conserved",
+        "rsu_admission": "reject",
+        "rsu_cap_mode": "reject",
+        "backhaul_ms": 0.0,
+    }
+    for k, expected in expected_scenario.items():
+        if scen.get(k) != expected:
+            _err(errors, f"scenario {k} must be {expected!r} (got {scen.get(k)!r})")
+    # Typed separation checks (replaces meaningless 2.5-vs-10 equality)
+    if scen.get("waiting_room_cap_per_vehicle") != 2.5:
+        _err(errors, "waiting_room_cap_per_vehicle must be 2.5")
+    if scen.get("rsus") != 10:
+        _err(errors, "rsus must be 10")
+    if scen.get("resolved_cap_tasks_per_rsu") != 6220:
+        _err(errors, "resolved_cap_tasks_per_rsu must be 6220")
+
+    # Staged design — strict stage factors with cross-computed counts
     sd = data.get("staged_design", {})
     if sd.get("maximum_candidate_unique_cells") != 60:
         _err(errors, "maximum_candidate_unique_cells must be 60")
@@ -615,13 +754,31 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "e3a scaling must be ['fixed_1x'] only")
     if e3a.get("scaling_ids_exact") != ["fixed_1x"]:
         _err(errors, "e3a scaling_ids_exact must be ['fixed_1x']")
+    if e3a.get("stale_ms") != [0]:
+        _err(errors, "e3a stale_ms must be [0]")
+    if e3a.get("fleet_seeds") != [1, 2, 3, 4]:
+        _err(errors, "e3a fleet_seeds must be [1,2,3,4]")
     if "fixed_1x" not in str(e3a.get("primary_estimand", "")):
         _err(errors, "e3a primary_estimand must mention fixed_1x")
+    # Cross-compute E3a cells: 3 placements *1 scaling *1 stale *4 seeds =12
+    try:
+        placements_len = len(e3a.get("placement", []))
+        scaling_len = len(e3a.get("scaling", []))
+        stale_len = len(e3a.get("stale_ms", []))
+        seeds_len = len(e3a.get("fleet_seeds", []))
+        computed_a = placements_len * scaling_len * stale_len * seeds_len
+        if computed_a != 12 or e3a.get("cells") != computed_a:
+            _err(errors, f"e3a computed cells {computed_a} inconsistent with declared 12")
+    except Exception:
+        _err(errors, "e3a cell count cross-compute failed")
+
     e3b = sd.get("e3b", {})
     if e3b.get("cells") != 16:
         _err(errors, "e3b cells must be 16")
     if e3b.get("fresh") is not True:
         _err(errors, "e3b must be fresh")
+    if e3b.get("placement") != ["per_task_dla"]:
+        _err(errors, "e3b placement must be exactly ['per_task_dla']")
     if set(e3b.get("scaling", [])) != {
         "fixed_1x",
         "static_overprovisioned",
@@ -639,6 +796,31 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
             errors,
             "e3b scaling_ids_exact must be fixed_1x/static_overprovisioned/reactive/proactive",
         )
+    if e3b.get("stale_ms") != [0]:
+        _err(errors, "e3b stale_ms must be [0]")
+    if e3b.get("fleet_seeds") != [1, 2, 3, 4]:
+        _err(errors, "e3b fleet_seeds must be [1,2,3,4]")
+    try:
+        placement_len_b = len(e3b.get("placement", []))
+        scaling_len_b = len(e3b.get("scaling", []))
+        stale_len_b = len(e3b.get("stale_ms", []))
+        seeds_len_b = len(e3b.get("fleet_seeds", []))
+        computed_b = placement_len_b * scaling_len_b * stale_len_b * seeds_len_b
+        if computed_b != 16 or e3b.get("cells") != computed_b:
+            _err(errors, f"e3b computed cells {computed_b} inconsistent with declared 16")
+    except Exception:
+        _err(errors, "e3b cell count cross-compute failed")
+    # Reject pseudo-full-factorial grid (3 placements *4 scalers *3 stales *4 seeds =144)
+    if (
+        placements_len == 3
+        and scaling_len_b == 4
+        and sd.get("maximum_candidate_unique_cells") == 144
+    ):
+        _err(
+            errors,
+            "maximum_candidate_unique_cells must be 60, not 144 (pseudo-full-factorial forbidden)",
+        )
+    # Also if e3c tried to be full factorial, additional would not be 32
     e3c = sd.get("e3c", {})
     if e3c.get("reuses_identical_fresh_cells") is not True:
         _err(errors, "e3c must reuse identical fresh cells")
@@ -648,8 +830,60 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "e3c not_double_counted must be true")
     if "fresh construct gates" not in str(e3c.get("depends_on", "")).lower():
         _err(errors, "e3c depends_on must mention fresh construct gates")
+    if e3c.get("additional_stale_variant_cells_max") != 32:
+        _err(errors, "e3c additional_stale_variant_cells_max must be 32")
+    if e3c.get("total_candidate_with_stale_max") != 60:
+        _err(errors, "e3c total_candidate_with_stale_max must be 60")
+    if e3c.get("stale_is_view_parameter") is not True:
+        _err(errors, "e3c stale_is_view_parameter must be true")
+    # E3c contrasts: exactly 2 objects, each over [0,1000,3000]
+    contrasts = e3c.get("contrasts")
+    if not isinstance(contrasts, list) or len(contrasts) != 2:
+        _err(errors, "e3c contrasts must be exactly 2 objects")
+    else:
+        expected_over = [0, 1000, 3000]
+        # Check each contrast has over_stale_ms
+        for idx, c in enumerate(contrasts):
+            if not isinstance(c, dict):
+                _err(errors, f"e3c contrasts[{idx}] must be dict")
+                continue
+            over = c.get("over_stale_ms")
+            if over != expected_over:
+                _err(
+                    errors,
+                    f"e3c contrasts[{idx}] over_stale_ms must be [0,1000,3000] (got {over!r})",
+                )
+        # Check specific comparisons exist
+        comparisons = [
+            str(c.get("comparison", "")).lower() for c in contrasts if isinstance(c, dict)
+        ]
+        [
+            str(c.get("fixed", "")).lower() + str(c.get("fixed_placement", "")).lower()
+            for c in contrasts
+            if isinstance(c, dict)
+        ]
+        # First contrast per_task_dla vs p2c_dla at fixed_1x
+        if not any("per_task_dla" in p and "p2c_dla" in p for p in comparisons):
+            _err(errors, "e3c must contain per_task_dla vs p2c_dla contrast")
+        if not any("reactive" in p and "proactive" in p for p in comparisons):
+            _err(errors, "e3c must contain reactive vs proactive contrast")
+    # Cross-compute total 60 =12+16+32
+    try:
+        total_computed = (
+            (e3a.get("cells", 0) or 0)
+            + (e3b.get("cells", 0) or 0)
+            + (e3c.get("additional_stale_variant_cells_max", 0) or 0)
+        )
+        if total_computed != 60:
+            _err(errors, f"staged total cross-compute {total_computed} must be 60 (12+16+32)")
+        if sd.get("maximum_candidate_unique_cells") != total_computed:
+            _err(errors, "maximum_candidate_unique_cells must equal 12+16+32=60")
+        if e3c.get("total_candidate_with_stale_max") != total_computed:
+            _err(errors, "e3c total_candidate_with_stale_max must equal 12+16+32=60")
+    except Exception:
+        _err(errors, "staged total cross-compute failed")
 
-    # Inference
+    # Inference — exact including N/seeds, Bessel n-1, SE, Student-t 95%, df=3, t=3.182 etc
     inf = data.get("inference", {})
     if inf.get("unit") != "fleet_draw":
         _err(errors, "inference unit must be fleet_draw")
@@ -657,18 +891,58 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "inference key must be fleet_seed")
     if inf.get("n") != 4:
         _err(errors, "inference n must be 4")
+    if inf.get("fleet_seeds") != [1, 2, 3, 4]:
+        _err(errors, "inference fleet_seeds must be [1,2,3,4]")
     if inf.get("per_draw_values_required") is not True:
         _err(errors, "per_draw_values_required must be true")
-    if "95% Student-t" not in str(inf.get("interval", "")) and "Student-t" not in str(
-        inf.get("interval", "")
-    ):
+    if inf.get("sample_sd") != "Bessel n-1":
+        _err(errors, "inference sample_sd must be Bessel n-1")
+    if inf.get("se") != "s / sqrt(n)":
+        _err(errors, "inference se must be s / sqrt(n)")
+    interval = str(inf.get("interval", ""))
+    if "95% Student-t" not in interval:
         _err(errors, "inference interval must be 95% Student-t")
+    if "df=3" not in interval:
+        _err(errors, "inference interval must contain df=3")
+    if "3.182" not in interval:
+        _err(errors, "inference interval must contain t=3.182")
+    if "t_0.975,3" not in interval and "t_{0.975,3}" not in interval and "t_0.975" not in interval:
+        # allow variant but must contain 3.182
+        pass
+    if inf.get("compatible_with_e2_unless_predeclared") is not True:
+        _err(errors, "inference compatible_with_e2_unless_predeclared must be true")
+    if "paired_differences" not in inf or "fleet_seed" not in str(
+        inf.get("paired_differences", "")
+    ):
+        _err(errors, "inference paired_differences must mention fleet_seed matched")
+    if "d_i" not in str(inf.get("paired_differences", "")) and "d_i" not in str(
+        inf.get("mean_difference", "")
+    ):
+        _err(errors, "inference must define paired d_i")
     if inf.get("includes_zero_flag") is not True:
         _err(errors, "includes_zero_flag must be true")
+    if "seed_0_in_primary" not in str(inf.get("forbidden", [])) and "seed_0_in_primary" not in str(
+        inf.get("forbidden")
+    ):
+        # will be checked below
+        pass
     forbidden = inf.get("forbidden") or []
-    for need in ["task_as_n", "p_value_as_primary", "citywide_generalisation", "population_claim"]:
+    for need in [
+        "task_as_n",
+        "p_value_as_primary",
+        "citywide_generalisation",
+        "population_claim",
+        "equivalence_without_margin",
+        "seed_0_in_primary",
+    ]:
         if need not in forbidden:
             _err(errors, f"inference forbidden must include {need}")
+    decisions = inf.get("decisions", {})
+    if not isinstance(decisions, dict) or len(decisions) != 3:
+        _err(errors, "inference decisions must have exactly 3 entries")
+    for k in ["interval_above_zero", "interval_below_zero", "interval_includes_zero"]:
+        if k not in decisions:
+            _err(errors, f"inference decisions missing {k}")
 
     # Claim boundaries
     cb = data.get("claim_boundaries", {})
@@ -679,16 +953,48 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
     if cb.get("proactive_is_transparent_baseline_not_optimal") is not True:
         _err(errors, "proactive_is_transparent_baseline_not_optimal must be true")
 
-    # Scenario additional checks
-    scen = data.get("scenario", {})
-    if scen.get("waiting_room_cap_per_vehicle") == scen.get("rsus"):
-        _err(errors, "waiting_room cap must not equal RSU count (queue==compute check)")
-
     return {"pass": len(errors) == 0, "errors": errors, "error_count": len(errors)}
 
 
 def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    # Use data: extract canonical block and check deep equality + deterministic generation
+    raw, err = _extract_canonical_block(md_text)
+    if err is not None:
+        errors.append(err)
+    else:
+        assert raw is not None
+        try:
+            parsed = json.loads(raw)
+        except Exception as e:
+            errors.append(f"canonical JSON block is not valid JSON: {e}")
+            parsed = None
+        if parsed is not None:
+            if parsed != data:
+                errors.append("canonical JSON block parsed object must deeply equal canonical JSON")
+                # Provide diff hint without leaking full
+                # Find first differing key
+                try:
+                    if json.dumps(parsed, sort_keys=True) != json.dumps(data, sort_keys=True):
+                        errors.append("canonical JSON block mismatch (deep equality failed)")
+                except Exception:  # noqa: S110
+                    pass
+            # Check deterministic generation: raw must equal canonical dump
+            expected_dump = _canonical_dump(data)
+            # The raw block may have trailing newline differences; normalize by parsing and re-dumping comparison already done  # noqa: E501
+            # For strict byte-equivalence, compare raw stripped vs expected stripped
+            # Allow exactly expected_dump (which ends with newline) to match raw + newline if needed
+            # We enforce that json.loads(raw) equals data and that re-dumped canonical equals expected_dump  # noqa: E501
+            # If raw was generated deterministically, then raw should equal expected_dump without extra whitespace variations  # noqa: E501
+            # Compare after stripping trailing newline for tolerance, but require sort_keys and indent consistency  # noqa: E501
+            if raw.strip() != expected_dump.strip():
+                # If not byte-identical, check if it's still semantically equal but non-deterministic -> still error for byte-equivalence  # noqa: E501
+                errors.append(
+                    "canonical JSON block must be deterministic generation "  # noqa: E501
+                    "(byte-equivalence to json.dumps sort_keys indent=2)"
+                )
+    # Human text claim checks with word boundaries for numerics
+    # Need data to be used - already used above; also check that markdown prose mentions key claims
     checks = [
         (BASE_COMMIT, "base commit in markdown"),
         (EXPECTED_E2B, "E2b commit in markdown"),
@@ -706,15 +1012,9 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
         ("p2c_dla", "p2c_dla in markdown"),
         ("service_workload_ms", "service_workload_ms in markdown"),
         ("arrival_work_ms", "arrival_work_ms in markdown"),
-        ("800", "800 threshold in markdown"),
-        ("200", "200 threshold in markdown"),
-        ("600", "600 gap in markdown"),
-        ("5000", "5000 cooldown in markdown"),
-        ("2000", "2000 delay in markdown"),
         ("mean(W[0:2])", "mean(W[0:2]) in markdown"),
         ("mean(W[2:4])", "mean(W[2:4]) in markdown"),
         ("max(0, mean(W) + 2*trend)", "forecast formula in markdown"),
-        # also accept en-dash variant via fallback
         ("actuation delay", "actuation delay in markdown"),
         ("reused across stage summaries rather than rerun", "reuse clarification in markdown"),
         ("reuses identical fresh cells", "reuses identical fresh cells in markdown"),
@@ -727,24 +1027,35 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     ]
     for needle, label in checks:
         if needle not in md_text:
-            errors.append(f"markdown missing {label}: {needle!r}")
-    # hysteresis check: must mention gap is hysteresis, not extra hysteresis_ms
+            errors.append(f"markdown missing {label}: {needle!r}")  # noqa: E501
+
+    # Exact numeric checks with word boundaries: 200,600,800,1000,2000,5000,3600,10,3,60,32,4
+    numeric_checks = [
+        ("200", "200 threshold in markdown"),
+        ("600", "600 gap in markdown"),
+        ("800", "800 threshold in markdown"),
+        ("1000", "1000 staleness/tick in markdown"),
+        ("2000", "2000 delay in markdown"),
+        ("5000", "5000 cooldown in markdown"),
+        ("3600", "3600 steps in markdown"),
+        ("10", "10 RSUs/steps in markdown"),
+    ]
+    for token, label in numeric_checks:
+        if not _word_boundary_present(md_text, token):
+            errors.append(
+                f"markdown missing {label}: word-boundary {token!r} not found (standalone {token} must appear, not as part of 2000/3600 etc)"  # noqa: E501
+            )
+
+    # Additional strict numeric: check that 200 appears as standalone for threshold, not conflated with 2000; also ensure 600 appears standalone  # noqa: E501
+    # Already covered by word boundary
+
     if "hysteresis" not in md_text.lower():
         errors.append("markdown missing hysteresis explanation")
-    if (
-        "hysteresis_ms" in md_text
-        and "hysteresis_ms` excursion" not in md_text
-        and "no additional" not in md_text.lower()
-    ):
-        # allow mention of forbidden phrase but must clarify
-        pass
-    # Hypotheses must appear in markdown as hypotheses, not expected truths
     for hid in ["H1", "H2", "H3", "H4", "H5"]:
         if hid not in md_text:
             errors.append(f"markdown missing hypothesis {hid}")
     if "hypothesis_not_expected_truth" not in md_text:
         errors.append("markdown missing hypothesis_not_expected_truth status")
-    # Per-hypothesis fragment checks
     hypo_fragments = [
         ("less global inspection", "H1 P2C less global inspection in markdown"),
         ("churn", "H2 churn in markdown"),
@@ -754,16 +1065,11 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     ]
     for needle, label in hypo_fragments:
         if needle not in md_text.lower():
-            errors.append(f"markdown missing {label}: {needle!r}")
-    # Negative-results-acceptable boundary
+            errors.append(f"markdown missing {label}: {needle!r}")  # noqa: E501
     if "negative" not in md_text.lower() or "acceptable" not in md_text.lower():
         errors.append("markdown missing negative results acceptable boundary")
     if "not expected truth" not in md_text.lower() and "not expected truths" not in md_text.lower():
         errors.append("markdown missing hypotheses are not expected truths boundary")
-    # Factorial overclaim removal: must state staged isolation, not 'alone and jointly' as claim
-    # The research question itself must not contain 'alone and jointly' as a positive claim;
-    # the markdown may mention the phrase only in the removal explanation.
-    # Check that staged isolation phrases are present
     staged_phrases = [
         ("E3a isolates placement", "E3a isolates placement in markdown"),
         ("E3b holds placement fixed", "E3b holds placement fixed in markdown"),
@@ -778,37 +1084,247 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     ]
     for needle, label in staged_phrases:
         if needle.lower() not in md_text.lower():
-            errors.append(f"markdown missing {label}: {needle!r}")
-    # Ensure the research question block does not still claim 'alone and jointly' as a positive improvement claim  # noqa: E501
-    # Allow one occurrence in the removal sentence 'is removed because'
-    # Count occurrences of 'alone and jointly' before the removal explanation vs after
-    # Simpler: if 'alone and jointly' appears in the first 1500 chars (which contains the RQ quote), fail  # noqa: E501
-    rq_section = md_text[:2000].lower()
-    if "alone and jointly" in rq_section:
-        # Check if it's inside the blockquote that is the RQ (should not be there)
-        # The RQ blockquote is between '> Under the frozen' and the next blank line
-        # If still present in the RQ sentence, it's a failure unless it's the explanatory removal sentence  # noqa: E501
-        # The explanatory sentence is after the mechanism table, not in first 2000? Actually it is within first 2000 now  # noqa: E501
-        # We allow it only if accompanied by 'is removed'
-        if "alone and jointly" in rq_section and "is removed" not in rq_section:
-            errors.append("markdown research question must not contain 'alone and jointly'")
-        # More precise: ensure RQ quote itself does not contain the phrase
-        # Extract the quoted RQ (lines starting with '>')
-        rq_lines = [line for line in md_text.splitlines() if line.startswith(">")]
-        rq_text = " ".join(rq_lines).lower()
-        if "alone and jointly" in rq_text:
-            errors.append("markdown research question quote must not contain 'alone and jointly'")
+            errors.append(f"markdown missing {label}: {needle!r}")  # noqa: E501
+    rq_lines = [line for line in md_text.splitlines() if line.startswith(">")]
+    rq_text = " ".join(rq_lines).lower()
+    if "alone and jointly" in rq_text:
+        errors.append("markdown research question quote must not contain 'alone and jointly'")
+    if "alone and jointly" in md_text.lower() and "is removed" not in md_text.lower():
+        # If the document still claims alone and jointly as positive, reject
+        # But if it only mentions removal, it's okay - already handled above; this is additional check for outside RQ  # noqa: E501
+        # Only error if appears outside explanatory sentence
+        # Simple: if count of 'alone and jointly' >1 or not accompanied by 'is removed' near, error already captured  # noqa: E501
+        pass
     if "e.g. linear regression" in md_text.lower():
         errors.append("markdown must not contain 'e.g. linear regression' alternative formula")
     if "moving-average delta" in md_text.lower():
         errors.append("markdown must not contain 'moving-average delta' alternative formula phrase")
     if "1--3" not in md_text and "1–3" not in md_text and "1-3" not in md_text:
         errors.append("markdown missing 1--3/1–3 bounds in markdown")
-    for _stale in ["0, 1000, 3000", "0,1000,3000", "0 ms", "1000", "3000"]:
-        if "3000" in md_text:
-            break
-    else:
+    if "3000" not in md_text:
         errors.append("markdown missing stale levels")
+    # Ensure markdown contains exact inference details: df=3, t=3.182, Bessel, SE, Student-t 95%
+    if not re.search(r"df\s*=\s*n-1\s*=\s*3", md_text) and not re.search(r"df\s*=\s*3", md_text):
+        errors.append("markdown missing df=3 inference detail")
+    if "3.182" not in md_text:
+        errors.append("markdown missing t=3.182 inference detail")
+    if "Bessel" not in md_text:
+        errors.append("markdown missing Bessel n-1 inference detail")
+    if "s / sqrt(n)" not in md_text and "s/√n" not in md_text:
+        errors.append("markdown missing SE s/sqrt(n) inference detail")
+    if "95% Student-t" not in md_text and "Student-t" not in md_text:
+        errors.append("markdown missing 95% Student-t inference detail")
+    # Inverse-claim mutations: markdown must not contain forbidden inverse claims
+    inverse_phrases = [
+        ("queue ceiling is compute capacity", "queue==compute inverse claim"),
+        ("queue==compute", "queue==compute inverse claim"),
+        ("queue equals compute", "queue==compute inverse claim"),
+        ("waiting-room capacity is compute", "queue==compute inverse claim"),
+        ("actor observes rsU load", "actor observes RSU load inverse claim"),
+        ("actor observes current rsu", "actor observes RSU load inverse claim"),
+        ("actor selects execution rsu", "actor selects RSU inverse claim"),
+        ("actor chooses rsu", "actor selects RSU inverse claim"),
+        ("rejected work executes", "rejected executes inverse claim"),
+        ("rejected tasks execute", "rejected executes inverse claim"),
+        ("rejected tasks were executed", "rejected executes inverse claim"),
+        ("unbounded scaling", "unbounded/free scaling inverse claim"),
+        ("free scaling", "free scaling inverse claim"),
+        ("unlimited scaling", "unbounded scaling inverse claim"),
+        ("static3x", "synonym preferred inverse claim (static3x)"),
+        ("static_3x", "synonym preferred inverse claim (static_3x)"),
+        ("fixed1x", "synonym preferred inverse claim (fixed1x)"),
+        ("tasks are replicates", "task-as-N inverse claim"),
+        ("task_as_n is valid", "task-as-N inverse claim"),
+        ("using tasks as N", "task-as-N inverse claim"),
+        ("conclusion", "hypothesis->conclusion inverse claim"),
+        (
+            "expected truth",
+            "hypothesis->expected truth inverse claim (outside normative 'not expected truth' context)",  # noqa: E501
+        ),
+        ("USD", "monetary USD inverse claim"),
+        ("$", "monetary $ inverse claim"),
+        ("price", "monetary price inverse claim"),
+        ("billing", "monetary billing inverse claim"),
+        ("outer_tick_ms = 200", "tick 200 inverse claim"),
+        ("outer_tick_ms is 200", "tick 200 inverse claim"),
+        ("outer tick is 200", "tick 200 inverse claim"),
+        ("within_tick_task_slots = 200", "slot drift inverse claim"),
+        ("within_tick_task_slots is 10", "slot drift inverse claim"),
+        ("df = 5", "df drift inverse claim"),
+        ("df is 5", "df drift inverse claim"),
+        ("t = 2", "t drift inverse claim"),
+        ("t is 2.5", "t drift inverse claim"),
+        ("cells = 144", "cell drift pseudo-full-factorial inverse claim"),
+        ("cells total is 144", "cell drift pseudo-full-factorial inverse claim"),
+        ("already executed", "already-executed wording inverse claim"),
+        (
+            "predeclared_before_any_e3_trace_execution is already executed",
+            "already-executed wording inverse claim",
+        ),
+        ("replication_key is hidden", "replicate-label erasure inverse claim"),
+        ("hidden_seed", "replicate-label erasure inverse claim"),
+        # Additional generic: if stale 200 ms appears as candidate, that's inverse
+        ("stale 200ms", "tick/slot drift inverse claim"),
+    ]
+    md_text.lower()
+    # Remove canonical block for $ and other checks to avoid flagging JSON
+    block_raw_for_inverse, _ = _extract_canonical_block(md_text)
+    md_without_canonical = md_text
+    if block_raw_for_inverse is not None:
+        md_without_canonical = md_text.replace(block_raw_for_inverse, "")
+    # For inverse-claim detection, focus on narrative excluding validation/stop-rule example lists
+    # Exclude stop rules and validation sections where forbidden examples are documented
+    inverse_check_text = md_without_canonical
+    # Remove stop rules section temporarily
+    for marker in ["## 13. Execution preconditions", "## 15. Validation"]:
+        if marker in inverse_check_text:
+            parts = inverse_check_text.split(marker)
+            # Keep before marker, and after next heading (## 14 or ## 16)
+            # Simplest: split and keep only before marker for inverse checks; re-add after for other checks?  # noqa: E501
+            # We'll keep only text before first excluded marker for inverse checks
+            inverse_check_text = parts[0]
+            break
+    narrative_part = inverse_check_text
+    lower_without = narrative_part.lower()
+    lower_without = narrative_part.lower()
+
+    def _has_positive_claim(hay: str, phrase: str) -> bool:
+        # Sentence-level negation check: if sentence containing phrase has a negation word, it's documenting forbidden, not asserting  # noqa: E501
+        neg_words = [
+            "never",
+            "not ",
+            "no ",
+            "forbidden",
+            "without",
+            "must not",
+            "cannot",
+            "may not",
+            "is not",
+            "are not",
+            "no configuration",
+        ]
+        for m in re.finditer(re.escape(phrase), hay):
+            left = hay.rfind(".", 0, m.start())
+            right = hay.find(".", m.end())
+            if left == -1:
+                left = hay.rfind("\n", 0, m.start())
+                if left == -1:
+                    left = 0
+            else:
+                left += 1
+            if right == -1:
+                right = hay.find("\n", m.end())
+                if right == -1:
+                    right = len(hay)
+            sentence = hay[left:right].lower()
+            if any(nw.strip() in sentence for nw in neg_words):
+                continue
+            # Also check immediate after for violates within same sentence
+            after = hay[m.end() : right].lower()
+            if "violates" in after or "reject" in after:
+                continue
+            return True
+        return False
+
+    for phrase, label in inverse_phrases:
+        phrase_l = phrase.lower()
+        if phrase_l == "expected truth":
+            for m in re.finditer(r"expected truth", lower_without):
+                start = max(0, m.start() - 50)
+                context = lower_without[start : m.end() + 30]
+                if (
+                    "not expected truth" in context
+                    or "not expected truths" in context
+                    or "not an expected truth" in context
+                ):
+                    continue
+                token_context = narrative_part[max(0, m.start() - 50) : m.end() + 50]
+                if "hypothesis_not_expected_truth" in token_context:
+                    continue
+                # Sentence-level check for this occurrence
+                left = lower_without.rfind(".", 0, m.start())
+                right = lower_without.find(".", m.end())
+                if left == -1:
+                    left = lower_without.rfind("\n", 0, m.start())
+                    if left == -1:
+                        left = 0
+                else:
+                    left += 1
+                if right == -1:
+                    right = lower_without.find("\n", m.end())
+                    if right == -1:
+                        right = len(lower_without)
+                sentence = lower_without[left:right]
+                if "never" in sentence or "not " in sentence or "no " in sentence:
+                    # Sentence already negated (e.g., "never results, conclusions, or expected truths")  # noqa: E501
+                    continue
+                if "violates" in sentence or "relabel" in sentence:
+                    continue
+                errors.append(
+                    f"markdown contains inverse claim {label}: {phrase!r} without 'not' qualifier"
+                )
+                break
+            continue
+        if phrase == "$":
+            if "$" in narrative_part:
+                # $ outside canonical block is forbidden unless explicitly in allowed phrase (none)
+                errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
+            continue
+        if phrase in ["static3x", "static_3x", "fixed1x"]:
+            for m in re.finditer(re.escape(phrase_l), lower_without):
+                snippet = lower_without[max(0, m.start() - 60) : m.end() + 60]
+                if "forbidden" in snippet or "synonym" in snippet:
+                    continue
+                # also allow if preceded by negation
+                before = lower_without[max(0, m.start() - 40) : m.start()]
+                if any(neg in before for neg in ["forbidden", "never", "not"]):
+                    continue
+                errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
+                break
+            continue
+        # Special handling for phrases that baseline contains negated: check positive claim only
+        # For generic inverse phrases, use positive claim helper
+        # For phrases like "queue==compute", "actor observes", etc, baseline has negated form, so helper will skip them  # noqa: E501
+        # But if someone mutates to positive form (removing negation), helper will detect
+        if phrase_l in [
+            "queue ceiling is compute capacity",
+            "queue==compute",
+            "queue equals compute",
+            "waiting-room capacity is compute",
+            "actor observes rsu load",
+            "actor observes current rsu",
+            "actor selects execution rsu",
+            "actor chooses rsu",
+            "rejected work executes",
+            "rejected tasks execute",
+            "rejected tasks were executed",
+            "unbounded scaling",
+            "free scaling",
+            "unlimited scaling",
+            "tasks are replicates",
+            "task_as_n is valid",
+            "using tasks as n",
+            "outer_tick_ms = 200",
+            "outer tick is 200",
+            "within_tick_task_slots = 200",
+            "df = 5",
+            "t = 2",
+            "cells = 144",
+            "already executed",
+            "stale 200ms",
+        ]:
+            if _has_positive_claim(lower_without, phrase_l):
+                errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
+            continue
+        # For remaining phrases like price/billing, they appear negated in baseline as "no price", "no billing"  # noqa: E501
+        # Use helper as well
+        if phrase_l in ["price", "billing"]:
+            if _has_positive_claim(lower_without, phrase_l):
+                errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
+            continue
+        # For other generic checks, use containment but with negation awareness
+        if phrase_l in lower_without and _has_positive_claim(lower_without, phrase_l):
+            errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
     return errors
 
 
@@ -818,7 +1334,9 @@ def load_contract(path: Path) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate E3 dynamic resource contract")
+    parser = argparse.ArgumentParser(
+        description="Validate E3 dynamic resource contract (predeclaration only)"
+    )
     parser.add_argument(
         "--contract-json",
         type=Path,
@@ -830,7 +1348,9 @@ def main() -> int:
         default=Path("docs/evaluation/e3/e3_dynamic_resource_v2_contract_v1.md"),
     )
     parser.add_argument(
-        "--check-equivalence", action="store_true", help="also check markdown/json equivalence"
+        "--check-equivalence",
+        action="store_true",
+        help="also check markdown/json equivalence (canonical block + prose)",
     )
     args = parser.parse_args()
     if not args.contract_json.is_file():
@@ -848,9 +1368,6 @@ def main() -> int:
             result["errors"].extend(md_errors)
             if md_errors:
                 result["pass"] = False
-            # also ensure no forbidden arm IDs in markdown beyond allowed forbidden note
-            # Count occurrences outside forbidden synonyms note is complex; keep simple above
-    # update error_count
     result["error_count"] = len(result["errors"])
     result["pass"] = len(result["errors"]) == 0
     print(json.dumps(result, indent=2))
