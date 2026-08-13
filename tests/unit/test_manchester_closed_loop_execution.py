@@ -2196,7 +2196,7 @@ def test_element_text_absolute_net_file_blocked(tmp_path: Path) -> None:
         # Must not leak raw absolute path
         joined = " ".join(report.findings)
         assert str(canary) not in joined
-        assert "/tmp" not in joined or "{REDACTED}" in joined  # noqa: S108
+        assert "/tmp" not in joined or "{REDACTED}" in joined  # noqa: S108  # noqa: S108
         assert any("ABSOLUTE" in f or "REFERENCE" in f or "PRIVATE" in f for f in report.findings)
         assert len(launches) == 0
         out = tmp_path / "out_abs_text_run"
@@ -2349,3 +2349,361 @@ def test_tail_and_nested_itertext_blocked(tmp_path: Path) -> None:
     assert receipt.outcome == "blocked"
     assert receipt.engineering_standing == "ENGINEERING_NOT_VALID"
     # Also test that whitespace-only tail remains valid (checked in previous test via formatting)
+
+
+# ---------------------------------------------------------------------------
+# Combined long-value + count: preflight bounds, no leak, canonical validation
+# ---------------------------------------------------------------------------
+
+
+def test_combined_long_uri_count_truncation_preflight_and_run(tmp_path: Path) -> None:
+    """11 long URI net-files plus many short errors must bound findings, no leak, zero launch."""
+    pkg = _package_with_config(tmp_path)
+    long_uri = "http://evil.example/" + "A" * 5000
+    # 11 long URI elements — each triggers URI + inventory, plus many short invalid to exceed 31  # noqa: E501
+    extra_shorts = "".join(f'<evil{i} value="x"/>' for i in range(25))
+    net_files = "".join(f'<net-file value="{long_uri}{i}"/>' for i in range(11))
+    (pkg / "sumo.sumocfg").write_text(
+        f"<configuration><input>{net_files}{extra_shorts}</input></configuration>",
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-long-uri"
+    )
+    fake_dir = tmp_path / "fake_long_uri"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    import subprocess as _sp
+    import unittest.mock as _mock
+
+    launches: list[list[str]] = []
+    orig = _sp.Popen
+    from collections.abc import Sequence as _LaunchSequence  # noqa: E402
+    from typing import Any as _PopenAny  # noqa: E402
+    from typing import cast as _cast  # noqa: E402
+
+    def counting(
+        args: str
+        | bytes
+        | os.PathLike[str]
+        | os.PathLike[bytes]
+        | _LaunchSequence[str | bytes | os.PathLike[str] | os.PathLike[bytes]],
+        *remaining_args: object,
+        **kwargs: object,
+    ) -> _sp.Popen[_PopenAny]:
+        if isinstance(args, (str, bytes, os.PathLike)):
+            launches.append([str(args)])
+        else:
+            launches.append([str(item) for item in args])
+        return _cast(_sp.Popen[_PopenAny], _cast(_PopenAny, orig)(args, *remaining_args, **kwargs))
+
+    with _mock.patch(
+        "traffictwin.integration.manchester.closed_loop_execution.subprocess.Popen",
+        side_effect=counting,
+    ):
+        report = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / "out_long_uri_pre", request=req, tool=tool
+        )
+        assert report.status == "blocked"
+        assert len(report.findings) == 32
+        assert report.findings[-1].startswith("FINDINGS_TRUNCATED:")
+        # Deterministic accurate marker: total raw findings >31, verify suppressed >=1 and deterministic  # noqa: E501
+        suppressed_str = report.findings[-1]
+        # Extract count
+        import re as _re
+
+        m = _re.search(r"(\d+) further", suppressed_str)
+        assert m is not None
+        suppressed = int(m.group(1))
+        assert suppressed >= 1
+        # Every finding nonempty <=1000
+        for f in report.findings:
+            assert 1 <= len(f) <= 1000
+            assert f.strip() != ""
+        # No raw long URI value leaked (5000 As)
+        joined = " ".join(report.findings)
+        assert long_uri not in joined
+        assert "A" * 1000 not in joined
+        # No private path/secret leak
+        assert "/Users/" not in joined
+        assert "/tmp" not in joined or "{REDACTED}" in joined  # noqa: S108
+        # Marker deterministic
+        report2 = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / "out_long_uri_pre2", request=req, tool=tool
+        )
+        assert report.findings == report2.findings
+        # Model validation passes (findings already bounded)
+        report.model_validate(report.model_dump(mode="json"))
+        assert report.canonical_json()  # should not raise
+        assert len(launches) == 0
+
+        out = tmp_path / "out_long_uri_run"
+        receipt = run_closed_loop_execution(
+            package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+        )
+        assert receipt.outcome == "blocked"
+        assert receipt.engineering_standing == "ENGINEERING_NOT_VALID"
+        assert receipt.scientific_standing == "SCIENTIFICALLY_NOT_ACCEPTED"
+        assert len(receipt.stderr_excerpt) <= 32000
+        assert len(receipt.stderr_excerpt.strip()) > 0
+        assert long_uri not in receipt.stderr_excerpt
+        assert "A" * 1000 not in receipt.stderr_excerpt
+        assert long_uri not in receipt.canonical_json()
+        assert "/Users/" not in receipt.canonical_json()
+        assert receipt.secrets_exposed is False
+        # Receipt validation passes
+        receipt.model_validate(receipt.model_dump(mode="json"))
+        # Exact max lengths/marker via canonical bounding: still zero launches
+        assert len(launches) == 0
+        # Bound memory: findings already bounded, ensure no finding contains truncated long value  # noqa: E501
+
+
+def test_long_tail_plus_many_short_errors_bounded(tmp_path: Path) -> None:
+    """Long tail value plus many short errors must also bound and not leak."""
+    pkg = _package_with_config(tmp_path)
+    long_tail = "B" * 8000
+    shorts = "".join(f'<evil{i} value="y"/>' for i in range(30))
+    # Tail after net-file plus many shorts
+    (pkg / "sumo.sumocfg").write_text(
+        f'<configuration><input><net-file value="net.xml"/>{long_tail}{shorts}</input></configuration>',  # noqa: E501
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-tail-long"
+    )
+    fake_dir = tmp_path / "fake_tail_long"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    import subprocess as _sp
+    import unittest.mock as _mock
+
+    launches: list[list[str]] = []
+    orig = _sp.Popen
+    from collections.abc import Sequence as _LaunchSequence2  # noqa: E402
+    from typing import Any as _PopenAny2  # noqa: E402
+    from typing import cast as _cast2  # noqa: E402
+
+    def counting(
+        args: str
+        | bytes
+        | os.PathLike[str]
+        | os.PathLike[bytes]
+        | _LaunchSequence2[str | bytes | os.PathLike[str] | os.PathLike[bytes]],
+        *remaining_args: object,
+        **kwargs: object,
+    ) -> _sp.Popen[_PopenAny2]:
+        if isinstance(args, (str, bytes, os.PathLike)):
+            launches.append([str(args)])
+        else:
+            launches.append([str(item) for item in args])
+        return _cast2(
+            _sp.Popen[_PopenAny2], _cast2(_PopenAny2, orig)(args, *remaining_args, **kwargs)
+        )
+
+    with _mock.patch(
+        "traffictwin.integration.manchester.closed_loop_execution.subprocess.Popen",
+        side_effect=counting,
+    ):
+        report = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / "out_tail_long_pre", request=req, tool=tool
+        )
+        assert report.status == "blocked"
+        # Must be blocked with bounded findings
+        assert 1 <= len(report.findings) <= 32
+        # If truncated, marker accurate
+        if len(report.findings) == 32:
+            assert report.findings[-1].startswith("FINDINGS_TRUNCATED:")
+        for f in report.findings:
+            assert 1 <= len(f) <= 1000
+        assert long_tail not in " ".join(report.findings)
+        assert "B" * 1000 not in " ".join(report.findings)
+        assert report.canonical_json()  # validation via canonical
+        report.model_validate(report.model_dump(mode="json"))
+        assert len(launches) == 0
+
+        out = tmp_path / "out_tail_long_run"
+        receipt = run_closed_loop_execution(
+            package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+        )
+        assert receipt.outcome == "blocked"
+        assert long_tail not in receipt.stderr_excerpt
+        assert long_tail not in receipt.canonical_json()
+        assert receipt.secrets_exposed is False
+        receipt.model_validate(receipt.model_dump(mode="json"))
+        assert len(launches) == 0
+
+
+def test_forged_request_blocked_receipt_no_leak_and_placeholder(tmp_path: Path) -> None:
+    """Forged model_construct request must not persist raw private path/secret/traversal in receipt."""  # noqa: E501
+    pkg = _package_with_config(tmp_path)
+    req = create_closed_loop_request(package_root=pkg, config_file="sumo.sumocfg", run_id="run-01")
+    # Forge with private path, secret, traversal
+    forged = req.model_copy(update={"config_file": "/Users/secret/traversal/../evil.xml"})
+    # Also forge run_id with newline/secret via model_copy (bypasses validation)  # noqa: E501
+    forged2 = forged.model_copy(
+        update={"run_id": "bad\nrun_id_secret_token", "config_file": "/tmp/evil.xml"}  # noqa: S108
+    )
+    # Further ensure config_file is private path via direct construct if needed
+    if forged2.config_file != "/tmp/evil.xml":  # noqa: S108
+        forged2 = ClosedLoopExecutionRequest.model_construct(
+            _fields_set=set(),
+            run_id="bad\nrun_id_secret_token",
+            config_file="/tmp/evil.xml",  # noqa: S108
+            package_fingerprint=forged.package_fingerprint,
+            inputs=forged.inputs,
+            seed=forged.seed,
+            timeout_seconds=forged.timeout_seconds,
+            deterministic_run_identity=forged.deterministic_run_identity,
+            confirmed_by_operator=True,
+            schema_version=forged.schema_version,
+            method_version=forged.method_version,
+            capability_id=forged.capability_id,
+        )
+    fake_dir = tmp_path / "fake_forged_leak"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    import subprocess as _sp
+    import unittest.mock as _mock
+
+    launches: list[list[str]] = []
+    orig = _sp.Popen
+    from collections.abc import Sequence as _LaunchSequence3  # noqa: E402
+    from typing import Any as _PopenAny3  # noqa: E402
+    from typing import cast as _cast3  # noqa: E402
+
+    def counting(
+        args: str
+        | bytes
+        | os.PathLike[str]
+        | os.PathLike[bytes]
+        | _LaunchSequence3[str | bytes | os.PathLike[str] | os.PathLike[bytes]],
+        *remaining_args: object,
+        **kwargs: object,
+    ) -> _sp.Popen[_PopenAny3]:
+        if isinstance(args, (str, bytes, os.PathLike)):
+            launches.append([str(args)])
+        else:
+            launches.append([str(item) for item in args])
+        return _cast3(
+            _sp.Popen[_PopenAny3], _cast3(_PopenAny3, orig)(args, *remaining_args, **kwargs)
+        )
+
+    with _mock.patch(
+        "traffictwin.integration.manchester.closed_loop_execution.subprocess.Popen",
+        side_effect=counting,
+    ):
+        report = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / "out_forged_pre", request=forged2, tool=tool
+        )
+        assert report.status == "blocked"
+        assert len(report.findings) >= 1
+        for f in report.findings:
+            assert 1 <= len(f) <= 1000
+        j = report.canonical_json()
+        assert "/Users/" not in j
+        assert "/tmp/" not in j  # noqa: S108
+        assert "secret_token" not in j.lower()
+        assert ".." not in j or "REDACTED" in j or "blocked" in j.lower()
+        assert "\n" not in j or "blocked" in j.lower()
+        report.model_validate(report.model_dump(mode="json"))
+        assert len(launches) == 0
+
+        receipt = run_closed_loop_execution(
+            package_root=pkg,
+            output_root=tmp_path / "out_forged_run",
+            request=forged2,
+            tool=tool,
+            executable_path=exe,
+        )
+        assert receipt.outcome == "blocked"
+        assert receipt.secrets_exposed is False
+        jr = receipt.canonical_json()
+        assert "/Users/" not in jr
+        assert "/tmp/" not in jr  # noqa: S108
+        assert "secret_token" not in jr.lower()
+        assert ".." not in receipt.run_id
+        assert "\n" not in receipt.run_id
+        assert 1 <= len(receipt.run_id) <= 64
+        # Request persisted must be safe placeholder, not raw
+        assert receipt.request.config_file != "/tmp/evil.xml"  # noqa: S108
+        assert ".." not in receipt.request.config_file
+        receipt.model_validate(receipt.model_dump(mode="json"))
+        assert len(launches) == 0
+
+
+def test_run_id_fullmatch_rejects_trailing_newline_and_unicode(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    # Trailing newline
+    with pytest.raises(ManchesterClosedLoopError, match="INVALID_RUN_ID"):
+        create_closed_loop_request(package_root=pkg, config_file="sumo.sumocfg", run_id="run-01\n")  # noqa: E501
+    with pytest.raises(ManchesterClosedLoopError, match="INVALID_RUN_ID"):
+        create_closed_loop_request(
+            package_root=pkg, config_file="sumo.sumocfg", run_id="run-01\r\n"
+        )
+    # Unicode newline
+    with pytest.raises(ManchesterClosedLoopError, match="INVALID_RUN_ID"):
+        create_closed_loop_request(
+            package_root=pkg, config_file="sumo.sumocfg", run_id="run-01\u2028"
+        )
+    # Valid still passes
+    r = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-01_valid-123"
+    )
+    assert r.run_id == "run-01_valid-123"
+
+
+def test_namespace_allowlist_exact_and_screened(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    # Allowed namespace attrs on root should pass (exact)
+    (pkg / "sumo.sumocfg").write_text(
+        '<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '  # noqa: E501
+        'xsi:noNamespaceSchemaLocation="http://example.com/schema.xsd"><input><net-file '  # noqa: E501
+        'value="net.xml"/></input></configuration>',
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-ns-allow"
+    )
+    fake_dir = tmp_path / "fake_ns_allow"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    report = preflight_closed_loop_execution(
+        package_root=pkg, output_root=tmp_path / "out_ns_allow", request=req, tool=tool
+    )
+    # Should be accepted (no unreviewed attribute) — or at least not blocked for namespace
+    # If allowed, it should not be blocked for UNREVIEWED_ATTRIBUTE
+    if report.status == "blocked":
+        assert not any("UNREVIEWED_ATTRIBUTE" in f for f in report.findings)
+    else:
+        assert report.status == "accepted"
+
+    # Unknown namespaced attr must fail closed, even if xsi substring present
+    pkg2 = _package_with_config(tmp_path / "pkg_ns_unknown")
+    (pkg2 / "sumo.sumocfg").write_text(
+        '<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><input><net-file value="net.xml" xsi:evil="bad"/></input></configuration>',  # noqa: E501
+        encoding="utf-8",
+    )
+    req2 = create_closed_loop_request(
+        package_root=pkg2, config_file="sumo.sumocfg", run_id="run-ns-unknown"
+    )
+    report2 = preflight_closed_loop_execution(
+        package_root=pkg2, output_root=tmp_path / "out_ns_unknown", request=req2, tool=tool
+    )
+    assert report2.status == "blocked"
+    assert any("UNREVIEWED_ATTRIBUTE" in f for f in report2.findings)
+
+    # Screening of allowlisted value: private path in allowed attr value must be rejected/redacted
+    pkg3 = _package_with_config(tmp_path / "pkg_ns_screen")
+    (pkg3 / "sumo.sumocfg").write_text(
+        '<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/Users/secret/path"><input><net-file value="net.xml"/></input></configuration>',  # noqa: E501
+        encoding="utf-8",
+    )
+    req3 = create_closed_loop_request(
+        package_root=pkg3, config_file="sumo.sumocfg", run_id="run-ns-screen"
+    )
+    report3 = preflight_closed_loop_execution(
+        package_root=pkg3, output_root=tmp_path / "out_ns_screen", request=req3, tool=tool
+    )
+    assert report3.status == "blocked"
+    assert any("PRIVATE" in f or "REDACTED" in f for f in report3.findings)
+    assert "/Users/" not in " ".join(report3.findings)

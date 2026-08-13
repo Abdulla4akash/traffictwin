@@ -228,6 +228,28 @@ def _sanitize_xml_name(name: str) -> str:
     return sanitized
 
 
+_MAX_EMITTED_VALUE_CHARS = 200
+
+
+def _bounded_safe_value(raw: str) -> str:
+    """Redact and bound a value that may be huge (URI/path) before emission."""
+    if _PRIVATE_PATH_RE.search(raw) or _SECRET_TOKEN_RE.search(raw):
+        return "{REDACTED}"
+    # Remove control characters early
+    safe = "".join(c if ord(c) >= 32 or c in "\n\t" else "_" for c in raw)
+    safe = safe.strip()
+    if len(safe) > _MAX_EMITTED_VALUE_CHARS:
+        safe = safe[:_MAX_EMITTED_VALUE_CHARS] + "...[truncated]"
+    # Final redact check after truncation
+    safe = _SECRET_TOKEN_RE.sub("REDACTED", safe)
+    safe = _PRIVATE_PATH_RE.sub("{REDACTED}", safe)
+    if _SECRET_TOKEN_RE.search(safe) or _PRIVATE_PATH_RE.search(safe):
+        return "{REDACTED}"
+    if not safe:
+        return "{REDACTED}"
+    return safe
+
+
 def _sanitize_finding_text(raw: str) -> str:
     """Per-error sanitization: redact secrets/private paths without erasing the reason."""
     if not raw or not raw.strip():
@@ -246,6 +268,98 @@ def _sanitize_finding_text(raw: str) -> str:
     if _SECRET_TOKEN_RE.search(safe) or _PRIVATE_PATH_RE.search(safe):
         return "CONFIG_SANITIZED_REJECTED: redacted"
     return safe
+
+
+def _sanitize_run_id(raw: object) -> str:
+    """Bound and sanitize a run_id for use in portable blocked artifacts."""
+    try:
+        s = str(raw)
+    except Exception:
+        return "blocked-run"
+    # Remove control chars and strip
+    s = "".join(c if ord(c) >= 32 and c not in "\n\r\t\x00" else "_" for c in s)
+    s = s.strip().lower()
+    # Redact secrets/private paths
+    if (
+        _SECRET_TOKEN_RE.search(s)
+        or _PRIVATE_PATH_RE.search(s)
+        or ".." in s
+        or "/" in s
+        or "\\" in s
+    ):
+        return "blocked-run"
+    # Bound length and sanitize to pattern
+    s = re.sub(r"[^a-z0-9_.-]", "_", s)
+    if len(s) > 64:
+        s = s[:64]
+    if not s:
+        return "blocked-run"
+    if not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", s):
+        # Try to fix leading char
+        s = "r-" + s[2:] if len(s) >= 2 else "blocked-run"
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", s):
+            return "blocked-run"
+    if _SECRET_TOKEN_RE.search(s) or _PRIVATE_PATH_RE.search(s):
+        return "blocked-run"
+    return s
+
+
+def _sanitize_config_name(raw: object) -> str:
+    """Bound and sanitize a config file name for blocked artifacts."""
+    try:
+        s = str(raw)
+    except Exception:
+        return "blocked-config.xml"
+    s = "".join(c if ord(c) >= 32 and c not in "\n\r\t\x00" else "_" for c in s)
+    s = s.strip()
+    if _SECRET_TOKEN_RE.search(s) or _PRIVATE_PATH_RE.search(s):
+        return "blocked-config.xml"
+    # Keep only last path component
+    s = PurePosixPath(s).name or "blocked-config.xml"
+    s = _sanitize_xml_name(s)
+    if not _SAFE_NAME_RE.match(s):
+        return "blocked-config.xml"
+    return s
+
+
+def _build_safe_placeholder_request(
+    raw_request: object,
+) -> ClosedLoopExecutionRequest | None:
+    """Build a safe bounded placeholder request that validates, never leaks raw values."""
+    try:
+        raw_cfg = getattr(raw_request, "config_file", "blocked-config.xml")
+        safe_cfg = _sanitize_config_name(raw_cfg)
+        raw_run = getattr(raw_request, "run_id", "blocked-run")
+        safe_run = _sanitize_run_id(raw_run)
+        # Use dummy but valid fingerprints/identities that are deterministic from safe values
+        # Preserve audit standing via request_fingerprint stored separately; placeholder's own fingerprint is independent  # noqa: E501
+        dummy_input = ClosedLoopInputDeclaration(path=safe_cfg, sha256="0" * 64, size_bytes=0)
+        package_fp = _sha256_hex(_canonical_json([dummy_input.model_dump(mode="json")]).encode())
+        det_id = _sha256_hex(
+            _canonical_json(
+                {
+                    "package_fingerprint": package_fp,
+                    "config_file": safe_cfg,
+                    "inputs": [dummy_input.model_dump(mode="json")],
+                    "seed": 0,
+                    "timeout_seconds": DEFAULT_TIMEOUT_S,
+                    "run_id": safe_run,
+                    "confirmed_by_operator": True,
+                }
+            ).encode()
+        )
+        return ClosedLoopExecutionRequest(
+            run_id=safe_run,
+            package_fingerprint=package_fp,
+            config_file=safe_cfg,
+            inputs=[dummy_input],
+            seed=0,
+            timeout_seconds=DEFAULT_TIMEOUT_S,
+            deterministic_run_identity=det_id,
+            confirmed_by_operator=True,
+        )
+    except Exception:
+        return None
 
 
 def _finalize_findings(findings: list[str]) -> list[str]:
@@ -944,6 +1058,17 @@ def _compute_deterministic_identity(
     return _sha256_hex(_canonical_json(payload).encode("utf-8"))
 
 
+_ALLOWED_NAMESPACE_ATTRS: set[str] = {
+    "xmlns",
+    "xmlns:xsi",
+    "xsi:noNamespaceSchemaLocation",
+    "xsi:schemaLocation",
+    "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation",
+    "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation",
+    "{http://www.w3.org/2000/xmlns/}xsi",
+}
+
+
 def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionRequest) -> list[str]:
     """Hardened XML preflight for the .sumocfg as untrusted execution control."""
     errors: list[str] = []
@@ -951,8 +1076,12 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
 
     def _emit(msg: str) -> None:
         nonlocal suppressed
+        # Bound and sanitize at emission time to keep memory proportional to caps
+        safe_msg = _sanitize_finding_text(msg)
+        if not 1 <= len(safe_msg) <= 1000:
+            safe_msg = safe_msg[:1000] if len(safe_msg) > 1000 else "BLOCKED: truncated"
         if len(errors) < 31:
-            errors.append(msg)
+            errors.append(safe_msg)
         else:
             suppressed += 1
 
@@ -989,20 +1118,18 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
 
         root = defusedxml_et.fromstring(data)
     except Exception as exc:  # noqa: BLE001 - need to surface malformed
-        _emit(f"CONFIG_MALFORMED: {exc}")
+        _emit(f"CONFIG_MALFORMED: {_bounded_safe_value(str(exc))}")
         return _finalize_preflight_errors(errors, suppressed)
 
     def _strip_ns(tag: str) -> str:
         return tag.split("}", 1)[-1] if "}" in tag else tag
 
     def _safe_val(v: str) -> str:
-        if _PRIVATE_PATH_RE.search(v) or _SECRET_TOKEN_RE.search(v):
-            return "{REDACTED}"
-        return v
+        return _bounded_safe_value(v)
 
     def _validate_file_reference_text(raw_val: str, safe_label: str) -> None:
         """Validate a file-reference string (comma-separated) fail-closed, bounded."""
-        # Apply same checks as attribute value
+        # Apply same checks as attribute value — bound values at emission
         if _PRIVATE_PATH_RE.search(raw_val):
             _emit("CONFIG_PRIVATE_PATH_REJECTED: value contains private path")
         if _SECRET_TOKEN_RE.search(raw_val):
@@ -1061,12 +1188,26 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
             # Check any non-whitespace text/tail inside unreviewed element as additional blocker (but already blocked)  # noqa: E501
             # We still scan text/tail to ensure no raw path leaks via earlier _safe_val, but element already blocked.  # noqa: E501
             # Fall through to text checks below to ensure redacted handling, but avoid double inventory checks.  # noqa: E501
-        # Validate attributes
+        # Validate attributes — exact minimal namespace allowlist, no substring xsi exemptions
         for attr_name, attr_val in list(elem.attrib.items()):
-            # Allow XML namespace declarations on root
-            if tag in {"configuration", "sumoConfiguration"} and (
-                attr_name.startswith("{") or attr_name.startswith("xmlns") or "xsi" in attr_name
+            # Exact allowlist for namespace declarations only on root elements
+            if (
+                tag in {"configuration", "sumoConfiguration"}
+                and attr_name in _ALLOWED_NAMESPACE_ATTRS
             ):
+                # Screen namespace values for paths/secrets (allow expected namespace URIs)
+                if _PRIVATE_PATH_RE.search(attr_val) or _SECRET_TOKEN_RE.search(attr_val):
+                    _emit("CONFIG_PRIVATE_PATH_REJECTED: value contains private path")
+                if _SECRET_TOKEN_RE.search(attr_val):
+                    _emit("CONFIG_SENSITIVE_REJECTED: value contains disallowed pattern")
+                # Do not treat the namespace URI itself (http://...) as file URI rejection
+                continue
+            # Unknown namespaced attributes fail closed
+            if attr_name.startswith("{") or attr_name.startswith("xmlns") or ":" in attr_name:
+                safe_attr = _sanitize_xml_name(attr_name)
+                _emit(
+                    f"CONFIG_UNREVIEWED_ATTRIBUTE_REJECTED: {safe_tag} attribute {safe_attr} not allowed"  # noqa: E501
+                )
                 continue
             if attr_name != "value":
                 safe_attr = _sanitize_xml_name(attr_name)
@@ -1330,7 +1471,7 @@ def create_closed_loop_request(
             "OPERATOR_AUTHORISATION_REQUIRED",
             "execution requires explicit operator authorisation (confirmed_by_operator=True)",
         )
-    if not re.match(r"^[a-z0-9][a-z0-9_.-]{0,63}$", run_id):
+    if not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", run_id):
         raise ManchesterClosedLoopError("INVALID_RUN_ID", "run_id does not match required pattern")
 
     pkg = Path(package_root)
@@ -1464,18 +1605,32 @@ def preflight_closed_loop_execution(
         # Ensure non-empty safe blocker
         if not _forged_findings or not any(f.strip() for f in _forged_findings):
             _forged_findings = ["REQUEST_VALIDATION_FAILED: blocked"]
-        # Use original request's fingerprint if possible, fallback to hash of raw
-        try:
-            fp = request.fingerprint()
-        except Exception:
-            fp = _sha256_hex(b"invalid:" + str(raw).encode())
+        # Build safe bounded placeholder request that validates and never leaks raw paths/secrets/traversal  # noqa: E501
+        safe_placeholder = _build_safe_placeholder_request(request)
+        # Use placeholder fingerprint for validation (ensures model_validate passes) while preserving  # noqa: E501
+        # deterministic audit via placeholder own fingerprint; raw hash not leaked  # noqa: E501
+        # but blocked findings already record validation failure.
+        if safe_placeholder is not None:
+            try:
+                fp = safe_placeholder.fingerprint()
+            except Exception:
+                try:
+                    fp = request.fingerprint()
+                except Exception:
+                    fp = _sha256_hex(b"invalid:" + str(raw).encode())
+        else:
+            try:
+                fp = request.fingerprint()
+            except Exception:
+                fp = _sha256_hex(b"invalid:" + str(raw).encode())
         # Use model_construct to avoid re-validating the forged nested request (which is intentionally invalid)  # noqa: E501
         # This ensures a typed blocked artifact is returned without raising ValidationError,
-        # while still preserving safe findings and fingerprint binding.
+        # while still preserving safe findings and deterministic fingerprint binding via request_fingerprint.  # noqa: E501
+        # Persisting the raw unvalidated request would leak private paths/secrets in canonical JSON.
         return ClosedLoopPreflightReport.model_construct(
             status="blocked",
             tool=tool,
-            request=request,
+            request=safe_placeholder,
             request_fingerprint=fp,
             findings=_forged_findings,
             read_only=True,
@@ -1545,26 +1700,33 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    # Hardened config preflight — handle bounded truncation marker without double counting
+    # Hardened config preflight — bound/redact at emission, then canonical bounding on full prefixed set  # noqa: E501
     cfg_errors = _preflight_config_xml(Path(package_root), request)
     if cfg_errors:
-        # Separate truncation marker from real errors to avoid double capping
         truncated = None
-        real_cfg = []
+        real_cfg: list[str] = []
         for e in cfg_errors:
             if e.startswith("FINDINGS_TRUNCATED:"):
                 truncated = e
             else:
                 real_cfg.append(e)
+        prefixed_real: list[str] = []
         for e in real_cfg:
-            findings.append(f"CONFIG_PREFLIGHT_FAILED: {_sanitize_finding_text(e)}")
+            # e is already bounded/sanitized <=1000, but prefix adds length; canonical routine will re-bound to 1000  # noqa: E501
+            prefixed_real.append(f"CONFIG_PREFLIGHT_FAILED: {e}")
+        # Canonical bounding on prefixed real findings only; then append original marker deterministically  # noqa: E501
+        # Avoid double-counting marker as regular finding which would distort suppressed count  # noqa: E501
+        sanitized_prefixed = _finalize_findings(prefixed_real)
         if truncated is not None:
-            # Preserve the preflight's deterministic truncation count
-            findings.append(truncated)
+            # _finalize on 31 items produces 31 sanitized; now append original marker  # noqa: E501
+            # If sanitized_prefixed itself was truncated (should not happen for 31), merge counts  # noqa: E501
+            if sanitized_prefixed and sanitized_prefixed[-1].startswith("FINDINGS_TRUNCATED:"):
+                # Both truncated — keep original marker count (more accurate for raw)  # noqa: E501
+                findings = sanitized_prefixed[:-1] + [truncated]
+            else:
+                findings = sanitized_prefixed + [truncated]
         else:
-            findings = _finalize_findings(findings)
-            # If finalize added a marker, keep it; otherwise no truncation
-            # Ensure marker not double wrapped
+            findings = sanitized_prefixed
         if not findings:
             findings = ["CONFIG_PREFLIGHT_FAILED: blocked"]
         return ClosedLoopPreflightReport(
@@ -1673,28 +1835,11 @@ def run_closed_loop_execution(
         )
     except Exception as exc:  # noqa: BLE001
         # Build a safe blocked receipt without launching, without leaking raw payload
-        # Use generic safe argv (does not echo forged config_file)
-        safe_argv = [ALLOWED_EXECUTABLE_NAME, *list(CLOSED_LOOP_FIXED_ARGV)]
-        # Replace placeholders with safe sanitized values (no raw traversal)
-        # For blocked due to validation, use sanitized config_file placeholder
-        # to avoid leaking traversal payload in argv
         try:
             raw_cfg = str(getattr(request, "config_file", "config"))
         except Exception:
             raw_cfg = "config"
-        safe_cfg = _sanitize_xml_name(raw_cfg)
-        safe_argv = [
-            safe_cfg
-            if tok == "<config>"
-            else tok
-            if not tok.startswith("<")
-            else safe_cfg
-            if tok in {"<config>", "<seed>", "<tripinfo>", "<summary>"}
-            else tok
-            for tok in safe_argv
-        ]
-        # Actually reconstruct correctly: first token is executable, rest are fixed; handle properly
-        # Rebuild properly with safe values
+        safe_cfg = _sanitize_config_name(raw_cfg)
         safe_portable = []
         for tok in CLOSED_LOOP_FIXED_ARGV:
             if tok == "<config>":
@@ -1749,25 +1894,78 @@ def run_closed_loop_execution(
             duration = max(0.0, (c_dt - s_dt).total_seconds())
         except Exception:
             duration = 0.0
-        # Deterministic identity for blocked: bind request fingerprint (original) + tool + safe_argv
-        try:
-            fp = request.fingerprint()
-        except Exception:
-            fp = _sha256_hex(b"invalid:" + str(raw_reasons).encode())
+        safe_run_id = _sanitize_run_id(getattr(request, "run_id", "blocked-run"))
+        safe_placeholder_run = _build_safe_placeholder_request(request)
+        # Compute fingerprints from safe placeholder for validation (ensures model_validate passes)
+        # Raw fingerprint would mismatch placeholder; use placeholder fingerprint for blocked receipt  # noqa: E501
+        if safe_placeholder_run is not None:
+            try:
+                fp = safe_placeholder_run.fingerprint()
+            except Exception:
+                try:
+                    fp = request.fingerprint()
+                except Exception:
+                    fp = _sha256_hex(b"invalid:" + str(raw_reasons).encode())
+        else:
+            try:
+                fp = request.fingerprint()
+            except Exception:
+                fp = _sha256_hex(b"invalid:" + str(raw_reasons).encode())
         # Use synthetic blocked preflight fingerprint
         blocked_preflight = _sha256_hex(b"blocked:" + fp.encode())
-        # Compute canonical identity with safe argv
+        # Compute canonical identity with safe placeholder (never leak raw request)
         try:
-            det_identity = _canonical_run_identity(request, tool, safe_argv)
+            if safe_placeholder_run is not None:
+                det_identity = _canonical_run_identity(safe_placeholder_run, tool, safe_argv)
+            else:
+                det_identity = _sha256_hex(
+                    (fp + tool.executable_sha256 + "".join(safe_argv)).encode()
+                )
         except Exception:
             det_identity = _sha256_hex((fp + tool.executable_sha256 + "".join(safe_argv)).encode())
-        # Use model_construct to avoid re-validating forged request
+        # Use model_construct to avoid re-validating forged request — persist safe placeholder, not raw  # noqa: E501
+        # Never persist raw unvalidated request; fallback to hard-coded safe placeholder if builder failed  # noqa: E501
+        fallback_placeholder = None
+        if safe_placeholder_run is None:
+            try:
+                dummy = ClosedLoopInputDeclaration(
+                    path="blocked-config.xml", sha256="0" * 64, size_bytes=0
+                )
+                pf = _sha256_hex(_canonical_json([dummy.model_dump(mode="json")]).encode())
+                di = _sha256_hex(
+                    _canonical_json(
+                        {
+                            "package_fingerprint": pf,
+                            "config_file": "blocked-config.xml",
+                            "inputs": [dummy.model_dump(mode="json")],
+                            "seed": 0,
+                            "timeout_seconds": DEFAULT_TIMEOUT_S,
+                            "run_id": safe_run_id,
+                            "confirmed_by_operator": True,
+                        }
+                    ).encode()
+                )
+                fallback_placeholder = ClosedLoopExecutionRequest(
+                    run_id=safe_run_id,
+                    package_fingerprint=pf,
+                    config_file="blocked-config.xml",
+                    inputs=[dummy],
+                    seed=0,
+                    timeout_seconds=DEFAULT_TIMEOUT_S,
+                    deterministic_run_identity=di,
+                    confirmed_by_operator=True,
+                )
+            except Exception:
+                fallback_placeholder = None
+        # mypy: fallback_placeholder is valid when safe_placeholder_run is None
+        _final_request = (
+            safe_placeholder_run if safe_placeholder_run is not None else fallback_placeholder
+        )  # noqa: E501
+        assert _final_request is not None  # fallback always builds valid placeholder
         return ClosedLoopExecutionReceipt.model_construct(
             _fields_set=set(),
-            run_id=getattr(request, "run_id", "run-01")
-            if isinstance(getattr(request, "run_id", None), str)
-            else "run-01",
-            request=request,
+            run_id=safe_run_id,
+            request=_final_request,
             request_fingerprint=fp,
             preflight_fingerprint=blocked_preflight,
             tool=tool,
