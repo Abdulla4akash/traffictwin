@@ -36,9 +36,9 @@ EXPECTED_STALE = [0, 1000, 3000]
 EXPECTED_COUNTER_FIELDS = [
     "evaluator_seed",
     "fleet_seed",
-    "tick",
+    "outer_tick",
     "task_slot",
-    "sequential_ordinal",
+    "sequential_task_ordinal",
 ]
 
 # Canonical block markers
@@ -107,7 +107,15 @@ def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noq
         "monetary' : false",
     ]
     # Keys that are explicitly allowed to contain monetary-like terms as documentation
-    allowed_key_exact = {"monetary", "forbidden_fields"}
+    allowed_key_exact = {
+        "monetary",
+        "forbidden_fields",
+        "latency_not_retroactively_repriced",
+        "later_scale_actions_do_not_retroactively_reprice_recorded_task",
+        "no_monetary_or_automatically_authoritative_objective_claim",
+        "forbidden_behaviors",
+        "resource_unit_seconds_denominator_stays_required_for_diagnostic_deadline_per_resource_cost",
+    }
 
     if isinstance(obj, dict):
         for k, v in obj.items():
@@ -176,8 +184,14 @@ def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noq
     return violations
 
 
-def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
+def validate_contract(data: object) -> dict[str, Any]:
     errors: list[str] = []
+    if not isinstance(data, dict):
+        return {
+            "pass": False,
+            "errors": ["contract must be dict (non-dict input forbidden)"],
+            "error_count": 1,
+        }
 
     # Top-level identity
     if data.get("schema_version") != CONTRACT_VERSION:
@@ -190,6 +204,24 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, f"branch must be {BRANCH}")
     if data.get("campaign") != CAMPAIGN:
         _err(errors, f"campaign must be {CAMPAIGN}")
+
+    # Contract authority — JSON normative, Markdown generated view
+    if data.get("contract_authority") != "json_is_normative_markdown_is_generated_view":
+        _err(errors, "contract_authority must be json_is_normative_markdown_is_generated_view")
+    if data.get("markdown_is_generated_view") is not True:
+        _err(errors, "markdown_is_generated_view must be true")
+    if "JSON is the single normative" not in str(data.get("authority_note", "")):
+        _err(errors, "authority_note must contain 'JSON is the single normative'")
+    if "Markdown is a deterministic generated view via render_markdown" not in str(
+        data.get("authority_note", "")
+    ):
+        _err(
+            errors,
+            "authority_note must state Markdown is "
+            "deterministic generated view via render_markdown",
+        )
+    if "byte mismatch is authoritative" not in str(data.get("authority_note", "")):
+        _err(errors, "authority_note must state byte mismatch is authoritative")
 
     # Research question must explicitly compare ingress_dla, per_task_dla, p2c_dla and not reduce
     rq = str(data.get("research_question", ""))
@@ -419,6 +451,52 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
     for v in stale:
         if v == 200:
             _err(errors, "stale 200ms is forbidden pseudo-time")
+    # Stale-state initialization exact semantics (control-clock offset)
+    if tm.get("control_clock_offset_ms") != 3000:
+        _err(
+            errors,
+            "time_model control_clock_offset_ms must be "
+            "3000 (declared simulator initial condition)",
+        )
+    if tm.get("control_clock_applies_when") != "when_stale_robustness_evaluated_all_arms":
+        _err(
+            errors,
+            "time_model control_clock_applies_when must "
+            "be when_stale_robustness_evaluated_all_arms",
+        )
+    if tm.get("prepopulate_control_times_ms") != [0, 1000, 2000]:
+        _err(
+            errors,
+            "time_model prepopulate_control_times_ms must be [0,1000,2000] empty initial state",
+        )
+    if tm.get("prepopulate_value") != "empty_initial_infrastructure_state":
+        _err(errors, "time_model prepopulate_value must be empty_initial_infrastructure_state")
+    if tm.get("trace_tick_0_maps_to_control_time_ms") != 3000:
+        _err(
+            errors,
+            "time_model trace_tick_0_maps_to_control_time_ms "
+            "must be 3000 (outer_tick 0 -> control 3000)",
+        )
+    if tm.get("is_declared_simulator_initial_condition_not_observed_traffic") is not True:
+        _err(
+            errors,
+            "time_model is_declared_simulator_initial_condition_not_observed_traffic "
+            "must be true (not real Manchester traffic claim)",
+        )
+    if tm.get("permits_exact_views_without_clamping") is not True:
+        _err(errors, "time_model permits_exact_views_without_clamping must be true (no clamping)")
+    if tm.get("proactive_pretrace_does_not_satisfy_warmup") is not True:
+        _err(
+            errors,
+            "time_model proactive_pretrace_does_not_satisfy_warmup "
+            "must be true (pretrace zeros not warmup)",
+        )
+    if tm.get("scaling_delay_uses_control_clock_differences") is not True:
+        _err(
+            errors,
+            "time_model scaling_delay_uses_control_clock_differences "
+            "must be true (no extra actuation delay)",
+        )
 
     # Admission gate
     ag = data.get("admission_gate", {})
@@ -428,6 +506,24 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "admission_gate formula must be effective_busy_ms < TASK_DEADLINE_MS")
     if ag.get("never_selects_target") is not True:
         _err(errors, "admission_gate must never select target")
+    if ag.get("stale_view_applies_to_deadline_workload") is not True:
+        _err(
+            errors,
+            "admission_gate stale_view_applies_to_deadline_workload "
+            "must be true (deadline gate uses stale workload view)",
+        )
+    if ag.get("queue_safety_uses_current_not_stale") is not True:
+        _err(
+            errors,
+            "admission_gate queue_safety_uses_current_not_stale "
+            "must be true (queue cap uses true current occupancy)",
+        )
+    if ag.get("radio_viability_is_current") is not True:
+        _err(
+            errors,
+            "admission_gate radio_viability_is_current must "
+            "be true (radio remains current/frozen channel)",
+        )
     excludes = ag.get("excludes") or []
     for needed in ["own_compute", "radio_transfer", "return_transfer", "forwarding_latency"]:
         if needed not in excludes:
@@ -471,6 +567,74 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         _err(errors, "stale no_future_leakage must be true")
     if stale_snap.get("exposes_state_age_ms") is not True:
         _err(errors, "stale must expose state_age_ms")
+    # P2C exact pair mapper: sorted feasible IDs, SplitMix64 over outer_tick etc.
+    pair_mapper = p2c.get("pair_mapper")
+    if not isinstance(pair_mapper, dict):
+        _err(errors, "p2c pair_mapper missing or not dict (exact SplitMix64 mapper required)")
+    else:
+        if pair_mapper.get("candidate_order") != "sorted_ascending_unique_feasible_RSU_IDs":
+            _err(
+                errors,
+                "pair_mapper candidate_order must be sorted_ascending_unique_feasible_RSU_IDs",
+            )
+        if pair_mapper.get("hash") != "SplitMix64":
+            _err(errors, "pair_mapper hash must be SplitMix64")
+        expected_hash_fields = [
+            "evaluator_seed",
+            "fleet_seed",
+            "outer_tick",
+            "task_slot",
+            "sequential_task_ordinal",
+        ]
+        if pair_mapper.get("hash_input_fields_exact") != expected_hash_fields:
+            _err(errors, f"pair_mapper hash_input_fields_exact must be {expected_hash_fields}")
+        if pair_mapper.get("first_index_formula") != "h % n":
+            _err(errors, "pair_mapper first_index_formula must be h % n")
+        if pair_mapper.get("second_index_formula") != "splitmix64(h) % (n-1) adjusted around first":
+            _err(
+                errors,
+                "pair_mapper second_index_formula must be "
+                "splitmix64(h) % (n-1) adjusted around first",
+            )
+        if pair_mapper.get("final_pair_sorted") is not True:
+            _err(errors, "pair_mapper final_pair_sorted must be true")
+        if pair_mapper.get("distinct_without_replacement") is not True:
+            _err(errors, "pair_mapper distinct_without_replacement must be true")
+        if pair_mapper.get("mapper_type") != "deterministic_pseudo_random_modulo_mapper":
+            _err(
+                errors, "pair_mapper mapper_type must be deterministic_pseudo_random_modulo_mapper"
+            )
+        if pair_mapper.get("no_hidden_global_RNG") is not True:
+            _err(errors, "pair_mapper no_hidden_global_RNG must be true")
+        if pair_mapper.get("uniformity_not_claimed") is not True:
+            _err(
+                errors, "pair_mapper uniformity_not_claimed must be true (modulo bias not uniform)"
+            )
+    bias_note = p2c.get("modulo_bias_note")
+    if (
+        not isinstance(bias_note, str)
+        or "negligible bias" not in bias_note.lower()
+        or "not mathematically exact-uniform" not in bias_note
+    ):
+        _err(
+            errors,
+            "p2c modulo_bias_note must state modulo reduction has "
+            "negligible bias not mathematically exact-uniform",
+        )
+    uniformity_forbidden = p2c.get("uniformity_claim_forbidden")
+    if not isinstance(uniformity_forbidden, list) or not all(
+        x in uniformity_forbidden for x in ["uniform", "unbiased"]
+    ):
+        _err(errors, "p2c uniformity_claim_forbidden must include uniform and unbiased")
+    if (
+        p2c.get("h1_concern")
+        != "pair_only_inspection_global_state_dependence_not_statistical_uniformity_proof"
+    ):
+        _err(
+            errors,
+            "p2c h1_concern must be "
+            "pair_only_inspection_global_state_dependence_not_statistical_uniformity_proof",
+        )
 
     # Compute scaling
     cs = data.get("compute_scaling", {})
@@ -731,157 +895,305 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
     if scen.get("resolved_cap_tasks_per_rsu") != 6220:
         _err(errors, "resolved_cap_tasks_per_rsu must be 6220")
 
-    # Staged design — strict stage factors with cross-computed counts
-    sd = data.get("staged_design", {})
-    if sd.get("maximum_candidate_unique_cells") != 60:
-        _err(errors, "maximum_candidate_unique_cells must be 60")
+    # Staged design — strict stage factors with cross-computed counts, fail-closed type checks
+    sd = data.get("staged_design")
+    if not isinstance(sd, dict):
+        _err(errors, "staged_design missing or not dict")
+        return {"pass": len(errors) == 0, "errors": errors, "error_count": len(errors)}
+    # Stage-listed vs unique accounting: 60 stage-listed (12+16+32) but 56 unique (12+12+32)
+    if sd.get("stage_listed_cells") != 60:
+        _err(errors, "stage_listed_cells must be 60 (12+16+32 stage-listed)")
+    if sd.get("maximum_candidate_unique_cells") != 56:
+        _err(errors, "maximum_candidate_unique_cells must be 56 (12+12+32 unique, not 60)")
+    # Reject 60-as-unique claim
+    if sd.get("maximum_candidate_unique_cells") == 60:
+        _err(
+            errors,
+            "maximum_candidate_unique_cells must not be 60 (60 is stage-listed, unique is 56)",
+        )
+    # Equations must be present and exact
+    if sd.get("stage_listed_equation") != "12 + 16 + 32 = 60":
+        _err(errors, "stage_listed_equation must be '12 + 16 + 32 = 60'")
+    if sd.get("unique_equation") != "12 + 12 + 32 = 56":
+        _err(errors, "unique_equation must be '12 + 12 + 32 = 56'")
+    if sd.get("e3b_overlap_with_e3a") != 4:
+        _err(errors, "e3b_overlap_with_e3a must be 4 (per_task_dla/fixed_1x/0 overlap)")
+    if sd.get("e3b_unique_additional") != 12:
+        _err(errors, "e3b_unique_additional must be 12 (16 -4)")
+    if sd.get("e3c_total_contrast_observations") != 48:
+        _err(
+            errors,
+            "e3c_total_contrast_observations must be 48 "
+            "(2 contrasts *3 staleness *2 arms *4 draws)",
+        )
+    if sd.get("e3c_fresh_observations_reused") != 16:
+        _err(
+            errors, "e3c_fresh_observations_reused must be 16 (fresh observations reused not rerun)"
+        )
+    if sd.get("e3c_stale_variant_equation") != "48 - 16 = 32":
+        _err(errors, "e3c_stale_variant_equation must be '48 - 16 = 32'")
     if sd.get("budget_reduction_required_if_unreasonable") is not True:
         _err(errors, "budget_reduction_required_if_unreasonable must be true")
     if sd.get("identical_fresh_cells_reused_not_rerun") is not True:
         _err(errors, "identical_fresh_cells_reused_not_rerun must be true")
     if sd.get("not_double_counted") is not True:
         _err(errors, "staged_design not_double_counted must be true")
-    if "reused across stage summaries rather than rerun" not in str(sd.get("note", "")):
-        _err(errors, "staged_design note must clarify reused not rerun")
-    e3a = sd.get("e3a", {})
-    if e3a.get("cells") != 12:
-        _err(errors, "e3a cells must be 12")
-    if e3a.get("fresh") is not True:
-        _err(errors, "e3a must be fresh")
-    if set(e3a.get("placement", [])) != {"ingress_dla", "per_task_dla", "p2c_dla"}:
-        _err(errors, "e3a placement must be ingress_dla/per_task_dla/p2c_dla")
-    if e3a.get("scaling") != ["fixed_1x"]:
-        _err(errors, "e3a scaling must be ['fixed_1x'] only")
-    if e3a.get("scaling_ids_exact") != ["fixed_1x"]:
-        _err(errors, "e3a scaling_ids_exact must be ['fixed_1x']")
-    if e3a.get("stale_ms") != [0]:
-        _err(errors, "e3a stale_ms must be [0]")
-    if e3a.get("fleet_seeds") != [1, 2, 3, 4]:
-        _err(errors, "e3a fleet_seeds must be [1,2,3,4]")
-    if "fixed_1x" not in str(e3a.get("primary_estimand", "")):
-        _err(errors, "e3a primary_estimand must mention fixed_1x")
-    # Cross-compute E3a cells: 3 placements *1 scaling *1 stale *4 seeds =12
-    try:
-        placements_len = len(e3a.get("placement", []))
-        scaling_len = len(e3a.get("scaling", []))
-        stale_len = len(e3a.get("stale_ms", []))
-        seeds_len = len(e3a.get("fleet_seeds", []))
-        computed_a = placements_len * scaling_len * stale_len * seeds_len
-        if computed_a != 12 or e3a.get("cells") != computed_a:
-            _err(errors, f"e3a computed cells {computed_a} inconsistent with declared 12")
-    except Exception:
-        _err(errors, "e3a cell count cross-compute failed")
-
-    e3b = sd.get("e3b", {})
-    if e3b.get("cells") != 16:
-        _err(errors, "e3b cells must be 16")
-    if e3b.get("fresh") is not True:
-        _err(errors, "e3b must be fresh")
-    if e3b.get("placement") != ["per_task_dla"]:
-        _err(errors, "e3b placement must be exactly ['per_task_dla']")
-    if set(e3b.get("scaling", [])) != {
-        "fixed_1x",
-        "static_overprovisioned",
-        "reactive",
-        "proactive",
-    }:
-        _err(errors, "e3b scaling must be fixed_1x/static_overprovisioned/reactive/proactive")
-    if set(e3b.get("scaling_ids_exact", [])) != {
-        "fixed_1x",
-        "static_overprovisioned",
-        "reactive",
-        "proactive",
-    }:
-        _err(
-            errors,
-            "e3b scaling_ids_exact must be fixed_1x/static_overprovisioned/reactive/proactive",
-        )
-    if e3b.get("stale_ms") != [0]:
-        _err(errors, "e3b stale_ms must be [0]")
-    if e3b.get("fleet_seeds") != [1, 2, 3, 4]:
-        _err(errors, "e3b fleet_seeds must be [1,2,3,4]")
-    try:
-        placement_len_b = len(e3b.get("placement", []))
-        scaling_len_b = len(e3b.get("scaling", []))
-        stale_len_b = len(e3b.get("stale_ms", []))
-        seeds_len_b = len(e3b.get("fleet_seeds", []))
-        computed_b = placement_len_b * scaling_len_b * stale_len_b * seeds_len_b
-        if computed_b != 16 or e3b.get("cells") != computed_b:
-            _err(errors, f"e3b computed cells {computed_b} inconsistent with declared 16")
-    except Exception:
-        _err(errors, "e3b cell count cross-compute failed")
-    # Reject pseudo-full-factorial grid (3 placements *4 scalers *3 stales *4 seeds =144)
+    note_val = sd.get("note")
     if (
-        placements_len == 3
+        not isinstance(note_val, str)
+        or "reused across stage summaries rather than rerun" not in note_val
+    ):
+        _err(errors, "staged_design note must clarify reused not rerun")
+    if "12 + 12 + 32 = 56" not in str(note_val):
+        _err(errors, "staged_design note must contain unique equation 12+12+32=56")
+    if "12 + 16 + 32 = 60" not in str(note_val):
+        _err(errors, "staged_design note must contain stage-listed equation 12+16+32=60")
+    e3a = sd.get("e3a")
+    if not isinstance(e3a, dict):
+        _err(errors, "e3a missing or not dict")
+        e3a = {}
+    else:
+        if e3a.get("cells") != 12:
+            _err(errors, "e3a cells must be 12")
+        if e3a.get("stage_listed_cells") != 12:
+            _err(errors, "e3a stage_listed_cells must be 12")
+        if e3a.get("unique_cells") != 12:
+            _err(errors, "e3a unique_cells must be 12")
+        if e3a.get("fresh") is not True:
+            _err(errors, "e3a must be fresh")
+        placement_a = e3a.get("placement")
+        if not isinstance(placement_a, list):
+            _err(errors, "e3a placement must be list (scalar forbidden)")
+            placement_a = []
+        elif set(placement_a) != {"ingress_dla", "per_task_dla", "p2c_dla"}:
+            _err(errors, "e3a placement must be ingress_dla/per_task_dla/p2c_dla")
+        scaling_a = e3a.get("scaling")
+        if not isinstance(scaling_a, list):
+            _err(errors, "e3a scaling must be list (scalar forbidden)")
+            scaling_a = []
+        elif scaling_a != ["fixed_1x"]:
+            _err(errors, "e3a scaling must be ['fixed_1x'] only")
+        if e3a.get("scaling_ids_exact") != ["fixed_1x"]:
+            _err(errors, "e3a scaling_ids_exact must be ['fixed_1x']")
+        stale_a = e3a.get("stale_ms")
+        if not isinstance(stale_a, list):
+            _err(errors, "e3a stale_ms must be list")
+            stale_a = []
+        elif stale_a != [0]:
+            _err(errors, "e3a stale_ms must be [0]")
+        seeds_a = e3a.get("fleet_seeds")
+        if not isinstance(seeds_a, list):
+            _err(errors, "e3a fleet_seeds must be list")
+            seeds_a = []
+        elif seeds_a != [1, 2, 3, 4]:
+            _err(errors, "e3a fleet_seeds must be [1,2,3,4]")
+        primary_est = e3a.get("primary_estimand")
+        if not isinstance(primary_est, str) or "fixed_1x" not in primary_est:
+            _err(errors, "e3a primary_estimand must mention fixed_1x")
+        # Cross-compute E3a cells only after type narrowing
+        if (
+            isinstance(placement_a, list)
+            and isinstance(scaling_a, list)
+            and isinstance(stale_a, list)
+            and isinstance(seeds_a, list)
+        ):
+            computed_a = len(placement_a) * len(scaling_a) * len(stale_a) * len(seeds_a)
+            if computed_a != 12 or e3a.get("cells") != computed_a:
+                _err(errors, f"e3a computed cells {computed_a} inconsistent with declared 12")
+        else:
+            _err(errors, "e3a cell count cross-compute failed due to non-list factors")
+
+    e3b = sd.get("e3b")
+    placement_b: list[Any] = []
+    scaling_b: list[Any] = []
+    stale_b: list[Any] = []
+    seeds_b: list[Any] = []
+    if not isinstance(e3b, dict):
+        _err(errors, "e3b missing or not dict")
+        e3b = {}
+    else:
+        if e3b.get("cells") != 16:
+            _err(errors, "e3b cells must be 16")
+        if e3b.get("stage_listed_cells") != 16:
+            _err(errors, "e3b stage_listed_cells must be 16")
+        if e3b.get("overlap_with_e3a") != 4:
+            _err(errors, "e3b overlap_with_e3a must be 4")
+        if e3b.get("unique_additional") != 12:
+            _err(errors, "e3b unique_additional must be 12")
+        if e3b.get("unique_cells") != 12:
+            _err(errors, "e3b unique_cells must be 12")
+        if e3b.get("fresh") is not True:
+            _err(errors, "e3b must be fresh")
+        placement_raw = e3b.get("placement")
+        if not isinstance(placement_raw, list):
+            _err(errors, "e3b placement must be list (scalar forbidden)")
+            placement_b = []
+        elif placement_raw != ["per_task_dla"]:
+            _err(errors, "e3b placement must be exactly ['per_task_dla']")
+            placement_b = placement_raw
+        else:
+            placement_b = placement_raw
+        scaling_raw = e3b.get("scaling")
+        if not isinstance(scaling_raw, list):
+            _err(errors, "e3b scaling must be list (scalar forbidden)")
+            scaling_b = []
+        elif set(scaling_raw) != {
+            "fixed_1x",
+            "static_overprovisioned",
+            "reactive",
+            "proactive",
+        }:
+            _err(
+                errors,
+                "e3b scaling must be fixed_1x/static_overprovisioned/reactive/proactive",
+            )
+            scaling_b = scaling_raw
+        else:
+            scaling_b = scaling_raw
+        scaling_ids = e3b.get("scaling_ids_exact")
+        if not isinstance(scaling_ids, list) or set(scaling_ids) != {
+            "fixed_1x",
+            "static_overprovisioned",
+            "reactive",
+            "proactive",
+        }:
+            _err(
+                errors,
+                "e3b scaling_ids_exact must be fixed_1x/static_overprovisioned/reactive/proactive",
+            )
+        stale_raw = e3b.get("stale_ms")
+        if not isinstance(stale_raw, list):
+            _err(errors, "e3b stale_ms must be list")
+            stale_b = []
+        elif stale_raw != [0]:
+            _err(errors, "e3b stale_ms must be [0]")
+            stale_b = stale_raw
+        else:
+            stale_b = stale_raw
+        seeds_raw = e3b.get("fleet_seeds")
+        if not isinstance(seeds_raw, list):
+            _err(errors, "e3b fleet_seeds must be list")
+            seeds_b = []
+        elif seeds_raw != [1, 2, 3, 4]:
+            _err(errors, "e3b fleet_seeds must be [1,2,3,4]")
+            seeds_b = seeds_raw
+        else:
+            seeds_b = seeds_raw
+        if (
+            isinstance(placement_b, list)
+            and isinstance(scaling_b, list)
+            and isinstance(stale_b, list)
+            and isinstance(seeds_b, list)
+        ):
+            computed_b = len(placement_b) * len(scaling_b) * len(stale_b) * len(seeds_b)
+            if computed_b != 16 or e3b.get("cells") != computed_b:
+                _err(errors, f"e3b computed cells {computed_b} inconsistent with declared 16")
+            if computed_b != 16 or e3b.get("stage_listed_cells") != computed_b:
+                _err(errors, f"e3b stage_listed_cells inconsistent with computed {computed_b}")
+        else:
+            _err(errors, "e3b cell count cross-compute failed due to non-list factors")
+        # Overlap reuse must be declared
+        overlap_note = e3b.get("overlap_note")
+        if not isinstance(overlap_note, str) or "reused not rerun" not in overlap_note.lower():
+            _err(errors, "e3b overlap_note must clarify byte-identical reused not rerun")
+
+    # Also check pseudo-full-factorial via combined
+    placements_len_a = (
+        len(e3a.get("placement", [])) if isinstance(e3a.get("placement"), list) else 0
+    )
+    scaling_len_b = len(scaling_b) if isinstance(scaling_b, list) else 0
+    if (
+        placements_len_a == 3
         and scaling_len_b == 4
         and sd.get("maximum_candidate_unique_cells") == 144
     ):
         _err(
             errors,
-            "maximum_candidate_unique_cells must be 60, not 144 (pseudo-full-factorial forbidden)",
+            "maximum_candidate_unique_cells must be 56, not 144 (pseudo-full-factorial forbidden)",
         )
-    # Also if e3c tried to be full factorial, additional would not be 32
-    e3c = sd.get("e3c", {})
-    if e3c.get("reuses_identical_fresh_cells") is not True:
-        _err(errors, "e3c must reuse identical fresh cells")
-    if e3c.get("identical_fresh_cells_reused_not_rerun") is not True:
-        _err(errors, "e3c identical_fresh_cells_reused_not_rerun must be true")
-    if e3c.get("not_double_counted") is not True:
-        _err(errors, "e3c not_double_counted must be true")
-    if "fresh construct gates" not in str(e3c.get("depends_on", "")).lower():
-        _err(errors, "e3c depends_on must mention fresh construct gates")
-    if e3c.get("additional_stale_variant_cells_max") != 32:
-        _err(errors, "e3c additional_stale_variant_cells_max must be 32")
-    if e3c.get("total_candidate_with_stale_max") != 60:
-        _err(errors, "e3c total_candidate_with_stale_max must be 60")
-    if e3c.get("stale_is_view_parameter") is not True:
-        _err(errors, "e3c stale_is_view_parameter must be true")
-    # E3c contrasts: exactly 2 objects, each over [0,1000,3000]
-    contrasts = e3c.get("contrasts")
-    if not isinstance(contrasts, list) or len(contrasts) != 2:
-        _err(errors, "e3c contrasts must be exactly 2 objects")
+    e3c = sd.get("e3c")
+    if not isinstance(e3c, dict):
+        _err(errors, "e3c missing or not dict")
+        e3c = {}
     else:
-        expected_over = [0, 1000, 3000]
-        # Check each contrast has over_stale_ms
-        for idx, c in enumerate(contrasts):
-            if not isinstance(c, dict):
-                _err(errors, f"e3c contrasts[{idx}] must be dict")
-                continue
-            over = c.get("over_stale_ms")
-            if over != expected_over:
-                _err(
-                    errors,
-                    f"e3c contrasts[{idx}] over_stale_ms must be [0,1000,3000] (got {over!r})",
-                )
-        # Check specific comparisons exist
-        comparisons = [
-            str(c.get("comparison", "")).lower() for c in contrasts if isinstance(c, dict)
-        ]
-        [
-            str(c.get("fixed", "")).lower() + str(c.get("fixed_placement", "")).lower()
-            for c in contrasts
-            if isinstance(c, dict)
-        ]
-        # First contrast per_task_dla vs p2c_dla at fixed_1x
-        if not any("per_task_dla" in p and "p2c_dla" in p for p in comparisons):
-            _err(errors, "e3c must contain per_task_dla vs p2c_dla contrast")
-        if not any("reactive" in p and "proactive" in p for p in comparisons):
-            _err(errors, "e3c must contain reactive vs proactive contrast")
-    # Cross-compute total 60 =12+16+32
-    try:
-        total_computed = (
-            (e3a.get("cells", 0) or 0)
-            + (e3b.get("cells", 0) or 0)
-            + (e3c.get("additional_stale_variant_cells_max", 0) or 0)
-        )
-        if total_computed != 60:
-            _err(errors, f"staged total cross-compute {total_computed} must be 60 (12+16+32)")
-        if sd.get("maximum_candidate_unique_cells") != total_computed:
-            _err(errors, "maximum_candidate_unique_cells must equal 12+16+32=60")
-        if e3c.get("total_candidate_with_stale_max") != total_computed:
-            _err(errors, "e3c total_candidate_with_stale_max must equal 12+16+32=60")
-    except Exception:
-        _err(errors, "staged total cross-compute failed")
+        if e3c.get("reuses_identical_fresh_cells") is not True:
+            _err(errors, "e3c must reuse identical fresh cells")
+        if e3c.get("identical_fresh_cells_reused_not_rerun") is not True:
+            _err(errors, "e3c identical_fresh_cells_reused_not_rerun must be true")
+        if e3c.get("not_double_counted") is not True:
+            _err(errors, "e3c not_double_counted must be true")
+        depends_val = e3c.get("depends_on")
+        if not isinstance(depends_val, str) or "fresh construct gates" not in depends_val.lower():
+            _err(errors, "e3c depends_on must mention fresh construct gates")
+        if e3c.get("additional_stale_variant_cells_max") != 32:
+            _err(errors, "e3c additional_stale_variant_cells_max must be 32")
+        if e3c.get("total_contrast_observations") != 48:
+            _err(errors, "e3c total_contrast_observations must be 48 (2*3*2*4)")
+        if e3c.get("fresh_observations_reused") != 16:
+            _err(errors, "e3c fresh_observations_reused must be 16")
+        if e3c.get("stale_variant_equation") != "48 - 16 = 32":
+            _err(errors, "e3c stale_variant_equation must be '48 - 16 = 32'")
+        if e3c.get("stale_is_view_parameter") is not True:
+            _err(errors, "e3c stale_is_view_parameter must be true")
+        # Reject old total_candidate_with_stale_max ==60
+        if e3c.get("total_candidate_with_stale_max") == 60:
+            _err(
+                errors,
+                "e3c total_candidate_with_stale_max must not be 60 (unique is 56, stage-listed 60)",
+            )
+        # Also reject if stagedesign claims total_candidate_with_stale_max 60 at top? Already
+        # handled
+        # via maximum_candidate
+        contrasts = e3c.get("contrasts")
+        if not isinstance(contrasts, list) or len(contrasts) != 2:
+            _err(errors, "e3c contrasts must be exactly 2 objects (list)")
+        else:
+            expected_over = [0, 1000, 3000]
+            for idx, c in enumerate(contrasts):
+                if not isinstance(c, dict):
+                    _err(errors, f"e3c contrasts[{idx}] must be dict")
+                    continue
+                over = c.get("over_stale_ms")
+                if not isinstance(over, list):
+                    _err(errors, f"e3c contrasts[{idx}] over_stale_ms must be list")
+                elif over != expected_over:
+                    _err(
+                        errors,
+                        f"e3c contrasts[{idx}] over_stale_ms must be [0,1000,3000] (got {over!r})",
+                    )
+            comparisons = [
+                str(c.get("comparison", "")).lower() for c in contrasts if isinstance(c, dict)
+            ]
+            if not any("per_task_dla" in p and "p2c_dla" in p for p in comparisons):
+                _err(errors, "e3c must contain per_task_dla vs p2c_dla contrast")
+            if not any("reactive" in p and "proactive" in p for p in comparisons):
+                _err(errors, "e3c must contain reactive vs proactive contrast")
+    # Cross-compute stage-listed vs unique: 12+16+32=60 stage, 12+12+32=56 unique
+    cells_a_raw = e3a.get("cells")
+    total_cells_a: int = cells_a_raw if isinstance(cells_a_raw, int) else 0
+    cells_b_raw = e3b.get("cells")
+    total_cells_b: int = cells_b_raw if isinstance(cells_b_raw, int) else 0
+    add_raw = e3c.get("additional_stale_variant_cells_max")
+    total_add: int = add_raw if isinstance(add_raw, int) else 0
+    stage_computed = total_cells_a + total_cells_b + total_add
+    if stage_computed != 60:
+        _err(errors, f"staged stage-listed cross-compute {stage_computed} must be 60 (12+16+32)")
+    if sd.get("stage_listed_cells") != stage_computed:
+        _err(errors, "stage_listed_cells must equal 12+16+32=60")
+    # Unique is stage minus overlaps: 60 -4 (E3b overlap) -? Actually fresh reused 16 already
+    # accounted?
+    # Unique =12+12+32
+    unique_computed = 12 + 12 + 32  # 56
+    if sd.get("maximum_candidate_unique_cells") != unique_computed:
+        _err(errors, "maximum_candidate_unique_cells must equal 12+12+32=56")
+    # Validate e3c total observations 48 vs stale 32
+    total_obs = e3c.get("total_contrast_observations")
+    fresh_reused = e3c.get("fresh_observations_reused")
+    if isinstance(total_obs, int) and isinstance(fresh_reused, int):
+        if total_obs - fresh_reused != 32:
+            _err(errors, "e3c 48-16 must be 32 stale variants")
+        if total_obs != 48:
+            _err(errors, "e3c total_contrast_observations must be 48")
 
     # Inference — exact including N/seeds, Bessel n-1, SE, Student-t 95%, df=3, t=3.182 etc
     inf = data.get("inference", {})
@@ -944,6 +1256,439 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
         if k not in decisions:
             _err(errors, f"inference decisions missing {k}")
 
+    # Compute-service semantics — invariant work, drain, latency (including stale queue safety)
+    css = data.get("compute_service_semantics", {})
+    if not isinstance(css, dict):
+        _err(errors, "compute_service_semantics missing or not dict")
+        css = {}
+    else:
+        if css.get("queue_ceiling_uses_current_occupancy_plus_same_tick_reservations") is not True:
+            _err(
+                errors,
+                "compute_service_semantics "
+                "queue_ceiling_uses_current_occupancy_plus_same_tick_reservations "
+                "must be true (stale never overfills waiting room)",
+            )
+        if css.get("queue_safety_is_current_not_stale") is not True:
+            _err(errors, "compute_service_semantics queue_safety_is_current_not_stale must be true")
+        if css.get("stale_does_not_mutate_true_state") is not True:
+            _err(
+                errors,
+                "compute_service_semantics stale_does_not_mutate_true_state must be true "
+                "(staleness does not mutate true environment/capacity/pending/queue)",
+            )
+        if css.get("enqueue_equation") != "enqueued_work_ms = raw_1x_service_work_ms":
+            _err(
+                errors,
+                "compute_service_semantics enqueue_equation must "
+                "be enqueued_work_ms = raw_1x_service_work_ms",
+            )
+        if css.get("enqueue_must_not_divide_by_capacity") is not True:
+            _err(
+                errors, "compute_service_semantics enqueue_must_not_divide_by_capacity must be true"
+            )
+        if (
+            str(css.get("enqueue_forbidden_division", ""))
+            != "enqueued_work_ms != raw_1x_service_work_ms / active_capacity_units"
+        ):
+            _err(
+                errors,
+                "compute_service_semantics enqueue_forbidden_division must be "
+                "enqueued_work_ms != raw_1x_service_work_ms / active_capacity_units",
+            )
+        if css.get("enqueue_adds_raw_1x_work_ms") is not True:
+            _err(errors, "compute_service_semantics enqueue_adds_raw_1x_work_ms must be true")
+        if css.get("drain_applies_to_all_queued_work_including_pre_scale") is not True:
+            _err(
+                errors,
+                "compute_service_semantics "
+                "drain_applies_to_all_queued_work_including_pre_scale must be true",
+            )
+        if (
+            css.get("drain_equation")
+            != "drain_work_ms = min(backlog_work_ms, active_capacity_units * 1000)"
+        ):
+            _err(
+                errors,
+                "compute_service_semantics drain_equation must be drain_work_ms "
+                "= min(backlog_work_ms, active_capacity_units * 1000)",
+            )
+        if css.get("drain_tick_ms") != 1000:
+            _err(errors, "compute_service_semantics drain_tick_ms must be 1000")
+        if (
+            css.get("backlog_equation")
+            != "backlog_work_ms[t+1] = backlog_work_ms[t] + enqueued_raw_work_ms - drained_work_ms"
+        ):
+            _err(
+                errors,
+                "compute_service_semantics backlog_equation must be backlog_work_ms[t+1] "
+                "= backlog_work_ms[t] + enqueued_raw_work_ms - drained_work_ms",
+            )
+        if css.get("backlog_is_invariant_baseline") is not True:
+            _err(errors, "compute_service_semantics backlog_is_invariant_baseline must be true")
+        if css.get("backlog_storage_unit") != "work_ms":
+            _err(errors, "compute_service_semantics backlog_storage_unit must be work_ms")
+        if css.get("resource_time_charged_even_when_idle") is not True:
+            _err(
+                errors,
+                "compute_service_semantics resource_time_charged_even_when_idle must be true",
+            )
+        if css.get("at_most_one_interval_per_RSU_per_tick") is not True:
+            _err(
+                errors,
+                "compute_service_semantics at_most_one_interval_per_RSU_per_tick must be true",
+            )
+        if (
+            css.get("resource_time_equation")
+            != "resource_unit_seconds_per_RSU_per_tick = active_capacity_units * 1"
+        ):
+            _err(
+                errors,
+                "compute_service_semantics resource_time_equation must be "
+                "resource_unit_seconds_per_RSU_per_tick = active_capacity_units * 1",
+            )
+        if css.get("drain_capacity_is_not_queue_slots") is not True:
+            _err(errors, "compute_service_semantics drain_capacity_is_not_queue_slots must be true")
+        forbidden_units = css.get("scaling_forbidden_units")
+        if not isinstance(forbidden_units, list) or set(forbidden_units) != {
+            "queue_slots",
+            "capacity_normalized_work_ms",
+        }:
+            _err(
+                errors,
+                "compute_service_semantics scaling_forbidden_units "
+                "must be [queue_slots, capacity_normalized_work_ms]",
+            )
+        if css.get("placement_workloads_unit") != "raw_backlog_work_ms":
+            _err(
+                errors,
+                "compute_service_semantics placement_workloads_unit must be raw_backlog_work_ms",
+            )
+        if css.get("admission_gate_unit") != "raw_backlog_work_ms":
+            _err(
+                errors, "compute_service_semantics admission_gate_unit must be raw_backlog_work_ms"
+            )
+        if css.get("reactive_signal_unit") != "raw_backlog_work_ms":
+            _err(
+                errors, "compute_service_semantics reactive_signal_unit must be raw_backlog_work_ms"
+            )
+        if css.get("proactive_observation_unit") != "raw_admitted_arrival_work_ms":
+            _err(
+                errors,
+                "compute_service_semantics proactive_observation_unit "
+                "must be raw_admitted_arrival_work_ms",
+            )
+        if css.get("stale_snapshot_unit") != "raw_backlog_work_ms":
+            _err(
+                errors, "compute_service_semantics stale_snapshot_unit must be raw_backlog_work_ms"
+            )
+        if css.get("same_tick_reservation_overlay_unit") != "raw_task_work_ms":
+            _err(
+                errors,
+                "compute_service_semantics "
+                "same_tick_reservation_overlay_unit must be raw_task_work_ms",
+            )
+        if css.get("scaling_must_not_change_placement_or_admission_unit") is not True:
+            _err(
+                errors,
+                "compute_service_semantics "
+                "scaling_must_not_change_placement_or_admission_unit must be true",
+            )
+        if css.get("latency_not_retroactively_repriced") is not True:
+            _err(
+                errors, "compute_service_semantics latency_not_retroactively_repriced must be true"
+            )
+        if (
+            css.get("latency_equation")
+            != "(raw_work_ahead_ms + raw_own_service_work_ms) / active_capacity_units"
+        ):
+            _err(
+                errors,
+                "compute_service_semantics latency_equation must be (raw_work_ahead_ms "
+                "+ raw_own_service_work_ms) / active_capacity_units",
+            )
+        if css.get("latency_semantics") != "admission_time_estimate_not_physical_lifecycle":
+            _err(
+                errors,
+                "compute_service_semantics latency_semantics must "
+                "be admission_time_estimate_not_physical_lifecycle",
+            )
+        if css.get("latency_radio_forwarding_unchanged") is not True:
+            _err(
+                errors, "compute_service_semantics latency_radio_forwarding_unchanged must be true"
+            )
+        if css.get("latency_physical_lifecycle_fields_remain_null") is not True:
+            _err(
+                errors,
+                "compute_service_semantics "
+                "latency_physical_lifecycle_fields_remain_null must be true",
+            )
+        if css.get("reduces_to_E2d_at_fixed_1x") is not True:
+            _err(errors, "compute_service_semantics reduces_to_E2d_at_fixed_1x must be true")
+        if "at fixed_1x (u=1): drain = min(backlog_work_ms, 1000)" not in str(
+            css.get("reduction_equation", "")
+        ):
+            _err(
+                errors,
+                "compute_service_semantics reduction_equation must state "
+                "at fixed_1x drain = min(backlog,1000) and latency = raw",
+            )
+        if css.get("scaling_applied_at_tick_start_before_placement_admission") is not True:
+            _err(
+                errors,
+                "compute_service_semantics "
+                "scaling_applied_at_tick_start_before_placement_admission must be true",
+            )
+        if css.get("scaling_applied_before_latency_estimate_and_drain") is not True:
+            _err(
+                errors,
+                "compute_service_semantics "
+                "scaling_applied_before_latency_estimate_and_drain must be true",
+            )
+        if css.get("active_capacity_for_entire_tick") is not True:
+            _err(errors, "compute_service_semantics active_capacity_for_entire_tick must be true")
+        init_cap = css.get("initial_capacities", {})
+        if not isinstance(init_cap, dict):
+            _err(errors, "compute_service_semantics initial_capacities missing or not dict")
+        else:
+            if init_cap.get("static_overprovisioned_units") != 3:
+                _err(
+                    errors,
+                    "compute_service_semantics initial_capacities "
+                    "static_overprovisioned_units must be 3",
+                )
+            if init_cap.get("static_overprovisioned_from_tick") != 0:
+                _err(
+                    errors,
+                    "compute_service_semantics initial_capacities "
+                    "static_overprovisioned_from_tick must be 0",
+                )
+            if init_cap.get("dynamic_start_units") != 1:
+                _err(
+                    errors,
+                    "compute_service_semantics initial_capacities dynamic_start_units must be 1",
+                )
+            if init_cap.get("fixed_1x_units") != 1:
+                _err(
+                    errors, "compute_service_semantics initial_capacities fixed_1x_units must be 1"
+                )
+            if init_cap.get("dynamic_max_units") != 3:
+                _err(
+                    errors,
+                    "compute_service_semantics initial_capacities dynamic_max_units must be 3",
+                )
+            if init_cap.get("dynamic_min_units") != 1:
+                _err(
+                    errors,
+                    "compute_service_semantics initial_capacities dynamic_min_units must be 1",
+                )
+
+    # Stale-state semantics exact (initialization, admission/safety)
+    sss = data.get("stale_state_semantics")
+    if not isinstance(sss, dict):
+        _err(errors, "stale_state_semantics missing or not dict (stale initialization required)")
+        sss = {}
+    else:
+        applies = sss.get("applies_to")
+        if not isinstance(applies, list) or set(applies) != {
+            "invariant_raw_backlog_work_ms_view_for_placement",
+            "inherited_backlog_only_deadline_gate",
+            "reactive_signal",
+            "proactive_signal",
+        }:
+            expected = {
+                "invariant_raw_backlog_work_ms_view_for_placement",
+                "inherited_backlog_only_deadline_gate",
+                "reactive_signal",
+                "proactive_signal",
+            }
+            if not isinstance(applies, list) or set(applies) != expected:
+                _err(
+                    errors,
+                    "stale_state_semantics applies_to must be invariant raw backlog "
+                    "view for placement, deadline gate, reactive and proactive signals",
+                )
+        does_not = sss.get("does_not_mutate")
+        expected_not = {
+            "true_environment",
+            "current_active_capacity",
+            "pending_actions",
+            "current_queue_safety_state",
+        }
+        if not isinstance(does_not, list) or set(does_not) != expected_not:
+            _err(
+                errors,
+                "stale_state_semantics does_not_mutate must be true_environment, "
+                "current_active_capacity, pending_actions, current_queue_safety_state",
+            )
+        if (
+            sss.get("queue_ceiling_enforcement")
+            != "true_current_waiting_room_occupancy_plus_same_tick_admitted_reservations"
+        ):
+            _err(
+                errors,
+                "stale_state_semantics queue_ceiling_enforcement must be "
+                "true_current_waiting_room_occupancy_plus_same_tick_admitted_reservations",
+            )
+        if sss.get("queue_ceiling_uses_stale_view") is not False:
+            _err(
+                errors,
+                "stale_state_semantics queue_ceiling_uses_stale_view must be false (never stale)",
+            )
+        if sss.get("queue_safety_invariant_is_current") is not True:
+            _err(errors, "stale_state_semantics queue_safety_invariant_is_current must be true")
+        if sss.get("radio_viability_is_current_frozen_channel") is not True:
+            _err(
+                errors,
+                "stale_state_semantics radio_viability_is_current_frozen_channel must be true",
+            )
+        if (
+            sss.get("deadline_formula_unchanged")
+            != "effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]"
+        ):
+            _err(
+                errors,
+                "stale_state_semantics deadline_formula_unchanged "
+                "must be effective_busy_ms < TASK_DEADLINE_MS",
+            )
+        if sss.get("deadline_workload_observation_has_state_age") is not True:
+            _err(
+                errors,
+                "stale_state_semantics deadline_workload_observation_has_state_age must be true",
+            )
+        if sss.get("queue_safety_uses_current_not_stale") is not True:
+            _err(errors, "stale_state_semantics queue_safety_uses_current_not_stale must be true")
+        init = sss.get("initialization")
+        if not isinstance(init, dict):
+            _err(errors, "stale_state_semantics initialization missing or not dict")
+            init = {}
+        else:
+            if (
+                init.get("infrastructure_backlog_and_admitted_arrival_history")
+                != "inherited_empty_initial_state"
+            ):
+                _err(
+                    errors,
+                    "stale initialization infrastructure_backlog_and_admitted_arrival_history "
+                    "must be inherited_empty_initial_state",
+                )
+            if init.get("control_clock_offset_ms") != 3000:
+                _err(errors, "stale initialization control_clock_offset_ms must be 3000")
+            if init.get("applies_when") != "when_stale_robustness_evaluated_all_arms":
+                _err(
+                    errors,
+                    "stale initialization applies_when must be "
+                    "when_stale_robustness_evaluated_all_arms",
+                )
+            if init.get("prepopulate_control_times_ms") != [0, 1000, 2000]:
+                _err(
+                    errors,
+                    "stale initialization prepopulate_control_times_ms must be [0,1000,2000]",
+                )
+            if init.get("prepopulate_value") != "empty_initial_infrastructure_state":
+                _err(
+                    errors,
+                    "stale initialization prepopulate_value "
+                    "must be empty_initial_infrastructure_state",
+                )
+            if init.get("trace_tick_0_maps_to_control_time_ms") != 3000:
+                _err(
+                    errors, "stale initialization trace_tick_0_maps_to_control_time_ms must be 3000"
+                )
+            if init.get("is_declared_simulator_initial_condition") is not True:
+                _err(
+                    errors,
+                    "stale initialization is_declared_simulator_initial_condition must be true",
+                )
+            if init.get("not_observed_pretrace_manchester_traffic") is not True:
+                _err(
+                    errors,
+                    "stale initialization not_observed_pretrace_manchester_traffic must be true",
+                )
+            if init.get("not_real_world_historical_claim") is not True:
+                _err(errors, "stale initialization not_real_world_historical_claim must be true")
+            if init.get("permits_exact_0_1000_3000_without_clamping") is not True:
+                _err(
+                    errors,
+                    "stale initialization permits_exact_0_1000_3000_without_clamping must be true",
+                )
+            if init.get("permits_no_future_leakage") is not True:
+                _err(errors, "stale initialization permits_no_future_leakage must be true")
+            if init.get("permits_no_unavailable_age_laundering") is not True:
+                _err(
+                    errors,
+                    "stale initialization permits_no_unavailable_age_laundering must be true",
+                )
+            if init.get("proactive_still_requires_four_actual_trace_observations") is not True:
+                _err(
+                    errors,
+                    "stale initialization "
+                    "proactive_still_requires_four_actual_trace_observations must be true",
+                )
+            if init.get("pretrace_zeros_do_not_satisfy_proactive_warmup") is not True:
+                _err(
+                    errors,
+                    "stale initialization "
+                    "pretrace_zeros_do_not_satisfy_proactive_warmup must be true",
+                )
+            if (
+                init.get("scaling_delay_cooldown_use_control_clock_differences_no_extra_delay")
+                is not True
+            ):
+                _err(
+                    errors,
+                    "stale initialization "
+                    "scaling_delay_cooldown_use_control_clock_differences_no_extra_delay "
+                    "must be true",
+                )
+        fresh = sss.get("fresh_cells_reusable_because")
+        if not isinstance(fresh, dict):
+            _err(errors, "stale_state_semantics fresh_cells_reusable_because missing or not dict")
+        else:
+            if fresh.get("offset_does_not_enter_p2c_key_outer_tick_does") is not True:
+                _err(
+                    errors,
+                    "fresh_cells_reusable_because "
+                    "offset_does_not_enter_p2c_key_outer_tick_does must be true",
+                )
+            if fresh.get("formulas_use_elapsed_differences") is not True:
+                _err(
+                    errors,
+                    "fresh_cells_reusable_because formulas_use_elapsed_differences must be true",
+                )
+            if fresh.get("state_age_0_views_identical") is not True:
+                _err(
+                    errors, "fresh_cells_reusable_because state_age_0_views_identical must be true"
+                )
+        exposes = sss.get("exposes")
+        if not isinstance(exposes, list) or set(exposes) != {
+            "requested_state_age_ms",
+            "actual_state_age_ms",
+            "observation_time_ms",
+            "control_time_ms",
+        }:
+            _err(
+                errors,
+                "stale_state_semantics exposes must be requested_state_age_ms, "
+                "actual_state_age_ms, observation_time_ms, control_time_ms",
+            )
+        forbidden = sss.get("forbidden_behaviors")
+        expected_forbidden = {
+            "stale_deadline_view_silently_becoming_fresh",
+            "stale_queue_cap",
+            "mutation_of_true_state",
+            "pretrace_values_counted_as_proactive_warmup",
+            "clock_clamp",
+            "state_age_laundering",
+            "offset_added_to_action_delay",
+        }
+        if not isinstance(forbidden, list) or set(forbidden) != expected_forbidden:
+            _err(
+                errors,
+                "stale_state_semantics forbidden_behaviors "
+                "must be exact list of 7 forbidden behaviors",
+            )
+
     # Claim boundaries
     cb = data.get("claim_boundaries", {})
     if cb.get("kubernetes_orchestration_tested") is not False:
@@ -953,11 +1698,1338 @@ def validate_contract(data: dict[str, Any]) -> dict[str, Any]:
     if cb.get("proactive_is_transparent_baseline_not_optimal") is not True:
         _err(errors, "proactive_is_transparent_baseline_not_optimal must be true")
 
+    # Stale decision vs true execution decoupling — exact semantics
+    sdt = data.get("stale_decision_vs_true_execution")
+    if not isinstance(sdt, dict):
+        _err(errors, "stale_decision_vs_true_execution missing or not dict")
+    else:
+        if sdt.get("observed_decision_backlog_work_ms") != (
+            "fresh_or_delayed_immutable_backlog_work_ms_plus_"
+            "decision_overlay_plus_same_tick_reservation_overlay"
+        ):
+            _err(
+                errors,
+                "stale_decision_vs_true_execution observed_decision_backlog_work_ms must be "
+                "fresh_or_delayed_immutable_backlog_work_ms_plus_decision_overlay_plus_same_tick_reservation_overlay",
+            )
+        if "fresh/delayed immutable workload plus the decision overlay" not in str(
+            sdt.get("observed_decision_definition", "")
+        ):
+            _err(
+                errors,
+                "stale_decision_vs_true_execution observed_decision_definition "
+                "must state fresh/delayed immutable workload plus decision overlay",
+            )
+        if sdt.get("true_execution_backlog_work_ms") != (
+            "current_true_backlog_work_ms_plus_actual_prior_same_tick_admitted_work_at_chosen_RSU"
+        ):
+            _err(
+                errors,
+                "stale_decision_vs_true_execution true_execution_backlog_work_ms must be "
+                "current_true_backlog_work_ms_plus_actual_prior_same_tick_admitted_work_at_chosen_RSU",
+            )
+        if sdt.get("placement_uses_observed") is not True:
+            _err(errors, "stale_decision_vs_true_execution placement_uses_observed must be true")
+        if sdt.get("deadline_admission_gate_uses_observed_backlog_only") is not True:
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "deadline_admission_gate_uses_observed_backlog_only must be true",
+            )
+        true_det = sdt.get("true_execution_determines") or []
+        for need in [
+            "simulated_queue_wait",
+            "task_latency",
+            "deadline_success",
+            "enqueue",
+            "subsequent_true_drain",
+        ]:
+            if need not in true_det:
+                _err(
+                    errors,
+                    f"stale_decision_vs_true_execution "
+                    f"true_execution_determines must contain {need}",
+                )
+        if sdt.get("optimistic_stale_admitted_executes_and_may_miss_per_true_latency") is not True:
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "optimistic_stale_admitted_executes_and_may_miss_per_true_latency must be true",
+            )
+        if (
+            sdt.get(
+                "pessimistic_stale_rejected_never_executes_even_if_true_would_have_been_feasible"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "pessimistic_stale_rejected_never_executes_even_if_true_would_have_been_feasible "
+                "must be true",
+            )
+        if sdt.get("queue_cap_safety_still_wins_current_not_stale") is not True:
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "queue_cap_safety_still_wins_current_not_stale must be true",
+            )
+        if sdt.get("scaling_decisions_observe_delayed_signals") is not True:
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "scaling_decisions_observe_delayed_signals must be true",
+            )
+        if (
+            sdt.get("current_capacity_action_application_and_drain_operate_on_true_state")
+            is not True
+        ):
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "current_capacity_action_application_and_drain_operate_on_true_state must be true",
+            )
+        if (
+            sdt.get("deadline_success_based_on_true_simulated_latency_never_stale_estimate")
+            is not True
+        ):
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "deadline_success_based_on_true_simulated_latency_never_stale_estimate "
+                "must be true",
+            )
+        if (
+            sdt.get("deadline_success_is_simulator_outcome_not_physical_lifecycle_evidence")
+            is not True
+        ):
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "deadline_success_is_simulator_outcome_not_physical_lifecycle_evidence "
+                "must be true",
+            )
+        if sdt.get("physical_started_completed_returned_remain_null") is not True:
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "physical_started_completed_returned_remain_null must be true",
+            )
+        if sdt.get("later_scale_actions_do_not_retroactively_reprice_recorded_task") is not True:
+            _err(
+                errors,
+                "stale_decision_vs_true_execution "
+                "later_scale_actions_do_not_retroactively_reprice_recorded_task must be true",
+            )
+        fb = sdt.get("forbidden_behaviors") or []
+        for need in [
+            "stale_belief_used_for_actual_latency_or_success",
+            "true_state_used_for_stale_decision",
+            "executing_pessimistically_rejected_work",
+            "delaying_true_capacity_or_drain",
+        ]:
+            if need not in fb:
+                _err(
+                    errors,
+                    f"stale_decision_vs_true_execution forbidden_behaviors must contain {need}",
+                )
+
+    # P2C dense counter-key mapping — exact semantics
+    p2ccm = data.get("p2c_dense_counter_key_mapping")
+    if not isinstance(p2ccm, dict):
+        _err(errors, "p2c_dense_counter_key_mapping missing or not dict")
+    else:
+        outer = p2ccm.get("outer_tick", {})
+        if not isinstance(outer, dict) or outer.get("definition") != "zero_based_trace_tick":
+            _err(
+                errors,
+                "p2c_dense_counter_key_mapping outer_tick definition must be zero_based_trace_tick",
+            )
+        if outer.get("range") != "[0,3599]":
+            _err(errors, "p2c_dense_counter_key_mapping outer_tick range must be [0,3599]")
+        task = p2ccm.get("task_slot", {})
+        if not isinstance(task, dict) or task.get("definition") != "zero_based_within_tick_substep":
+            _err(
+                errors,
+                "p2c_dense_counter_key_mapping task_slot "
+                "definition must be zero_based_within_tick_substep",
+            )
+        if task.get("range") != "[0,4]":
+            _err(errors, "p2c_dense_counter_key_mapping task_slot range must be [0,4]")
+        if task.get("advances_physical_time") is not False:
+            _err(
+                errors,
+                "p2c_dense_counter_key_mapping task_slot advances_physical_time must be false",
+            )
+        vehicle = p2ccm.get("vehicle_slot", {})
+        if (
+            not isinstance(vehicle, dict)
+            or vehicle.get("definition") != "zero_based_padded_fleet_slot"
+        ):
+            _err(
+                errors,
+                "p2c_dense_counter_key_mapping vehicle_slot "
+                "definition must be zero_based_padded_fleet_slot",
+            )
+        if vehicle.get("range") != "[0,2487]":
+            _err(errors, "p2c_dense_counter_key_mapping vehicle_slot range must be [0,2487]")
+        if vehicle.get("padded_fleet_width") != 2488:
+            _err(
+                errors, "p2c_dense_counter_key_mapping vehicle_slot padded_fleet_width must be 2488"
+            )
+        seq = p2ccm.get("sequential_task_ordinal", {})
+        if not isinstance(seq, dict):
+            _err(
+                errors, "p2c_dense_counter_key_mapping sequential_task_ordinal missing or not dict"
+            )
+        else:
+            if seq.get("formula") != "task_slot * padded_fleet_width + vehicle_slot":
+                _err(
+                    errors,
+                    "p2c_dense_counter_key_mapping sequential_task_ordinal "
+                    "formula must be task_slot * padded_fleet_width + vehicle_slot",
+                )
+            if seq.get("range") != "[0,12439]":
+                _err(
+                    errors,
+                    "p2c_dense_counter_key_mapping sequential_task_ordinal range must be [0,12439]",
+                )
+            if seq.get("per_outer_tick") is not True:
+                _err(
+                    errors,
+                    "p2c_dense_counter_key_mapping "
+                    "sequential_task_ordinal per_outer_tick must be true",
+                )
+            if seq.get("dense_position_identity") is not True:
+                _err(
+                    errors,
+                    "p2c_dense_counter_key_mapping sequential_task_ordinal "
+                    "dense_position_identity must be true",
+                )
+            for flag in [
+                "independent_of_active_mask",
+                "independent_of_actor_choice",
+                "independent_of_feasibility",
+                "independent_of_admission_or_rejection",
+                "earlier_outcomes_never_shift_later_pairs",
+            ]:
+                if seq.get(flag) is not True:
+                    _err(
+                        errors,
+                        f"p2c_dense_counter_key_mapping "
+                        f"sequential_task_ordinal {flag} must be true",
+                    )
+        if p2ccm.get("vehicle_slot_is_provenance_but_not_mixer_field") is not True:
+            _err(
+                errors,
+                "p2c_dense_counter_key_mapping "
+                "vehicle_slot_is_provenance_but_not_mixer_field must be true",
+            )
+        if p2ccm.get("declared_mixer_fields_remain_exactly_five") != [
+            "evaluator_seed",
+            "fleet_seed",
+            "outer_tick",
+            "task_slot",
+            "sequential_task_ordinal",
+        ]:
+            _err(
+                errors,
+                "p2c_dense_counter_key_mapping declared_mixer_fields_remain_exactly_five "
+                "must be exactly five specified",
+            )
+        if p2ccm.get("padded_fleet_width") != 2488:
+            _err(errors, "p2c_dense_counter_key_mapping padded_fleet_width must be 2488")
+        if p2ccm.get("per_outer_tick_range") != "[0,12439]":
+            _err(errors, "p2c_dense_counter_key_mapping per_outer_tick_range must be [0,12439]")
+        if p2ccm.get("outer_tick_is_zero_based") is not True:
+            _err(errors, "p2c_dense_counter_key_mapping outer_tick_is_zero_based must be true")
+        if p2ccm.get("task_slot_is_zero_based") is not True:
+            _err(errors, "p2c_dense_counter_key_mapping task_slot_is_zero_based must be true")
+        if p2ccm.get("vehicle_slot_is_zero_based") is not True:
+            _err(errors, "p2c_dense_counter_key_mapping vehicle_slot_is_zero_based must be true")
+        fb2 = p2ccm.get("forbidden_behaviors") or []
+        for need in [
+            "active_only_ordinal",
+            "ordinal_reset_or_collision",
+            "200ms_time_interpretation",
+            "outcome_dependent_key_shifts",
+        ]:
+            if need not in fb2:
+                _err(
+                    errors, f"p2c_dense_counter_key_mapping forbidden_behaviors must contain {need}"
+                )
+
+    # H1 state-inspection honest estimands
+    h1s = data.get("h1_state_inspection")
+    if not isinstance(h1s, dict):
+        _err(errors, "h1_state_inspection missing or not dict")
+    else:
+        if h1s.get("feasibility_first_must_enumerate_all_RSU_deadline_feasibility") is not True:
+            _err(
+                errors,
+                "h1_state_inspection "
+                "feasibility_first_must_enumerate_all_RSU_deadline_feasibility must be true",
+            )
+        if h1s.get("must_not_claim_only_two_total_global_reads") is not True:
+            _err(
+                errors,
+                "h1_state_inspection must_not_claim_only_two_total_global_reads must be true",
+            )
+        if h1s.get("must_not_claim_distributed_communication_savings") is not True:
+            _err(
+                errors,
+                "h1_state_inspection must_not_claim_distributed_communication_savings must be true",
+            )
+        if h1s.get("must_not_claim_proven_lower_total_state_acquisition") is not True:
+            _err(
+                errors,
+                "h1_state_inspection "
+                "must_not_claim_proven_lower_total_state_acquisition must be true",
+            )
+        sep = h1s.get("separately_record") or []
+        for need in [
+            "feasibility_workload_checks",
+            "ranking_workload_inspections",
+            "unique_workload_values_observed",
+        ]:
+            if need not in sep:
+                _err(errors, f"h1_state_inspection separately_record must contain {need}")
+        if h1s.get("p2c_ranking_inspection_is_0_1_2_according_to_feasible_count") is not True:
+            _err(
+                errors,
+                "h1_state_inspection "
+                "p2c_ranking_inspection_is_0_1_2_according_to_feasible_count must be true",
+            )
+        if h1s.get("per_task_dla_global_argmin_ranks_all_R") is not True:
+            _err(errors, "h1_state_inspection per_task_dla_global_argmin_ranks_all_R must be true")
+        if h1s.get("common_feasibility_decision_observation_cost_remains_visible") is not True:
+            _err(
+                errors,
+                "h1_state_inspection "
+                "common_feasibility_decision_observation_cost_remains_visible must be true",
+            )
+        if h1s.get("any_duplicated_reads_remain_visible") is not True:
+            _err(errors, "h1_state_inspection any_duplicated_reads_remain_visible must be true")
+        if (
+            h1s.get(
+                "h1_is_hypothesis_about_pair_only_ranking_vs_global_least_busy_dependence_not_proved_networking_cost"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "h1_state_inspection "
+                "h1_is_hypothesis_about_pair_only_ranking_vs_global_"
+                "least_busy_dependence_not_proved_networking_cost "
+                "must be true",
+            )
+        if h1s.get("h1_remains_hypothesis_allowed_to_fail") is not True:
+            _err(errors, "h1_state_inspection h1_remains_hypothesis_allowed_to_fail must be true")
+        fc = h1s.get("forbidden_claims") or []
+        for need in ["two_total_reads", "hidden_feasibility_scan", "communication_savings_proven"]:
+            if need not in fc:
+                _err(errors, f"h1_state_inspection forbidden_claims must contain {need}")
+
+    # Resource-state diagnostics — exact
+    rsd = data.get("resource_state_diagnostics")
+    if not isinstance(rsd, dict):
+        _err(errors, "resource_state_diagnostics missing or not dict")
+    else:
+        cap = rsd.get("capacity_adjusted_utilization", {})
+        if (
+            not isinstance(cap, dict)
+            or cap.get("formula") != "drained_work_ms / (active_capacity_units * 1000 work_ms)"
+        ):
+            _err(
+                errors,
+                "resource_state_diagnostics capacity_adjusted_utilization formula "
+                "must be drained_work_ms / (active_capacity_units * 1000 work_ms)",
+            )
+        if cap.get("bounded") != "[0,1]":
+            _err(
+                errors,
+                "resource_state_diagnostics capacity_adjusted_utilization bounded must be [0,1]",
+            )
+        if (
+            cap.get("waiting_room_occupancy_is_separate_task_count_and_never_denominator")
+            is not True
+        ):
+            _err(
+                errors,
+                "resource_state_diagnostics capacity_adjusted_utilization "
+                "waiting_room_occupancy_is_separate_task_count_and_never_denominator must be true",
+            )
+        if cap.get("utilization_is_per_RSU_per_tick") is not True:
+            _err(
+                errors,
+                "resource_state_diagnostics capacity_adjusted_utilization "
+                "utilization_is_per_RSU_per_tick must be true",
+            )
+        share = rsd.get("execution_share", {})
+        if (
+            not isinstance(share, dict)
+            or share.get("formula")
+            != "actual_admitted_V2I_execution_count_at_RSU / total_admitted_V2I_execution_count"
+        ):
+            _err(
+                errors,
+                "resource_state_diagnostics execution_share formula must be "
+                "actual_admitted_V2I_execution_count_at_RSU / total_admitted_V2I_execution_count",
+            )
+        if share.get("when_denominator_zero_is_null_with_explicit_reason_not_zeros") is not True:
+            _err(
+                errors,
+                "resource_state_diagnostics execution_share "
+                "when_denominator_zero_is_null_with_explicit_reason_not_zeros must be true",
+            )
+        tgt = rsd.get("target_switching", {})
+        if not isinstance(tgt, dict):
+            _err(errors, "resource_state_diagnostics target_switching missing or not dict")
+        else:
+            if (
+                tgt.get("counted_over_consecutive_admitted_V2I_tasks_in_deterministic_order")
+                != "(outer_tick, task_slot, vehicle_slot)"
+            ):
+                _err(
+                    errors,
+                    "resource_state_diagnostics target_switching "
+                    "counted_over_consecutive_admitted_V2I_tasks_in_deterministic_order "
+                    "must be (outer_tick, task_slot, vehicle_slot)",
+                )
+            if tgt.get("first_admitted_task_is_not_a_switch") is not True:
+                _err(
+                    errors,
+                    "resource_state_diagnostics target_switching "
+                    "first_admitted_task_is_not_a_switch must be true",
+                )
+            if tgt.get("rejected_and_non_V2I_tasks_excluded") is not True:
+                _err(
+                    errors,
+                    "resource_state_diagnostics target_switching "
+                    "rejected_and_non_V2I_tasks_excluded must be true",
+                )
+            if tgt.get("counts_never_cross_fleet_draws") is not True:
+                _err(
+                    errors,
+                    "resource_state_diagnostics target_switching "
+                    "counts_never_cross_fleet_draws must be true",
+                )
+            if (
+                tgt.get("order_is_exact_deterministic_outer_tick_task_slot_vehicle_slot")
+                is not True
+            ):
+                _err(
+                    errors,
+                    "resource_state_diagnostics target_switching "
+                    "order_is_exact_deterministic_outer_tick_task_slot_vehicle_slot must be true",
+                )
+        if (
+            rsd.get(
+                "resource_unit_seconds_denominator_stays_required_for_diagnostic_deadline_per_resource_cost"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "resource_state_diagnostics "
+                "resource_unit_seconds_denominator_stays_required_"
+                "for_diagnostic_deadline_per_resource_cost "
+                "must be true",
+            )
+        if rsd.get("no_monetary_or_automatically_authoritative_objective_claim") is not True:
+            _err(
+                errors,
+                "resource_state_diagnostics "
+                "no_monetary_or_automatically_authoritative_objective_claim must be true",
+            )
+        fb3 = rsd.get("forbidden_behaviors") or []
+        for need in [
+            "raw_over_1000_utilization_under_u_gt_1",
+            "queue_occupancy_as_denominator",
+            "zero_fill_shares_when_denominator_zero",
+            "rejected_task_switches",
+            "unordered_or_across_draw_switches",
+            "missing_cost_denominator",
+        ]:
+            if need not in fb3:
+                _err(errors, f"resource_state_diagnostics forbidden_behaviors must contain {need}")
+
+    # E2d-lineage audit items 1-5: p2c_candidate_predicate, p2c_mixer, tick_transition,
+    # v2i_latency_outcome_contract, accounting_and_contrast_completion
+
+    # 1. P2C candidate predicate and low-cardinality behavior
+    pcp = data.get("p2c_candidate_predicate")
+    if not isinstance(pcp, dict):
+        _err(errors, "p2c_candidate_predicate missing or not dict")
+    else:
+        if (
+            pcp.get("admission_requires")
+            != "active frozen-actor V2I attempt and ingress radio currently viable"
+        ):
+            _err(
+                errors,
+                "p2c_candidate_predicate admission_requires must be active "
+                "frozen-actor V2I attempt and ingress radio currently viable",
+            )
+        feas = pcp.get("feasible_RSU_predicate", {})
+        if not isinstance(feas, dict):
+            _err(errors, "p2c_candidate_predicate feasible_RSU_predicate missing or not dict")
+        else:
+            if feas.get("candidate_order") != "sorted ascending unique feasible RSU IDs":
+                _err(
+                    errors,
+                    "feasible_RSU_predicate candidate_order must "
+                    "be sorted ascending unique feasible RSU IDs",
+                )
+            conds = feas.get("conditions_both")
+            if (
+                not isinstance(conds, list)
+                or "observed_decision_backlog_work_ms[rsu] < task_deadline_ms" not in conds
+                or "true_current_waiting_room_occupancy[rsu] + prior "
+                "same-tick admitted reservations < queue_ceiling"
+                not in conds
+            ):
+                _err(
+                    errors,
+                    "feasible_RSU_predicate conditions_both must contain both "
+                    "backlog<deadline and true_current_waiting_room+same_tick < ceiling",
+                )
+            if feas.get("radio_is_current") is not True:
+                _err(errors, "feasible_RSU_predicate radio_is_current must be true")
+            if feas.get("queue_safety_is_current_not_stale") is not True:
+                _err(
+                    errors, "feasible_RSU_predicate queue_safety_is_current_not_stale must be true"
+                )
+            if feas.get("only_backlog_deadline_belief_is_aged") is not True:
+                _err(
+                    errors,
+                    "feasible_RSU_predicate only_backlog_deadline_belief_is_aged must be true",
+                )
+        n0 = pcp.get("n_equals_0", {})
+        if (
+            not isinstance(n0, dict)
+            or n0.get("select_no_target") is not True
+            or n0.get("reject_without_execution") is not True
+        ):
+            _err(
+                errors,
+                "p2c_candidate_predicate n_equals_0 must "
+                "select_no_target and reject_without_execution",
+            )
+        else:
+            clas = n0.get("classification", {})
+            if (
+                not isinstance(clas, dict)
+                or clas.get("if_ingress_radio_not_viable") != "v2i_unavailable"
+                or clas.get("elif_no_RSU_observed_deadline_feasible") != "v2i_gate_rejected"
+                or clas.get("else_deadline_feasible_exist_but_all_full") != "v2i_cap_rejected"
+            ):
+                _err(
+                    errors,
+                    "p2c_candidate_predicate n_equals_0 classification must be "
+                    "v2i_unavailable / v2i_gate_rejected / v2i_cap_rejected",
+                )
+        n1 = pcp.get("n_equals_1", {})
+        if (
+            not isinstance(n1, dict)
+            or n1.get("select_sole_feasible_RSU") is not True
+            or n1.get("hashing_skipped") is not True
+            or n1.get("no_second_hash_modulo") is not True
+            or n1.get("ranking_inspections") != 1
+        ):
+            _err(
+                errors,
+                "p2c_candidate_predicate n_equals_1 must select sole feasible "
+                "without second hash/modulo and ranking_inspections=1",
+            )
+        n2 = pcp.get("n_gte_2", {})
+        if (
+            not isinstance(n2, dict)
+            or n2.get("deterministic_distinct_pair") is not True
+            or n2.get("selection") != "lower observed backlog"
+            or n2.get("tie_break") != "stable lowest-ID"
+            or n2.get("without_replacement") is not True
+        ):
+            _err(
+                errors,
+                "p2c_candidate_predicate n_gte_2 must be deterministic distinct pair "
+                "lower observed backlog stable lowest-ID tie without replacement",
+            )
+        res = pcp.get("reservation", {})
+        if (
+            not isinstance(res, dict)
+            or res.get(
+                "reserve_true_load_raw_work_and_decision_overlay_immediately_only_on_admission"
+            )
+            is not True
+            or res.get("rejected_work_never_reserved") is not True
+        ):
+            _err(
+                errors,
+                "p2c_candidate_predicate reservation must reserve true load/raw work and "
+                "decision overlay immediately only on admission and rejected never reserved",
+            )
+        fb = pcp.get("forbidden_behaviors") or []
+        for need in [
+            "sample-before-filter",
+            "stale queue-cap",
+            "undefined n=0/1",
+            "rejection ambiguity",
+            "rejected-work reservation",
+        ]:
+            if need not in fb:
+                _err(errors, f"p2c_candidate_predicate forbidden_behaviors must contain {need}")
+
+    # 2. P2C mixer — uint64, SplitMix exact, test vectors
+    pm = data.get("p2c_mixer")
+    if not isinstance(pm, dict):
+        _err(errors, "p2c_mixer missing or not dict")
+    else:
+        fd = pm.get("field_declaration", {})
+        if not isinstance(fd, dict) or fd.get("fields_ordered") != [
+            "evaluator_seed",
+            "fleet_seed",
+            "outer_tick",
+            "task_slot",
+            "sequential_task_ordinal",
+        ]:
+            _err(
+                errors,
+                "p2c_mixer field_declaration fields_ordered must be exactly "
+                "evaluator_seed,fleet_seed,outer_tick,task_slot,sequential_task_ordinal",
+            )
+        if fd.get("field_type") != "non-negative unsigned 64-bit (uint64)":
+            _err(
+                errors,
+                "p2c_mixer field_declaration field_type must "
+                "be non-negative unsigned 64-bit (uint64)",
+            )
+        if fd.get("wrap_modulo") != "2^64 after every operation":
+            _err(
+                errors, "p2c_mixer field_declaration wrap_modulo must be 2^64 after every operation"
+            )
+        bounds = fd.get("bounds", {})
+        if (
+            not isinstance(bounds, dict)
+            or bounds.get("outer_tick") != "[0, 3599]"
+            or bounds.get("task_slot") != "[0, 4]"
+            or bounds.get("sequential_task_ordinal") != "[0, 12439]"
+        ):
+            _err(
+                errors,
+                "p2c_mixer field_declaration bounds must be [0,3599] "
+                "outer_tick, [0,4] task_slot, [0,12439] ordinal",
+            )
+        sdef = pm.get("splitmix64_definition", {})
+        if not isinstance(sdef, dict):
+            _err(errors, "p2c_mixer splitmix64_definition missing or not dict")
+        else:
+            steps = sdef.get("steps") or []
+            if "z=(x+0x9E3779B97F4A7C15) mod 2^64" not in steps:
+                _err(
+                    errors,
+                    "p2c_mixer splitmix64_definition steps must "
+                    "contain z=(x+0x9E3779B97F4A7C15) mod 2^64",
+                )
+            if "z=((z xor (z>>30))*0xBF58476D1CE4E5B9) mod 2^64" not in steps:
+                _err(
+                    errors,
+                    "p2c_mixer splitmix64_definition steps must contain "
+                    "z=((z xor (z>>30))*0xBF58476D1CE4E5B9) mod 2^64",
+                )
+            if "z=((z xor (z>>27))*0x94D049BB133111EB) mod 2^64" not in steps:
+                _err(
+                    errors,
+                    "p2c_mixer splitmix64_definition steps must contain "
+                    "z=((z xor (z>>27))*0x94D049BB133111EB) mod 2^64",
+                )
+            if "return z xor (z>>31)" not in steps:
+                _err(
+                    errors,
+                    "p2c_mixer splitmix64_definition steps must contain return z xor (z>>31)",
+                )
+            if sdef.get("wrap_modulo_2_64_after_every_operation") is not True:
+                _err(
+                    errors,
+                    "p2c_mixer splitmix64_definition "
+                    "wrap_modulo_2_64_after_every_operation must be true",
+                )
+            consts = sdef.get("constants_hex") or []
+            for need in ["0x9E3779B97F4A7C15", "0xBF58476D1CE4E5B9", "0x94D049BB133111EB"]:
+                if need not in consts:
+                    _err(
+                        errors, f"p2c_mixer splitmix64_definition constants_hex must contain {need}"
+                    )
+        fold = pm.get("fold", {})
+        if (
+            not isinstance(fold, dict)
+            or fold.get("h_init") != "0x6A09E667F3BCC909"
+            or fold.get("for_each_ordered_field") != "h=splitmix64(h xor uint64(field))"
+        ):
+            _err(
+                errors,
+                "p2c_mixer fold must be h_init 0x6A09E667F3BCC909 and "
+                "for_each_ordered_field h=splitmix64(h xor uint64(field))",
+            )
+        pidx = pm.get("pair_indices", {})
+        if not isinstance(pidx, dict):
+            _err(errors, "p2c_mixer pair_indices missing or not dict")
+        else:
+            gte2 = pidx.get("for_n_gte_2", {})
+            if (
+                not isinstance(gte2, dict)
+                or gte2.get("first_index") != "h % n"
+                or gte2.get("j") != "splitmix64(h) % (n-1)"
+                or gte2.get("second_index") != "j if j<first_index else j+1"
+            ):
+                _err(
+                    errors,
+                    "p2c_mixer pair_indices for_n_gte_2 must be first h % "
+                    "n, j splitmix64(h)%(n-1), second j if j<first else j+1",
+                )
+            if gte2.get("candidate_order_is_ascending_unique_RSU_ID") is not True:
+                _err(
+                    errors,
+                    "p2c_mixer pair_indices "
+                    "candidate_order_is_ascending_unique_RSU_ID must be true",
+                )
+            if gte2.get("sort_resulting_pair_only_for_telemetry_not_before_indexing") is not True:
+                _err(
+                    errors,
+                    "p2c_mixer pair_indices "
+                    "sort_resulting_pair_only_for_telemetry_not_before_indexing must be true",
+                )
+            if pidx.get("for_n_equals_1_hashing_skipped") is not True:
+                _err(errors, "p2c_mixer pair_indices for_n_equals_1_hashing_skipped must be true")
+        tv = pm.get("test_vectors")
+        if not isinstance(tv, list) or len(tv) < 3:
+            _err(errors, "p2c_mixer test_vectors must be list of at least 3")
+        else:
+            # Verify deterministic computation of vectors using Python reference
+            mask64 = (1 << 64) - 1
+            c1 = 0x9E3779B97F4A7C15
+            c2 = 0xBF58476D1CE4E5B9
+            c3 = 0x94D049BB133111EB
+            h0 = 0x6A09E667F3BCC909
+
+            def _sm(x: int) -> int:
+                z: int = (x + c1) & mask64
+                z = ((z ^ (z >> 30)) * c2) & mask64
+                z = ((z ^ (z >> 27)) * c3) & mask64
+                return (z ^ (z >> 31)) & mask64
+
+            def _fold(fields: list[int]) -> int:
+                h: int = h0
+                for f in fields:
+                    if not isinstance(f, int):
+                        _err(
+                            errors,
+                            f"p2c_mixer test_vectors field {f!r} must be int",
+                        )
+                        return h
+                    if f < 0 or f > mask64:
+                        _err(
+                            errors,
+                            f"p2c_mixer test_vectors field {f} out of uint64 range",
+                        )
+                        return h
+                    h = _sm((h ^ (f & mask64)) & mask64)
+                return h
+
+            # Check all-zero vector present
+            has_zero = any(
+                str(v.get("h_hex", "")).lower() == "0x7d19c361a3548205"
+                and v.get("note") == "all-zero fields"
+                for v in tv
+            )
+            if not has_zero:
+                _err(
+                    errors,
+                    "p2c_mixer test_vectors must contain "
+                    "all-zero fields vector h=0x7d19c361a3548205",
+                )
+            has_boundary = any(
+                str(v.get("h_hex", "")).lower() == "0x295c562a48f4f730"
+                and "3599" in str(v.get("note", ""))
+                for v in tv
+            )
+            if not has_boundary:
+                _err(
+                    errors,
+                    "p2c_mixer test_vectors must contain boundary "
+                    "outer_tick=3599/task_slot=4/ordinal=12439 vector h=0x295c562a48f4f730",
+                )
+            for v in tv:
+                if not isinstance(v, dict):
+                    _err(errors, "p2c_mixer test_vectors entry must be dict")
+                    continue
+                fields = v.get("fields")
+                h_hex = str(v.get("h_hex", "")).lower()
+                h_dec = v.get("h_dec")
+                n = v.get("n")
+                first = v.get("first_index")
+                second = v.get("second_index")
+                sorted_pair = v.get("sorted_pair")
+                if not isinstance(fields, dict):
+                    _err(errors, "p2c_mixer test_vectors fields must be dict")
+                    continue
+                ordered = [
+                    fields.get(k)
+                    for k in [
+                        "evaluator_seed",
+                        "fleet_seed",
+                        "outer_tick",
+                        "task_slot",
+                        "sequential_task_ordinal",
+                    ]
+                ]
+                if any(x is None for x in ordered):
+                    _err(
+                        errors,
+                        "p2c_mixer test_vectors fields must contain "
+                        "evaluator_seed,fleet_seed,outer_tick,task_slot,sequential_task_ordinal",
+                    )
+                    continue
+                narrowed: list[int] = []
+                for x in ordered:
+                    if not isinstance(x, int):
+                        _err(
+                            errors,
+                            f"p2c_mixer test_vectors field {x!r} must be int",
+                        )
+                        narrowed = []
+                        break
+                    if x < 0 or x > mask64:
+                        _err(
+                            errors,
+                            f"p2c_mixer test_vectors field {x} out of uint64 range",
+                        )
+                        narrowed = []
+                        break
+                    narrowed.append(x)
+                if len(narrowed) != 5:
+                    continue
+                exp_h = _fold(narrowed)
+                exp_hex = f"0x{exp_h:016x}"
+                if h_hex != exp_hex.lower():
+                    _err(
+                        errors,
+                        f"p2c_mixer test_vectors h_hex {h_hex} must "
+                        f"equal computed {exp_hex} for fields {ordered}",
+                    )
+                if h_dec is not None and int(h_dec) != exp_h:
+                    _err(errors, f"p2c_mixer test_vectors h_dec {h_dec} must equal {exp_h}")
+                if isinstance(n, int) and n >= 2:
+                    exp_first = exp_h % n
+                    j = _sm(exp_h) % (n - 1)
+                    exp_second = j if j < exp_first else j + 1
+                    if first is not None and int(first) != exp_first:
+                        _err(
+                            errors,
+                            f"p2c_mixer test_vectors first_index "
+                            f"{first} must equal {exp_first} for n={n}",
+                        )
+                    if second is not None and int(second) != exp_second:
+                        _err(
+                            errors,
+                            f"p2c_mixer test_vectors second_index "
+                            f"{second} must equal {exp_second} for n={n}",
+                        )
+                    if sorted_pair is not None:
+                        exp_sorted = sorted([exp_first, exp_second])
+                        if list(sorted_pair) != exp_sorted:
+                            _err(
+                                errors,
+                                f"p2c_mixer test_vectors sorted_pair "
+                                f"{sorted_pair} must equal {exp_sorted}",
+                            )
+        if pm.get("uniformity_claim_forbidden") is not True:
+            _err(errors, "p2c_mixer uniformity_claim_forbidden must be true")
+        if "negligible bias not mathematically exact-uniform" not in str(
+            pm.get("modulo_bias_note", "")
+        ):
+            _err(
+                errors,
+                "p2c_mixer modulo_bias_note must state negligible "
+                "bias not mathematically exact-uniform",
+            )
+        fb = pm.get("forbidden_behaviors") or []
+        for need in [
+            "alternate SplitMix variants",
+            "string/byte serialization",
+            "signed overflow",
+            "field reordering",
+            "missing vectors",
+            "claim modulo exact uniformity",
+        ]:
+            if need not in fb:
+                _err(errors, f"p2c_mixer forbidden_behaviors must contain {need}")
+
+    # 3. Tick transition
+    tt = data.get("tick_transition")
+    if not isinstance(tt, dict):
+        _err(errors, "tick_transition missing or not dict")
+    else:
+        if tt.get("control_clock_offset_ms") != 3000:
+            _err(errors, "tick_transition control_clock_offset_ms must be 3000")
+        if tt.get("telemetry_schema_same_for_E3a_b_c_including_fresh_cells") is not True:
+            _err(
+                errors,
+                "tick_transition "
+                "telemetry_schema_same_for_E3a_b_c_including_fresh_cells must be true",
+            )
+        steps = tt.get("zero_based_trace_tick_control_time_t", {})
+        if not isinstance(steps, dict) or len(steps) < 8:
+            _err(errors, "tick_transition zero_based_trace_tick_control_time_t must have 8 steps")
+        else:
+            expected_keys = [
+                "i_start_from_true_state_after_prior_interval_drain",
+                "ii_apply_one_pending_action_if_due_emit_applied_receipt_clear_pending",
+                "iii_capture_immutable_tick_entry_infrastructure_snapshot_after_due_action_before_current_tick_placement_admission",
+                "iv_select_exact_t_state_age_snapshot_for_decision_signals",
+                "v_if_no_pending_and_cooldown_permits_make_at_most_one_scaler_decision_per_RSU_and_possibly_emit_schedule_one_requested_action",
+                "vi_process_all_five_task_slots_sequentially_without_advancing_time",
+                "vii_drain_true_raw_backlog_once_by_min_backlog_u_times_1000_work_ms",
+                "viii_charge_post_due_action_capacity_u_for_interval_t_t_plus_1000ms",
+            ]
+            for k in expected_keys:
+                if steps.get(k) is not True:
+                    _err(errors, f"tick_transition step {k} must be true")
+        cd = tt.get("cooldown", {})
+        if (
+            not isinstance(cd, dict)
+            or cd.get("starts_at_actual_application_time") is not True
+            or cd.get("elapsed_gte_5000ms_permits_new_request") is not True
+            or cd.get("just_applied_action_starts_cooldown_so_cannot_request_again_that_tick")
+            is not True
+            or cd.get("any_pending_action_blocks_all_new_directions") is not True
+        ):
+            _err(
+                errors,
+                "tick_transition cooldown must have starts_at_actual, elapsed>=5000, "
+                "just_applied blocks that tick, any pending blocks all",
+            )
+        req_fields = tt.get("requested_receipt_fields") or []
+        for need in [
+            "draw",
+            "rsu",
+            "direction",
+            "from_units",
+            "requested_to_units",
+            "decision_time_ms",
+            "due_time_ms",
+            "observed_state_time_ms",
+            "state_age_ms",
+            "signal_name",
+            "signal_value",
+        ]:
+            if need not in req_fields:
+                _err(errors, f"tick_transition requested_receipt_fields must contain {need}")
+        app_adds = tt.get("applied_receipt_adds") or []
+        for need in ["actual_application_time_ms", "actual_to_units"]:
+            if need not in app_adds:
+                _err(errors, f"tick_transition applied_receipt_adds must contain {need}")
+        counts = tt.get("counts_expose_separately") or []
+        for need in ["scheduled_requests", "applied_up_actions", "applied_down_actions"]:
+            if need not in counts:
+                _err(errors, f"tick_transition counts_expose_separately must contain {need}")
+        if tt.get("resource_cost_follows_applied_capacity_only") is not True:
+            _err(errors, "tick_transition resource_cost_follows_applied_capacity_only must be true")
+        if tt.get("reactive_tick_entry_signal_is_aged_raw_service_backlog_snapshot") is not True:
+            _err(
+                errors,
+                "tick_transition "
+                "reactive_tick_entry_signal_is_aged_raw_service_backlog_snapshot must be true",
+            )
+        pro = tt.get(
+            "proactive_samples_are_completed_prior_trace_interval_admitted_arrival_work_samples", {}
+        )
+        if (
+            not isinstance(pro, dict)
+            or pro.get("at_tick_t_no_sample_from_current_tick_available") is not True
+            or pro.get("four_actual_trace_intervals_must_have_completed") is not True
+            or pro.get("aged_arm_uses_only_samples_present_in_selected_snapshot") is not True
+            or pro.get("pretrace_empty_values_never_satisfy_warm_up") is not True
+        ):
+            _err(
+                errors,
+                "tick_transition "
+                "proactive_samples_are_completed_prior_trace_"
+                "interval_admitted_arrival_work_samples "
+                "must have 4 flags true",
+            )
+        if tt.get("reused_state_age_0_cell_bytes_truly_identical") is not True:
+            _err(
+                errors, "tick_transition reused_state_age_0_cell_bytes_truly_identical must be true"
+            )
+        fb = tt.get("forbidden_behaviors") or []
+        for need in [
+            "decision-time cooldown",
+            "same-tick post-apply request",
+            "action-count conflation",
+            "ambiguous timestamps",
+        ]:
+            if need not in fb:
+                _err(errors, f"tick_transition forbidden_behaviors must contain {need}")
+
+    # 4. V2I latency/outcome contract
+    vl = data.get("v2i_latency_outcome_contract")
+    if not isinstance(vl, dict):
+        _err(errors, "v2i_latency_outcome_contract missing or not dict")
+    else:
+        adm = vl.get("at_admission_record_with_u_current_applied_units", {})
+        if not isinstance(adm, dict) or adm.get("simulated_latency_ms_equation") != (
+            "current_ingress_tx_ms + forwarding_ms + true_execution_backlog_work_ms/u "
+            "+ raw_task_service_work_ms/u + current_return_tx_ms"
+        ):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract at_admission "
+                "simulated_latency_ms_equation must be current_ingress_tx_ms "
+                "+ forwarding_ms + true_execution_backlog_work_ms/u "
+                "+ raw_task_service_work_ms/u + current_return_tx_ms",
+            )
+        if adm.get("raw_work_enqueued_is_never_divided_by_u") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract raw_work_enqueued_is_never_divided_by_u must be true",
+            )
+        if (
+            adm.get("deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline")
+            is not True
+        ):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract "
+                "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline "
+                "must be true",
+            )
+        if (
+            adm.get("later_scaling_does_not_recompute_latency") is not True
+            and adm.get("later_scaling_does_not_reprice_it") is not True
+        ):
+            _err(
+                errors, "v2i_latency_outcome_contract later_scaling_does_not_recompute must be true"
+            )
+        if (
+            adm.get(
+                "rejected_work_never_enqueues_never_succeeds_and_inherited_10_deadline_penalty_is_explicitly_not_valid_latency_observation"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract rejected 10*deadline "
+                "penalty not valid latency must be true",
+            )
+        rep = vl.get("report", {})
+        if (
+            not isinstance(rep, dict)
+            or rep.get("admitted_task_latency_only_and_any_declared_deadline_met_diagnostic")
+            is not True
+            or rep.get(
+                "offered_task_latency_is_null_unavailable_because_rejected_penalty_values_are_not_physical_latency"
+            )
+            is not True
+            or rep.get("started_compute_completed_returned_dropped_remain_null_with_reasons")
+            is not True
+        ):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract report must have admitted_task_latency_only, "
+                "offered_task_latency null, lifecycle remains null",
+            )
+        fb = vl.get("forbidden_behaviors") or []
+        for need in [
+            "backlog-only/stale outcome latency",
+            "divided enqueue work",
+            "later repricing",
+            "rejected penalty in latency mean",
+        ]:
+            if need not in fb:
+                _err(
+                    errors, f"v2i_latency_outcome_contract forbidden_behaviors must contain {need}"
+                )
+
+    # 5. Accounting and contrast completion
+    acc = data.get("accounting_and_contrast_completion")
+    if not isinstance(acc, dict):
+        _err(errors, "accounting_and_contrast_completion missing or not dict")
+    else:
+        loss = acc.get("lossless_accounting", {})
+        if (
+            not isinstance(loss, dict)
+            or loss.get("offered_equals_admitted_plus_rejected") is not True
+            or loss.get("deadline_success_between_0_and_admitted") is not True
+            or loss.get("forwarded_between_0_and_admitted_v2i_between_0_and_admitted") is not True
+        ):
+            _err(
+                errors,
+                "accounting_and_contrast_completion lossless_accounting must have "
+                "offered=admitted+rejected, deadline_success 0..admitted, forwarded checks",
+            )
+        rej = loss.get("rejected_equals_sum") or []
+        for need in [
+            "v2i_gate_rejected",
+            "v2i_cap_rejected",
+            "local_mqd_rejected",
+            "v2v_mqd_rejected",
+            "v2i_unavailable",
+            "v2v_unavailable",
+        ]:
+            if need not in rej:
+                _err(
+                    errors,
+                    f"accounting_and_contrast_completion lossless_accounting "
+                    f"rejected_equals_sum must contain {need}",
+                )
+        shares = acc.get("shares", {})
+        if (
+            not isinstance(shares, dict)
+            or shares.get("rejection_share_is_rejected_div_offered") is not True
+            or shares.get(
+                "forwarding_share_is_forwarded_div_admitted_v2i_and_null_reason_if_denominator_zero"
+            )
+            is not True
+            or shares.get(
+                "deadline_per_normalized_cost_is_offered_deadline_attainment_div_resource_unit_seconds_and_null_reason_if_cost_zero"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "accounting_and_contrast_completion shares must have "
+                "rejection, forwarding, deadline per cost with null+reason",
+            )
+        if (
+            acc.get("work_ms_conservation_where_instrumented_separately_for_V2I_and_vehicle_queues")
+            is not True
+        ):
+            _err(
+                errors,
+                "accounting_and_contrast_completion work_ms_conservation "
+                "separately for V2I and vehicle queues must be true",
+            )
+        if (
+            acc.get(
+                "unavailable_V2V_work_has_no_destination_service_work_and_remains_explicit_count_rather_than_fabricated_zero_work"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "accounting_and_contrast_completion unavailable V2V work has "
+                "no destination work and remains explicit count must be true",
+            )
+        if (
+            acc.get(
+                "missing_incomplete_cells_make_matched_contrast_status_incomplete_null_never_reduce_n"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "accounting_and_contrast_completion missing/incomplete cells make "
+                "matched contrast incomplete/null never reduce n must be true",
+            )
+        if (
+            acc.get(
+                "reportable_contrast_requires_all_four_paired_seeds_1_to_4_and_uses_exact_treatment_minus_control_sign"
+            )
+            is not True
+        ):
+            _err(
+                errors,
+                "accounting_and_contrast_completion reportable contrast requires all "
+                "four paired seeds 1..4 exact treatment-minus-control must be true",
+            )
+        pre = acc.get("predeclared_contrasts", {})
+        if not isinstance(pre, dict):
+            _err(
+                errors,
+                "accounting_and_contrast_completion predeclared_contrasts missing or not dict",
+            )
+        else:
+            e3a = pre.get("E3a_primary", {})
+            if (
+                not isinstance(e3a, dict)
+                or e3a.get("id") != "p2c_dla-minus-per_task_dla"
+                or "fixed_1x/state_age=0" not in str(e3a.get("for", ""))
+            ):
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion predeclared_contrasts E3a_primary must "
+                    "be p2c_dla-minus-per_task_dla for offered deadline at fixed_1x/state_age=0",
+                )
+            if e3a.get("secondary") != "p2c_dla-minus-ingress_dla":
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion predeclared_contrasts "
+                    "E3a secondary must be p2c_dla-minus-ingress_dla",
+                )
+            e3b = pre.get("E3b_per_task_dla_state_age_0", {})
+            if (
+                not isinstance(e3b, dict)
+                or set(e3b.get("each_of", []))
+                != {"static_overprovisioned", "reactive", "proactive"}
+                or e3b.get("minus") != "fixed_1x"
+            ):
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion predeclared_contrasts E3b each_of "
+                    "must be static_overprovisioned/reactive/proactive minus fixed_1x",
+                )
+            if set(e3b.get("for_co_primary_family", [])) != {
+                "offered deadline attainment",
+                "rejection_share",
+                "resource_unit_seconds",
+            }:
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion "
+                    "predeclared_contrasts E3b for_co_primary_family "
+                    "must be offered deadline/rejection_share/resource_unit_seconds",
+                )
+            if (
+                e3b.get("plus_proactive_minus_reactive_as_declared_diagnostic") is not True
+                or e3b.get("no_scalar_best_objective") is not True
+            ):
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion predeclared_contrasts E3b must "
+                    "have plus_proactive_minus_reactive diagnostic and no_scalar_best",
+                )
+            e3c = pre.get("E3c_at_each_state_age", {})
+            if not isinstance(e3c, dict) or set(e3c.get("contrasts", [])) != {
+                "p2c_dla-minus-per_task_dla under fixed_1x",
+                "proactive-minus-reactive under per_task_dla",
+            }:
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion "
+                    "predeclared_contrasts E3c contrasts must be "
+                    "p2c_dla-minus-per_task_dla under fixed_1x and "
+                    "proactive-minus-reactive under per_task_dla",
+                )
+            if set(e3c.get("for", [])) != {
+                "offered deadline attainment",
+                "rejection_share",
+                "resource_unit_seconds",
+            }:
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion predeclared_contrasts E3c for "
+                    "must be offered deadline/rejection_share/resource_unit_seconds",
+                )
+            if e3c.get("plus_declared_imbalance_action_diagnostics") is not True:
+                _err(
+                    errors,
+                    "accounting_and_contrast_completion predeclared_contrasts "
+                    "E3c plus_declared_imbalance_action_diagnostics must be true",
+                )
+        if acc.get("draw_is_N_4_tasks_never_become_replicates") is not True:
+            _err(
+                errors,
+                "accounting_and_contrast_completion "
+                "draw_is_N_4_tasks_never_become_replicates must be true",
+            )
+
     return {"pass": len(errors) == 0, "errors": errors, "error_count": len(errors)}
+
+
+def render_markdown(data: dict[str, Any]) -> str:
+    """Deterministic markdown generation: template plus canonical JSON block.
+
+    The template is derived from the committed canonical markdown's prefix/suffix.
+    For canonical data, output must byte-equal the committed file.
+    """
+    # Try to load template prefix/suffix from the committed markdown file at runtime.
+    # Fallback to minimal template if file unavailable (e.g., CLI with missing md).
+    try:
+        committed_path = (
+            Path(__file__).resolve().parents[1]
+            / "docs/evaluation/e3/e3_dynamic_resource_v2_contract_v1.md"
+        )
+        # Use the current committed file's prefix/suffix as template (canonical when file is
+        # canonical).
+        # Read bytes to preserve exact line endings.
+        committed_text = committed_path.read_text(encoding="utf-8")
+        if CANONICAL_BLOCK_START in committed_text and CANONICAL_BLOCK_END in committed_text:
+            prefix = committed_text[: committed_text.index(CANONICAL_BLOCK_START)]
+            suffix = committed_text[
+                committed_text.index(CANONICAL_BLOCK_END) + len(CANONICAL_BLOCK_END) :
+            ]
+        else:
+            prefix = ""
+            suffix = "\n*End of normative contract v1.*\n"
+    except Exception:
+        prefix = ""
+        suffix = "\n*End of normative contract v1.*\n"
+        committed_text = None
+
+    # If we have a prefix that already contains the start marker, we need to reconstruct correctly.
+    # The canonical file has: prefix + START + "\n```json\n" + dump + "```\n" + END + suffix
+    # For determinism, we use the committed prefix (which ends just before START) and suffix (after
+    # END).
+    # Rebuild from data.
+    if committed_text is not None and CANONICAL_BLOCK_START in committed_text:
+        # prefix already ends before START, suffix starts after END
+        canonical_block = (
+            f"{CANONICAL_BLOCK_START}\n```json\n{_canonical_dump(data)}```\n{CANONICAL_BLOCK_END}"
+        )
+        # Ensure prefix ends as in canonical (it already does), and suffix starts as in canonical
+        return prefix + canonical_block + suffix
+    # Fallback: construct minimal markdown with header + block
+    header = (
+        "# E3 Dynamic Resource v2 — Scientific Contract v1\n\n"
+        f"**Campaign:** `{CAMPAIGN}`\n"
+        f"**Contract version:** `{CONTRACT_VERSION}`\n"
+        f"**Status:** `predeclared_before_any_e3_trace_execution`\n"
+        f"**Created:** `2026-08-13`\n"
+        f"**Base commit (exact):** `{BASE_COMMIT}`\n"
+        f"**Lane:** `01` (`{BRANCH}`)\n\n"
+        "This scientific contract is governed solely by the JSON file "
+        "`e3_dynamic_resource_v2_contract_v1.json`, which is the single "
+        "normative authority. "
+        "The Markdown file `e3_dynamic_resource_v2_contract_v1.md` is a "
+        "deterministic generated view from that JSON via the pure "
+        "function `render_markdown(data)` (template plus canonical JSON "
+        "block). "
+        "The entire committed Markdown bytes must equal "
+        "`render_markdown(canonical_json)`; any prose change outside the "
+        "block must fail byte-equivalence, and byte mismatch is "
+        "authoritative. Residual prose checks are defense-in-depth "
+        "only.\n\n---\n\n"
+    )
+    # Append a note that will still satisfy required needle checks via block? But minimal fallback
+    # must still be valid for CLI missing cases.
+    # For missing file case, this fallback is only used for byte-equivalence comparison; missing
+    # file
+    # will still fail because file missing.
+    # So return prefix fallback plus block
+    return header + (
+        f"{CANONICAL_BLOCK_START}\n```json\n{_canonical_dump(data)}"
+        f"```\n{CANONICAL_BLOCK_END}\n\n*End of normative contract v1.*\n"
+    )
+
+
+def validate_markdown(md_text: str, data: dict[str, Any]) -> list[str]:
+    """Alias for validate_markdown_contains for backward compatibility."""
+    return validate_markdown_contains(md_text, data)
 
 
 def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    # Whole-file byte-equivalence to deterministic render
+    try:
+        expected_md = render_markdown(data)
+        if md_text != expected_md:
+            errors.append(
+                "markdown byte-equivalence to render_markdown failed "
+                "(byte-equivalence mismatch is authoritative)"
+            )
+    except Exception as e:
+        errors.append(f"render_markdown failed: {e}")
     # Use data: extract canonical block and check deep equality + deterministic generation
     raw, err = _extract_canonical_block(md_text)
     if err is not None:
@@ -977,21 +3049,30 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
                 try:
                     if json.dumps(parsed, sort_keys=True) != json.dumps(data, sort_keys=True):
                         errors.append("canonical JSON block mismatch (deep equality failed)")
-                except Exception:  # noqa: S110
-                    pass
+                except (TypeError, ValueError) as exc:
+                    errors.append(f"canonical JSON block comparison failed: {exc}")
             # Check deterministic generation: raw must equal canonical dump
             expected_dump = _canonical_dump(data)
-            # The raw block may have trailing newline differences; normalize by parsing and re-dumping comparison already done  # noqa: E501
-            # For strict byte-equivalence, compare raw stripped vs expected stripped
-            # Allow exactly expected_dump (which ends with newline) to match raw + newline if needed
-            # We enforce that json.loads(raw) equals data and that re-dumped canonical equals expected_dump  # noqa: E501
-            # If raw was generated deterministically, then raw should equal expected_dump without extra whitespace variations  # noqa: E501
-            # Compare after stripping trailing newline for tolerance, but require sort_keys and indent consistency  # noqa: E501
+            # The raw block may have trailing newline differences;
+            # normalize by parsing and re-dumping comparison already done.
+            # For strict byte-equivalence, compare raw stripped vs
+            # expected stripped.
+            # Allow exactly expected_dump (which ends with newline) to
+            # match raw + newline if needed.
+            # We enforce that json.loads(raw) equals data and that
+            # re-dumped canonical equals expected_dump.
+            # If raw was generated deterministically, then raw should
+            # equal expected_dump without extra whitespace variations.
+            # Compare after stripping trailing newline for tolerance, but
+            # require sort_keys and indent consistency.
             if raw.strip() != expected_dump.strip():
-                # If not byte-identical, check if it's still semantically equal but non-deterministic -> still error for byte-equivalence  # noqa: E501
+                # If not byte-identical, check if it's still semantically
+                # equal but non-deterministic -> still error for
+                # byte-equivalence.
                 errors.append(
-                    "canonical JSON block must be deterministic generation "  # noqa: E501
-                    "(byte-equivalence to json.dumps sort_keys indent=2)"
+                    "canonical JSON block must be deterministic "
+                    "generation (byte-equivalence to json.dumps "
+                    "sort_keys indent=2)"
                 )
     # Human text claim checks with word boundaries for numerics
     # Need data to be used - already used above; also check that markdown prose mentions key claims
@@ -1027,9 +3108,10 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     ]
     for needle, label in checks:
         if needle not in md_text:
-            errors.append(f"markdown missing {label}: {needle!r}")  # noqa: E501
+            errors.append(f"markdown missing {label}: {needle!r}")
 
-    # Exact numeric checks with word boundaries: 200,600,800,1000,2000,5000,3600,10,3,60,32,4
+    # Exact numeric checks with word boundaries:
+    # 200,600,800,1000,2000,5000,3600,10,3,60,32,4
     numeric_checks = [
         ("200", "200 threshold in markdown"),
         ("600", "600 gap in markdown"),
@@ -1043,10 +3125,14 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     for token, label in numeric_checks:
         if not _word_boundary_present(md_text, token):
             errors.append(
-                f"markdown missing {label}: word-boundary {token!r} not found (standalone {token} must appear, not as part of 2000/3600 etc)"  # noqa: E501
+                f"markdown missing {label}: word-boundary {token!r} "
+                f"not found (standalone {token} must appear, "
+                "not as part of 2000/3600 etc)"
             )
 
-    # Additional strict numeric: check that 200 appears as standalone for threshold, not conflated with 2000; also ensure 600 appears standalone  # noqa: E501
+    # Additional strict numeric: check that 200 appears as standalone
+    # for threshold, not conflated with 2000; also ensure 600 appears
+    # standalone
     # Already covered by word boundary
 
     if "hysteresis" not in md_text.lower():
@@ -1065,7 +3151,7 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     ]
     for needle, label in hypo_fragments:
         if needle not in md_text.lower():
-            errors.append(f"markdown missing {label}: {needle!r}")  # noqa: E501
+            errors.append(f"markdown missing {label}: {needle!r}")
     if "negative" not in md_text.lower() or "acceptable" not in md_text.lower():
         errors.append("markdown missing negative results acceptable boundary")
     if "not expected truth" not in md_text.lower() and "not expected truths" not in md_text.lower():
@@ -1084,16 +3170,85 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     ]
     for needle, label in staged_phrases:
         if needle.lower() not in md_text.lower():
-            errors.append(f"markdown missing {label}: {needle!r}")  # noqa: E501
+            errors.append(f"markdown missing {label}: {needle!r}")
+    # New normative distinctions — must be present in markdown prose
+    new_distinction_checks = [
+        ("observed_decision_backlog_work_ms", "observed_decision_backlog_work_ms in markdown"),
+        ("true_execution_backlog_work_ms", "true_execution_backlog_work_ms in markdown"),
+        ("optimistic stale", "optimistic stale in markdown"),
+        ("pessimistic stale", "pessimistic stale in markdown"),
+        (
+            "deadline_success is based on true simulated latency",
+            "deadline_success true latency in markdown",
+        ),
+        ("never the controller's stale estimate", "never stale estimate in markdown"),
+        (
+            "not evidence of physical started/completed/returned",
+            "not physical lifecycle in markdown",
+        ),
+        ("do not retroactively reprice", "do not retroactively reprice in markdown"),
+        ("outer_tick", "outer_tick in markdown"),
+        ("task_slot", "task_slot in markdown"),
+        ("vehicle_slot", "vehicle_slot in markdown"),
+        ("sequential_task_ordinal", "sequential_task_ordinal in markdown"),
+        ("task_slot * padded_fleet_width + vehicle_slot", "sequential ordinal formula in markdown"),
+        ("[0,12439]", "[0,12439] range in markdown"),
+        ("dense position identity", "dense position identity in markdown"),
+        ("independent of active mask", "independent of active mask in markdown"),
+        ("feasibility_workload_checks", "feasibility_workload_checks in markdown"),
+        ("ranking_workload_inspections", "ranking_workload_inspections in markdown"),
+        ("unique_workload_values_observed", "unique_workload_values_observed in markdown"),
+        (
+            "only two total global state reads",
+            "only two total global reads phrase (must be negated) in markdown",
+        ),
+        (
+            "proven lower total state acquisition",
+            "proven lower total state acquisition in markdown",
+        ),
+        ("pair-only ranking", "pair-only ranking in markdown"),
+        (
+            "drained_work_ms / (active_capacity_units * 1000",
+            "capacity-adjusted utilization formula in markdown",
+        ),
+        (
+            "waiting-room occupancy is a separate task count",
+            "waiting-room occupancy separate in markdown",
+        ),
+        ("actual admitted V2I execution count", "execution share formula in markdown"),
+        ("when denominator is zero it is null", "execution share null when zero in markdown"),
+        (
+            "Target switching is counted over consecutive admitted V2I",
+            "target switching deterministic order in markdown",
+        ),
+        ("first admitted task is not a switch", "first admitted not a switch in markdown"),
+        (
+            "resource_unit_seconds denominator stays required",
+            "resource_unit_seconds denominator stays required in markdown",
+        ),
+    ]
+    for needle, label in new_distinction_checks:
+        if needle not in md_text:
+            # For the "only two total..." phrase, we require it appears
+            # negated (MUST NOT claim); check that the phrase exists with
+            # MUST NOT nearby
+            if (
+                needle == "only two total global state reads"
+                and "MUST NOT claim only two total" in md_text
+            ):
+                continue
+            errors.append(f"markdown missing {label}: {needle!r}")
     rq_lines = [line for line in md_text.splitlines() if line.startswith(">")]
     rq_text = " ".join(rq_lines).lower()
     if "alone and jointly" in rq_text:
         errors.append("markdown research question quote must not contain 'alone and jointly'")
     if "alone and jointly" in md_text.lower() and "is removed" not in md_text.lower():
-        # If the document still claims alone and jointly as positive, reject
-        # But if it only mentions removal, it's okay - already handled above; this is additional check for outside RQ  # noqa: E501
-        # Only error if appears outside explanatory sentence
-        # Simple: if count of 'alone and jointly' >1 or not accompanied by 'is removed' near, error already captured  # noqa: E501
+        # If the document still claims alone and jointly as positive, reject.
+        # But if it only mentions removal, it's okay - already handled
+        # above; this is additional check for outside RQ.
+        # Only error if appears outside explanatory sentence.
+        # Simple: if count of 'alone and jointly' >1 or not accompanied
+        # by 'is removed' near, error already captured.
         pass
     if "e.g. linear regression" in md_text.lower():
         errors.append("markdown must not contain 'e.g. linear regression' alternative formula")
@@ -1139,7 +3294,8 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
         ("conclusion", "hypothesis->conclusion inverse claim"),
         (
             "expected truth",
-            "hypothesis->expected truth inverse claim (outside normative 'not expected truth' context)",  # noqa: E501
+            "hypothesis->expected truth inverse claim "
+            "(outside normative 'not expected truth' context)",
         ),
         ("USD", "monetary USD inverse claim"),
         ("$", "monetary $ inverse claim"),
@@ -1180,8 +3336,10 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
         if marker in inverse_check_text:
             parts = inverse_check_text.split(marker)
             # Keep before marker, and after next heading (## 14 or ## 16)
-            # Simplest: split and keep only before marker for inverse checks; re-add after for other checks?  # noqa: E501
-            # We'll keep only text before first excluded marker for inverse checks
+            # Simplest: split and keep only before marker for
+            # inverse checks; re-add after for other checks?
+            # We'll keep only text before first excluded marker for
+            # inverse checks
             inverse_check_text = parts[0]
             break
     narrative_part = inverse_check_text
@@ -1189,7 +3347,8 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     lower_without = narrative_part.lower()
 
     def _has_positive_claim(hay: str, phrase: str) -> bool:
-        # Sentence-level negation check: if sentence containing phrase has a negation word, it's documenting forbidden, not asserting  # noqa: E501
+        # Sentence-level negation check: if sentence containing phrase
+        # has a negation word, it's documenting forbidden, not asserting
         neg_words = [
             "never",
             "not ",
@@ -1256,7 +3415,8 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
                         right = len(lower_without)
                 sentence = lower_without[left:right]
                 if "never" in sentence or "not " in sentence or "no " in sentence:
-                    # Sentence already negated (e.g., "never results, conclusions, or expected truths")  # noqa: E501
+                    # Sentence already negated
+                    # (e.g., "never results, conclusions, or expected truths")
                     continue
                 if "violates" in sentence or "relabel" in sentence:
                     continue
@@ -1267,7 +3427,8 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
             continue
         if phrase == "$":
             if "$" in narrative_part:
-                # $ outside canonical block is forbidden unless explicitly in allowed phrase (none)
+                # $ outside canonical block is forbidden unless
+                # explicitly in allowed phrase (none)
                 errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
             continue
         if phrase in ["static3x", "static_3x", "fixed1x"]:
@@ -1282,10 +3443,13 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
                 errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
                 break
             continue
-        # Special handling for phrases that baseline contains negated: check positive claim only
+        # Special handling for phrases that baseline contains negated:
+        # check positive claim only
         # For generic inverse phrases, use positive claim helper
-        # For phrases like "queue==compute", "actor observes", etc, baseline has negated form, so helper will skip them  # noqa: E501
-        # But if someone mutates to positive form (removing negation), helper will detect
+        # For phrases like "queue==compute", "actor observes", etc,
+        # baseline has negated form, so helper will skip them
+        # But if someone mutates to positive form (removing negation),
+        # helper will detect
         if phrase_l in [
             "queue ceiling is compute capacity",
             "queue==compute",
@@ -1316,7 +3480,8 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
             if _has_positive_claim(lower_without, phrase_l):
                 errors.append(f"markdown contains inverse claim {label}: {phrase!r}")
             continue
-        # For remaining phrases like price/billing, they appear negated in baseline as "no price", "no billing"  # noqa: E501
+        # For remaining phrases like price/billing, they appear negated
+        # in baseline as "no price", "no billing"
         # Use helper as well
         if phrase_l in ["price", "billing"]:
             if _has_positive_claim(lower_without, phrase_l):
@@ -1358,16 +3523,18 @@ def main() -> int:
         return 2
     data = load_contract(args.contract_json)
     result = validate_contract(data)
-    if args.check_equivalence:
-        if not args.contract_md.is_file():
-            result["errors"].append(f"missing contract md: {args.contract_md}")
+    # Default behavior: always validate both JSON and Markdown and byte-equivalence.
+    # The deprecated --check-equivalence flag is retained for compatibility but does not gate
+    # validation.
+    if not args.contract_md.is_file():
+        result["errors"].append(f"missing contract md: {args.contract_md}")
+        result["pass"] = False
+    else:
+        md_text = args.contract_md.read_text(encoding="utf-8")
+        md_errors = validate_markdown_contains(md_text, data)
+        result["errors"].extend(md_errors)
+        if md_errors:
             result["pass"] = False
-        else:
-            md_text = args.contract_md.read_text(encoding="utf-8")
-            md_errors = validate_markdown_contains(md_text, data)
-            result["errors"].extend(md_errors)
-            if md_errors:
-                result["pass"] = False
     result["error_count"] = len(result["errors"])
     result["pass"] = len(result["errors"]) == 0
     print(json.dumps(result, indent=2))

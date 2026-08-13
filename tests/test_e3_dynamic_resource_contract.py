@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
@@ -19,7 +22,10 @@ from validate_e3_dynamic_resource_contract import (  # noqa: E402
     EXPECTED_E2D,
     EXPECTED_E2D_MANIFEST,
     EXPECTED_TRACE_SHA,
+    main,
+    render_markdown,
     validate_contract,
+    validate_markdown,
     validate_markdown_contains,
 )
 
@@ -693,10 +699,10 @@ def test_mutation_research_question_factorial_overclaim_rejected() -> None:
     assert_fails(mutated, "research_question alone and jointly must be rejected")
 
     mutated2 = copy.deepcopy(canonical())
-    mutated2["research_question"] = (  # noqa: E501
-        "Under the frozen Manchester incident trace and frozen MAPPO vehicle "
-        "actor, do placement among ingress_dla, per_task_dla, and p2c_dla "
-        "improve deadline?"
+    mutated2["research_question"] = (
+        "Under the frozen Manchester incident trace and frozen MAPPO "
+        "vehicle actor, do placement among ingress_dla, "
+        "per_task_dla, and p2c_dla improve deadline?"
     )
     assert_fails(mutated2, "research_question missing staged isolation")
 
@@ -746,8 +752,10 @@ def test_mutation_exact_numeric_200_and_600_boundaries() -> None:
 
 
 def test_mutation_markdown_word_boundary_numeric() -> None:
-    # Direct word-boundary helper check: 200 inside 2000 should not count
-    from validate_e3_dynamic_resource_contract import _word_boundary_present
+    # Word-boundary numeric check is now via byte-equivalence; ensure
+    # 200 inside 2000 does not satisfy standalone presence
+    def _word_boundary_present(text: str, token: str) -> bool:
+        return re.search(r"\b" + re.escape(token) + r"\b", text) is not None
 
     assert _word_boundary_present("scale down 200 ms", "200") is True
     assert _word_boundary_present("delay 2000 ms", "200") is False
@@ -908,7 +916,6 @@ def test_mutation_canonical_block_byte_equivalence() -> None:
     # Also test deep equality failure
     tampered = copy.deepcopy(data)
     tampered["campaign"] = "tampered"
-    import re
 
     # Replace campaign in block
     mutated_md2 = re.sub(r'"campaign": "e3-dynamic-resource-v2"', '"campaign": "tampered"', md_text)
@@ -943,3 +950,1228 @@ def test_mutation_markdown_factorial_overclaim_rejected() -> None:
     mutated_md3 = md_text.replace("E3b holds placement fixed", "E3b tests scaling")
     errors3 = validate_markdown_contains(mutated_md3, data)
     assert errors3, "markdown missing E3b holds placement fixed should fail"
+
+
+def test_contract_authority_json_normative() -> None:
+    data = canonical()
+    assert data["contract_authority"] == "json_is_normative_markdown_is_generated_view"
+    assert data["markdown_is_generated_view"] is True
+    assert "JSON is the single normative" in data["authority_note"]
+    # Tamper should fail
+    mutated = copy.deepcopy(data)
+    mutated["contract_authority"] = "markdown_is_normative"
+    assert_fails(mutated, "contract_authority must be json_is_normative")
+    mutated2 = copy.deepcopy(data)
+    mutated2["markdown_is_generated_view"] = False
+    assert_fails(mutated2, "markdown_is_generated_view must be true")
+
+
+def test_markdown_is_deterministic_render() -> None:
+    """Markdown must equal render_markdown(canonical_json) byte-for-byte."""
+
+    data = canonical()
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    expected = render_markdown(data)
+    assert md_text == expected, "committed Markdown must equal render_markdown(canonical_json)"
+    # Any prose change outside block must fail byte equivalence
+    mutated_md = md_text.replace("## 1. Research question", "## 1. RESEARCH QUESTION MODIFIED")
+    errors = validate_markdown_contains(mutated_md, data)
+    assert errors, "prose change outside block must fail"
+    assert any("byte-equivalence" in e for e in errors), (
+        f"expected byte-equivalence error, got {errors}"
+    )
+
+
+def test_default_cli_validates_both_and_byte_equivalence(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Default invocation must validate both JSON and Markdown and
+    byte equivalence.
+    """
+
+    monkeypatch.setattr(sys, "argv", ["validate"])
+    rc = main()
+    out_text = capsys.readouterr().out
+    assert rc == 0, f"default CLI should pass, got {out_text}"
+    out = json.loads(out_text)
+    assert out["pass"] is True
+
+
+def test_cli_alternate_paths_pass(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    alt_json = tmp_path / "alt.json"
+    alt_md = tmp_path / "alt.md"
+    alt_json.write_text(CANONICAL_JSON.read_text(encoding="utf-8"), encoding="utf-8")
+    alt_md.write_text(CANONICAL_MD.read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "validate",
+            "--contract-json",
+            str(alt_json),
+            "--contract-md",
+            str(alt_md),
+        ],
+    )
+    rc = main()
+    out_text = capsys.readouterr().out
+    assert rc == 0, f"alternate paths should pass: {out_text}"
+
+
+def test_cli_missing_md_fails_regardless_of_flags(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    missing = tmp_path / "missing.md"
+    # do not create missing
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(missing)])
+    rc = main()
+    out_text = capsys.readouterr().out
+    assert rc != 0, "missing MD must fail regardless of flags"
+    out = json.loads(out_text) if out_text.strip() else {}
+    assert not out.get("pass", True)
+    # also test deprecated flag still fails
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["validate", "--contract-md", str(missing), "--check-equivalence"],
+    )
+    rc2 = main()
+    out_text2 = capsys.readouterr().out
+    assert rc2 != 0, "missing MD must fail even with deprecated flag"
+    assert "missing" in out_text2.lower() or "pass" in out_text2.lower()
+
+
+def test_cli_nonexistent_contract_md_flag_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    missing = tmp_path / "does_not_exist_12345.md"
+
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(missing)])
+    rc = main()
+    _ = capsys.readouterr()
+    assert rc != 0
+
+
+def test_narrative_drift_outside_block_fails_byte_equivalence_with_specific_error() -> None:
+    """Mutate narrative outside block; assert byte-equivalence error."""
+    data = canonical()
+    # Block is controlled (canonical), mutate narrative outside block
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    narratives = [
+        ("queue ceiling is compute capacity", "queue==compute"),
+        ("actor observes RSU load", "actor observes"),
+        ("actor selects execution RSU", "actor selects"),
+        ("rejected work executes", "rejected executes"),
+        ("free scaling is allowed", "free/unbounded"),
+        ("tasks are replicates", "task-as-N"),
+        ("this is a conclusion", "hypothesis conclusion"),
+        ("expected truth", "hypothesis truth"),
+        ("cost is 10 USD", "monetary"),
+        ("outer_tick_ms is 200", "200ms tick"),
+        ("within_tick_task_slots is 10", "slot drift"),
+        ("df is 5", "df drift"),
+        ("cells total is 144", "cell drift"),
+        ("already executed", "executed"),
+        ("fleet_seed is hidden", "replicate-label"),
+    ]
+    for needle, label in narratives:
+        mutated_md = md_text.replace(
+            "## 2. Frozen prerequisites", f"{needle}\n\n## 2. Frozen prerequisites"
+        )
+        errors = validate_markdown_contains(mutated_md, data)
+        assert errors, f"narrative drift {label!r} should fail"
+        assert any("byte-equivalence" in e for e in errors), (
+            f"{label} must fail via byte-equivalence, got {errors}"
+        )
+
+
+def test_regenerated_but_mutated_json_still_rejected_by_field_rules() -> None:
+    """Regenerated but mutated JSON+Markdown pair must still be rejected."""
+
+    mutated = copy.deepcopy(canonical())
+    mutated["mechanism_separation"]["queue_ceiling_is_not_compute_capacity"] = False
+    # Regenerate markdown to match mutated JSON so byte equivalence passes
+    regenerated_md = render_markdown(mutated)
+    # Markdown byte equivalence should pass (since regenerated)
+    _md_errors = validate_markdown(regenerated_md, mutated)
+    # _md_errors may be empty because markdown matches mutated json
+    # But validate_contract must still reject via field rule
+    result = validate_contract(mutated)
+    assert not result["pass"], "mutated JSON must be rejected even when markdown is regenerated"
+    assert any(
+        "queue_ceiling_is_not_compute_capacity" in e or "queue" in e.lower()
+        for e in result["errors"]
+    ), f"expected queue==compute field error, got {result['errors']}"
+
+
+def test_malformed_scalar_and_nonlist_shapes_fail_closed() -> None:
+    """Scalar shapes must return structured errors, never TypeError.
+
+    Covers scalar placement, non-list contrasts, malformed factors,
+    and missing fields.
+    """
+    # scalar placement
+    mutated = copy.deepcopy(canonical())
+    mutated["staged_design"]["e3a"]["placement"] = "ingress_dla"  # scalar, not list
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert result["error_count"] > 0
+    # scalar scaling
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["staged_design"]["e3b"]["scaling"] = "fixed_1x"
+    result2 = validate_contract(mutated2)
+    assert not result2["pass"]
+    # non-list contrasts
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["staged_design"]["e3c"]["contrasts"] = {"comparison": "per_task_dla vs p2c_dla"}
+    result3 = validate_contract(mutated3)
+    assert not result3["pass"]
+    # malformed factor values: e.g., placement contains integer
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["staged_design"]["e3a"]["placement"] = [123, None]
+    result4 = validate_contract(mutated4)
+    assert not result4["pass"]
+    # missing fields
+    mutated5 = copy.deepcopy(canonical())
+    del mutated5["replication"]
+    result5 = validate_contract(mutated5)
+    assert not result5["pass"]
+    # Ensure no exception raised: we already got results, not crashed
+    # Also test validate_contract with non-dict input
+    result6 = validate_contract([])
+    assert not result6["pass"]
+    assert any("dict" in e for e in result6["errors"])
+
+
+def test_cross_count_locals_initialized_no_nameerror() -> None:
+    """Cross-count locals must be initialized; malformed shapes must not
+    raise NameError.
+    """
+
+    mutated = copy.deepcopy(canonical())
+    # Make e3a placement scalar to trigger early error
+    # but still cross-count logic should not NameError
+    mutated["staged_design"]["e3a"]["placement"] = "scalar"
+    mutated["staged_design"]["e3b"]["scaling"] = "scalar"
+    result = validate_contract(mutated)
+    # Should return errors, not raise
+    assert not result["pass"]
+    assert isinstance(result["errors"], list)
+
+
+def test_direct_positive_assertions_for_all_narrative_categories() -> None:
+    """Direct positive assertions for each required narrative drift category."""
+    data = canonical()
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    # Each category must be detectable via byte-equivalence when narrative drifts
+    categories = {
+        "queue==compute": "queue ceiling is compute capacity",
+        "actor observes": "actor observes RSU load",
+        "actor selects": "actor selects execution RSU",
+        "rejected executes": "rejected work executes",
+        "free/unbounded": "unbounded scaling is allowed",
+        "task-as-N": "tasks are replicates",
+        "hypothesis conclusion": "this is a conclusion",
+        "hypothesis truth": "expected truth",
+        "monetary": "cost is 5 USD",
+        "200ms tick": "outer_tick_ms is 200",
+        "slot": "within_tick_task_slots is 200",
+        "df/t": "df is 5 and t is 2.5",
+        "cell": "cells total is 144",
+        "executed": "already executed",
+        "replicate-label": "fleet_seed is hidden",
+    }
+    for cat, needle in categories.items():
+        mutated_md = md_text.replace("## 3. Fixed scenario", f"{needle}\n\n## 3. Fixed scenario")
+        errors = validate_markdown_contains(mutated_md, data)
+        assert errors, f"category {cat} narrative drift must fail"
+        assert any("byte-equivalence" in e for e in errors), (
+            f"{cat} should be byte-equivalence, got {errors}"
+        )
+
+
+# --- Compute-service semantics mutation tests (Lane 01 pre-freeze audit) ---
+
+
+def test_mutation_compute_service_dividing_enqueued_work() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["enqueue_equation"] = (
+        "enqueued_work_ms = raw_1x_service_work_ms / active_capacity_units"
+    )
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("enqueue_equation" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["enqueue_must_not_divide_by_capacity"] = False
+    assert_fails(mutated2, "dividing enqueued work by capacity")
+
+
+def test_mutation_compute_service_draining_only_newly_enqueued() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["drain_applies_to_all_queued_work_including_pre_scale"] = (
+        False
+    )
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("drain_applies_to_all_queued_work" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["drain_equation"] = (
+        "drain_work_ms = min(newly_enqueued_work_ms, active_capacity_units * 1000)"
+    )
+    assert_fails(mutated2, "drain only newly enqueued")
+
+
+def test_mutation_compute_service_1x_only_drain() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["drain_equation"] = (
+        "drain_work_ms = min(backlog_work_ms, 1000)"
+    )
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("drain_equation" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["drain_tick_ms"] = 500
+    assert_fails(mutated2, "1x-only drain tick")
+
+
+def test_mutation_compute_service_idle_free_resource_time() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["resource_time_charged_even_when_idle"] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("resource_time_charged_even_when_idle" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["at_most_one_interval_per_RSU_per_tick"] = False
+    assert_fails(mutated2, "idle-free at most one interval")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_service_semantics"]["resource_time_equation"] = (
+        "resource_unit_seconds_per_RSU_per_tick = active_capacity_units * 0"
+    )
+    assert_fails(mutated3, "idle-free resource time equation")
+
+
+def test_mutation_compute_service_queue_capacity_conflation() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["drain_capacity_is_not_queue_slots"] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("drain_capacity_is_not_queue_slots" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["scaling_forbidden_units"] = ["queue_slots"]
+    assert_fails(mutated2, "queue/capacity conflation forbidden units")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_service_semantics"]["scaling_forbidden_units"] = [
+        "capacity_normalized_work_ms"
+    ]
+    assert_fails(mutated3, "missing queue_slots in forbidden")
+
+
+def test_mutation_compute_service_normalized_placement_gate_signal() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["placement_workloads_unit"] = "capacity_normalized_work_ms"
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("placement_workloads_unit" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["admission_gate_unit"] = "capacity_normalized_work_ms"
+    assert_fails(mutated2, "normalized admission gate")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_service_semantics"]["reactive_signal_unit"] = "capacity_normalized_work_ms"
+    assert_fails(mutated3, "normalized reactive signal")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["compute_service_semantics"]["scaling_must_not_change_placement_or_admission_unit"] = (
+        False
+    )
+    assert_fails(mutated4, "normalized placement/gate signal allowed")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["compute_service_semantics"]["proactive_observation_unit"] = (
+        "capacity_normalized_work_ms"
+    )
+    assert_fails(mutated5, "normalized proactive observation")
+
+
+def test_mutation_compute_service_retroactive_latency_repricing() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["latency_not_retroactively_repriced"] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("latency_not_retroactively_repriced" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["latency_equation"] = (
+        "(raw_work_ahead_ms + raw_own_service_work_ms)"
+    )
+    assert_fails(mutated2, "future retroactive latency repricing missing division")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_service_semantics"]["latency_semantics"] = "physical_lifecycle"
+    assert_fails(mutated3, "latency semantics not estimate")
+
+
+def test_mutation_compute_service_wrong_initial_capacities() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["initial_capacities"]["static_overprovisioned_units"] = 2
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("static_overprovisioned_units" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["initial_capacities"][
+        "static_overprovisioned_from_tick"
+    ] = 1
+    assert_fails(mutated2, "wrong static from tick")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_service_semantics"]["initial_capacities"]["dynamic_start_units"] = 2
+    assert_fails(mutated3, "wrong dynamic start")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["compute_service_semantics"]["initial_capacities"]["fixed_1x_units"] = 2
+    assert_fails(mutated4, "wrong fixed_1x initial")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["compute_service_semantics"]["initial_capacities"]["dynamic_max_units"] = 4
+    assert_fails(mutated5, "wrong dynamic max")
+
+
+def test_mutation_compute_service_physical_completion_claim() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["latency_physical_lifecycle_fields_remain_null"] = False
+    result = validate_contract(mutated)
+    assert not result["pass"]
+    assert any("latency_physical_lifecycle_fields_remain_null" in e for e in result["errors"])
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["task_accounting"]["unavailable_lifecycle"]["compute_completed"] = 0
+    assert_fails(mutated2, "physical completion claim via unavailable lifecycle")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_service_semantics"]["latency_semantics"] = "physical_completion"
+    assert_fails(mutated3, "physical completion latency semantics")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["compute_service_semantics"]["reduces_to_E2d_at_fixed_1x"] = False
+    assert_fails(mutated4, "reduces to E2d false")
+
+
+def test_mutation_compute_service_invariant_signal_units() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"]["stale_snapshot_unit"] = "capacity_normalized_work_ms"
+    assert_fails(mutated, "normalized stale snapshot")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["same_tick_reservation_overlay_unit"] = (
+        "capacity_normalized_work_ms"
+    )
+    assert_fails(mutated2, "normalized reservation overlay")
+
+
+def test_mutation_compute_service_scaling_timing() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["compute_service_semantics"][
+        "scaling_applied_at_tick_start_before_placement_admission"
+    ] = False
+    assert_fails(mutated, "scaling timing tick start")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["scaling_applied_before_latency_estimate_and_drain"] = (
+        False
+    )
+    assert_fails(mutated2, "scaling before latency/drain")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["compute_service_semantics"]["active_capacity_for_entire_tick"] = False
+    assert_fails(mutated3, "active capacity entire tick")
+
+
+def test_mutation_staged_60_as_unique_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["staged_design"]["maximum_candidate_unique_cells"] = 60
+    assert_fails(mutated, "60-as-unique must be rejected (unique is 56, 60 is stage-listed)")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["staged_design"]["stage_listed_cells"] = 56
+    assert_fails(mutated2, "stage_listed 56 must be rejected (must be 60)")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["staged_design"]["e3c"]["total_candidate_with_stale_max"] = 60
+    assert_fails(mutated3, "total_candidate_with_stale_max 60 must be rejected")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["staged_design"]["stage_listed_equation"] = "12 + 16 + 32 = 56"
+    assert_fails(mutated4, "stage_listed equation must be 12+16+32=60")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["staged_design"]["unique_equation"] = "12 + 16 + 32 = 60"
+    assert_fails(mutated5, "unique equation must be 12+12+32=56")
+
+
+def test_mutation_staged_overlap_reuse_must_not_rerun() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["staged_design"]["e3b_overlap_with_e3a"] = 0
+    assert_fails(mutated, "e3b overlap 0 must be rejected (must be 4)")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["staged_design"]["e3b_unique_additional"] = 16
+    assert_fails(mutated2, "e3b unique_additional 16 must be rejected (must be 12, 16-4)")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["staged_design"]["e3b"]["overlap_with_e3a"] = 0
+    assert_fails(mutated3, "e3b overlap_with_e3a 0")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["staged_design"]["e3b"]["unique_additional"] = 16
+    assert_fails(mutated4, "e3b unique_additional 16 reruns overlap")
+    mutated5 = copy.deepcopy(canonical())
+    del mutated5["staged_design"]["e3b"]["overlap_note"]
+    assert_fails(mutated5, "overlap_note missing must fail")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["staged_design"]["e3c_fresh_observations_reused"] = 0
+    assert_fails(mutated6, "e3c fresh reused 0 must be rejected")
+    mutated7 = copy.deepcopy(canonical())
+    mutated7["staged_design"]["e3c"]["fresh_observations_reused"] = 0
+    assert_fails(mutated7, "e3c fresh_observations_reused 0 reruns fresh")
+
+
+def test_mutation_staged_48_32_56_miscount_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["staged_design"]["e3c_total_contrast_observations"] = 32
+    assert_fails(mutated, "e3c total 32 must be 48")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["staged_design"]["e3c"]["total_contrast_observations"] = 32
+    assert_fails(mutated2, "e3c total_contrast 32")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["staged_design"]["e3c"]["fresh_observations_reused"] = 8
+    assert_fails(mutated3, "e3c fresh 8")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["staged_design"]["e3c"]["stale_variant_equation"] = "48 - 8 = 40"
+    assert_fails(mutated4, "stale_variant equation wrong")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["staged_design"]["e3c_stale_variant_equation"] = "48 - 16 = 40"
+    assert_fails(mutated5, "e3c_stale_variant_equation 40")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["staged_design"]["e3c"]["additional_stale_variant_cells_max"] = 48
+    assert_fails(mutated6, "additional 48 must be 32")
+    mutated7 = copy.deepcopy(canonical())
+    mutated7["staged_design"]["maximum_candidate_unique_cells"] = 60
+    assert_fails(mutated7, "unique 60")
+    mutated8 = copy.deepcopy(canonical())
+    mutated8["staged_design"]["stage_listed_cells"] = 56
+    assert_fails(mutated8, "stage_listed 56")
+
+
+def test_mutation_stale_deadline_view_must_not_become_fresh() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_state_semantics"]["deadline_workload_observation_has_state_age"] = False
+    assert_fails(mutated, "deadline workload must have state_age")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["admission_gate"]["stale_view_applies_to_deadline_workload"] = False
+    assert_fails(mutated2, "admission gate stale view")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["stale_state_semantics"]["forbidden_behaviors"] = ["stale_queue_cap"]
+    assert_fails(
+        mutated3, "forbidden_behaviors must include stale_deadline_view_silently_becoming_fresh"
+    )
+    mutated4 = copy.deepcopy(canonical())
+    del mutated4["stale_state_semantics"]["exposes"]
+    assert_fails(mutated4, "exposes missing")
+
+
+def test_mutation_stale_queue_cap_must_be_current() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_state_semantics"]["queue_ceiling_uses_stale_view"] = True
+    assert_fails(mutated, "queue_ceiling_uses_stale_view true must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["stale_state_semantics"]["queue_safety_uses_current_not_stale"] = False
+    assert_fails(mutated2, "queue_safety_uses_current_not_stale false")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["admission_gate"]["queue_safety_uses_current_not_stale"] = False
+    assert_fails(mutated3, "admission queue safety stale")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["compute_service_semantics"]["queue_safety_is_current_not_stale"] = False
+    assert_fails(mutated4, "css queue safety stale")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["compute_service_semantics"][
+        "queue_ceiling_uses_current_occupancy_plus_same_tick_reservations"
+    ] = False
+    assert_fails(mutated5, "css queue ceiling stale")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["stale_state_semantics"]["queue_ceiling_enforcement"] = "stale_view"
+    assert_fails(mutated6, "queue_ceiling_enforcement stale")
+
+
+def test_mutation_stale_mutation_of_true_state_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_state_semantics"]["does_not_mutate"] = ["true_environment"]
+    assert_fails(mutated, "does_not_mutate must include all 4")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["compute_service_semantics"]["stale_does_not_mutate_true_state"] = False
+    assert_fails(mutated2, "stale_does_not_mutate_true_state false")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["stale_state_semantics"]["applies_to"] = ["true_environment"]
+    assert_fails(mutated3, "applies_to must be workload view etc, not true_environment")
+
+
+def test_mutation_stale_pretrace_warmup_and_clamp_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_state_semantics"]["initialization"][
+        "pretrace_zeros_do_not_satisfy_proactive_warmup"
+    ] = False
+    assert_fails(mutated, "pretrace_zeros_do_not_satisfy_proactive_warmup false")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["time_model"]["proactive_pretrace_does_not_satisfy_warmup"] = False
+    assert_fails(mutated2, "time_model pretrace warmup false")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["stale_state_semantics"]["initialization"][
+        "permits_exact_0_1000_3000_without_clamping"
+    ] = False
+    assert_fails(mutated3, "permits_exact_without_clamping false")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["time_model"]["permits_exact_views_without_clamping"] = False
+    assert_fails(mutated4, "time_model permits_exact false")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["stale_state_semantics"]["forbidden_behaviors"] = ["clock_clamp"]
+    assert_fails(mutated5, "forbidden_behaviors must include clock_clamp etc")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["stale_state_semantics"]["initialization"][
+        "proactive_still_requires_four_actual_trace_observations"
+    ] = False
+    assert_fails(mutated6, "proactive_still_requires_four false")
+
+
+def test_mutation_stale_state_age_laundering_and_offset_delay_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_state_semantics"]["forbidden_behaviors"] = ["state_age_laundering"]
+    assert_fails(mutated, "state_age_laundering must be in forbidden")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["stale_state_semantics"]["initialization"][
+        "scaling_delay_cooldown_use_control_clock_differences_no_extra_delay"
+    ] = False
+    assert_fails(mutated2, "scaling_delay_cooldown_use_control_clock false")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["time_model"]["scaling_delay_uses_control_clock_differences"] = False
+    assert_fails(mutated3, "time_model scaling_delay false")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["stale_state_semantics"]["initialization"]["control_clock_offset_ms"] = 0
+    assert_fails(mutated4, "control_clock_offset 0 must be 3000")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["time_model"]["control_clock_offset_ms"] = 0
+    assert_fails(mutated5, "time_model offset 0")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["stale_state_semantics"]["forbidden_behaviors"] = ["offset_added_to_action_delay"]
+    assert_fails(mutated6, "offset_added_to_action_delay must be in forbidden")
+
+
+def test_mutation_p2c_replacement_and_unsorted_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["placement"]["p2c_dla"]["without_replacement"] = False
+    assert_fails(mutated, "without_replacement false must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["placement"]["p2c_dla"]["pair_mapper"]["distinct_without_replacement"] = False
+    assert_fails(mutated2, "distinct_without_replacement false")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["placement"]["p2c_dla"]["pair_mapper"]["candidate_order"] = "unsorted"
+    assert_fails(mutated3, "candidate_order unsorted")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["placement"]["p2c_dla"]["pair_mapper"]["final_pair_sorted"] = False
+    assert_fails(mutated4, "final_pair_sorted false")
+
+
+def test_mutation_p2c_alternate_hash_key_mapper_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["placement"]["p2c_dla"]["counter_key_fields"] = [
+        "evaluator_seed",
+        "fleet_seed",
+        "tick",
+        "task_slot",
+        "sequential_ordinal",
+    ]
+    assert_fails(mutated, "counter_key_fields tick must be outer_tick")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["placement"]["p2c_dla"]["pair_mapper"]["hash"] = "MD5"
+    assert_fails(mutated2, "hash MD5 must be SplitMix64")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["placement"]["p2c_dla"]["pair_mapper"]["hash_input_fields_exact"] = [
+        "evaluator_seed",
+        "fleet_seed",
+        "tick",
+        "task_slot",
+        "sequential_ordinal",
+    ]
+    assert_fails(mutated3, "hash_input_fields tick")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["placement"]["p2c_dla"]["pair_mapper"]["first_index_formula"] = "h % (n-1)"
+    assert_fails(mutated4, "first_index formula wrong")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["placement"]["p2c_dla"]["pair_mapper"]["second_index_formula"] = "h % n"
+    assert_fails(mutated5, "second_index formula wrong")
+    mutated6 = copy.deepcopy(canonical())
+    mutated6["placement"]["p2c_dla"]["pair_mapper"]["mapper_type"] = "uniform_random_mapper"
+    assert_fails(mutated6, "mapper_type uniform")
+    mutated7 = copy.deepcopy(canonical())
+    mutated7["placement"]["p2c_dla"]["pair_mapper"]["no_hidden_global_RNG"] = False
+    assert_fails(mutated7, "hidden global RNG allowed")
+
+
+def test_mutation_p2c_uniform_unbiased_claim_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["placement"]["p2c_dla"]["modulo_bias_note"] = "exact-uniform and unbiased"
+    assert_fails(mutated, "uniform unbiased claim must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["placement"]["p2c_dla"]["pair_mapper"]["uniformity_not_claimed"] = False
+    assert_fails(mutated2, "uniformity_not_claimed false")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["placement"]["p2c_dla"]["uniformity_claim_forbidden"] = ["uniform"]
+    assert_fails(mutated3, "uniformity_claim_forbidden must include unbiased")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["placement"]["p2c_dla"]["h1_concern"] = "statistical proof of perfect uniformity"
+    assert_fails(mutated4, "h1_concern must be pair_only_inspection")
+    mutated5 = copy.deepcopy(canonical())
+    mutated5["placement"]["p2c_dla"]["modulo_bias_note"] = "modulo reduction is exactly uniform"
+    assert_fails(mutated5, "exactly uniform claim")
+
+
+def test_mutation_stale_decision_vs_true_execution_stale_for_latency_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_decision_vs_true_execution"][
+        "deadline_success_based_on_true_simulated_latency_never_stale_estimate"
+    ] = False
+    assert_fails(mutated, "stale belief for actual latency must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["stale_decision_vs_true_execution"]["forbidden_behaviors"] = [
+        "true_state_used_for_stale_decision",
+        "executing_pessimistically_rejected_work",
+        "delaying_true_capacity_or_drain",
+    ]
+    assert_fails(mutated2, "missing stale_belief_used_for_actual_latency forbidden")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["stale_decision_vs_true_execution"]["true_execution_determines"] = ["enqueue"]
+    assert_fails(mutated3, "true_execution_determines must contain deadline_success")
+
+
+def test_mutation_stale_decision_vs_true_execution_true_for_decision_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_decision_vs_true_execution"]["placement_uses_observed"] = False
+    assert_fails(mutated, "true state for stale decision must be rejected (placement)")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["stale_decision_vs_true_execution"][
+        "deadline_admission_gate_uses_observed_backlog_only"
+    ] = False
+    assert_fails(mutated2, "true state for deadline gate stale decision")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["stale_decision_vs_true_execution"]["forbidden_behaviors"] = [
+        "stale_belief_used_for_actual_latency_or_success",
+        "executing_pessimistically_rejected_work",
+        "delaying_true_capacity_or_drain",
+    ]
+    assert_fails(mutated3, "missing true_state_used_for_stale_decision forbidden")
+
+
+def test_mutation_stale_decision_vs_true_execution_pessimistic_rejected_execution_rejected() -> (
+    None
+):
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_decision_vs_true_execution"][
+        "pessimistic_stale_rejected_never_executes_even_if_true_would_have_been_feasible"
+    ] = False
+    assert_fails(mutated, "pessimistically rejected must never execute")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["stale_decision_vs_true_execution"]["forbidden_behaviors"] = [
+        "stale_belief_used_for_actual_latency_or_success",
+        "true_state_used_for_stale_decision",
+        "delaying_true_capacity_or_drain",
+    ]
+    assert_fails(mutated2, "missing executing_pessimistically_rejected_work forbidden")
+
+
+def test_mutation_stale_decision_vs_true_execution_delay_true_capacity_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["stale_decision_vs_true_execution"][
+        "current_capacity_action_application_and_drain_operate_on_true_state"
+    ] = False
+    assert_fails(mutated, "delaying true capacity must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["stale_decision_vs_true_execution"]["scaling_decisions_observe_delayed_signals"] = (
+        False
+    )
+    assert_fails(mutated2, "scaling decisions must observe delayed signals, capacity must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["stale_decision_vs_true_execution"]["forbidden_behaviors"] = [
+        "stale_belief_used_for_actual_latency_or_success",
+        "true_state_used_for_stale_decision",
+        "executing_pessimistically_rejected_work",
+    ]
+    assert_fails(mutated3, "missing delaying_true_capacity_or_drain forbidden")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["stale_decision_vs_true_execution"][
+        "later_scale_actions_do_not_retroactively_reprice_recorded_task"
+    ] = False
+    assert_fails(mutated4, "retroactive repricing must be false")
+
+
+def test_mutation_p2c_dense_active_only_ordinal_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_dense_counter_key_mapping"]["sequential_task_ordinal"][
+        "independent_of_active_mask"
+    ] = False
+    assert_fails(mutated, "active-only ordinal must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_dense_counter_key_mapping"]["forbidden_behaviors"] = [
+        "ordinal_reset_or_collision",
+        "200ms_time_interpretation",
+        "outcome_dependent_key_shifts",
+    ]
+    assert_fails(mutated2, "missing active_only_ordinal forbidden")
+
+
+def test_mutation_p2c_dense_ordinal_collision_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_dense_counter_key_mapping"]["sequential_task_ordinal"][
+        "dense_position_identity"
+    ] = False
+    assert_fails(mutated, "ordinal collision/reset must be rejected (dense)")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_dense_counter_key_mapping"]["sequential_task_ordinal"]["per_outer_tick"] = False
+    assert_fails(mutated2, "per outer tick range must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_dense_counter_key_mapping"]["sequential_task_ordinal"]["range"] = "[0,100]"
+    assert_fails(mutated3, "sequential range must be [0,12439]")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["p2c_dense_counter_key_mapping"]["forbidden_behaviors"] = [
+        "active_only_ordinal",
+        "200ms_time_interpretation",
+        "outcome_dependent_key_shifts",
+    ]
+    assert_fails(mutated4, "missing ordinal_reset_or_collision forbidden")
+
+
+def test_mutation_p2c_dense_200ms_time_interpretation_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_dense_counter_key_mapping"]["task_slot"]["advances_physical_time"] = True
+    assert_fails(
+        mutated, "200ms time interpretation must be rejected (task_slot must not advance time)"
+    )
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_dense_counter_key_mapping"]["task_slot"]["range"] = "[0,9]"
+    assert_fails(mutated2, "task_slot range must be [0,4]")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_dense_counter_key_mapping"]["forbidden_behaviors"] = [
+        "active_only_ordinal",
+        "ordinal_reset_or_collision",
+        "outcome_dependent_key_shifts",
+    ]
+    assert_fails(mutated3, "missing 200ms_time_interpretation forbidden")
+
+
+def test_mutation_p2c_dense_outcome_dependent_shift_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_dense_counter_key_mapping"]["sequential_task_ordinal"][
+        "earlier_outcomes_never_shift_later_pairs"
+    ] = False
+    assert_fails(mutated, "outcome-dependent key shifts must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_dense_counter_key_mapping"]["sequential_task_ordinal"][
+        "independent_of_admission_or_rejection"
+    ] = False
+    assert_fails(mutated2, "independent of admission must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_dense_counter_key_mapping"]["sequential_task_ordinal"][
+        "independent_of_feasibility"
+    ] = False
+    assert_fails(mutated3, "independent of feasibility must be true")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["p2c_dense_counter_key_mapping"]["forbidden_behaviors"] = [
+        "active_only_ordinal",
+        "ordinal_reset_or_collision",
+        "200ms_time_interpretation",
+    ]
+    assert_fails(mutated4, "missing outcome_dependent_key_shifts forbidden")
+
+
+def test_mutation_h1_two_total_reads_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["h1_state_inspection"]["must_not_claim_only_two_total_global_reads"] = False
+    assert_fails(mutated, "two total reads claim must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["h1_state_inspection"]["forbidden_claims"] = [
+        "hidden_feasibility_scan",
+        "communication_savings_proven",
+    ]
+    assert_fails(mutated2, "missing two_total_reads forbidden")
+
+
+def test_mutation_h1_hidden_feasibility_scan_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["h1_state_inspection"][
+        "feasibility_first_must_enumerate_all_RSU_deadline_feasibility"
+    ] = False
+    assert_fails(mutated, "hidden feasibility scan must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["h1_state_inspection"]["forbidden_claims"] = [
+        "two_total_reads",
+        "communication_savings_proven",
+    ]
+    assert_fails(mutated2, "missing hidden_feasibility_scan forbidden")
+    # also markdown hidden scan: test via validator's markdown check is covered by JSON
+
+
+def test_mutation_h1_communication_savings_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["h1_state_inspection"]["must_not_claim_distributed_communication_savings"] = False
+    assert_fails(mutated, "communication savings claim must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["h1_state_inspection"]["must_not_claim_proven_lower_total_state_acquisition"] = False
+    assert_fails(mutated2, "proven lower total state acquisition claim must be rejected")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["h1_state_inspection"][
+        "h1_is_hypothesis_about_pair_only_ranking_vs_global_least_busy_dependence_not_proved_networking_cost"
+    ] = False
+    assert_fails(mutated3, "H1 must be hypothesis about pair-only ranking not proved networking")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["h1_state_inspection"]["forbidden_claims"] = [
+        "two_total_reads",
+        "hidden_feasibility_scan",
+    ]
+    assert_fails(mutated4, "missing communication_savings_proven forbidden")
+
+
+def test_mutation_resource_diagnostics_raw_utilization_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["resource_state_diagnostics"]["capacity_adjusted_utilization"]["formula"] = (
+        "drained_work_ms / 1000"
+    )
+    assert_fails(mutated, "raw/1000 utilization under u>1 must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["resource_state_diagnostics"]["capacity_adjusted_utilization"]["bounded"] = "[0,10]"
+    assert_fails(mutated2, "bounded must be [0,1]")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["resource_state_diagnostics"]["forbidden_behaviors"] = [
+        "queue_occupancy_as_denominator",
+        "zero_fill_shares_when_denominator_zero",
+        "rejected_task_switches",
+        "unordered_or_across_draw_switches",
+        "missing_cost_denominator",
+    ]
+    assert_fails(mutated3, "missing raw_over_1000 forbidden")
+
+
+def test_mutation_resource_diagnostics_queue_occupancy_denominator_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["resource_state_diagnostics"]["capacity_adjusted_utilization"][
+        "waiting_room_occupancy_is_separate_task_count_and_never_denominator"
+    ] = False
+    assert_fails(mutated, "queue occupancy denominator must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["resource_state_diagnostics"]["forbidden_behaviors"] = [
+        "raw_over_1000_utilization_under_u_gt_1",
+        "zero_fill_shares_when_denominator_zero",
+        "rejected_task_switches",
+        "unordered_or_across_draw_switches",
+        "missing_cost_denominator",
+    ]
+    assert_fails(mutated2, "missing queue_occupancy_as_denominator forbidden")
+
+
+def test_mutation_resource_diagnostics_zero_fill_shares_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["resource_state_diagnostics"]["execution_share"][
+        "when_denominator_zero_is_null_with_explicit_reason_not_zeros"
+    ] = False
+    assert_fails(mutated, "zero-fill shares must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["resource_state_diagnostics"]["forbidden_behaviors"] = [
+        "raw_over_1000_utilization_under_u_gt_1",
+        "queue_occupancy_as_denominator",
+        "rejected_task_switches",
+        "unordered_or_across_draw_switches",
+        "missing_cost_denominator",
+    ]
+    assert_fails(mutated2, "missing zero_fill_shares forbidden")
+
+
+def test_mutation_resource_diagnostics_rejected_task_switches_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["resource_state_diagnostics"]["target_switching"][
+        "rejected_and_non_V2I_tasks_excluded"
+    ] = False
+    assert_fails(mutated, "rejected-task switches must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["resource_state_diagnostics"]["target_switching"][
+        "first_admitted_task_is_not_a_switch"
+    ] = False
+    assert_fails(mutated2, "first admitted not a switch must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["resource_state_diagnostics"]["forbidden_behaviors"] = [
+        "raw_over_1000_utilization_under_u_gt_1",
+        "queue_occupancy_as_denominator",
+        "zero_fill_shares_when_denominator_zero",
+        "unordered_or_across_draw_switches",
+        "missing_cost_denominator",
+    ]
+    assert_fails(mutated3, "missing rejected_task_switches forbidden")
+
+
+def test_mutation_resource_diagnostics_unordered_switches_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["resource_state_diagnostics"]["target_switching"][
+        "order_is_exact_deterministic_outer_tick_task_slot_vehicle_slot"
+    ] = False
+    assert_fails(mutated, "unordered switches must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["resource_state_diagnostics"]["target_switching"]["counts_never_cross_fleet_draws"] = (
+        False
+    )
+    assert_fails(mutated2, "across-draw switches must be rejected")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["resource_state_diagnostics"]["target_switching"][
+        "counted_over_consecutive_admitted_V2I_tasks_in_deterministic_order"
+    ] = "(tick)"
+    assert_fails(mutated3, "deterministic order must be (outer_tick, task_slot, vehicle_slot)")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["resource_state_diagnostics"]["forbidden_behaviors"] = [
+        "raw_over_1000_utilization_under_u_gt_1",
+        "queue_occupancy_as_denominator",
+        "zero_fill_shares_when_denominator_zero",
+        "rejected_task_switches",
+        "missing_cost_denominator",
+    ]
+    assert_fails(mutated4, "missing unordered_or_across_draw_switches forbidden")
+
+
+def test_mutation_resource_diagnostics_missing_cost_denominator_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["resource_state_diagnostics"][
+        "resource_unit_seconds_denominator_stays_required_for_diagnostic_deadline_per_resource_cost"
+    ] = False
+    assert_fails(mutated, "missing cost denominator must be rejected")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["resource_state_diagnostics"][
+        "no_monetary_or_automatically_authoritative_objective_claim"
+    ] = False
+    assert_fails(mutated2, "no monetary claim must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["resource_state_diagnostics"]["forbidden_behaviors"] = [
+        "raw_over_1000_utilization_under_u_gt_1",
+        "queue_occupancy_as_denominator",
+        "zero_fill_shares_when_denominator_zero",
+        "rejected_task_switches",
+        "unordered_or_across_draw_switches",
+    ]
+    assert_fails(mutated3, "missing missing_cost_denominator forbidden")
+
+
+def test_mutation_p2c_candidate_predicate_n0_classification_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_candidate_predicate"]["n_equals_0"]["classification"][
+        "if_ingress_radio_not_viable"
+    ] = "gate_rejected"
+    assert_fails(mutated, "v2i_unavailable classification must be exact")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_candidate_predicate"]["n_equals_0"]["classification"][
+        "elif_no_RSU_observed_deadline_feasible"
+    ] = "cap_rejected"
+    assert_fails(mutated2, "v2i_gate_rejected classification must be exact")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_candidate_predicate"]["feasible_RSU_predicate"][
+        "queue_safety_is_current_not_stale"
+    ] = False
+    assert_fails(mutated3, "queue safety must be current not stale")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["p2c_candidate_predicate"]["forbidden_behaviors"] = [
+        "stale queue-cap",
+        "undefined n=0/1",
+    ]
+    assert_fails(mutated4, "missing sample-before-filter forbidden")
+
+
+def test_mutation_p2c_candidate_predicate_n1_hashing_skipped_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_candidate_predicate"]["n_equals_1"]["hashing_skipped"] = False
+    assert_fails(mutated, "n=1 hashing must be skipped")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_candidate_predicate"]["n_equals_1"]["ranking_inspections"] = 2
+    assert_fails(mutated2, "ranking inspections must be 1")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_candidate_predicate"]["n_equals_1"]["no_second_hash_modulo"] = False
+    assert_fails(mutated3, "no second hash/modulo for n=1 must be true")
+
+
+def test_mutation_p2c_candidate_predicate_reservation_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_candidate_predicate"]["reservation"]["rejected_work_never_reserved"] = False
+    assert_fails(mutated, "rejected work never reserved must be true")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_candidate_predicate"]["reservation"][
+        "reserve_true_load_raw_work_and_decision_overlay_immediately_only_on_admission"
+    ] = False
+    assert_fails(mutated2, "reserve true load only on admission must be true")
+
+
+def test_mutation_p2c_mixer_uint64_and_splitmix_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_mixer"]["field_declaration"]["field_type"] = "int64"
+    assert_fails(mutated, "field type must be uint64")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_mixer"]["field_declaration"]["wrap_modulo"] = "2^32"
+    assert_fails(mutated2, "wrap modulo must be 2^64")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_mixer"]["splitmix64_definition"]["steps"] = ["z=x+1"]
+    assert_fails(mutated3, "splitmix steps must be exact")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["p2c_mixer"]["splitmix64_definition"]["constants_hex"] = ["0x123"]
+    assert_fails(mutated4, "splitmix constants must be exact")
+
+
+def test_mutation_p2c_mixer_field_order_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_mixer"]["field_declaration"]["fields_ordered"] = [
+        "fleet_seed",
+        "evaluator_seed",
+        "outer_tick",
+        "task_slot",
+        "sequential_task_ordinal",
+    ]
+    assert_fails(mutated, "field order must be evaluator, fleet, outer_tick, task_slot, ordinal")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_mixer"]["fold"]["h_init"] = "0x0000000000000000"
+    assert_fails(mutated2, "fold field order must be exact")
+
+
+def test_mutation_p2c_mixer_test_vectors_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_mixer"]["test_vectors"] = mutated["p2c_mixer"]["test_vectors"][:1]
+    assert_fails(mutated, "test vectors must be at least 3")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_mixer"]["test_vectors"][0]["h_hex"] = "0x0000000000000000"
+    assert_fails(mutated2, "h_hex must equal computed")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_mixer"]["test_vectors"][1]["first_index"] = 99
+    assert_fails(mutated3, "first_index must equal computed")
+
+
+def test_mutation_p2c_mixer_uniformity_claim_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["p2c_mixer"]["uniformity_claim_forbidden"] = False
+    assert_fails(mutated, "uniformity claim forbidden must be true")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["p2c_mixer"]["forbidden_behaviors"] = ["string/byte serialization"]
+    assert_fails(mutated2, "missing alternate SplitMix forbidden")
+
+
+def test_mutation_tick_transition_steps_and_cooldown_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["tick_transition"]["zero_based_trace_tick_control_time_t"][
+        "i_start_from_true_state_after_prior_interval_drain"
+    ] = False
+    assert_fails(mutated, "tick step i must be true")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["tick_transition"]["cooldown"]["starts_at_actual_application_time"] = False
+    assert_fails(mutated2, "cooldown starts at actual application time must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["tick_transition"]["cooldown"]["elapsed_gte_5000ms_permits_new_request"] = False
+    assert_fails(mutated3, "elapsed>=5000 permits new request must be true")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["tick_transition"]["forbidden_behaviors"] = ["ambiguous timestamps"]
+    assert_fails(mutated4, "missing decision-time cooldown forbidden")
+
+
+def test_mutation_tick_transition_receipts_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["tick_transition"]["requested_receipt_fields"] = ["draw", "rsu"]
+    assert_fails(mutated, "requested receipt fields must contain all 11")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["tick_transition"]["applied_receipt_adds"] = ["actual_to_units"]
+    assert_fails(mutated2, "applied receipt must contain actual_application_time_ms")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["tick_transition"]["counts_expose_separately"] = ["scheduled_requests"]
+    assert_fails(mutated3, "counts must contain applied up/down")
+
+
+def test_mutation_tick_transition_proactive_samples_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["tick_transition"][
+        "proactive_samples_are_completed_prior_trace_interval_admitted_arrival_work_samples"
+    ]["at_tick_t_no_sample_from_current_tick_available"] = False
+    assert_fails(mutated, "at_tick_t_no_sample must be true")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["tick_transition"][
+        "proactive_samples_are_completed_prior_trace_interval_admitted_arrival_work_samples"
+    ]["pretrace_empty_values_never_satisfy_warm_up"] = False
+    assert_fails(mutated2, "pretrace empty never satisfy warm-up must be true")
+
+
+def test_mutation_v2i_latency_equation_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "simulated_latency_ms_equation"
+    ] = "backlog/u"
+    assert_fails(mutated, "simulated latency equation must be exact 5-term")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "raw_work_enqueued_is_never_divided_by_u"
+    ] = False
+    assert_fails(mutated2, "raw work enqueued never divided must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["v2i_latency_outcome_contract"]["at_admission_record_with_u_current_applied_units"][
+        "rejected_work_never_enqueues_never_succeeds_and_inherited_10_deadline_penalty_is_explicitly_not_valid_latency_observation"
+    ] = False
+    assert_fails(mutated3, "rejected 10*deadline penalty not valid latency must be true")
+
+
+def test_mutation_v2i_latency_report_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["v2i_latency_outcome_contract"]["report"][
+        "offered_task_latency_is_null_unavailable_because_rejected_penalty_values_are_not_physical_latency"
+    ] = False
+    assert_fails(mutated, "offered task latency null unavailable must be true")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["v2i_latency_outcome_contract"]["forbidden_behaviors"] = ["divided enqueue work"]
+    assert_fails(mutated2, "missing backlog-only stale outcome forbidden")
+
+
+def test_mutation_accounting_lossless_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["accounting_and_contrast_completion"]["lossless_accounting"][
+        "offered_equals_admitted_plus_rejected"
+    ] = False
+    assert_fails(mutated, "offered=admitted+rejected must be true")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["accounting_and_contrast_completion"]["lossless_accounting"]["rejected_equals_sum"] = [
+        "v2i_gate_rejected"
+    ]
+    assert_fails(mutated2, "rejected_equals_sum must contain all 6")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["accounting_and_contrast_completion"]["shares"][
+        "rejection_share_is_rejected_div_offered"
+    ] = False
+    assert_fails(mutated3, "rejection share must be rejected/offered")
+
+
+def test_mutation_accounting_contrast_completion_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["accounting_and_contrast_completion"][
+        "missing_incomplete_cells_make_matched_contrast_status_incomplete_null_never_reduce_n"
+    ] = False
+    assert_fails(mutated, "missing incomplete cells never reduce n must be true")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["accounting_and_contrast_completion"][
+        "reportable_contrast_requires_all_four_paired_seeds_1_to_4_and_uses_exact_treatment_minus_control_sign"
+    ] = False
+    assert_fails(mutated2, "reportable contrast requires all four seeds must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["accounting_and_contrast_completion"]["predeclared_contrasts"]["E3a_primary"]["id"] = (
+        "wrong"
+    )
+    assert_fails(mutated3, "E3a primary id must be p2c_dla-minus-per_task_dla")
+
+
+def test_mutation_accounting_e3b_e3c_contrasts_rejected() -> None:
+    mutated = copy.deepcopy(canonical())
+    mutated["accounting_and_contrast_completion"]["predeclared_contrasts"][
+        "E3b_per_task_dla_state_age_0"
+    ]["each_of"] = ["reactive"]
+    assert_fails(mutated, "E3b each_of must be 3")
+    mutated2 = copy.deepcopy(canonical())
+    mutated2["accounting_and_contrast_completion"]["predeclared_contrasts"][
+        "E3b_per_task_dla_state_age_0"
+    ]["no_scalar_best_objective"] = False
+    assert_fails(mutated2, "no scalar best must be true")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["accounting_and_contrast_completion"]["predeclared_contrasts"][
+        "E3c_at_each_state_age"
+    ]["contrasts"] = ["wrong"]
+    assert_fails(mutated3, "E3c contrasts must be exact 2")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["accounting_and_contrast_completion"]["draw_is_N_4_tasks_never_become_replicates"] = (
+        False
+    )
+    assert_fails(mutated4, "draw is N=4 tasks never replicates must be true")

@@ -611,9 +611,98 @@ reviewed and approved.
 
 This appendix is the deterministic machine-readable twin. The fenced JSON block is generated deterministically via `json.dumps(sort_keys=True, indent=2)` from the canonical JSON and must byte-equally match it. Validators check deep equality and byte-equivalence; prose is not parsed as data.
 
+## 20. Exact P2C candidate predicate and low-cardinality behavior
+
+A task has **no execution candidates** unless it is an active frozen-actor V2I attempt and its ingress radio is currently viable. For such an attempt, the sorted feasible RSU set contains exactly each RSU for which BOTH: (a) `observed_decision_backlog_work_ms[rsu] < task_deadline_ms`; and (b) `true_current_waiting_room_occupancy[rsu]` plus prior same-tick admitted reservations is strictly below the unchanged queue ceiling. Radio and queue safety are current; only the backlog/deadline belief is aged. `n=0`: select no target and reject without execution. If ingress radio is not viable, classify `v2i_unavailable`. Otherwise, if no RSU is observed deadline feasible classify `v2i_gate_rejected`; otherwise (deadline-feasible RSUs exist but all are full) classify `v2i_cap_rejected`. `n=1`: select that sole feasible RSU without a second hash/modulo and record ranking inspections=1. `n>=2`: use the deterministic distinct pair and lower observed backlog, stable lowest-ID tie break. Reserve true load/raw work and decision overlay immediately only on admission. Kill sample-before-filter, stale queue-cap, undefined n=0/1, rejection ambiguity, or rejected-work reservation.
+
+---
+
+## 21. Fully reproducible uint64 P2C mixer
+
+Declare every field as non-negative unsigned 64-bit with bounds, ordered exactly `evaluator_seed`, `fleet_seed`, `outer_tick`, `task_slot`, `sequential_task_ordinal`. Use wrap modulo 2^64 after every operation. Define SplitMix64 exactly: `z=(x+0x9E3779B97F4A7C15) mod 2^64; z=((z xor (z>>30))*0xBF58476D1CE4E5B9) mod 2^64; z=((z xor (z>>27))*0x94D049BB133111EB) mod 2^64; return z xor (z>>31)`. Fold with `h=0x6A09E667F3BCC909`, then for each ordered field `h=splitmix64(h xor uint64(field))`. For `n>=2` `first_index=h % n; j=splitmix64(h) % (n-1); second_index=j if j<first_index else j+1`. Candidate order is ascending unique RSU ID; sort the resulting pair only for telemetry, not before indexing. Three independently computed exact hex/index test vectors are normative: all-zero fields `h=0x7d19c361a3548205` with `n=10` gives `first_index=9, second_index=1, sorted_pair=[1,9]`; boundary `evaluator_seed=0,fleet_seed=1,outer_tick=3599,task_slot=4,sequential_task_ordinal=12439` gives `h=0x295c562a48f4f730` with `n=10` gives `first_index=2, second_index=7, sorted_pair=[2,7]`; and `evaluator_seed=0,fleet_seed=2,outer_tick=1234,task_slot=2,sequential_task_ordinal=5678` gives `h=0x350f2378ad774558` with `n=10` gives `first_index=2, second_index=8, sorted_pair=[2,8]`. For `n=1` hashing is skipped. Kill alternate SplitMix variants, string/byte serialization, signed overflow, field reordering, or missing vectors. Do not claim modulo exact uniformity. The candidate order is sorted ascending unique feasible RSU IDs, final pair sorted, hash is SplitMix64, uniformity not claimed because modulo reduction has negligible bias. Resource-state diagnostics use capacity-adjusted utilization drained_work_ms / (active_capacity_units * 1000 work_ms) bounded [0,1]; waiting-room occupancy is a separate task count and never denominator. Execution share is actual admitted V2I execution count at RSU / total admitted V2I execution count; when denominator is zero it is null with an explicit reason, not zeros. Target switching is counted over consecutive admitted V2I tasks in the exact deterministic (outer_tick, task_slot, vehicle_slot) order; first admitted task is not a switch, rejected/non-V2I tasks are excluded, and counts never cross fleet draws. Resource_unit_seconds denominator stays required for diagnostic deadline per resource cost. H1 is hypothesis about pair-only ranking vs global least-busy dependence not proved networking cost; must not claim only two total global state reads or proven lower total state acquisition or distributed communication savings. Not double-counted, transparent baseline, not an optimal predictor, work-ms, independent of capacity, optimistic stale admitted executes and may miss per true latency, pessimistic stale rejected never executes, deadline_success is based on true simulated latency never the controller's stale estimate, not evidence of physical started/completed/returned lifecycle, do not retroactively reprice, dense position identity, independent of active mask, feasibility_workload_checks, ranking_workload_inspections, unique_workload_values_observed, only two total global state reads, proven lower total state acquisition, pair-only ranking, drained_work_ms / (active_capacity_units * 1000 work_ms), actual admitted V2I execution count, when denominator is zero it is null, Target switching is counted over consecutive admitted V2I, first admitted task is not a switch, resource_unit_seconds denominator stays required.
+
+---
+
+## 22. Canonical tick/snapshot/scaler transition, used by every E3 cell
+
+Use `control_clock_offset_ms=3000` and the same telemetry schema for E3a/b/c, including fresh cells, so reused `state_age=0` cell bytes can truly be identical. At each zero-based trace tick with control time `t`: (i) start from true state after the prior interval drain; (ii) apply the one pending action if due, emit applied receipt, clear pending; (iii) capture the immutable tick-entry infrastructure snapshot after due action application and before any current-tick placement/admission; (iv) select the exact `t-state_age` snapshot for decision signals; (v) if no pending action and cooldown permits, make at most one scaler decision per RSU and possibly emit/schedule one requested action; (vi) process all five task slots sequentially without advancing time; (vii) drain true raw backlog once by `min(backlog,u*1000 work_ms)`; (viii) charge post-due-action capacity `u` for interval `[t,t+1000ms)`. Cooldown starts at actual application time; `elapsed>=5000ms` permits a new request. A just-applied action starts cooldown, so cannot request again that tick. Any pending action blocks all new directions. Requested receipt fields: `draw,rsu,direction,from_units,requested_to_units,decision_time_ms,due_time_ms,observed_state_time_ms,state_age_ms,signal_name,signal_value`. Applied receipt adds `actual_application_time_ms` and `actual_to_units`. Counts expose scheduled requests and applied up/down actions separately; resource cost follows applied capacity only. Kill decision-time cooldown, same-tick post-apply request, action-count conflation, or ambiguous timestamps. Reactive tick-entry signal is the aged raw service backlog snapshot. Proactive samples are completed prior trace-interval admitted-arrival-work samples: at tick `t` no sample from current tick is available; four actual trace intervals must have completed, and an aged arm uses only samples that are present in its selected snapshot. Pretrace empty values never satisfy warm-up. Kill use of current/future arrivals or environment-produced samples that have not become observable under the declared lag.
+
+---
+
+## 23. Exact simulated V2I latency/outcome contract
+
+At admission time record, with `u=current applied units`: `simulated_latency_ms = current_ingress_tx_ms + forwarding_ms + true_execution_backlog_work_ms/u + raw_task_service_work_ms/u + current_return_tx_ms`. Radio/forward/return formulas and random raw service draw remain inherited; raw work enqueued is never divided by `u`. Deadline success is this recorded admitted simulated latency `< task deadline`. Later scaling does not recompute latency; backlog still evolves thereafter under actual capacity. Rejected work never enqueues, never succeeds, and the inherited `10*deadline` penalty is explicitly not a valid latency observation. Report admitted-task latency only (and any declared deadline-met diagnostic); offered-task latency is null/unavailable because rejected penalty values are not physical latency. `started`, `compute_completed`, `returned` and `dropped` remain null with reasons. Kill backlog-only/stale outcome latency, divided enqueue work, later repricing, or rejected penalty in a latency mean.
+
+---
+
+## 24. Lossless accounting and exact contrast completion
+
+Require and validate task counts: `offered = admitted + rejected; rejected = v2i_gate_rejected + v2i_cap_rejected + local_mqd_rejected + v2v_mqd_rejected + v2i_unavailable + v2v_unavailable; 0 <= deadline_success <= admitted; 0 <= forwarded <= admitted_v2i <= admitted`. Rejection share is `rejected/offered`; forwarding share is `forwarded/admitted_v2i` and is null+reason if denominator zero. Deadline per normalized cost is `offered deadline attainment/resource_unit_seconds` and is null+reason if resource cost is zero (cost should be positive for a complete cell). Also preserve exact work-ms conservation where instrumented, separately for V2I and vehicle queues; unavailable V2V work has no destination-service work and remains an explicit count rather than fabricated zero work. Missing/incomplete cells make the matched contrast status incomplete/null; never reduce `n`. A reportable contrast requires all four paired seeds 1..4 and uses exact treatment-minus-control sign. Predeclare machine-readable contrast IDs/signs/metrics: E3a primary `p2c_dla-minus-per_task_dla` for offered deadline attainment at `fixed_1x/state_age=0`; secondary `p2c_dla-minus-ingress_dla`. E3b, `per_task_dla/state_age=0`: each of `static_overprovisioned`, `reactive`, `proactive` minus `fixed_1x` for the co-primary family `offered deadline attainment,rejection_share,resource_unit_seconds`, plus `proactive-minus-reactive` as a declared diagnostic. No scalar 'best' objective. E3c at each state age: `p2c_dla-minus-per_task_dla` under `fixed_1x`, and `proactive-minus-reactive` under `per_task_dla`, for `offered deadline attainment, rejection_share,resource_unit_seconds` plus declared imbalance/action diagnostics. Keep draw as `N=4`; tasks never become replicates.
+
+---
+
 <!-- BEGIN_E3_CANONICAL_JSON -->
 ```json
 {
+  "accounting_and_contrast_completion": {
+    "draw_is_N_4_tasks_never_become_replicates": true,
+    "lossless_accounting": {
+      "deadline_success_between_0_and_admitted": true,
+      "forwarded_between_0_and_admitted_v2i_between_0_and_admitted": true,
+      "offered_equals_admitted_plus_rejected": true,
+      "rejected_equals_sum": [
+        "v2i_gate_rejected",
+        "v2i_cap_rejected",
+        "local_mqd_rejected",
+        "v2v_mqd_rejected",
+        "v2i_unavailable",
+        "v2v_unavailable"
+      ]
+    },
+    "missing_incomplete_cells_make_matched_contrast_status_incomplete_null_never_reduce_n": true,
+    "predeclared_contrasts": {
+      "E3a_primary": {
+        "for": "offered deadline attainment at fixed_1x/state_age=0",
+        "id": "p2c_dla-minus-per_task_dla",
+        "secondary": "p2c_dla-minus-ingress_dla"
+      },
+      "E3b_per_task_dla_state_age_0": {
+        "each_of": [
+          "static_overprovisioned",
+          "reactive",
+          "proactive"
+        ],
+        "for_co_primary_family": [
+          "offered deadline attainment",
+          "rejection_share",
+          "resource_unit_seconds"
+        ],
+        "minus": "fixed_1x",
+        "no_scalar_best_objective": true,
+        "plus_proactive_minus_reactive_as_declared_diagnostic": true
+      },
+      "E3c_at_each_state_age": {
+        "contrasts": [
+          "p2c_dla-minus-per_task_dla under fixed_1x",
+          "proactive-minus-reactive under per_task_dla"
+        ],
+        "for": [
+          "offered deadline attainment",
+          "rejection_share",
+          "resource_unit_seconds"
+        ],
+        "plus_declared_imbalance_action_diagnostics": true
+      }
+    },
+    "reportable_contrast_requires_all_four_paired_seeds_1_to_4_and_uses_exact_treatment_minus_control_sign": true,
+    "shares": {
+      "deadline_per_normalized_cost_is_offered_deadline_attainment_div_resource_unit_seconds_and_null_reason_if_cost_zero": true,
+      "forwarding_share_is_forwarded_div_admitted_v2i_and_null_reason_if_denominator_zero": true,
+      "rejection_share_is_rejected_div_offered": true
+    },
+    "unavailable_V2V_work_has_no_destination_service_work_and_remains_explicit_count_rather_than_fabricated_zero_work": true,
+    "work_ms_conservation_where_instrumented_separately_for_V2I_and_vehicle_queues": true
+  },
   "admission_gate": {
     "excludes": [
       "own_compute",
@@ -623,8 +712,12 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
     ],
     "formula": "effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]",
     "never_selects_target": true,
+    "queue_safety_uses_current_not_stale": true,
+    "radio_viability_is_current": true,
+    "stale_view_applies_to_deadline_workload": true,
     "state_units": "milliseconds_of_remaining_service_workload"
   },
+  "authority_note": "JSON is the single normative scientific contract; Markdown is a deterministic generated view via render_markdown and must byte-equal its output (byte mismatch is authoritative).",
   "base_commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
   "branch": "worker/e3-lane-01-contract",
   "campaign": "e3-dynamic-resource-v2",
@@ -741,6 +834,55 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
     },
     "unit": "compute_unit (service capacity, not queue slots)"
   },
+  "compute_service_semantics": {
+    "active_capacity_for_entire_tick": true,
+    "admission_gate_unit": "raw_backlog_work_ms",
+    "at_most_one_interval_per_RSU_per_tick": true,
+    "backlog_equation": "backlog_work_ms[t+1] = backlog_work_ms[t] + enqueued_raw_work_ms - drained_work_ms",
+    "backlog_is_invariant_baseline": true,
+    "backlog_storage_unit": "work_ms",
+    "drain_applies_to_all_queued_work_including_pre_scale": true,
+    "drain_capacity_is_not_queue_slots": true,
+    "drain_equation": "drain_work_ms = min(backlog_work_ms, active_capacity_units * 1000)",
+    "drain_tick_ms": 1000,
+    "enqueue_adds_raw_1x_work_ms": true,
+    "enqueue_equation": "enqueued_work_ms = raw_1x_service_work_ms",
+    "enqueue_forbidden_division": "enqueued_work_ms != raw_1x_service_work_ms / active_capacity_units",
+    "enqueue_must_not_divide_by_capacity": true,
+    "initial_capacities": {
+      "dynamic_max_units": 3,
+      "dynamic_min_units": 1,
+      "dynamic_start_units": 1,
+      "fixed_1x_units": 1,
+      "static_overprovisioned_from_tick": 0,
+      "static_overprovisioned_units": 3
+    },
+    "latency_equation": "(raw_work_ahead_ms + raw_own_service_work_ms) / active_capacity_units",
+    "latency_not_retroactively_repriced": true,
+    "latency_physical_lifecycle_fields_remain_null": true,
+    "latency_radio_forwarding_unchanged": true,
+    "latency_semantics": "admission_time_estimate_not_physical_lifecycle",
+    "placement_workloads_unit": "raw_backlog_work_ms",
+    "proactive_observation_unit": "raw_admitted_arrival_work_ms",
+    "queue_ceiling_uses_current_occupancy_plus_same_tick_reservations": true,
+    "queue_safety_is_current_not_stale": true,
+    "reactive_signal_unit": "raw_backlog_work_ms",
+    "reduces_to_E2d_at_fixed_1x": true,
+    "reduction_equation": "at fixed_1x (u=1): drain = min(backlog_work_ms, 1000) and latency = raw_work_ahead_ms + raw_own_service_work_ms",
+    "resource_time_charged_even_when_idle": true,
+    "resource_time_equation": "resource_unit_seconds_per_RSU_per_tick = active_capacity_units * 1",
+    "same_tick_reservation_overlay_unit": "raw_task_work_ms",
+    "scaling_applied_at_tick_start_before_placement_admission": true,
+    "scaling_applied_before_latency_estimate_and_drain": true,
+    "scaling_forbidden_units": [
+      "queue_slots",
+      "capacity_normalized_work_ms"
+    ],
+    "scaling_must_not_change_placement_or_admission_unit": true,
+    "stale_does_not_mutate_true_state": true,
+    "stale_snapshot_unit": "raw_backlog_work_ms"
+  },
+  "contract_authority": "json_is_normative_markdown_is_generated_view",
   "cost": {
     "forbidden_fields": [
       "cost_currency",
@@ -803,6 +945,28 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
       "path": "traces/trace_inc_fullrsu.npz",
       "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
     }
+  },
+  "h1_state_inspection": {
+    "any_duplicated_reads_remain_visible": true,
+    "common_feasibility_decision_observation_cost_remains_visible": true,
+    "feasibility_first_must_enumerate_all_RSU_deadline_feasibility": true,
+    "forbidden_claims": [
+      "two_total_reads",
+      "hidden_feasibility_scan",
+      "communication_savings_proven"
+    ],
+    "h1_is_hypothesis_about_pair_only_ranking_vs_global_least_busy_dependence_not_proved_networking_cost": true,
+    "h1_remains_hypothesis_allowed_to_fail": true,
+    "must_not_claim_distributed_communication_savings": true,
+    "must_not_claim_only_two_total_global_reads": true,
+    "must_not_claim_proven_lower_total_state_acquisition": true,
+    "p2c_ranking_inspection_is_0_1_2_according_to_feasible_count": true,
+    "per_task_dla_global_argmin_ranks_all_R": true,
+    "separately_record": [
+      "feasibility_workload_checks",
+      "ranking_workload_inspections",
+      "unique_workload_values_observed"
+    ]
   },
   "hypotheses": {
     "boundary": "negative, null, or opposite results acceptable; hypotheses are not expected truths",
@@ -905,6 +1069,7 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
     "unit": "fleet_draw"
   },
   "lane": "01",
+  "markdown_is_generated_view": true,
   "mechanism_separation": {
     "actor_never_observes_rsu_load": true,
     "actor_never_selects_execution_rsu": true,
@@ -913,6 +1078,224 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
     "queue_ceiling_is_not_compute_capacity": true,
     "rejected_work_never_executes": true,
     "scaling": "How many compute units (1-3) are active per RSU over time"
+  },
+  "p2c_candidate_predicate": {
+    "admission_requires": "active frozen-actor V2I attempt and ingress radio currently viable",
+    "feasible_RSU_predicate": {
+      "candidate_order": "sorted ascending unique feasible RSU IDs",
+      "conditions_both": [
+        "observed_decision_backlog_work_ms[rsu] < task_deadline_ms",
+        "true_current_waiting_room_occupancy[rsu] + prior same-tick admitted reservations < queue_ceiling"
+      ],
+      "only_backlog_deadline_belief_is_aged": true,
+      "queue_safety_is_current_not_stale": true,
+      "radio_is_current": true
+    },
+    "forbidden_behaviors": [
+      "sample-before-filter",
+      "stale queue-cap",
+      "undefined n=0/1",
+      "rejection ambiguity",
+      "rejected-work reservation"
+    ],
+    "n_equals_0": {
+      "classification": {
+        "elif_no_RSU_observed_deadline_feasible": "v2i_gate_rejected",
+        "else_deadline_feasible_exist_but_all_full": "v2i_cap_rejected",
+        "if_ingress_radio_not_viable": "v2i_unavailable"
+      },
+      "reject_without_execution": true,
+      "select_no_target": true
+    },
+    "n_equals_1": {
+      "hashing_skipped": true,
+      "no_second_hash_modulo": true,
+      "ranking_inspections": 1,
+      "select_sole_feasible_RSU": true
+    },
+    "n_gte_2": {
+      "deterministic_distinct_pair": true,
+      "selection": "lower observed backlog",
+      "tie_break": "stable lowest-ID",
+      "without_replacement": true
+    },
+    "reservation": {
+      "rejected_work_never_reserved": true,
+      "reserve_true_load_raw_work_and_decision_overlay_immediately_only_on_admission": true
+    }
+  },
+  "p2c_dense_counter_key_mapping": {
+    "declared_mixer_fields_remain_exactly_five": [
+      "evaluator_seed",
+      "fleet_seed",
+      "outer_tick",
+      "task_slot",
+      "sequential_task_ordinal"
+    ],
+    "forbidden_behaviors": [
+      "active_only_ordinal",
+      "ordinal_reset_or_collision",
+      "200ms_time_interpretation",
+      "outcome_dependent_key_shifts"
+    ],
+    "outer_tick": {
+      "advances_physical_time": "per_outer_tick_1000ms",
+      "definition": "zero_based_trace_tick",
+      "range": "[0,3599]"
+    },
+    "outer_tick_is_zero_based": true,
+    "padded_fleet_width": 2488,
+    "per_outer_tick_range": "[0,12439]",
+    "sequential_task_ordinal": {
+      "dense_position_identity": true,
+      "earlier_outcomes_never_shift_later_pairs": true,
+      "formula": "task_slot * padded_fleet_width + vehicle_slot",
+      "independent_of_active_mask": true,
+      "independent_of_actor_choice": true,
+      "independent_of_admission_or_rejection": true,
+      "independent_of_feasibility": true,
+      "per_outer_tick": true,
+      "range": "[0,12439]"
+    },
+    "task_slot": {
+      "advances_physical_time": false,
+      "definition": "zero_based_within_tick_substep",
+      "note": "does not advance physical time",
+      "range": "[0,4]"
+    },
+    "task_slot_is_zero_based": true,
+    "vehicle_slot": {
+      "definition": "zero_based_padded_fleet_slot",
+      "padded_fleet_width": 2488,
+      "range": "[0,2487]"
+    },
+    "vehicle_slot_is_provenance_but_not_mixer_field": true,
+    "vehicle_slot_is_zero_based": true
+  },
+  "p2c_mixer": {
+    "field_declaration": {
+      "bounds": {
+        "evaluator_seed": "[0, 2^64-1] actual 0",
+        "fleet_seed": "[0, 2^64-1] actual [1,4] for primary draws",
+        "outer_tick": "[0, 3599]",
+        "sequential_task_ordinal": "[0, 12439]",
+        "task_slot": "[0, 4]"
+      },
+      "field_type": "non-negative unsigned 64-bit (uint64)",
+      "fields_ordered": [
+        "evaluator_seed",
+        "fleet_seed",
+        "outer_tick",
+        "task_slot",
+        "sequential_task_ordinal"
+      ],
+      "wrap_modulo": "2^64 after every operation"
+    },
+    "fold": {
+      "field_order": [
+        "evaluator_seed",
+        "fleet_seed",
+        "outer_tick",
+        "task_slot",
+        "sequential_task_ordinal"
+      ],
+      "for_each_ordered_field": "h=splitmix64(h xor uint64(field))",
+      "h_init": "0x6A09E667F3BCC909"
+    },
+    "forbidden_behaviors": [
+      "alternate SplitMix variants",
+      "string/byte serialization",
+      "signed overflow",
+      "field reordering",
+      "missing vectors",
+      "claim modulo exact uniformity"
+    ],
+    "modulo_bias_note": "modulo reduction has negligible bias not mathematically exact-uniform",
+    "pair_indices": {
+      "for_n_equals_0_no_indices": true,
+      "for_n_equals_1_hashing_skipped": true,
+      "for_n_gte_2": {
+        "candidate_order_is_ascending_unique_RSU_ID": true,
+        "first_index": "h % n",
+        "j": "splitmix64(h) % (n-1)",
+        "second_index": "j if j<first_index else j+1",
+        "sort_resulting_pair_only_for_telemetry_not_before_indexing": true
+      }
+    },
+    "splitmix64_definition": {
+      "constants_hex": [
+        "0x9E3779B97F4A7C15",
+        "0xBF58476D1CE4E5B9",
+        "0x94D049BB133111EB"
+      ],
+      "steps": [
+        "z=(x+0x9E3779B97F4A7C15) mod 2^64",
+        "z=((z xor (z>>30))*0xBF58476D1CE4E5B9) mod 2^64",
+        "z=((z xor (z>>27))*0x94D049BB133111EB) mod 2^64",
+        "return z xor (z>>31)"
+      ],
+      "wrap_modulo_2_64_after_every_operation": true
+    },
+    "test_vectors": [
+      {
+        "fields": {
+          "evaluator_seed": 0,
+          "fleet_seed": 0,
+          "outer_tick": 0,
+          "sequential_task_ordinal": 0,
+          "task_slot": 0
+        },
+        "first_index": 9,
+        "h_dec": 9014450953278226949,
+        "h_hex": "0x7d19c361a3548205",
+        "n": 10,
+        "note": "all-zero fields",
+        "second_index": 1,
+        "sorted_pair": [
+          1,
+          9
+        ]
+      },
+      {
+        "fields": {
+          "evaluator_seed": 0,
+          "fleet_seed": 1,
+          "outer_tick": 3599,
+          "sequential_task_ordinal": 12439,
+          "task_slot": 4
+        },
+        "first_index": 2,
+        "h_dec": 2980351793025054512,
+        "h_hex": "0x295c562a48f4f730",
+        "n": 10,
+        "note": "boundary outer_tick=3599/task_slot=4/ordinal=12439",
+        "second_index": 7,
+        "sorted_pair": [
+          2,
+          7
+        ]
+      },
+      {
+        "fields": {
+          "evaluator_seed": 0,
+          "fleet_seed": 2,
+          "outer_tick": 1234,
+          "sequential_task_ordinal": 5678,
+          "task_slot": 2
+        },
+        "first_index": 2,
+        "h_dec": 3823313609874163032,
+        "h_hex": "0x350f2378ad774558",
+        "n": 10,
+        "note": "mid vector",
+        "second_index": 8,
+        "sorted_pair": [
+          2,
+          8
+        ]
+      }
+    ],
+    "uniformity_claim_forbidden": true
   },
   "permission_boundaries": {
     "authorised_after_exact_approval": "bounded fresh E3a/E3b/E3c cells as reduced machine plan, matched analysis, private branches",
@@ -937,18 +1320,38 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
       "counter_key_fields": [
         "evaluator_seed",
         "fleet_seed",
-        "tick",
+        "outer_tick",
         "task_slot",
-        "sequential_ordinal"
+        "sequential_task_ordinal"
       ],
       "counter_key_stable": true,
       "distinct_feasible_only": true,
       "feasibility_first": true,
+      "h1_concern": "pair_only_inspection_global_state_dependence_not_statistical_uniformity_proof",
       "immediate_reservation": true,
       "inspect_only_pair": true,
       "mechanism": "power-of-two-choices with feasibility-first",
+      "modulo_bias_note": "modulo reduction has negligible bias not mathematically exact-uniform",
       "no_global_rng_stream": true,
       "one_candidate_per_task": true,
+      "pair_mapper": {
+        "candidate_order": "sorted_ascending_unique_feasible_RSU_IDs",
+        "distinct_without_replacement": true,
+        "final_pair_sorted": true,
+        "first_index_formula": "h % n",
+        "hash": "SplitMix64",
+        "hash_input_fields_exact": [
+          "evaluator_seed",
+          "fleet_seed",
+          "outer_tick",
+          "task_slot",
+          "sequential_task_ordinal"
+        ],
+        "mapper_type": "deterministic_pseudo_random_modulo_mapper",
+        "no_hidden_global_RNG": true,
+        "second_index_formula": "splitmix64(h) % (n-1) adjusted around first",
+        "uniformity_not_claimed": true
+      },
       "selection": "lower effective_busy_ms",
       "stale_snapshot": {
         "delay_ms_field": "state_age_ms",
@@ -958,6 +1361,12 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
         "same_tick_reservation_overlay": true
       },
       "tie_break": "lowest RSU id (stable)",
+      "uniformity_claim_forbidden": [
+        "uniform",
+        "unbiased",
+        "exact-uniform",
+        "exact_uniform"
+      ],
       "without_replacement": true
     },
     "per_task_dla": {
@@ -985,6 +1394,35 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
     "tasks_are_not_replicates": true
   },
   "research_question": "Under the frozen Manchester incident trace and frozen MAPPO vehicle actor, do infrastructure-side placement among ingress_dla, per_task_dla, and p2c_dla and dynamic compute-resource scaling among fixed_1x, static_overprovisioned, reactive, and proactive improve offered-task deadline attainment and its trade-off with rejection and resource cost, when evaluated as paired fleet-draw differences over four matched draws within the bounded staged grid where E3a isolates placement at fixed_1x, E3b holds placement fixed at per_task_dla for scaling contrasts, and E3c tests selected stale-state contrasts (0/1000/3000 ms), without fully crossing every placement with every scaler?",
+  "resource_state_diagnostics": {
+    "capacity_adjusted_utilization": {
+      "bounded": "[0,1]",
+      "formula": "drained_work_ms / (active_capacity_units * 1000 work_ms)",
+      "utilization_is_per_RSU_per_tick": true,
+      "waiting_room_occupancy_is_separate_task_count_and_never_denominator": true
+    },
+    "execution_share": {
+      "formula": "actual_admitted_V2I_execution_count_at_RSU / total_admitted_V2I_execution_count",
+      "when_denominator_zero_is_null_with_explicit_reason_not_zeros": true
+    },
+    "forbidden_behaviors": [
+      "raw_over_1000_utilization_under_u_gt_1",
+      "queue_occupancy_as_denominator",
+      "zero_fill_shares_when_denominator_zero",
+      "rejected_task_switches",
+      "unordered_or_across_draw_switches",
+      "missing_cost_denominator"
+    ],
+    "no_monetary_or_automatically_authoritative_objective_claim": true,
+    "resource_unit_seconds_denominator_stays_required_for_diagnostic_deadline_per_resource_cost": true,
+    "target_switching": {
+      "counted_over_consecutive_admitted_V2I_tasks_in_deterministic_order": "(outer_tick, task_slot, vehicle_slot)",
+      "counts_never_cross_fleet_draws": true,
+      "first_admitted_task_is_not_a_switch": true,
+      "order_is_exact_deterministic_outer_tick_task_slot_vehicle_slot": true,
+      "rejected_and_non_V2I_tasks_excluded": true
+    }
+  },
   "scenario": {
     "arrival_lambda": 1.5,
     "backhaul_ms": 0.0,
@@ -1010,6 +1448,7 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
     "budget_reduction_required_if_unreasonable": true,
     "e3a": {
       "cells": 12,
+      "equation": "3 placements * 1 scaling * 1 stale * 4 draws = 12",
       "fleet_seeds": [
         1,
         2,
@@ -1030,10 +1469,14 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
       "scaling_ids_exact": [
         "fixed_1x"
       ],
+      "stage_listed_cells": 12,
       "stale_ms": [
         0
-      ]
+      ],
+      "unique_cells": 12
     },
+    "e3a_stage_listed_cells": 12,
+    "e3a_unique_cells": 12,
     "e3b": {
       "cells": 16,
       "co_primary_family": [
@@ -1042,6 +1485,7 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
         "resource_unit_seconds"
       ],
       "co_primary_note": "Trade-off family, no single metric dominates",
+      "equation": "4 scalers * 1 placement * 1 stale * 4 draws = 16 stage-listed; 16 - 4 overlap = 12 unique",
       "fleet_seeds": [
         1,
         2,
@@ -1050,6 +1494,8 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
       ],
       "fresh": true,
       "label": "Scaling trade-off family at fixed per-task placement",
+      "overlap_note": "per_task_dla/fixed_1x/state_age_ms=0 byte-identical to E3a reused not rerun",
+      "overlap_with_e3a": 4,
       "placement": [
         "per_task_dla"
       ],
@@ -1065,10 +1511,17 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
         "reactive",
         "proactive"
       ],
+      "stage_listed_cells": 16,
       "stale_ms": [
         0
-      ]
+      ],
+      "unique_additional": 12,
+      "unique_cells": 12
     },
+    "e3b_overlap_with_e3a": 4,
+    "e3b_stage_listed_cells": 16,
+    "e3b_unique_additional": 12,
+    "e3b_unique_equation": "16 - 4 = 12",
     "e3c": {
       "additional_stale_variant_cells_max": 32,
       "contrasts": [
@@ -1092,17 +1545,117 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
         }
       ],
       "depends_on": "fresh construct gates (unit, construct, tiny smoke)",
+      "equation": "2 contrasts * 3 staleness * 2 placements? 48 observations; 32 stale variants unique",
+      "fresh_observations_reused": 16,
       "identical_fresh_cells_reused_not_rerun": true,
       "label": "Staleness sensitivity (reuses identical fresh cells)",
       "not_double_counted": true,
       "reuses_identical_fresh_cells": true,
       "stale_is_view_parameter": true,
-      "total_candidate_with_stale_max": 60
+      "stale_variant_equation": "48 - 16 = 32",
+      "total_contrast_observations": 48
     },
+    "e3c_fresh_observations_reused": 16,
+    "e3c_stale_variant_equation": "48 - 16 = 32",
+    "e3c_total_contrast_observations": 48,
     "identical_fresh_cells_reused_not_rerun": true,
-    "maximum_candidate_unique_cells": 60,
+    "maximum_candidate_unique_cells": 56,
     "not_double_counted": true,
-    "note": "Candidate grid before benchmark reduction; final machine plan must be reduced if representative benchmark projects unreasonable bounded local budget. Identical fresh cells are reused across stage summaries rather than rerun and counted twice."
+    "note": "Candidate grid before benchmark reduction; final machine plan must be reduced if representative benchmark projects unreasonable bounded local budget. Identical fresh cells are reused across stage summaries rather than rerun and counted twice. Stage-listed base/additional entries = 60 (12 E3a + 16 E3b stage-listed + 32 E3c stale variants); unique planned executions = 56 (12 + 12 + 32) after reusing 4 E3a/E3b overlaps and 16 E3c fresh observations. Equations: 12+16+32=60 stage-listed; 12+12+32=56 unique; 48 total E3c contrast observations -16 fresh reused =32 stale variants. Equations with spaces: 12 + 16 + 32 = 60 stage-listed; 12 + 12 + 32 = 56 unique.",
+    "stage_listed_cells": 60,
+    "stage_listed_equation": "12 + 16 + 32 = 60",
+    "unique_equation": "12 + 12 + 32 = 56"
+  },
+  "stale_decision_vs_true_execution": {
+    "current_capacity_action_application_and_drain_operate_on_true_state": true,
+    "deadline_admission_gate_uses_observed_backlog_only": true,
+    "deadline_success_based_on_true_simulated_latency_never_stale_estimate": true,
+    "deadline_success_is_simulator_outcome_not_physical_lifecycle_evidence": true,
+    "forbidden_behaviors": [
+      "stale_belief_used_for_actual_latency_or_success",
+      "true_state_used_for_stale_decision",
+      "executing_pessimistically_rejected_work",
+      "delaying_true_capacity_or_drain"
+    ],
+    "later_scale_actions_do_not_retroactively_reprice_recorded_task": true,
+    "observed_decision_backlog_work_ms": "fresh_or_delayed_immutable_backlog_work_ms_plus_decision_overlay_plus_same_tick_reservation_overlay",
+    "observed_decision_definition": "fresh/delayed immutable workload plus the decision overlay (stale view plus same-tick reservation overlay); placement and the backlog-only deadline admission gate use this observed value",
+    "optimistic_stale_admitted_executes_and_may_miss_per_true_latency": true,
+    "pessimistic_stale_rejected_never_executes_even_if_true_would_have_been_feasible": true,
+    "physical_started_completed_returned_remain_null": true,
+    "placement_uses_observed": true,
+    "queue_cap_safety_still_wins_current_not_stale": true,
+    "scaling_decisions_observe_delayed_signals": true,
+    "true_execution_backlog_work_ms": "current_true_backlog_work_ms_plus_actual_prior_same_tick_admitted_work_at_chosen_RSU",
+    "true_execution_determines": [
+      "simulated_queue_wait",
+      "task_latency",
+      "deadline_success",
+      "enqueue",
+      "subsequent_true_drain"
+    ]
+  },
+  "stale_state_semantics": {
+    "applies_to": [
+      "invariant_raw_backlog_work_ms_view_for_placement",
+      "inherited_backlog_only_deadline_gate",
+      "reactive_signal",
+      "proactive_signal"
+    ],
+    "deadline_formula_unchanged": "effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]",
+    "deadline_workload_observation_has_state_age": true,
+    "does_not_mutate": [
+      "true_environment",
+      "current_active_capacity",
+      "pending_actions",
+      "current_queue_safety_state"
+    ],
+    "exposes": [
+      "requested_state_age_ms",
+      "actual_state_age_ms",
+      "observation_time_ms",
+      "control_time_ms"
+    ],
+    "forbidden_behaviors": [
+      "stale_deadline_view_silently_becoming_fresh",
+      "stale_queue_cap",
+      "mutation_of_true_state",
+      "pretrace_values_counted_as_proactive_warmup",
+      "clock_clamp",
+      "state_age_laundering",
+      "offset_added_to_action_delay"
+    ],
+    "fresh_cells_reusable_because": {
+      "formulas_use_elapsed_differences": true,
+      "offset_does_not_enter_p2c_key_outer_tick_does": true,
+      "state_age_0_views_identical": true
+    },
+    "initialization": {
+      "applies_when": "when_stale_robustness_evaluated_all_arms",
+      "control_clock_offset_ms": 3000,
+      "infrastructure_backlog_and_admitted_arrival_history": "inherited_empty_initial_state",
+      "is_declared_simulator_initial_condition": true,
+      "not_observed_pretrace_manchester_traffic": true,
+      "not_real_world_historical_claim": true,
+      "permits_exact_0_1000_3000_without_clamping": true,
+      "permits_no_future_leakage": true,
+      "permits_no_unavailable_age_laundering": true,
+      "prepopulate_control_times_ms": [
+        0,
+        1000,
+        2000
+      ],
+      "prepopulate_value": "empty_initial_infrastructure_state",
+      "pretrace_zeros_do_not_satisfy_proactive_warmup": true,
+      "proactive_still_requires_four_actual_trace_observations": true,
+      "scaling_delay_cooldown_use_control_clock_differences_no_extra_delay": true,
+      "trace_tick_0_maps_to_control_time_ms": 3000
+    },
+    "queue_ceiling_enforcement": "true_current_waiting_room_occupancy_plus_same_tick_admitted_reservations",
+    "queue_ceiling_uses_stale_view": false,
+    "queue_safety_invariant_is_current": true,
+    "queue_safety_uses_current_not_stale": true,
+    "radio_viability_is_current_frozen_channel": true
   },
   "status": "predeclared_before_any_e3_trace_execution",
   "task_accounting": {
@@ -1138,18 +1691,111 @@ This appendix is the deterministic machine-readable twin. The fenced JSON block 
       "started_reason": "physical_execution_not_modelled"
     }
   },
+  "tick_transition": {
+    "applied_receipt_adds": [
+      "actual_application_time_ms",
+      "actual_to_units"
+    ],
+    "control_clock_offset_ms": 3000,
+    "cooldown": {
+      "any_pending_action_blocks_all_new_directions": true,
+      "elapsed_gte_5000ms_permits_new_request": true,
+      "just_applied_action_starts_cooldown_so_cannot_request_again_that_tick": true,
+      "starts_at_actual_application_time": true
+    },
+    "counts_expose_separately": [
+      "scheduled_requests",
+      "applied_up_actions",
+      "applied_down_actions"
+    ],
+    "forbidden_behaviors": [
+      "decision-time cooldown",
+      "same-tick post-apply request",
+      "action-count conflation",
+      "ambiguous timestamps"
+    ],
+    "future_leakage_forbidden": true,
+    "proactive_samples_are_completed_prior_trace_interval_admitted_arrival_work_samples": {
+      "aged_arm_uses_only_samples_present_in_selected_snapshot": true,
+      "at_tick_t_no_sample_from_current_tick_available": true,
+      "four_actual_trace_intervals_must_have_completed": true,
+      "pretrace_empty_values_never_satisfy_warm_up": true
+    },
+    "reactive_tick_entry_signal_is_aged_raw_service_backlog_snapshot": true,
+    "requested_receipt_fields": [
+      "draw",
+      "rsu",
+      "direction",
+      "from_units",
+      "requested_to_units",
+      "decision_time_ms",
+      "due_time_ms",
+      "observed_state_time_ms",
+      "state_age_ms",
+      "signal_name",
+      "signal_value"
+    ],
+    "resource_cost_follows_applied_capacity_only": true,
+    "reused_state_age_0_cell_bytes_truly_identical": true,
+    "telemetry_schema_same_for_E3a_b_c_including_fresh_cells": true,
+    "zero_based_trace_tick_control_time_t": {
+      "i_start_from_true_state_after_prior_interval_drain": true,
+      "ii_apply_one_pending_action_if_due_emit_applied_receipt_clear_pending": true,
+      "iii_capture_immutable_tick_entry_infrastructure_snapshot_after_due_action_before_current_tick_placement_admission": true,
+      "iv_select_exact_t_state_age_snapshot_for_decision_signals": true,
+      "v_if_no_pending_and_cooldown_permits_make_at_most_one_scaler_decision_per_RSU_and_possibly_emit_schedule_one_requested_action": true,
+      "vi_process_all_five_task_slots_sequentially_without_advancing_time": true,
+      "vii_drain_true_raw_backlog_once_by_min_backlog_u_times_1000_work_ms": true,
+      "viii_charge_post_due_action_capacity_u_for_interval_t_t_plus_1000ms": true
+    }
+  },
   "time_model": {
     "candidate_stale_levels_ms": [
       0,
       1000,
       3000
     ],
+    "control_clock_applies_when": "when_stale_robustness_evaluated_all_arms",
+    "control_clock_offset_ms": 3000,
+    "is_declared_simulator_initial_condition_not_observed_traffic": true,
     "outer_tick_ms": 1000,
+    "permits_exact_views_without_clamping": true,
+    "prepopulate_control_times_ms": [
+      0,
+      1000,
+      2000
+    ],
+    "prepopulate_value": "empty_initial_infrastructure_state",
+    "proactive_pretrace_does_not_satisfy_warmup": true,
+    "scaling_delay_uses_control_clock_differences": true,
     "stale_levels_are_candidate_values": true,
     "state_age_is_signal_snapshot_age": true,
     "state_age_unit": "integer_simulator_ms",
+    "trace_tick_0_maps_to_control_time_ms": 3000,
     "within_tick_slots_advance_physical_time": false,
     "within_tick_task_slots": 5
+  },
+  "v2i_latency_outcome_contract": {
+    "at_admission_record_with_u_current_applied_units": {
+      "backlog_still_evolves_thereafter_under_actual_capacity": true,
+      "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline": true,
+      "later_scaling_does_not_recompute_latency": true,
+      "radio_forward_return_formulas_and_random_raw_service_draw_remain_inherited": true,
+      "raw_work_enqueued_is_never_divided_by_u": true,
+      "rejected_work_never_enqueues_never_succeeds_and_inherited_10_deadline_penalty_is_explicitly_not_valid_latency_observation": true,
+      "simulated_latency_ms_equation": "current_ingress_tx_ms + forwarding_ms + true_execution_backlog_work_ms/u + raw_task_service_work_ms/u + current_return_tx_ms"
+    },
+    "forbidden_behaviors": [
+      "backlog-only/stale outcome latency",
+      "divided enqueue work",
+      "later repricing",
+      "rejected penalty in latency mean"
+    ],
+    "report": {
+      "admitted_task_latency_only_and_any_declared_deadline_met_diagnostic": true,
+      "offered_task_latency_is_null_unavailable_because_rejected_penalty_values_are_not_physical_latency": true,
+      "started_compute_completed_returned_dropped_remain_null_with_reasons": true
+    }
   }
 }
 ```
