@@ -671,3 +671,252 @@ def test_limitations_immutable() -> None:
             req,
             {"tripinfo.xml": TRIPINFO_XML, "summary.xml": SUMMARY_XML},
         )
+
+
+# ---------------------------------------------------------------------------
+# Lane 06 remediation: UTF-16 bypass, network tripwire, controls, and genuine
+# SUMO 1.27-style xsi:noNamespaceSchemaLocation acceptance via hardened XmlPolicy
+# ---------------------------------------------------------------------------
+
+
+def test_utf16_internal_entity_is_refused_with_entity_code() -> None:
+    payload = (
+        '<?xml version="1.0" encoding="UTF-16"?>'
+        '<!DOCTYPE foo [<!ENTITY x "expanded">]>'
+        '<tripinfos><tripinfo id="v0" depart="0.0"/></tripinfos>'
+    ).encode("utf-16")
+    # Correct byte size/SHA binding – decode is encoding-aware, UTF-16 BOM included
+    expected_sha = sha256_hex(payload)
+    decl = _decl("tripinfo.xml", payload)
+    assert decl.size_bytes == len(payload)
+    assert decl.sha256 == expected_sha
+    assert decl.sha256 == sha256_hex(payload)
+    req = _request([decl])
+    with pytest.raises(ManchesterSumoOutputError, match="OUTPUT_XML_ENTITY_REFUSED"):
+        import_sumo_outputs(req, {"tripinfo.xml": payload}, provenance=_provenance())
+
+
+def test_utf16_external_network_dtd_is_refused_with_network_tripwire() -> None:
+    payload = (
+        '<?xml version="1.0" encoding="UTF-16"?>'
+        '<!DOCTYPE foo SYSTEM "http://evil.example.com/payload.dtd">'
+        '<tripinfos><tripinfo id="v0" depart="0.0"/></tripinfos>'
+    ).encode("utf-16")
+    expected_sha = sha256_hex(payload)
+    decl = _decl("tripinfo.xml", payload)
+    assert decl.size_bytes == len(payload)
+    assert decl.sha256 == expected_sha
+    req = _request([decl])
+    with pytest.raises(ManchesterSumoOutputError, match="OUTPUT_XML_NETWORK_REFUSED"):
+        import_sumo_outputs(req, {"tripinfo.xml": payload}, provenance=_provenance())
+
+
+def test_utf16_external_entity_with_system_is_refused_with_network_tripwire() -> None:
+    payload = (
+        '<?xml version="1.0" encoding="UTF-16"?>'
+        '<!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://evil.example.com/xxe">]>'
+        '<tripinfos><tripinfo id="&xxe;" depart="0.0"/></tripinfos>'
+    ).encode("utf-16")
+    expected_sha = sha256_hex(payload)
+    decl = _decl("tripinfo.xml", payload)
+    assert decl.sha256 == expected_sha
+    assert decl.size_bytes == len(payload)
+    req = _request([decl])
+    # External SYSTEM entity must map to NETWORK, not generic ENTITY, proving network tripwire
+    with pytest.raises(ManchesterSumoOutputError, match="OUTPUT_XML_NETWORK_REFUSED"):
+        import_sumo_outputs(req, {"tripinfo.xml": payload}, provenance=_provenance())
+
+
+def test_ascii_controls_remain_refused() -> None:
+    payload_attr = b'<tripinfos><tripinfo id="v0' + bytes([1]) + b'" depart="0.0"/></tripinfos>'
+    decl = _decl("tripinfo.xml", payload_attr)
+    req = _request([decl])
+    assert decl.size_bytes == len(payload_attr)
+    assert decl.sha256 == sha256_hex(payload_attr)
+    with pytest.raises(ManchesterSumoOutputError, match="OUTPUT_XML_INVALID"):
+        import_sumo_outputs(req, {"tripinfo.xml": payload_attr}, provenance=_provenance())
+    payload_text = (
+        b'<tripinfos><tripinfo id="v0" depart="0.0">' + bytes([2]) + b"</tripinfo></tripinfos>"
+    )
+    decl2 = _decl("tripinfo.xml", payload_text)
+    req2 = _request([decl2])
+    assert decl2.size_bytes == len(payload_text)
+    with pytest.raises(ManchesterSumoOutputError, match="OUTPUT_XML_INVALID"):
+        import_sumo_outputs(req2, {"tripinfo.xml": payload_text}, provenance=_provenance())
+
+
+def test_genuine_sumo_127_tripinfo_with_xsi_imports_successfully_and_never_fetches() -> None:
+    # Genuine SUMO 1.27 header – inert xsi:noNamespaceSchemaLocation must be accepted without fetch
+    genuine = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b'<tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tripinfo_file.xsd">'
+        b'<tripinfo id="v0" depart="0.0" arrival="10.0" />'
+        b"</tripinfos>"
+    )
+    decl = _decl("tripinfo.xml", genuine)
+    assert decl.size_bytes == len(genuine)
+    assert decl.sha256 == sha256_hex(genuine)
+    req = _request([decl, _decl("summary.xml", SUMMARY_XML)])
+    pkg = import_sumo_outputs(
+        req,
+        {"tripinfo.xml": genuine, "summary.xml": SUMMARY_XML},
+        provenance=_provenance(),
+    )
+    assert pkg.counts.tripinfo_records == 1
+    assert pkg.tripinfo[0].vehicle_id == "v0"
+    assert pkg.evidence_standing == "SOFTWARE_VALID_SIMULATED_ONLY"
+
+
+def test_genuine_sumo_127_summary_with_xsi_imports_successfully() -> None:
+    genuine = (
+        b'<summary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/summary_file.xsd">'
+        b'<step time="0.0" running="10" waiting="2" />'
+        b'<step time="1.0" running="12" waiting="3" />'
+        b"</summary>"
+    )
+    decl = _decl("summary.xml", genuine)
+    assert decl.size_bytes == len(genuine)
+    assert decl.sha256 == sha256_hex(genuine)
+    req = _request([_decl("tripinfo.xml", TRIPINFO_XML), decl])
+    pkg = import_sumo_outputs(
+        req,
+        {"tripinfo.xml": TRIPINFO_XML, "summary.xml": genuine},
+        provenance=_provenance(),
+    )
+    assert pkg.counts.summary_records == 2
+    assert pkg.summary[0].time_s == Decimal("0.0")
+
+
+def test_genuine_sumo_127_fcd_with_xsi_imports_successfully() -> None:
+    genuine = (
+        b'<fcd-export xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/fcd_file.xsd">'
+        b'<timestep time="0.0"><vehicle id="v0" edge="edgeA" lane="edgeA_0" '
+        b'x="100.0" y="200.0" speed="13.5" angle="90.0" /></timestep>'
+        b"</fcd-export>"
+    )
+    decl = _decl("fcd.xml", genuine, required=False)
+    assert decl.size_bytes == len(genuine)
+    req = _request([_decl("tripinfo.xml", TRIPINFO_XML), _decl("summary.xml", SUMMARY_XML), decl])
+    pkg = import_sumo_outputs(
+        req,
+        {"tripinfo.xml": TRIPINFO_XML, "summary.xml": SUMMARY_XML, "fcd.xml": genuine},
+        provenance=_provenance(),
+    )
+    assert pkg.counts.fcd_records == 1
+    assert pkg.fcd[0].vehicle_id == "v0"
+
+
+def test_genuine_sumo_127_routes_with_xsi_imports_successfully() -> None:
+    genuine = (
+        b'<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">'
+        b'<route id="r0" edges="edgeA edgeB edgeC" />'
+        b'<vehicle id="veh0" route="r0" type="car" depart="0.0" />'
+        b"</routes>"
+    )
+    decl = _decl("routes.xml", genuine, required=False)
+    assert decl.size_bytes == len(genuine)
+    req = _request([_decl("tripinfo.xml", TRIPINFO_XML), _decl("summary.xml", SUMMARY_XML), decl])
+    pkg = import_sumo_outputs(
+        req,
+        {
+            "tripinfo.xml": TRIPINFO_XML,
+            "summary.xml": SUMMARY_XML,
+            "routes.xml": genuine,
+        },
+        provenance=_provenance(),
+    )
+    assert pkg.counts.route_records == 2
+    genuine_trips = (
+        b'<trips xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">'
+        b'<trip id="t0" depart="0.0" from="edgeA" to="edgeB" type="car" />'
+        b"</trips>"
+    )
+    decl2 = _decl("trips.xml", genuine_trips, required=False)
+    assert decl2.size_bytes == len(genuine_trips)
+    req2 = _request([_decl("tripinfo.xml", TRIPINFO_XML), _decl("summary.xml", SUMMARY_XML), decl2])
+    pkg2 = import_sumo_outputs(
+        req2,
+        {
+            "tripinfo.xml": TRIPINFO_XML,
+            "summary.xml": SUMMARY_XML,
+            "trips.xml": genuine_trips,
+        },
+        provenance=_provenance(),
+    )
+    assert pkg2.counts.route_records == 1
+
+
+def test_genuine_fcd_and_summary_prove_size_sha_and_no_fetch() -> None:
+    trip = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b'<tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tripinfo_file.xsd">'
+        b'<tripinfo id="v0" depart="0.0" /><tripinfo id="v1" depart="10.0" /></tripinfos>'
+    )
+    summ = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b'<summary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/summary_file.xsd">'
+        b'<step time="0.0" running="1" /><step time="1.0" running="2" /></summary>'
+    )
+    fcd = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b'<fcd-export xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/fcd_file.xsd">'
+        b'<timestep time="0.0"><vehicle id="v0" edge="edgeA" lane="edgeA_0" /></timestep>'
+        b'<timestep time="1.0"><vehicle id="v1" edge="edgeB" lane="edgeB_0" /></timestep>'
+        b"</fcd-export>"
+    )
+    route = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b'<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">'
+        b'<route id="r0" edges="edgeA edgeB" /></routes>'
+    )
+    decls = [
+        _decl("tripinfo.xml", trip),
+        _decl("summary.xml", summ),
+        _decl("fcd.xml", fcd, required=False),
+        _decl("routes.xml", route, required=False),
+    ]
+    for d, payload in zip(decls, [trip, summ, fcd, route], strict=True):
+        assert d.size_bytes == len(payload)
+        assert d.sha256 == sha256_hex(payload)
+    req = _request(decls)
+    pkg = import_sumo_outputs(
+        req,
+        {"tripinfo.xml": trip, "summary.xml": summ, "fcd.xml": fcd, "routes.xml": route},
+        provenance=_provenance(),
+    )
+    assert pkg.counts.tripinfo_records == 2
+    assert pkg.counts.summary_records == 2
+    assert pkg.counts.fcd_records == 2
+    assert pkg.counts.route_records == 1
+
+
+def test_genuine_headers_never_fetch_even_with_http_in_xsi_value() -> None:
+    # Prove http:// in xsi is inert and does not trigger NETWORK
+    # while http:// elsewhere (xlink) does trigger NETWORK
+    genuine = (
+        b'<tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        b'xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tripinfo_file.xsd">'
+        b'<tripinfo id="v0" depart="0.0" /></tripinfos>'
+    )
+    decl = _decl("tripinfo.xml", genuine)
+    req = _request([decl])
+    pkg = import_sumo_outputs(req, {"tripinfo.xml": genuine}, provenance=_provenance())
+    assert pkg.counts.tripinfo_records == 1
+    # Contrast with xlink:href containing http should be refused as NETWORK
+    evil = (
+        b'<tripinfos><tripinfo id="v0" depart="0.0"'
+        b' xlink:href="https://evil.example.com/payload" /></tripinfos>'
+    )
+    decl2 = _decl("tripinfo.xml", evil)
+    req2 = _request([decl2])
+    with pytest.raises(ManchesterSumoOutputError, match="OUTPUT_XML_NETWORK_REFUSED"):
+        import_sumo_outputs(req2, {"tripinfo.xml": evil}, provenance=_provenance())

@@ -20,6 +20,12 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from traffictwin.integration.manchester.models import ManchesterSnapshotModel
+from traffictwin.integration.manchester.xml import (
+    ManchesterXmlError,
+    ParsedXml,
+    XmlPolicy,
+    parse_xml,
+)
 
 SUMO_OUTPUT_SCHEMA_VERSION: Literal["1.0"] = "1.0"
 SUMO_OUTPUT_METHOD_VERSION: Literal["manchester-sumo-output-1.0"] = "manchester-sumo-output-1.0"
@@ -123,19 +129,281 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _safe_xml_bytes(data: bytes) -> None:
-    text = data.decode("utf-8", errors="replace")
-    lowered = text.lower()
-    if "<!doctype" in lowered or "<!entity" in lowered:
-        raise ManchesterSumoOutputError(
-            "OUTPUT_XML_ENTITY_REFUSED",
-            "DTD/entity declarations are not permitted",
+_XSI_NAMESPACE: str = "http://www.w3.org/2001/XMLSchema-instance"
+_XSI_ATTRIBUTE_NAMESPACES: tuple[str, ...] = (_XSI_NAMESPACE,)
+
+_TRIPINFO_XML_POLICY: XmlPolicy = XmlPolicy(
+    max_input_bytes=MAX_XML_BYTES,
+    max_elements=2_000_000,
+    max_depth=20,
+    max_attributes_per_element=30,
+    max_text_characters=50_000_000,
+    allowed_root_local_names=("tripinfos",),
+    allowed_namespaces=(),
+    allowed_attribute_namespaces=_XSI_ATTRIBUTE_NAMESPACES,
+)
+
+_SUMMARY_XML_POLICY: XmlPolicy = XmlPolicy(
+    max_input_bytes=MAX_XML_BYTES,
+    max_elements=200_000,
+    max_depth=20,
+    max_attributes_per_element=30,
+    max_text_characters=50_000_000,
+    allowed_root_local_names=("summary",),
+    allowed_namespaces=(),
+    allowed_attribute_namespaces=_XSI_ATTRIBUTE_NAMESPACES,
+)
+
+_FCD_XML_POLICY: XmlPolicy = XmlPolicy(
+    max_input_bytes=MAX_FCD_BYTES,
+    max_elements=5_000_000,
+    max_depth=20,
+    max_attributes_per_element=30,
+    max_text_characters=50_000_000,
+    allowed_root_local_names=("fcd-export",),
+    allowed_namespaces=(),
+    allowed_attribute_namespaces=_XSI_ATTRIBUTE_NAMESPACES,
+)
+
+_ROUTES_XML_POLICY: XmlPolicy = XmlPolicy(
+    max_input_bytes=MAX_XML_BYTES,
+    max_elements=1_000_000,
+    max_depth=20,
+    max_attributes_per_element=30,
+    max_text_characters=50_000_000,
+    allowed_root_local_names=("routes", "trips"),
+    allowed_namespaces=(),
+    allowed_attribute_namespaces=_XSI_ATTRIBUTE_NAMESPACES,
+)
+
+_NET_XML_POLICY: XmlPolicy = XmlPolicy(
+    max_input_bytes=MAX_XML_BYTES,
+    max_elements=500_000,
+    max_depth=20,
+    max_attributes_per_element=30,
+    max_text_characters=50_000_000,
+    allowed_root_local_names=("net", "routes", "sumoConfiguration", "configuration"),
+    allowed_namespaces=(),
+    allowed_attribute_namespaces=_XSI_ATTRIBUTE_NAMESPACES,
+)
+
+
+def _map_xml_error(exc: ManchesterXmlError, label: str) -> ManchesterSumoOutputError:
+    """Deterministically map hardened XML errors into the typed refusal taxonomy."""
+    message = str(exc)
+    cause = exc.__cause__
+    cause_name = cause.__class__.__name__ if cause is not None else ""
+    cause_str = str(cause) if cause is not None else ""
+    cause_sysid = getattr(cause, "sysid", None) if cause is not None else None
+    if cause_sysid is None and cause is not None:
+        cause_sysid = getattr(cause, "system_id", None)
+    # Resource bounds
+    if "exceeds policy" in message:
+        if "element count" in message:
+            return ManchesterSumoOutputError(
+                "OUTPUT_RECORD_BOUND",
+                f"{label} element count exceeds bound",
+            )
+        if "depth" in message:
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_INVALID",
+                f"{label} XML depth exceeds bound",
+            )
+        if "attribute count" in message:
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_INVALID",
+                f"{label} attribute count exceeds bound",
+            )
+        if "text size" in message:
+            return ManchesterSumoOutputError(
+                "OUTPUT_OVERSIZE",
+                f"{label} text exceeds bound",
+            )
+        if "payload exceeds policy" in message:
+            return ManchesterSumoOutputError(
+                "OUTPUT_OVERSIZE",
+                f"{label} exceeds byte bound",
+            )
+        return ManchesterSumoOutputError(
+            "OUTPUT_XML_INVALID",
+            f"{label} XML violates policy",
         )
-    if "http://" in lowered or "https://" in lowered or "xlink:href" in lowered:
-        raise ManchesterSumoOutputError(
+    if "root element" in message or "root namespace" in message:
+        return ManchesterSumoOutputError(
+            "OUTPUT_SCHEMA_INVALID",
+            f"{label} XML root not admitted",
+        )
+    if "element namespace" in message:
+        return ManchesterSumoOutputError(
+            "OUTPUT_SCHEMA_INVALID",
+            f"{label} element namespace not admitted",
+        )
+    if "attribute namespace" in message:
+        return ManchesterSumoOutputError(
             "OUTPUT_XML_NETWORK_REFUSED",
             "network/URI resolution is not permitted",
         )
+    # DTD / entity / external – inspect cause for network tripwire
+    if cause_name in ("DTDForbidden", "EntitiesForbidden", "ExternalReferenceForbidden"):
+        if cause_name == "ExternalReferenceForbidden":
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_NETWORK_REFUSED",
+                "network/URI resolution is not permitted",
+            )
+        # For DTDForbidden/EntitiesForbidden, distinguish network vs internal via sysid
+        if cause_sysid is not None and isinstance(cause_sysid, str) and "://" in cause_sysid:
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_NETWORK_REFUSED",
+                "network/URI resolution is not permitted",
+            )
+        # Fallback: inspect cause string for URI
+        if cause_sysid is None and "://" in cause_str:
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_NETWORK_REFUSED",
+                "network/URI resolution is not permitted",
+            )
+        # Additional fallback for UTF-16 external entities where DTDForbidden loses sysid:
+        # external SYSTEM with http is still a DTDForbidden with no sysid. We must inspect
+        # the raw payload in an encoding-aware way, but only for DTD context, not the
+        # brittle whole-payload http scan that flagged inert xsi. This check is limited to
+        # DTD/entity forbidden constructs.
+        # NOTE: The caller _guarded_parse will perform the encoding-aware raw check with
+        # access to data; here we cannot, so we defer to that helper for this case.
+        return ManchesterSumoOutputError(
+            "OUTPUT_XML_ENTITY_REFUSED",
+            "DTD/entity declarations are not permitted",
+        )
+    if "forbidden constructs" in message:
+        # Distinguish DTD/entity vs generic malformed via cause type
+        if cause_name in ("DTDForbidden", "EntitiesForbidden"):
+            if cause_sysid is not None and isinstance(cause_sysid, str) and "://" in cause_sysid:
+                return ManchesterSumoOutputError(
+                    "OUTPUT_XML_NETWORK_REFUSED",
+                    "network/URI resolution is not permitted",
+                )
+            if cause_sysid is None and cause is not None and "://" in cause_str:
+                return ManchesterSumoOutputError(
+                    "OUTPUT_XML_NETWORK_REFUSED",
+                    "network/URI resolution is not permitted",
+                )
+            # Defer to _guarded_parse for encoding-aware SYSTEM+http check (handled there)
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_ENTITY_REFUSED",
+                "DTD/entity declarations are not permitted",
+            )
+        if cause_name == "ExternalReferenceForbidden":
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_NETWORK_REFUSED",
+                "network/URI resolution is not permitted",
+            )
+        # Unbound prefix for xlink:href etc. – treat as network tripwire
+        if cause is not None and "unbound prefix" in cause_str.lower():
+            if "xlink" in cause_str.lower() or "href" in cause_str.lower():
+                return ManchesterSumoOutputError(
+                    "OUTPUT_XML_NETWORK_REFUSED",
+                    "network/URI resolution is not permitted",
+                )
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_INVALID",
+                f"{label} XML invalid",
+            )
+        # Generic forbidden (e.g., control characters are also forbidden via expat?) -> INVALID
+        # Check for control/invalid token – map to INVALID, not ENTITY, to preserve control refusal
+        if cause is not None and (
+            "not well-formed" in cause_str.lower()
+            or "invalid token" in cause_str.lower()
+            or "undefined entity" in cause_str.lower()
+        ):
+            # Undefined entity without DTD is entity-like; treat as ENTITY if mentions entity
+            if "entity" in cause_str.lower():
+                return ManchesterSumoOutputError(
+                    "OUTPUT_XML_ENTITY_REFUSED",
+                    "DTD/entity declarations are not permitted",
+                )
+            return ManchesterSumoOutputError(
+                "OUTPUT_XML_INVALID",
+                f"{label} XML invalid",
+            )
+        return ManchesterSumoOutputError(
+            "OUTPUT_XML_ENTITY_REFUSED",
+            "DTD/entity declarations are not permitted",
+        )
+    # Fallback generic
+    return ManchesterSumoOutputError(
+        "OUTPUT_XML_INVALID",
+        f"{label} XML invalid",
+    )
+
+
+def _guarded_parse(data: bytes, policy: XmlPolicy, label: str) -> ParsedXml:  # noqa: ANN201
+    """Parse via hardened XmlPolicy, mapping errors into typed taxonomy without leakage."""
+    try:
+        return parse_xml(data, policy=policy)
+    except ManchesterXmlError as exc:
+        # For unbound prefix errors (e.g., xlink:href without declaration), the parser
+        # raises ParseError with "unbound prefix" which lacks the attribute name.
+        # Inspect raw bytes in an encoding-aware, bounded way to preserve the
+        # network tripwire without reintroducing the brittle whole-payload http scan.
+        cause_str = str(exc.__cause__).lower() if exc.__cause__ is not None else ""
+        if "unbound prefix" in cause_str and b"xlink:href" in data.lower():
+            raise ManchesterSumoOutputError(
+                "OUTPUT_XML_NETWORK_REFUSED",
+                "network/URI resolution is not permitted",
+            ) from exc
+        # External SYSTEM entity via UTF-16: DTDForbidden loses sysid when forbid_dtd=True.
+        # If the cause is DTD/entity forbidden and the raw payload (decoded according to
+        # its declared encoding) contains SYSTEM + http, treat as NETWORK tripwire.
+        # This is scoped to DTD context only, not the brittle whole-payload http scan that
+        # flagged inert xsi:noNamespaceSchemaLocation.
+        if exc.__cause__ is not None and exc.__cause__.__class__.__name__ in (
+            "DTDForbidden",
+            "EntitiesForbidden",
+        ):
+            # Decode in an encoding-aware but bounded way: try utf-8/utf-16 with fallback
+            # to avoid bypass via UTF-16, and check only inside DTD declaration.
+            try:
+                # parse_xml handles BOM; for inspection try utf-8 then utf-16
+                for enc in ("utf-8", "utf-16", "utf-16-le", "utf-16-be"):
+                    try:
+                        txt = data.decode(enc, errors="strict").lower()
+                        # Look for DTD + SYSTEM + http in the same text
+                        if "<!doctype" in txt and "system" in txt and "http://" in txt:
+                            raise ManchesterSumoOutputError(
+                                "OUTPUT_XML_NETWORK_REFUSED",
+                                "network/URI resolution is not permitted",
+                            ) from exc
+                        if "<!entity" in txt and "system" in txt and "http://" in txt:
+                            raise ManchesterSumoOutputError(
+                                "OUTPUT_XML_NETWORK_REFUSED",
+                                "network/URI resolution is not permitted",
+                            ) from exc
+                        break
+                    except UnicodeDecodeError:
+                        continue
+            except ManchesterSumoOutputError:
+                raise
+            except Exception:  # noqa: S110
+                pass
+            # Also check raw lower bytes as fallback for ascii
+            if (
+                b"<!doctype" in data.lower()
+                and b"system" in data.lower()
+                and b"http://" in data.lower()
+            ):
+                raise ManchesterSumoOutputError(
+                    "OUTPUT_XML_NETWORK_REFUSED",
+                    "network/URI resolution is not permitted",
+                ) from exc
+            if (
+                b"<!entity" in data.lower()
+                and b"system" in data.lower()
+                and b"http://" in data.lower()
+            ):
+                raise ManchesterSumoOutputError(
+                    "OUTPUT_XML_NETWORK_REFUSED",
+                    "network/URI resolution is not permitted",
+                ) from exc
+        raise _map_xml_error(exc, label) from exc
 
 
 def _parse_decimal_finite(raw: str, label: str) -> Decimal:
@@ -683,16 +951,8 @@ def _parse_tripinfo(data: bytes) -> tuple[SumoTripInfoRecord, ...]:
         raise ManchesterSumoOutputError("OUTPUT_OVERSIZE", "tripinfo exceeds byte bound")
     if not data.strip():
         return ()
-    _safe_xml_bytes(data)
-    import xml.etree.ElementTree as ET  # noqa: S314
-
-    try:
-        root = ET.fromstring(data)  # noqa: S314
-    except ET.ParseError as exc:
-        raise ManchesterSumoOutputError(
-            "OUTPUT_XML_INVALID",
-            f"tripinfo XML invalid: {exc}",
-        ) from exc
+    parsed = _guarded_parse(data, _TRIPINFO_XML_POLICY, "tripinfo")
+    root = parsed.root
     records: list[SumoTripInfoRecord] = []
     seen: dict[str, SumoTripInfoRecord] = {}
     for idx, elem in enumerate(root.iter("tripinfo")):
@@ -779,16 +1039,8 @@ def _parse_summary(data: bytes) -> tuple[SumoSummaryRecord, ...]:
         raise ManchesterSumoOutputError("OUTPUT_OVERSIZE", "summary exceeds byte bound")
     if not data.strip():
         return ()
-    _safe_xml_bytes(data)
-    import xml.etree.ElementTree as ET  # noqa: S314
-
-    try:
-        root = ET.fromstring(data)  # noqa: S314
-    except ET.ParseError as exc:
-        raise ManchesterSumoOutputError(
-            "OUTPUT_XML_INVALID",
-            f"summary XML invalid: {exc}",
-        ) from exc
+    parsed = _guarded_parse(data, _SUMMARY_XML_POLICY, "summary")
+    root = parsed.root
     records: list[SumoSummaryRecord] = []
     seen_times: set[Decimal] = set()
     for idx, elem in enumerate(root.iter("step")):
@@ -871,16 +1123,8 @@ def _parse_fcd(data: bytes) -> tuple[SumoFcdRecord, ...]:
         raise ManchesterSumoOutputError("OUTPUT_OVERSIZE", "fcd exceeds byte bound")
     if not data.strip():
         return ()
-    _safe_xml_bytes(data)
-    import xml.etree.ElementTree as ET  # noqa: S314
-
-    try:
-        root = ET.fromstring(data)  # noqa: S314
-    except ET.ParseError as exc:
-        raise ManchesterSumoOutputError(
-            "OUTPUT_XML_INVALID",
-            f"fcd XML invalid: {exc}",
-        ) from exc
+    parsed = _guarded_parse(data, _FCD_XML_POLICY, "fcd")
+    root = parsed.root
     records: list[SumoFcdRecord] = []
     for ts in root.iter("timestep"):
         time_raw = ts.get("time")
@@ -971,16 +1215,10 @@ def _parse_routes_or_trips(
         raise ManchesterSumoOutputError("OUTPUT_OVERSIZE", f"{filename} exceeds byte bound")
     if not data.strip():
         return ()
-    _safe_xml_bytes(data)
-    import xml.etree.ElementTree as ET  # noqa: S314
-
-    try:
-        root = ET.fromstring(data)  # noqa: S314
-    except ET.ParseError as exc:
-        raise ManchesterSumoOutputError(
-            "OUTPUT_XML_INVALID",
-            f"{filename} XML invalid: {exc}",
-        ) from exc
+    policy = _ROUTES_XML_POLICY
+    # filename is either routes.xml or trips.xml, both allowed by the same policy
+    parsed = _guarded_parse(data, policy, filename)
+    root = parsed.root
     records: list[SumoRouteRecord] = []
     seen_ids: set[str] = set()
     # Routes file may contain <route>, <vehicle>, <flow>, <trip>
@@ -1212,7 +1450,8 @@ def import_sumo_outputs(
                     "OUTPUT_OVERSIZE",
                     f"metadata {base!r} exceeds bound",
                 )
-            _safe_xml_bytes(raw)
+            # Validate net metadata via hardened policy without fetching
+            _guarded_parse(raw, _NET_XML_POLICY, "net")
             warnings.append(f"metadata present: {base}")
         else:
             warnings.append(f"unrecognised output class unavailable as metric: {base}")
