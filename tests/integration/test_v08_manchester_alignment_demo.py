@@ -23,6 +23,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_DIR = REPO_ROOT / "docs/closure/v08_alignment/manchester_demo"
@@ -332,7 +333,7 @@ def _mutate_current_and_run(
 def test_mutation_relabel_synthetic_as_measured_general_road_fails() -> None:
     """Relabel SYNTHETIC DATA as REAL MANCHESTER DATA -> must FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "manual_incident_authored":
                 src["evidence_standing"] = "REAL MANCHESTER DATA"
@@ -349,7 +350,7 @@ def test_mutation_relabel_synthetic_as_measured_general_road_fails() -> None:
 def test_mutation_relabel_bus_only_as_general_road_traffic_fails() -> None:
     """Relabel bus-only REAL MANCHESTER DATA as if it were general road traffic -> FAIL via DESIGN-ONLY promotion."""  # noqa: E501
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "general_live_road_traffic_bods":
                 src["evidence_standing"] = "REAL MANCHESTER DATA"
@@ -367,7 +368,7 @@ def test_mutation_relabel_bus_only_as_general_road_traffic_fails() -> None:
 def test_mutation_remove_provenance_hash_fails() -> None:
     """Remove provenance_sha256 from a REAL source -> must FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "bods_bus_positions":
                 src.pop("committed_evidence_sha256", None)
@@ -382,7 +383,7 @@ def test_mutation_remove_provenance_hash_fails() -> None:
 def test_mutation_remove_pinned_sha_fails() -> None:
     """Remove a pinned synthetic square SHA -> must FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "synthetic_square_sumo":
                 src["pinned_inputs"].pop("square.sumocfg", None)
@@ -396,7 +397,7 @@ def test_mutation_remove_pinned_sha_fails() -> None:
 def test_mutation_external_to_manchester_fails() -> None:
     """Relabel REAL EXTERNAL NON-MANCHESTER DATA as REAL MANCHESTER DATA -> FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "national_highways_operational":
                 src["evidence_standing"] = "REAL MANCHESTER DATA"
@@ -410,7 +411,7 @@ def test_mutation_external_to_manchester_fails() -> None:
 def test_mutation_decorated_pseudo_digest_fails() -> None:
     """A decorated/prefixed pseudo-digest in any *_sha256 field must FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "bods_bus_positions":
                 src["committed_evidence_sha256"] = (
@@ -427,7 +428,7 @@ def test_mutation_decorated_pseudo_digest_fails() -> None:
 def test_mutation_wrong_valid_64hex_for_committed_locator_fails() -> None:
     """Wrong but syntactically valid 64-hex digest for committed locator must FAIL via recomputed mismatch."""  # noqa: E501
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "bods_bus_positions":
                 # valid hex but wrong value (all 'a's)
@@ -443,7 +444,7 @@ def test_mutation_wrong_valid_64hex_for_committed_locator_fails() -> None:
 def test_mutation_missing_or_nonexistent_locator_fails() -> None:
     """Missing or nonexistent committed evidence locator must FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "bods_bus_positions":
                 src["committed_evidence_locator"] = (
@@ -460,7 +461,7 @@ def test_mutation_missing_or_nonexistent_locator_fails() -> None:
 def test_mutation_placeholder_counted_as_observed_real_layer_fails() -> None:
     """Unavailable/no-live placeholder counted as observed real-data layer must FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         # Add a fake layer that looks like a real Manchester layer but with placeholder freshness and no committed binding  # noqa: E501
         d["layers"].append(
             {
@@ -483,7 +484,7 @@ def test_mutation_placeholder_counted_as_observed_real_layer_fails() -> None:
 def test_mutation_synthetic_relabelled_as_general_road_fails() -> None:
     """Synthetic or bus-only input relabelled as measured general-road Manchester data must FAIL."""
 
-    def mutate(d: dict) -> None:
+    def mutate(d: dict[str, Any]) -> None:
         for src in d["sources"]:
             if src["source_id"] == "manual_incident_authored":
                 src["evidence_standing"] = "REAL MANCHESTER DATA"
