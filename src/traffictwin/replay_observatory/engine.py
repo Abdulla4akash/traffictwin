@@ -5,14 +5,22 @@ never performs wall-clock waiting, never mutates or synthesises events,
 and never fabricates missing telemetry.  All controls are typed,
 frozen, strictly validated, and bounded.
 
-ADVANCE is additive and saturating: playhead accumulates as the monotonic
-sum of ``delta_s * speed_multiplier`` while PLAYING; zero delta, empty
-stream, PAUSED, or already ENDED are pure no-ops; whenever advancement
-would cross the final event time, playhead is clamped exactly to that
-final event time before marking ENDED, after which the engine remains
-immobile. Any single or partitioned total that reaches or crosses the
-final event yields the identical cursor, playhead, state, and
-fingerprint. No wall-clock waiting is involved.
+ADVANCE is additive and saturating in terms of the actual binary-float
+accumulation: playhead accumulates as the monotonic binary-float sum of
+``delta_s * speed_multiplier`` while PLAYING; zero delta, empty stream,
+PAUSED, or already ENDED are pure no-ops; whenever the actual
+accumulated ``new_playhead >= last_time`` (reaches or crosses the final
+event time), playhead is clamped exactly to ``last_time``,
+``cursor == len(events)``, ``playback == ENDED`` and ``end_of_stream ==
+True`` with equal-time final groups atomically complete, after which the
+engine remains immobile and further ADVANCE are no-ops.  Any two
+sequences whose actual Python binary-float accumulated
+``delta*speed`` sums both reach/cross ``last_time`` converge to that one
+clamped terminal state (identical cursor, playhead, state, fingerprint);
+nominal decimal totals whose actual accumulated floats differ and
+undershoot remain truthfully non-terminal and are not claimed
+equivalent. Cursor ordering before terminal remains deterministic and
+never skips ordered events. No wall-clock waiting is involved.
 """
 
 from __future__ import annotations
@@ -465,8 +473,14 @@ class ReplayEngine:
     The engine holds a reference to the immutable stream and a cursor index.
     All operations are pure with respect to the event sequence: equal-time
     events remain ordered by (simulator_time_s, sequence, event_id) as stored,
-    and no method mutates or synthesises events. ADVANCE is saturating as
-    documented at module level.
+    and no method mutates or synthesises events. ADVANCE is additive and
+    saturating on the actual binary-float accumulation: any actual
+    accumulated ``new_playhead >= last_time`` clamps to the single terminal
+    state (``cursor == len(events)``, ``playhead == last_time``, ENDED,
+    atomically completing equal-time final groups); once ENDED further
+    advances are no-ops. Nominal decimal totals whose binary-float sums
+    differ/undershoot are not claimed equivalent. Cursor ordering before
+    terminal remains deterministic.
     """
 
     def __init__(
@@ -824,16 +838,22 @@ class ReplayEngine:
         elif request.control is ReplayControl.ADVANCE:
             assert request.advance_delta_s is not None
             # Deterministic saturating additive advancement while PLAYING.
-            # Contract (saturating end):
-            # - playhead accumulates as monotonic sum of delta*speed; zero delta,
-            #   empty, PAUSED, or already ENDED are pure no-ops with no drift.
+            # Contract (precise, no overclaim):
+            # - playhead accumulates as monotonic binary-float sum of
+            #   delta*speed; zero delta, empty, PAUSED, or already ENDED are
+            #   pure no-ops with no drift.
             # - cursor advances monotonically and never skips ordered events or
             #   equal-time siblings: it moves forward through every event whose
             #   time <= playhead, consuming equal-time groups atomically.
-            # - whenever advancement would cross the final event time, playhead is
-            #   clamped exactly to that final time before marking ENDED; after
-            #   ENDED the engine is immobile and any further total yields the same
-            #   cursor/playhead/state/fingerprint (partition invariance).
+            # - whenever actual accumulated new_playhead >= last_time (reaches
+            #   or crosses final event time), playhead is clamped exactly to
+            #   last_time, cursor == len(events), ENDED, atomically completing
+            #   any equal-time final group; after ENDED the engine is immobile
+            #   and further ADVANCE are no-ops.
+            # - convergence holds for actual binary-float accumulations that
+            #   reach/cross; nominal decimal totals whose Python floats differ
+            #   and undershoot remain non-terminal and are not claimed
+            #   equivalent. Before terminal, ordering remains deterministic.
             if self.is_empty():
                 self._playback_state = PlaybackState.ENDED
                 self._playhead_time_s = 0.0
@@ -853,9 +873,9 @@ class ReplayEngine:
                         raise ReplayEngineError("INVALID_ADVANCE", "playhead must remain finite")
                     if new_playhead < self._playhead_time_s:
                         raise ReplayEngineError("INVALID_ADVANCE", "playhead must be monotonic")
-                    # Saturating clamp: if crossing final event, clamp to it.
+                    # Saturating clamp: if reaches or crosses final event, clamp to it.
                     last_time = float(self._stream.events[-1].simulator_time_s)
-                    if new_playhead > last_time:
+                    if new_playhead >= last_time:
                         self._playhead_time_s = last_time
                         self._cursor_index = len(self._stream.events)
                         self._playback_state = PlaybackState.ENDED
@@ -958,13 +978,20 @@ class ReplayEngine:
     def advance(self, delta_s: float) -> ReplayReceipt:
         """Deterministic saturating non-real-time advancement while PLAYING.
 
-        Moves playhead by ``delta_s * speed_multiplier`` (additive). Preserves
-        equal-time ordering and never skips events; zero delta, PAUSED, empty,
-        or already ENDED are pure no-ops. Whenever the target would cross the
-        final event time, playhead is clamped exactly to that final time
-        before marking ENDED, after which the engine remains immobile. Any
-        single total and any partitioned sum reaching/crossing the end yield
-        the identical cursor, playhead, state, and fingerprint.
+        Moves playhead by the actual binary-float ``delta_s *
+        speed_multiplier`` additive step while PLAYING. Preserves equal-time
+        ordering and never skips events; zero delta, PAUSED, empty, or
+        already ENDED are pure no-ops. Whenever the actual accumulated
+        ``new_playhead >= last_time`` (reaches or crosses the final event
+        time), playhead is clamped exactly to ``last_time``, ``cursor ==
+        len(events)``, ``playback == ENDED`` with the equal-time final group
+        atomically complete, after which the engine remains immobile and
+        further advances are no-ops. Any two actual binary-float accumulated
+        totals that both reach/cross converge to that one clamped terminal
+        state (identical cursor, playhead, state, fingerprint); nominal
+        decimal totals whose binary-float accumulations differ/undershoot are
+        not claimed equivalent. Cursor ordering before terminal remains
+        deterministic.
         """
         if not math.isfinite(delta_s):
             raise ReplayEngineError("INVALID_ADVANCE", "delta_s must be finite")

@@ -809,10 +809,15 @@ def test_advance_equal_time_ordering() -> None:
     assert r3.resulting_state.cursor.index == 2
     assert r3.resulting_state.cursor.event_id == "evt-aaa-002"
     assert r3.resulting_state.playhead_time_s == 1.5
-    # Advance another 0.5 => playhead 2.0, reaches e3.
+    # Advance another 0.5 => playhead 2.0, reaches e3 and is terminal
+    # (new_playhead == last_time is clamped to ENDED with cursor==len)
     r4 = engine.advance(0.5)
-    assert r4.resulting_state.cursor.index == 3
-    assert r4.resulting_state.cursor.event_id == "evt-aaa-003"
+    assert r4.resulting_state.cursor.index == len(stream.events)
+    assert r4.resulting_state.cursor.is_at_end is True
+    assert r4.resulting_state.end_of_stream is True
+    assert r4.resulting_state.playback_state is PlaybackState.ENDED
+    assert r4.resulting_state.playhead_time_s == 2.0
+    assert r4.resulting_state.cursor.simulator_time_s == 2.0
 
 
 def test_advance_paused_and_ended_explicit() -> None:
@@ -1105,8 +1110,15 @@ def test_remediation_advance_additive_large_vs_partitioned() -> None:
     e_part.advance(1.0)
     e_part.advance(1.0)
     part_state = e_part.state()
-    assert large_state.cursor.index == part_state.cursor.index == 3
-    assert large_state.playhead_time_s == part_state.playhead_time_s == pytest.approx(2.0)
+    # new_playhead == last_time (2.0) is terminal: cursor==len, ENDED
+    assert large_state.cursor.index == len(stream.events)
+    assert part_state.cursor.index == len(stream.events)
+    assert large_state.cursor.index == part_state.cursor.index
+    assert large_state.end_of_stream is True
+    assert part_state.end_of_stream is True
+    assert large_state.playback_state is PlaybackState.ENDED
+    assert large_state.playhead_time_s == 2.0
+    assert part_state.playhead_time_s == 2.0
     # Partitioned 4x0.5 also same
     e_frac = ReplayEngine(stream)
     e_frac.play()
@@ -1235,10 +1247,14 @@ def test_remediation_gap_seek_state_pure_no_mutation() -> None:
     r2 = engine.advance(5.0)
     assert r2.resulting_state.playhead_time_s == 15.0
     assert r2.resulting_state.cursor.index == 1
-    # Advance 5.0 => playhead 20, reaches last
+    # Advance 5.0 => playhead 20, reaches last and is terminal (== clamps)
     r3 = engine.advance(5.0)
     assert r3.resulting_state.playhead_time_s == 20.0
-    assert r3.resulting_state.cursor.index == 2
+    assert r3.resulting_state.cursor.index == len(stream.events)
+    assert r3.resulting_state.cursor.is_at_end is True
+    assert r3.resulting_state.end_of_stream is True
+    assert r3.resulting_state.playback_state is PlaybackState.ENDED
+    assert r3.resulting_state.cursor.simulator_time_s == 20.0
 
 
 def test_remediation_advance_start_end_boundaries() -> None:
@@ -1250,22 +1266,28 @@ def test_remediation_advance_start_end_boundaries() -> None:
     s0 = engine.state()
     assert s0.playhead_time_s == 0.0
     assert s0.cursor.index == 0
-    # advance exactly to last event
+    # advance exactly to last event (new_playhead == last_time is terminal)
     engine.play()
     r = engine.advance(2.0)
-    assert r.resulting_state.cursor.index == 2
+    assert r.resulting_state.cursor.index == len(stream.events)
+    assert r.resulting_state.cursor.is_at_end is True
+    assert r.resulting_state.end_of_stream is True
+    assert r.resulting_state.playback_state is PlaybackState.ENDED
     assert r.resulting_state.playhead_time_s == 2.0
-    assert not r.resulting_state.end_of_stream
-    # advance beyond last => goes to end
+    assert r.resulting_state.cursor.simulator_time_s == 2.0
+    # further advance while ended is no-op (playhead clamped exactly at last)
+    ph_before = r.resulting_state.playhead_time_s
+    fp_before = r.resulting_state.fingerprint()
     r2 = engine.advance(0.1)
     assert r2.resulting_state.end_of_stream is True
     assert r2.resulting_state.cursor.is_at_end is True
     assert r2.resulting_state.playback_state is PlaybackState.ENDED
-    # further advance while ended is no-op
-    ph_before = r2.resulting_state.playhead_time_s
+    assert r2.resulting_state.playhead_time_s == ph_before
+    assert r2.resulting_state.fingerprint() == fp_before
     r3 = engine.advance(1.0)
     assert r3.resulting_state.end_of_stream is True
     assert r3.resulting_state.playhead_time_s == ph_before
+    assert r3.resulting_state.fingerprint() == fp_before
     # seek back to start
     r4 = engine.seek(0.0)
     assert r4.resulting_state.cursor.index == 0
@@ -1342,46 +1364,189 @@ def _eight_shape_streams() -> list[ReplayEventStream]:
     return streams
 
 
-def test_blocker_saturating_exact_end_additive() -> None:
-    """Exact-end totals: single vs partitioned reach same last index and playhead == last."""
-    for stream in _eight_shape_streams():
-        if len(stream.events) == 0:
-            continue
-        last = float(stream.events[-1].simulator_time_s)
-        for speed in (0.5, 1.0, 2.0):
-            # effective total = last; raw delta = last / speed
-            # need to handle speed 0.5 etc where division yields exact.
-            total_raw = last / speed if last != 0 else 0.0
-            # skip if total_raw exceeds bound or non-finite
-            if not (total_raw >= 0 and total_raw <= 86400.0 * 7):
-                continue
-            # single
-            e_single = ReplayEngine(stream, speed_multiplier=speed)
-            e_single.play()
-            e_single.advance(total_raw)
-            s_single = e_single.state()
-            # Partitioned 2 ways
-            e_part = ReplayEngine(stream, speed_multiplier=speed)
-            e_part.play()
-            e_part.advance(total_raw / 2)
-            e_part.advance(total_raw / 2)
-            s_part = e_part.state()
-            assert s_single.cursor.index == s_part.cursor.index
-            assert s_single.playhead_time_s == pytest.approx(s_part.playhead_time_s)
-            assert s_single.fingerprint() == s_part.fingerprint()
-            # Partitioned 4 ways
-            e_frac = ReplayEngine(stream, speed_multiplier=speed)
-            e_frac.play()
-            for _ in range(4):
-                e_frac.advance(total_raw / 4)
-            s_frac = e_frac.state()
-            assert s_frac.fingerprint() == s_single.fingerprint()
-            # Exact end should be at last index, not ENDED; saturating only for > last.
-            if len(stream.events) > 0:
-                # For shape-single at 1.0, exact is index0, not ended; uniform at 4.0 index 4.
-                assert s_single.cursor.index == len(stream.events) - 1
-                assert not s_single.end_of_stream
-                assert s_single.playhead_time_s == pytest.approx(last)
+def test_blocker_saturating_exact_end_is_terminal() -> None:
+    """Exact reach (new_playhead == last_time) is terminal: clamp, ENDED, atomic.
+
+    Any actual binary-float accumulated playhead that reaches or crosses the
+    final time converges to one clamped terminal state. Once ENDED further
+    advances are no-ops. This replaces the prior overclaim that exact end
+    remained PLAYING.
+
+    Verifies exact cursor==len, ENDED, playhead==last_time and full
+    fingerprint equivalence without approx for:
+      - stream [0,1,2] last=2.0 with partitions that exactly reach 2.0
+      - stream [0,0.1,0.2,0.3] last=0.3 with partitions 0.3, 0.15*2, 0.1*3,
+        0.1+0.2 whose actual Python accumulations all reach/cross.
+    """
+    # Stream [0,1,2] last=2.0: partitions that actually reach in binary float
+    stream_a = _make_stream_from_times([0.0, 1.0, 2.0], prefix="exact-012")
+    last_a = float(stream_a.events[-1].simulator_time_s)  # 2.0
+
+    # Single 2.0
+    e_a_single = ReplayEngine(stream_a)
+    e_a_single.play()
+    e_a_single.advance(2.0)
+    s_a_single = e_a_single.state()
+    assert s_a_single.cursor.index == len(stream_a.events)
+    assert s_a_single.cursor.is_at_end is True
+    assert s_a_single.end_of_stream is True
+    assert s_a_single.playback_state is PlaybackState.ENDED
+    assert s_a_single.playhead_time_s == last_a
+    assert s_a_single.cursor.simulator_time_s == last_a
+
+    # Partitioned 1.0 + 1.0 (actual accumulated 1.0+1.0 ==2.0 exactly)
+    e_a_part = ReplayEngine(stream_a)
+    e_a_part.play()
+    e_a_part.advance(1.0)
+    e_a_part.advance(1.0)
+    s_a_part = e_a_part.state()
+    assert s_a_part.cursor.index == len(stream_a.events)
+    assert s_a_part.end_of_stream is True
+    assert s_a_part.playback_state is PlaybackState.ENDED
+    assert s_a_part.playhead_time_s == last_a
+    assert s_a_part.fingerprint() == s_a_single.fingerprint()
+    assert s_a_part.playhead_time_s == s_a_single.playhead_time_s
+    assert s_a_part.cursor.index == s_a_single.cursor.index
+
+    # Partitioned 0.5*4 (each 0.5 exact, sum exactly 2.0)
+    e_a_frac = ReplayEngine(stream_a)
+    e_a_frac.play()
+    for _ in range(4):
+        e_a_frac.advance(0.5)
+    s_a_frac = e_a_frac.state()
+    assert s_a_frac.fingerprint() == s_a_single.fingerprint()
+    assert s_a_frac.cursor.index == len(stream_a.events)
+    assert s_a_frac.end_of_stream is True
+    assert s_a_frac.playhead_time_s == last_a
+
+    # Stream [0,0.1,0.2,0.3] last=0.3: partitions 0.3, 0.15*2, 0.1*3, 0.1+0.2
+    # whose actual Python accumulated binary-float values all reach/cross 0.3.
+    stream_b = _make_stream_from_times([0.0, 0.1, 0.2, 0.3], prefix="exact-010203")
+    last_b = float(stream_b.events[-1].simulator_time_s)  # 0.3
+
+    # Verify actual accumulated floats do reach/cross before asserting equivalence
+    assert last_b <= 0.3
+    assert last_b <= (0.15 + 0.15)
+    assert last_b <= (0.1 + 0.1 + 0.1)
+    assert last_b <= (0.1 + 0.2)
+
+    variants_b: list[list[float]] = [
+        [0.3],
+        [0.15, 0.15],
+        [0.1, 0.1, 0.1],
+        [0.1, 0.2],
+    ]
+    fps: list[str] = []
+    for deltas in variants_b:
+        eng = ReplayEngine(stream_b)
+        eng.play()
+        for d in deltas:
+            eng.advance(d)
+        st = eng.state()
+        # Exact terminal assertions: no approx
+        assert st.cursor.index == len(stream_b.events)
+        assert st.cursor.is_at_end is True
+        assert st.end_of_stream is True
+        assert st.playback_state is PlaybackState.ENDED
+        assert st.playhead_time_s == last_b
+        assert st.cursor.simulator_time_s == last_b
+        fps.append(st.fingerprint())
+
+    # All reaching variants converge to one clamped terminal fingerprint
+    first_fp = fps[0]
+    for fp in fps[1:]:
+        assert fp == first_fp
+
+    # Once ENDED further advances are no-op (exact fingerprint preserved)
+    eng_end = ReplayEngine(stream_b)
+    eng_end.play()
+    eng_end.advance(0.3)
+    fp_terminal = eng_end.state().fingerprint()
+    ph_terminal = eng_end.state().playhead_time_s
+    eng_end.advance(0.1)
+    eng_end.advance(1.0)
+    eng_end.advance(0.0)
+    assert eng_end.state().fingerprint() == fp_terminal
+    assert eng_end.state().playhead_time_s == ph_terminal
+    assert eng_end.state().end_of_stream is True
+
+
+def test_blocker_property_probe_reaching_vs_undershoot() -> None:
+    """Property probe: separate reaching/crossing vs undershoot without overclaim.
+
+    (a) Any actual Python accumulated delta*speed >= last_time must converge
+        to the single clamped terminal state (cursor==len, ENDED, clamped
+        playhead, full fingerprint equivalence). Verified above for exact
+        variants.
+    (b) Undershoot sequences whose actual accumulation < last_time remain
+        truthfully non-terminal (PLAYING, cursor before end, playhead
+        equals actual sum, not clamped). This verifies no overclaim for
+        nominal decimal totals that differ in binary float.
+    """
+    stream = _make_stream_from_times([0.0, 0.1, 0.2, 0.3], prefix="probe-010203")
+    last = float(stream.events[-1].simulator_time_s)  # 0.3
+
+    # Undershoot: 0.1 + 0.1 = 0.2 < 0.3 -> remains non-terminal
+    eng_under = ReplayEngine(stream)
+    eng_under.play()
+    eng_under.advance(0.1)
+    eng_under.advance(0.1)
+    st_under = eng_under.state()
+    actual_under = 0.1 + 0.1
+    assert actual_under < last
+    assert st_under.playhead_time_s == actual_under
+    assert st_under.playhead_time_s != last
+    assert st_under.cursor.index == 2  # event at 0.2 (index 2)
+    assert st_under.end_of_stream is False
+    assert st_under.playback_state is PlaybackState.PLAYING
+    assert st_under.cursor.is_at_end is False
+
+    # Undershoot: single 0.2 < 0.3
+    eng_under2 = ReplayEngine(stream)
+    eng_under2.play()
+    eng_under2.advance(0.2)
+    st_under2 = eng_under2.state()
+    assert st_under2.playhead_time_s == 0.2
+    assert st_under2.end_of_stream is False
+    assert st_under2.playback_state is PlaybackState.PLAYING
+
+    # Reaching: 0.1 + 0.2 = 0.30000000000000004 >=0.3 -> terminal
+    eng_reach = ReplayEngine(stream)
+    eng_reach.play()
+    eng_reach.advance(0.1)
+    eng_reach.advance(0.2)
+    st_reach = eng_reach.state()
+    actual_reach = 0.1 + 0.2
+    assert actual_reach >= last
+    assert st_reach.cursor.index == len(stream.events)
+    assert st_reach.end_of_stream is True
+    assert st_reach.playback_state is PlaybackState.ENDED
+    assert st_reach.playhead_time_s == last
+    assert st_reach.cursor.is_at_end is True
+
+    # No overclaim: undershoot and reaching fingerprints/states differ
+    assert st_under.fingerprint() != st_reach.fingerprint()
+    assert st_under2.fingerprint() != st_reach.fingerprint()
+    assert st_under.playhead_time_s != st_reach.playhead_time_s
+
+    # Additional integer stream undershoot check: [0,1,2] last 2.0, 0.3 undershoots
+    stream_a = _make_stream_from_times([0.0, 1.0, 2.0], prefix="probe-012")
+    eng_a_under = ReplayEngine(stream_a)
+    eng_a_under.play()
+    eng_a_under.advance(0.3)
+    st_a_under = eng_a_under.state()
+    assert st_a_under.playhead_time_s == 0.3
+    assert st_a_under.end_of_stream is False
+    assert st_a_under.playback_state is PlaybackState.PLAYING
+    assert st_a_under.cursor.index == 0
+
+    # Cursor ordering before terminal remains deterministic: 0.1 -> index1, 0.2 -> index2, etc.
+    eng_order = ReplayEngine(stream)
+    eng_order.play()
+    eng_order.advance(0.1)
+    assert eng_order.state().cursor.index == 1
+    eng_order.advance(0.1)
+    assert eng_order.state().cursor.index == 2
 
 
 def test_blocker_saturating_overshoot_additive_and_clamped() -> None:
