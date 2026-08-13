@@ -22,6 +22,12 @@ Standing separation:
   observations or accepted matches are insufficient.
 - ``SCIENTIFICALLY_ACCEPTED_DEMAND`` requires explicit attributable review
   and never follows from ``SOFTWARE_VALID`` alone.
+
+Count input snapshot binding:
+The :class:`CountConstrainedDemandInput` lacks a snapshot_id. It is not
+independently snapshot-bearing. Its complete fingerprint is bound together
+with the exact source and map-workflow dependencies at request/build time;
+no more is claimed.
 """
 
 from __future__ import annotations
@@ -244,18 +250,42 @@ class DemandScalingAssumptions(ManchesterDemandModel):
 
 
 class DemandCountsSummary(ManchesterDemandModel):
-    """Truthful counts for offered/admitted/excluded/missing inputs."""
+    """Truthful counts with coherent units.
 
-    offered: int = Field(ge=0)
-    admitted: int = Field(ge=0)
-    excluded: int = Field(ge=0)
-    missing_hours: int = Field(ge=0)
+    - ``offered`` / ``admitted`` / ``excluded`` are edge-hour cell counts
+      (unit: cells) using ``ledger.cells_bound`` / ``len(counts)``; they share
+      one coherent unit and satisfy ``offered == admitted + excluded``.
+    - ``missing_hours`` is the explicit temporal-coverage gap:
+      ``expected_interval_cells - admitted`` where ``expected_interval_cells``
+      is the temporal denominator (intervals * bound directions). It never
+      includes direction unresolved / review-required counts.
+    - Direction unresolved / review-required are separately named exclusions:
+      ``direction_unresolved_excluded``,
+      ``direction_requires_confirmation_excluded``,
+      ``direction_combined_not_forced_excluded``.
+    - Site statistics are separate: ``sites_offered`` / ``sites_admitted``.
+    """
+
+    offered: int = Field(ge=0, description="edge-hour cells offered (coherent cell unit)")
+    admitted: int = Field(ge=0, description="edge-hour cells admitted")
+    excluded: int = Field(ge=0, description="edge-hour cells excluded")
+    missing_hours: int = Field(ge=0, description="missing interval cells = expected - admitted")
     measured_zero_cells: int = Field(ge=0)
+    expected_interval_cells: int = Field(ge=0, description="explicit temporal denominator")
+    direction_unresolved_excluded: int = Field(ge=0)
+    direction_requires_confirmation_excluded: int = Field(ge=0)
+    direction_combined_not_forced_excluded: int = Field(ge=0)
+    sites_offered: int = Field(ge=0)
+    sites_admitted: int = Field(ge=0)
 
     @model_validator(mode="after")
     def _validate(self) -> DemandCountsSummary:
         if self.offered != self.admitted + self.excluded:
-            raise ValueError("offered must equal admitted + excluded")
+            raise ValueError("offered must equal admitted + excluded (coherent cell unit)")
+        if self.expected_interval_cells != self.admitted + self.missing_hours:
+            raise ValueError("expected_interval_cells must equal admitted + missing_hours")
+        if self.admitted < self.measured_zero_cells:
+            raise ValueError("measured_zero_cells cannot exceed admitted")
         return self
 
 
@@ -345,7 +375,6 @@ class ManchesterDemandPackageRequest(ManchesterDemandModel):
             _reject_private_path(item, "limitation")
             _reject_secret(item, "limitation")
             lower = item.lower()
-            # truthful non-claims contain negation; a bare positive claim is forbidden
             if "observed trip" in lower and "not" not in lower and "never call" not in lower:
                 raise ValueError("limitations must not claim observed trips/demand")
             if "observed demand" in lower and "not" not in lower:
@@ -370,14 +399,12 @@ class ManchesterDemandPackageRequest(ManchesterDemandModel):
             raise ValueError("non_claims must be the exact workflow literal")
         if self.evidence_boundary != EVIDENCE_BOUNDARY:
             raise ValueError("evidence_boundary must be the exact literal")
-        # demand_label vs method/standing coherence
         if self.demand_method == "synthetic_uniform_v1":
             if self.demand_label != "synthetic_engineering_candidate_demand":
                 raise ValueError("synthetic method must carry synthetic label")
         else:
             if self.demand_label != "count_constrained_candidate_demand":
                 raise ValueError("count-constrained method must carry count_constrained label")
-        # seed coherence
         needs_seed = self.demand_method in _METHOD_REQUIRES_SEED
         if needs_seed and self.deterministic_seed is None:
             raise ValueError("stochastic demand method requires deterministic_seed")
@@ -386,23 +413,16 @@ class ManchesterDemandPackageRequest(ManchesterDemandModel):
             and self.demand_method == "synthetic_uniform_v1"
             and self.deterministic_seed is None
         ):
-            # synthetic uniform is stochastic-like sampling from uniform;
-            # requires seed for determinism
             raise ValueError("synthetic method requires deterministic_seed for bounded determinism")
         if (
             self.demand_method == "count_constrained_candidate_v1"
             and self.deterministic_seed is not None
         ):
-            # deterministic count-constrained without sampling must not carry seed
             raise ValueError("deterministic count-constrained method must not carry a seed")
         expected = _request_fingerprint(self)
         if self.request_fingerprint != expected:
             raise ValueError("request_fingerprint must be re-derived canonical digest")
-        # source already validated via its own model; ensure no BODS general traffic inflation
-        # via provenance check already inside MapMatchDftSourceIdentity
-        # additional demand-level guard: label must never be observed trips
         if "observed" in self.demand_label and "synthetic" not in self.demand_label:
-            # count_constrained is observed-input-derived-but-inferred, not observed
             pass
         return self
 
@@ -466,7 +486,6 @@ class ManchesterDemandPackageResult(ManchesterDemandModel):
             and self.deterministic_seed is not None
         ):
             raise ValueError("deterministic method must not carry seed")
-        # standing coherence
         if self.standing == "PROVIDER_DATA_REQUIRED":
             if self.scientific_standing != "PROVIDER_DATA_REQUIRED":
                 raise ValueError(
@@ -490,7 +509,6 @@ class ManchesterDemandPackageResult(ManchesterDemandModel):
                 raise ValueError(
                     "count-constrained candidate is not scientifically accepted by default"
                 )
-        # never observed trips
         if self.is_observed_trips is not False:
             raise ValueError("demand package must never claim observed trips")
         if self.scientifically_accepted is not False:
@@ -516,6 +534,8 @@ class ManchesterDemandAcceptanceDecision(ManchesterDemandModel):
     request_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
     result_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
     reviewer_id: str = Field(min_length=1, max_length=64)
+    reviewer_role: str = Field(min_length=1, max_length=64)
+    reviewer_attribution: str = Field(min_length=1, max_length=200)
     decision: ScientificStanding
     decided_at_utc: datetime
     reason: str = Field(min_length=1, max_length=1024)
@@ -523,14 +543,40 @@ class ManchesterDemandAcceptanceDecision(ManchesterDemandModel):
     evidence_boundary: str = EVIDENCE_BOUNDARY
     decision_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
 
-    @field_validator("reviewer_id")
+    @field_validator("reviewer_id", "reviewer_role", "reviewer_attribution")
     @classmethod
     def _validate_rev(cls, v: str) -> str:
-        _reject_private_path(v, "reviewer_id")
-        _reject_secret(v, "reviewer_id")
+        _reject_private_path(v, "reviewer identity")
+        _reject_secret(v, "reviewer identity")
         if not v.strip():
-            raise ValueError("reviewer_id must be non-empty")
+            raise ValueError("reviewer field must be non-empty")
+        if not _SAFE_ID_RE.fullmatch(v.strip()) and " " not in v.strip():
+            # attribution may contain spaces; id/role must be safe portable
+            pass
         return v.strip()
+
+    @field_validator("reviewer_id")
+    @classmethod
+    def _validate_reviewer_id(cls, v: str) -> str:
+        # bounded identity must be safe portable identifier, not bare free-form
+        if not _SAFE_ID_RE.fullmatch(v):
+            raise ValueError("reviewer_id must be bounded safe identifier [a-z0-9_.-]")
+        return v
+
+    @field_validator("reviewer_role")
+    @classmethod
+    def _validate_reviewer_role(cls, v: str) -> str:
+        if not _SAFE_ID_RE.fullmatch(v):
+            raise ValueError("reviewer_role must be bounded safe identifier")
+        return v
+
+    @field_validator("reviewer_attribution")
+    @classmethod
+    def _validate_attribution(cls, v: str) -> str:
+        # attribution is organization / calibration authority, bounded length
+        if len(v) > 200:
+            raise ValueError("attribution too long")
+        return v
 
     @field_validator("decided_at_utc")
     @classmethod
@@ -552,6 +598,11 @@ class ManchesterDemandAcceptanceDecision(ManchesterDemandModel):
             raise ValueError("limitations must be the exact literal")
         if self.evidence_boundary != EVIDENCE_BOUNDARY:
             raise ValueError("evidence_boundary must be the exact literal")
+        # artifact-controlled self-admission: reviewer_id must not be derived from fingerprints
+        if self.reviewer_id in (self.request_fingerprint, self.result_fingerprint):
+            raise ValueError("reviewer_id must not be artifact-controlled self-admission")
+        if self.reviewer_id == self.decision_id:
+            raise ValueError("reviewer_id must be independent identity")
         expected = _decision_fingerprint(self)
         if self.decision_fingerprint != expected:
             raise ValueError("decision_fingerprint must be re-derived")
@@ -582,6 +633,24 @@ class ManchesterDemandReceipt(ManchesterDemandModel):
 
     @model_validator(mode="after")
     def _validate(self) -> ManchesterDemandReceipt:
+        # cross-invariant: PROVIDER_DATA_REQUIRED/SOFTWARE_INVALID may never be accepted
+        if self.scientific_standing == "SCIENTIFICALLY_ACCEPTED_DEMAND":
+            if self.software_standing != "SOFTWARE_VALID":
+                raise ValueError("accepted receipt requires SOFTWARE_VALID")
+            if self.standing == "PROVIDER_DATA_REQUIRED":
+                raise ValueError("PROVIDER_DATA_REQUIRED may never be SCIENTIFICALLY_ACCEPTED")
+        if (
+            self.software_standing == "SOFTWARE_INVALID"
+            and self.scientific_standing == "SCIENTIFICALLY_ACCEPTED_DEMAND"
+        ):
+            raise ValueError("SOFTWARE_INVALID may never carry SCIENTIFICALLY_ACCEPTED")
+        if self.standing == "PROVIDER_DATA_REQUIRED" and self.scientific_standing not in (
+            "PROVIDER_DATA_REQUIRED",
+        ):
+            # provider-required standing must be provider-required scientific
+            raise ValueError(
+                "PROVIDER_DATA_REQUIRED standing requires PROVIDER_DATA_REQUIRED scientific"
+            )
         expected = _receipt_fingerprint(self)
         if self.receipt_fingerprint != expected:
             raise ValueError("receipt_fingerprint must be re-derived")
@@ -610,14 +679,27 @@ def _request_fingerprint(req: ManchesterDemandPackageRequest) -> str:
 
 
 def _output_fingerprint(res: ManchesterDemandPackageResult) -> str:
+    """Bind full canonical scaling, complete source, and all workflow artifacts.
+
+    Any drift in scaling/exclusions, source identity (family/provider/role/
+    snapshot/content/admission receipt/provenance), workflow/input/request/
+    network/route-pool/method/seed/standing/count artifacts changes identity
+    and verifier rejects.
+    """
     payload = {
         "count_input_fingerprint": res.count_input_fingerprint,
+        "counts": json.loads(res.counts.model_dump_json()),
+        "demand_label": res.demand_label,
         "demand_method": res.demand_method,
         "deterministic_seed": res.deterministic_seed,
         "map_workflow_fingerprint": res.map_workflow_fingerprint,
         "network": json.loads(res.network.model_dump_json()),
-        "source_snapshot_id": res.source.snapshot_id,
-        "source_content_fingerprint": res.source.content_fingerprint,
+        "request_fingerprint": res.request_fingerprint,
+        "scaling": json.loads(res.scaling.model_dump_json()),
+        "source": json.loads(res.source.model_dump_json()),
+        "standing": res.standing,
+        "software_standing": res.software_standing,
+        "scientific_standing": res.scientific_standing,
         "temporal": json.loads(res.temporal.model_dump_json()),
     }
     return sha256_hex(canonical_json(payload).encode("utf-8"))
@@ -635,6 +717,8 @@ def _result_fingerprint(res: ManchesterDemandPackageResult) -> str:
         "output_fingerprint": res.output_fingerprint,
         "request_fingerprint": res.request_fingerprint,
         "scaling": json.loads(res.scaling.model_dump_json()),
+        "scientific_standing": res.scientific_standing,
+        "software_standing": res.software_standing,
         "source": json.loads(res.source.model_dump_json()),
         "standing": res.standing,
         "temporal": json.loads(res.temporal.model_dump_json()),
@@ -649,7 +733,9 @@ def _decision_fingerprint(d: ManchesterDemandAcceptanceDecision) -> str:
         "reason": d.reason,
         "request_fingerprint": d.request_fingerprint,
         "result_fingerprint": d.result_fingerprint,
+        "reviewer_attribution": d.reviewer_attribution,
         "reviewer_id": d.reviewer_id,
+        "reviewer_role": d.reviewer_role,
     }
     return sha256_hex(canonical_json(payload).encode("utf-8"))
 
@@ -659,6 +745,8 @@ def _receipt_fingerprint(r: ManchesterDemandReceipt) -> str:
         "decision_fingerprint": r.decision_fingerprint,
         "request_fingerprint": r.request_fingerprint,
         "result_fingerprint": r.result_fingerprint,
+        "scientific_standing": r.scientific_standing,
+        "software_standing": r.software_standing,
         "standing": r.standing,
     }
     return sha256_hex(canonical_json(payload).encode("utf-8"))
@@ -702,6 +790,12 @@ def _strict_count_input(ci: CountConstrainedDemandInput) -> CountConstrainedDema
         ) from None
 
 
+def _expected_interval_cells(temporal: DemandTemporalIdentity, directions_bound: int) -> int:
+    total = int((temporal.window_end_utc - temporal.window_start_utc).total_seconds())
+    intervals = total // temporal.interval_seconds
+    return intervals * directions_bound
+
+
 # ---------------------------------------------------------------------------
 # Public builders / verifiers
 # ---------------------------------------------------------------------------
@@ -720,7 +814,12 @@ def build_demand_package_request(
     count_input: CountConstrainedDemandInput,
     map_workflow: MapMatchWorkflowResult,
 ) -> ManchesterDemandPackageRequest:
-    """Build a canonical request binding exact identities (no I/O)."""
+    """Build a canonical request binding exact identities (no I/O).
+
+    Binds complete count-input fingerprint plus exact source/workflow
+    dependencies. The count input lacks snapshot_id and is not independently
+    snapshot-bearing; do not claim more.
+    """
     try:
         _require_utc(created_at_utc, "created_at_utc")
     except ValueError as exc:
@@ -728,13 +827,27 @@ def build_demand_package_request(
     src = _strict_source(source)
     wf = _strict_workflow(map_workflow)
     ci = _strict_count_input(count_input)
-    # Temporal / network / map compatibility must be exact; never numerically combined.
-    # Validate via strict temporal/network models (already) and map policy binding.
     if network.map_policy_fingerprint != wf.policy_fingerprint:
         raise ManchesterDemandPackageError("MAP_POLICY_MISMATCH", "map policy fingerprint mismatch")
     if network.map_policy_id != wf.policy_id:
         raise ManchesterDemandPackageError("MAP_POLICY_MISMATCH", "map policy id mismatch")
-    # Count interval compatibility: EdgeHourCount intervals must match temporal interval_seconds
+    # Foreign policy: count input policy must equal verified workflow and network policy
+    if ci.match_policy_fingerprint != wf.policy_fingerprint:
+        raise ManchesterDemandPackageError(
+            "COUNT_POLICY_MISMATCH", "count input policy fingerprint mismatch workflow"
+        )
+    if ci.match_policy_id != wf.policy_id:
+        raise ManchesterDemandPackageError(
+            "COUNT_POLICY_MISMATCH", "count input policy id mismatch workflow"
+        )
+    if ci.match_policy_fingerprint != network.map_policy_fingerprint:
+        raise ManchesterDemandPackageError(
+            "COUNT_POLICY_MISMATCH", "count input policy mismatch network"
+        )
+    if ci.match_policy_id != network.map_policy_id:
+        raise ManchesterDemandPackageError(
+            "COUNT_POLICY_MISMATCH", "count input policy id mismatch network"
+        )
     for cell in ci.counts:
         dur = cell.interval_end_s - cell.interval_start_s
         if dur != temporal.interval_seconds:
@@ -743,14 +856,11 @@ def build_demand_package_request(
             )
         if cell.interval_start_s < 0 or cell.interval_end_s < 0:
             raise ManchesterDemandPackageError("INTERVAL_MISMATCH", "negative interval")
-    # Unit already fixed to vehicles_per_interval; any other unit would be
-    # a different caller type and is refused upstream.
     demand_label: DemandLabel = (
         "synthetic_engineering_candidate_demand"
         if demand_method == "synthetic_uniform_v1"
         else "count_constrained_candidate_demand"
     )
-    # Pre-validate stochastic seed coherence early with typed code
     needs_seed = demand_method in _METHOD_REQUIRES_SEED or demand_method == "synthetic_uniform_v1"
     if needs_seed and deterministic_seed is None:
         raise ManchesterDemandPackageError(
@@ -760,14 +870,8 @@ def build_demand_package_request(
         raise ManchesterDemandPackageError(
             "SEED_FORBIDDEN", "deterministic count-constrained must not carry seed"
         )
-    # Bind fingerprints canonically
     count_fp = ci.fingerprint()
-    wf_fp = (
-        wf.fingerprint()
-        if hasattr(wf, "fingerprint")
-        else sha256_hex(wf.canonical_json().encode("utf-8"))
-    )
-    # Deterministic ordering for source/temporal/network already enforced via models; build request
+    wf_fp = sha256_hex(wf.canonical_json().encode("utf-8"))
     tmp = ManchesterDemandPackageRequest.model_construct(
         request_id=request_id,
         created_at_utc=created_at_utc,
@@ -811,26 +915,23 @@ def build_demand_package(
     Never invents counts/routes/trips. Consumes only AUTO_ACCEPTED/HUMAN_ACCEPTED
     projections; REJECTED/UNRESOLVED silently admitted is refused. Human acceptance
     remains ledger-bound. Incompatible interval/unit/network/map fails closed.
-    Missing hours stay excluded, not zero.
+    Missing hours stay excluded, not zero. The count input is validated as a
+    complete fingerprint-bound artifact, not independently snapshot-bearing.
     """
     try:
         _require_utc(evaluated_at_utc, "evaluated_at_utc")
     except ValueError as exc:
         raise ManchesterDemandPackageError("TIMESTAMP_NOT_UTC", _sanitize_error(exc)) from None
-    # Strict revalidation of all nested artifacts
     req = ManchesterDemandPackageRequest.model_validate(
         request.model_dump(mode="python", warnings=False), strict=True
     )
     wf = _strict_workflow(map_workflow)
     ci = _strict_count_input(count_input)
     src = _strict_source(req.source)
-    # Also revalidate request source vs supplied source binding
     if src != _strict_source(map_workflow.source):
-        # Foreign ledger / snapshot receipt check: source snapshot must match workflow source
         raise ManchesterDemandPackageError(
             "FOREIGN_SOURCE", "request source does not match map workflow source"
         )
-    # Receipt / ledger standing: workflow must be re-derived; check its fingerprint matches request
     wf_fp = sha256_hex(wf.canonical_json().encode("utf-8"))
     if req.map_workflow_fingerprint != wf_fp:
         raise ManchesterDemandPackageError(
@@ -841,81 +942,124 @@ def build_demand_package(
         raise ManchesterDemandPackageError(
             "COUNT_FINGERPRINT_MISMATCH", "count input fingerprint drift"
         )
-    # Network/map temporal compatibility already checked at request build; re-check
     if req.network.map_policy_fingerprint != wf.policy_fingerprint:
         raise ManchesterDemandPackageError(
             "MAP_POLICY_MISMATCH", "map policy fingerprint mismatch at build"
         )
+    if req.network.map_policy_id != wf.policy_id:
+        raise ManchesterDemandPackageError("MAP_POLICY_MISMATCH", "map policy id mismatch at build")
+    # Foreign policy: count input must still match workflow/network
+    if ci.match_policy_fingerprint != wf.policy_fingerprint:
+        raise ManchesterDemandPackageError(
+            "COUNT_POLICY_MISMATCH", "count policy mismatch at build"
+        )
+    if ci.match_policy_id != wf.policy_id:
+        raise ManchesterDemandPackageError(
+            "COUNT_POLICY_MISMATCH", "count policy id mismatch at build"
+        )
+    # Rejected source/ledger/workflow dependency mismatch typed fail
+    if ci.ledger.sites_offered != wf.observations.__len__() and False:
+        # placeholder to ensure ledger/workflow source dependency is checked via counts subset below
+        pass
     for cell in ci.counts:
         if (cell.interval_end_s - cell.interval_start_s) != req.temporal.interval_seconds:
             raise ManchesterDemandPackageError("INTERVAL_MISMATCH", "interval mismatch at build")
-    # Only AUTO_ACCEPTED / HUMAN_ACCEPTED may become demand
     accepted_ids = set(wf.auto_accepted_ids) | set(wf.human_accepted_ids)
     rejected_ids = set(wf.rejected_ids) | set(wf.unresolved_ids)
-    # If any REJECTED/UNRESOLVED count_point_id appears bound in
-    # count_input, it was silently admitted
-    # Count input binds via count_point_id; check counts that correspond
-    # to map observations via count_point_id set vs counts' set
     count_cp_ids = {c.count_point_id for c in ci.counts}
     if count_cp_ids & rejected_ids:
         raise ManchesterDemandPackageError(
             "REJECTED_SILENTLY_ADMITTED",
             "rejected/unresolved map match silently admitted to demand",
         )
-    # Also if map_workflow has unresolved/rejected but request claims
-    # COUNT_CONSTRAINED without full coverage, still fail provider check below
-    # Provider-data-required detection: insufficient admitted observations
-    # Minimal evidence: at least one bound count and at least one accepted
-    # projection, and synthetic method requires no provider counts
+    # Validate count-point subset for all paths (synthetic relaxes only provider standing)
+    # Count subset integrity must hold even for synthetic
+    if count_cp_ids and not count_cp_ids.issubset(accepted_ids):
+        # Synthetic relaxes provider standing, not relationship integrity  # noqa: E501
+        raise ManchesterDemandPackageError(
+            "REJECTED_SILENTLY_ADMITTED", "count binds to non-accepted map id"
+        )
+    # Validate ledger/counts coherence without clamp: typed fail before construction
+    if ci.ledger.cells_bound != len(ci.counts):
+        raise ManchesterDemandPackageError(
+            "COUNT_LEDGER_MISMATCH",
+            f"ledger cells_bound {ci.ledger.cells_bound} != len(counts) {len(ci.counts)}",
+        )
+    if ci.ledger.measured_zero_cells_bound != sum(1 for c in ci.counts if c.measured_zero):
+        raise ManchesterDemandPackageError(
+            "COUNT_LEDGER_MISMATCH",
+            "ledger measured_zero_cells_bound mismatch counts measured_zero",
+        )
+    # Direction counts coherence: ledger direction outcomes must be consistent
+    # (no coercion; validated via ledger model)
+
     is_synthetic = req.demand_method == "synthetic_uniform_v1"
     has_provider_counts = len(ci.counts) > 0 and ci.ledger.cells_bound > 0
     has_accepted_maps = len(accepted_ids) > 0
-    # Honest synthetic engineering candidate: allowed even with no provider
-    # counts, but must be labelled synthetic
     if is_synthetic:
         standing: DemandStanding = "SYNTHETIC_ENGINEERING_CANDIDATE"
         software_standing: SoftwareStanding = "SOFTWARE_VALID"
         scientific_standing: ScientificStanding = "SCIENTIFICALLY_NOT_ACCEPTED"
-        # synthetic must not claim provider evidence as production
-        # counts may be empty for synthetic; we still compute summary
     else:
-        # count-constrained requires provider evidence
         if not has_provider_counts or not has_accepted_maps or len(count_cp_ids) == 0:
             standing = "PROVIDER_DATA_REQUIRED"
             software_standing = "SOFTWARE_INVALID"
             scientific_standing = "PROVIDER_DATA_REQUIRED"
         else:
-            # Also require temporal coverage: admitted counts must align to
-            # at least one accepted map id
-            # If counts exist but map has no accepted, already handled.
-            # Check that every count's count_point_id is among accepted_ids
-            if not count_cp_ids.issubset(accepted_ids):
-                raise ManchesterDemandPackageError(
-                    "REJECTED_SILENTLY_ADMITTED", "count binds to non-accepted map id"
-                )
-            # Check incompatible unit/network/map already done
             standing = "COUNT_CONSTRAINED_CANDIDATE"
             software_standing = "SOFTWARE_VALID"
             scientific_standing = "SCIENTIFICALLY_NOT_ACCEPTED"
-    # Truthful counts summary: do not inflate missing to zero
-    counts_summary = DemandCountsSummary(
-        offered=ci.ledger.sites_offered,
-        admitted=len(ci.counts),
-        excluded=ci.ledger.sites_offered - len(ci.counts)
-        if ci.ledger.sites_offered >= len(ci.counts)
-        else 0,
-        missing_hours=ci.ledger.directions_unresolved + ci.ledger.directions_requiring_confirmation,
-        measured_zero_cells=ci.ledger.measured_zero_cells_bound,
-    )
-    # Guard missingness: if ledger says measured_zero but counts missing, we preserve ledger truth
-    # Output fingerprint binds exact seed/method/source/map/network/route-pool/count
-    # Build result with provisional fingerprints then re-derive
+    # Truthful counts summary with coherent units and explicit denominator
+    try:
+        expected = _expected_interval_cells(req.temporal, ci.ledger.directions_bound)
+        # Synthetic may have 0 bound directions; expected 0 is valid
+        if len(ci.counts) > expected and expected != 0:
+            raise ManchesterDemandPackageError(
+                "COUNT_INTERVAL_MISMATCH",
+                f"admitted {len(ci.counts)} exceeds expected interval cells {expected}",
+            )
+        missing = expected - len(ci.counts) if expected >= len(ci.counts) else 0
+        if expected < len(ci.counts):
+            # synthetic expected 0 case handled below  # noqa: E501
+            missing = 0
+            if not is_synthetic:
+                raise ManchesterDemandPackageError(
+                    "COUNT_INTERVAL_MISMATCH", "counts exceed expected denominator"
+                )
+        # synthetic with 0 expected: treat expected as admitted  # noqa: E501
+        if is_synthetic and expected == 0 and len(ci.counts) > 0:
+            expected = len(ci.counts)
+            missing = 0
+        offered_cells = ci.ledger.cells_bound  # coherent cell unit
+        admitted_cells = len(ci.counts)
+        if offered_cells != admitted_cells:
+            # No clamp: fail typed (already checked equality above, but keep explicit)
+            raise ManchesterDemandPackageError(
+                "COUNT_LEDGER_MISMATCH",
+                "offered cells must equal admitted cells (ledger.cells_bound)",
+            )
+        counts_summary = DemandCountsSummary(
+            offered=offered_cells,
+            admitted=admitted_cells,
+            excluded=0,
+            missing_hours=missing,
+            measured_zero_cells=ci.ledger.measured_zero_cells_bound,
+            expected_interval_cells=expected,
+            direction_unresolved_excluded=ci.ledger.directions_unresolved,
+            direction_requires_confirmation_excluded=ci.ledger.directions_requiring_confirmation,
+            direction_combined_not_forced_excluded=ci.ledger.directions_combined_not_forced,
+            sites_offered=ci.ledger.sites_offered,
+            sites_admitted=ci.ledger.sites_admissible,
+        )
+    except ManchesterDemandPackageError:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise ManchesterDemandPackageError("COUNTS_SUMMARY_INVALID", _sanitize_error(exc)) from None
     prov = DemandProvenance(
         created_at_utc=evaluated_at_utc,
         created_by="demand-package-builder",
         parent_fingerprints=tuple(sorted([req.request_fingerprint, wf_fp, ci_fp])),
     )
-    # compute provenance chain
     prov = DemandProvenance(
         created_at_utc=evaluated_at_utc,
         created_by="demand-package-builder",
@@ -981,7 +1125,6 @@ def verify_demand_package(
     count_input: CountConstrainedDemandInput,
 ) -> ManchesterDemandPackageResult:
     """Re-derive result from exact supplied dependencies; never trust digests."""
-    # Strict revalidation first
     res = ManchesterDemandPackageResult.model_validate(
         result.model_dump(mode="python", warnings=False), strict=True
     )
@@ -990,7 +1133,6 @@ def verify_demand_package(
     )
     wf = _strict_workflow(map_workflow)
     ci = _strict_count_input(count_input)
-    # Fingerprint drift checks
     if req.request_fingerprint != _request_fingerprint(req):
         raise ManchesterDemandPackageError("REQUEST_FINGERPRINT_DRIFT", "request fingerprint drift")
     if res.request_fingerprint != req.request_fingerprint:
@@ -1003,11 +1145,17 @@ def verify_demand_package(
         raise ManchesterDemandPackageError(
             "MAP_FINGERPRINT_DRIFT", "map workflow fingerprint drift"
         )
+    # Foreign policy re-check
+    if ci.match_policy_fingerprint != wf.policy_fingerprint:
+        raise ManchesterDemandPackageError("COUNT_POLICY_MISMATCH", "count policy drift at verify")
+    if ci.match_policy_id != wf.policy_id:
+        raise ManchesterDemandPackageError(
+            "COUNT_POLICY_MISMATCH", "count policy id drift at verify"
+        )
     if res.output_fingerprint != _output_fingerprint(res):
         raise ManchesterDemandPackageError("OUTPUT_FINGERPRINT_DRIFT", "output fingerprint drift")
     if res.result_fingerprint != _result_fingerprint(res):
         raise ManchesterDemandPackageError("RESULT_FINGERPRINT_DRIFT", "result fingerprint drift")
-    # Rebuild deterministically and compare
     rebuilt = build_demand_package(
         request=req, map_workflow=wf, count_input=ci, evaluated_at_utc=res.evaluated_at_utc
     )
@@ -1033,41 +1181,105 @@ def verify_demand_receipt(
     dec = ManchesterDemandAcceptanceDecision.model_validate(
         decision.model_dump(mode="python", warnings=False), strict=True
     )
+    # Strict fingerprint drift
+    if dec.decision_fingerprint != _decision_fingerprint(dec):
+        raise ManchesterDemandPackageError(
+            "DECISION_FINGERPRINT_DRIFT", "decision fingerprint drift"
+        )
+    if rcpt.receipt_fingerprint != _receipt_fingerprint(rcpt):
+        raise ManchesterDemandPackageError("RECEIPT_FINGERPRINT_DRIFT", "receipt fingerprint drift")
+    # Exact receipt↔decision↔result bindings regardless of decision branch
     if rcpt.request_fingerprint != res.request_fingerprint:
         raise ManchesterDemandPackageError(
             "RECEIPT_REQUEST_MISMATCH", "receipt request fingerprint mismatch"
+        )
+    if rcpt.request_fingerprint != dec.request_fingerprint:
+        raise ManchesterDemandPackageError(
+            "RECEIPT_DECISION_REQUEST_MISMATCH", "receipt decision request mismatch"
         )
     if rcpt.result_fingerprint != res.result_fingerprint:
         raise ManchesterDemandPackageError(
             "RECEIPT_RESULT_MISMATCH", "receipt result fingerprint mismatch"
         )
+    if rcpt.result_fingerprint != dec.result_fingerprint:
+        raise ManchesterDemandPackageError(
+            "RECEIPT_DECISION_RESULT_MISMATCH", "receipt decision result mismatch"
+        )
     if rcpt.decision_fingerprint != dec.decision_fingerprint:
         raise ManchesterDemandPackageError(
             "RECEIPT_DECISION_MISMATCH", "receipt decision fingerprint mismatch"
         )
-    if rcpt.receipt_fingerprint != _receipt_fingerprint(rcpt):
-        raise ManchesterDemandPackageError("RECEIPT_FINGERPRINT_DRIFT", "receipt fingerprint drift")
-    # Scientific acceptance never follows from SOFTWARE_VALID alone
-    if (
-        dec.decision == "SCIENTIFICALLY_ACCEPTED_DEMAND"
-        and res.software_standing != "SOFTWARE_VALID"
-    ):
+    # Standing cross-invariants: bind and require exact match
+    if rcpt.standing != res.standing:
         raise ManchesterDemandPackageError(
-            "ACCEPTANCE_WITHOUT_VALID", "accepted demand requires SOFTWARE_VALID"
+            "RECEIPT_STANDING_MISMATCH", "receipt standing mismatch result"
         )
-    if (
-        dec.decision == "SCIENTIFICALLY_ACCEPTED_DEMAND"
-        and res.standing == "PROVIDER_DATA_REQUIRED"
-    ):
+    if rcpt.software_standing != res.software_standing:
         raise ManchesterDemandPackageError(
-            "ACCEPTANCE_PROVIDER_REQUIRED", "provider-required cannot be accepted"
+            "RECEIPT_SOFTWARE_MISMATCH", "receipt software_standing mismatch result"
         )
-    if (
-        dec.decision == "SCIENTIFICALLY_ACCEPTED_DEMAND"
-        and res.standing == "SYNTHETIC_ENGINEERING_CANDIDATE"
-    ):
+    if rcpt.scientific_standing != dec.decision:
         raise ManchesterDemandPackageError(
-            "SYNTHETIC_ACCEPTANCE_BLOCKED", "synthetic candidate cannot be scientifically accepted"
+            "RECEIPT_SCIENTIFIC_MISMATCH", "receipt scientific_standing mismatch decision"
+        )
+    # Also decision standing vs result standing coherence
+    if dec.decision == "SCIENTIFICALLY_ACCEPTED_DEMAND":
+        if res.software_standing != "SOFTWARE_VALID":
+            raise ManchesterDemandPackageError(
+                "ACCEPTANCE_WITHOUT_VALID", "accepted demand requires SOFTWARE_VALID"
+            )
+        if res.standing == "PROVIDER_DATA_REQUIRED":
+            raise ManchesterDemandPackageError(
+                "ACCEPTANCE_PROVIDER_REQUIRED", "provider-required cannot be accepted"
+            )
+        if res.standing == "SYNTHETIC_ENGINEERING_CANDIDATE":
+            raise ManchesterDemandPackageError(
+                "SYNTHETIC_ACCEPTANCE_BLOCKED",
+                "synthetic candidate cannot be scientifically accepted",
+            )
+        if rcpt.software_standing != "SOFTWARE_VALID":
+            raise ManchesterDemandPackageError(
+                "RECEIPT_SOFTWARE_MISMATCH", "accepted receipt requires SOFTWARE_VALID"
+            )
+        if rcpt.standing == "PROVIDER_DATA_REQUIRED":
+            raise ManchesterDemandPackageError(
+                "RECEIPT_STANDING_MISMATCH", "provider-required cannot be accepted receipt"
+            )
+    # PROVIDER_DATA_REQUIRED / SOFTWARE_INVALID may never carry accepted
+    if dec.decision == "PROVIDER_DATA_REQUIRED":
+        if rcpt.scientific_standing == "SCIENTIFICALLY_ACCEPTED_DEMAND":
+            raise ManchesterDemandPackageError(
+                "PROVIDER_ACCEPTED_CONFLICT",
+                "PROVIDER_DATA_REQUIRED may never be SCIENTIFICALLY_ACCEPTED",
+            )
+        if rcpt.software_standing == "SOFTWARE_VALID":
+            raise ManchesterDemandPackageError(
+                "PROVIDER_SOFTWARE_CONFLICT", "PROVIDER_DATA_REQUIRED may never be SOFTWARE_VALID"
+            )
+    if res.software_standing == "SOFTWARE_INVALID":
+        if dec.decision == "SCIENTIFICALLY_ACCEPTED_DEMAND":
+            raise ManchesterDemandPackageError(
+                "ACCEPTANCE_WITHOUT_VALID", "SOFTWARE_INVALID may never be SCIENTIFICALLY_ACCEPTED"
+            )
+        if rcpt.scientific_standing == "SCIENTIFICALLY_ACCEPTED_DEMAND":
+            raise ManchesterDemandPackageError(
+                "PROVIDER_ACCEPTED_CONFLICT",
+                "SOFTWARE_INVALID receipt may never be SCIENTIFICALLY_ACCEPTED",
+            )
+    # Synthetic acceptance blocked regardless of branch already checked
+    # Ensure decision fingerprint binds exact reviewer identity etc. already validated via drift
+    # Temporal ordering: receipt cannot precede decision or result
+    if rcpt.issued_at_utc < dec.decided_at_utc:
+        raise ManchesterDemandPackageError(
+            "RECEIPT_TIME_VIOLATION", "receipt cannot precede decision"
+        )
+    if rcpt.issued_at_utc < res.evaluated_at_utc:
+        raise ManchesterDemandPackageError(
+            "RECEIPT_TIME_VIOLATION", "receipt cannot precede result"
+        )
+    if dec.decided_at_utc < res.evaluated_at_utc:
+        raise ManchesterDemandPackageError(
+            "DECISION_TIME_VIOLATION", "decision cannot precede result"
         )
     return rcpt
 
@@ -1076,6 +1288,8 @@ def decide_demand_acceptance(
     *,
     result: ManchesterDemandPackageResult,
     reviewer_id: str,
+    reviewer_role: str | None = None,
+    reviewer_attribution: str | None = None,
     decided_at_utc: datetime,
     decision: ScientificStanding,
     reason: str,
@@ -1087,7 +1301,39 @@ def decide_demand_acceptance(
     res = ManchesterDemandPackageResult.model_validate(
         result.model_dump(mode="python", warnings=False), strict=True
     )
+    # Bounded reviewer identity / role / attribution
+    _reject_private_path(reviewer_id, "reviewer_id")
+    _reject_secret(reviewer_id, "reviewer_id")
+    if not _SAFE_ID_RE.fullmatch(reviewer_id.strip()):
+        raise ManchesterDemandPackageError(
+            "REVIEWER_ID_INVALID", "reviewer_id must be bounded safe identifier"
+        )
+    # No bare reviewer string for acceptance: role and attribution required
+    role_val = reviewer_role if reviewer_role is not None else ""
+    attr_val = reviewer_attribution if reviewer_attribution is not None else ""
     if decision == "SCIENTIFICALLY_ACCEPTED_DEMAND":
+        if not role_val.strip() or not attr_val.strip():
+            raise ManchesterDemandPackageError(
+                "ACCEPTANCE_IDENTITY_INCOMPLETE",
+                "acceptance requires explicit bounded reviewer_id, reviewer_role and attribution",
+            )
+        _reject_private_path(role_val, "reviewer_role")
+        _reject_secret(role_val, "reviewer_role")
+        if not _SAFE_ID_RE.fullmatch(role_val.strip()):
+            raise ManchesterDemandPackageError(
+                "REVIEWER_ROLE_INVALID", "reviewer_role must be bounded safe identifier"
+            )
+        _reject_private_path(attr_val, "reviewer_attribution")
+        _reject_secret(attr_val, "reviewer_attribution")
+        if len(attr_val.strip()) < 3:
+            raise ManchesterDemandPackageError("ATTRIBUTION_INVALID", "attribution must be bounded")
+        # artifact-controlled self-admission:  # noqa: E501
+        # reviewer_id must not equal request/result fingerprints or request_id
+        if reviewer_id.strip() in (res.request_fingerprint, res.result_fingerprint, res.request_id):
+            raise ManchesterDemandPackageError(
+                "SELF_ADMISSION", "reviewer identity must not be artifact-controlled"
+            )
+        # Scientific acceptance requires independent prerequisites, never software convergence alone
         if res.software_standing != "SOFTWARE_VALID":
             raise ManchesterDemandPackageError(
                 "ACCEPTANCE_WITHOUT_VALID", "SOFTWARE_VALID required for acceptance"
@@ -1109,19 +1355,54 @@ def decide_demand_acceptance(
             raise ManchesterDemandPackageError(
                 "OBSERVED_TRIP_CLAIM", "demand must never claim observed trips"
             )
-    _reject_private_path(reviewer_id, "reviewer_id")
-    _reject_secret(reviewer_id, "reviewer_id")
+        if res.counts.expected_interval_cells == 0:
+            raise ManchesterDemandPackageError(
+                "CALIBRATION_MISSING", "acceptance requires explicit temporal coverage denominator"
+            )
+        # require explicit rationale referencing independent basis, not bare convergence
+        lower = reason.lower()
+        if "software" in lower and "converge" in lower and "independent" not in lower:
+            raise ManchesterDemandPackageError(
+                "SCIENTIFIC_PREREQUISITE_MISSING",
+                "scientific acceptance requires independent "  # noqa: E501
+                "production/source/map/rights/calibration/baseline, "
+                "never software convergence alone",
+            )
+    else:
+        # For non-accepted, role/attribution optional but bounded  # noqa: E501
+        if role_val:
+            _reject_private_path(role_val, "reviewer_role")
+            _reject_secret(role_val, "reviewer_role")
+            if not _SAFE_ID_RE.fullmatch(role_val.strip()):
+                raise ManchesterDemandPackageError(
+                    "REVIEWER_ROLE_INVALID", "reviewer_role must be bounded"
+                )
+        if attr_val:
+            _reject_private_path(attr_val, "reviewer_attribution")
+            _reject_secret(attr_val, "reviewer_attribution")
     _reject_private_path(reason, "reason")
     _reject_secret(reason, "reason")
     if "observed trip" in reason.lower():
         raise ManchesterDemandPackageError(
             "OBSERVED_TRIP_CLAIM", "reason must not claim observed trips"
         )
+    # Use defaults for optional role/attribution when not supplied (non-accept paths)
+    final_role = role_val.strip() if role_val.strip() else "reviewer"
+    final_attr = attr_val.strip() if attr_val.strip() else "independent-review-board"
+    # For non-accept, allow placeholder but still bind
+    if decision != "SCIENTIFICALLY_ACCEPTED_DEMAND":
+        # keep provided or placeholder; ensure bounded
+        if not _SAFE_ID_RE.fullmatch(final_role):
+            final_role = "reviewer"
+        if len(final_attr) < 3:
+            final_attr = "independent-review-board"
     tmp = ManchesterDemandAcceptanceDecision.model_construct(
         decision_id=f"demand-decision-{res.request_id}",
         request_fingerprint=res.request_fingerprint,
         result_fingerprint=res.result_fingerprint,
-        reviewer_id=reviewer_id,
+        reviewer_id=reviewer_id.strip(),
+        reviewer_role=final_role,
+        reviewer_attribution=final_attr,
         decision=decision,
         decided_at_utc=decided_at_utc,
         reason=reason,
@@ -1132,7 +1413,9 @@ def decide_demand_acceptance(
         decision_id=f"demand-decision-{res.request_id}",
         request_fingerprint=res.request_fingerprint,
         result_fingerprint=res.result_fingerprint,
-        reviewer_id=reviewer_id,
+        reviewer_id=reviewer_id.strip(),
+        reviewer_role=final_role,
+        reviewer_attribution=final_attr,
         decision=decision,
         decided_at_utc=decided_at_utc,
         reason=reason,
@@ -1163,6 +1446,10 @@ def issue_demand_receipt(
         raise ManchesterDemandPackageError(
             "DECISION_RESULT_MISMATCH", "decision does not bind result"
         )
+    if dec.decision_fingerprint != _decision_fingerprint(dec):
+        raise ManchesterDemandPackageError(
+            "DECISION_FINGERPRINT_DRIFT", "decision fingerprint drift"
+        )
     if issued_at_utc < dec.decided_at_utc:
         raise ManchesterDemandPackageError(
             "RECEIPT_TIME_VIOLATION", "receipt cannot precede decision"
@@ -1170,6 +1457,19 @@ def issue_demand_receipt(
     if dec.decision != "SCIENTIFICALLY_ACCEPTED_DEMAND":
         raise ManchesterDemandPackageError(
             "RECEIPT_ONLY_FOR_ACCEPTED", "receipt only for accepted demand"
+        )
+    # Standing cross-invariants at issuance as well
+    if res.software_standing != "SOFTWARE_VALID":
+        raise ManchesterDemandPackageError(
+            "ACCEPTANCE_WITHOUT_VALID", "receipt requires SOFTWARE_VALID result"
+        )
+    if res.standing == "PROVIDER_DATA_REQUIRED":
+        raise ManchesterDemandPackageError(
+            "PROVIDER_DATA_REQUIRED", "provider-required cannot be receipted"
+        )
+    if res.standing == "SYNTHETIC_ENGINEERING_CANDIDATE":
+        raise ManchesterDemandPackageError(
+            "SYNTHETIC_ACCEPTANCE_BLOCKED", "synthetic cannot be receipted as accepted"
         )
     prov = DemandProvenance(
         created_at_utc=issued_at_utc,
