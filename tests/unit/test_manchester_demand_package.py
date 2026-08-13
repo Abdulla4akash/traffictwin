@@ -1882,3 +1882,1037 @@ def test_all_public_decision_receipt_functions_covered() -> None:
     bad_ci = ci.model_copy(update={"match_policy_fingerprint": "0" * 64})
     with pytest.raises(ManchesterDemandPackageError):
         verify_demand_package(res, request=req, map_workflow=wf, count_input=bad_ci)
+
+
+# ---------------------------------------------------------------------------
+# Temporal-cell compatibility: fail-closed grid (adversarial)
+# ---------------------------------------------------------------------------
+
+
+def _cell(hour: int, cpid: int = 1, edge_id: str = "e1") -> EdgeHourCount:
+    return EdgeHourCount(
+        edge_id=edge_id,
+        count_point_id=cpid,
+        direction_of_travel="N",
+        hour=hour,
+        interval_start_s=hour * 3600,
+        interval_end_s=(hour + 1) * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+
+
+def _count_input_hours(
+    wf: MapMatchWorkflowResult, hours: list[int], *, cpid: int | None = None
+) -> CountConstrainedDemandInput:
+    c = cpid if cpid is not None else (wf.auto_accepted_ids[0] if wf.auto_accepted_ids else 1)
+    edge_id = "e1"
+    cells = tuple(_cell(h, c, edge_id) for h in hours)
+    ledger = DemandInputLedger(
+        sites_offered=1,
+        sites_admissible=1,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=1,
+        directions_bound=1,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=len(cells),
+        measured_zero_cells_bound=0,
+    )
+    res = DirectionResolution(
+        count_point_id=c,
+        direction_of_travel="N",
+        binding="bound_to_single_edge",
+        edge_id=edge_id,
+        considered=((edge_id, Decimal("0")),),
+        target_bearing_degrees=Decimal("0"),
+        tolerance_degrees=Decimal("45"),
+        reason="exactly one member edge lies within the approved bearing tolerance",
+    )
+    return CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=cells,
+        resolutions=(res,),
+        ledger=ledger,
+    )
+
+
+def test_out_of_window_15_16_against_00_02_refused() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 0, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 2, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [15, 16])
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=temporal,
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci,
+            map_workflow=wf,
+        )
+    assert "CELL_INTERVAL_OUT_OF_WINDOW" in str(exc.value) or "OUT_OF_WINDOW" in str(exc.value)
+
+
+def test_duplicate_08_slot_against_08_10_refused() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 8, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 10, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [8, 8])
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=temporal,
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci,
+            map_workflow=wf,
+        )
+    assert "DUPLICATE" in str(exc.value)
+
+
+def test_gt_24h_window_refused() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 0, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 27, 1, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [0])
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=temporal,
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci,
+            map_workflow=wf,
+        )
+    assert "TEMPORAL_WINDOW_UNREPRESENTABLE" in str(exc.value) or "UNREPRESENTABLE" in str(
+        exc.value
+    )
+
+
+def test_misaligned_utc_grid_refused() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 8, 15, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 9, 15, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [8])
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=temporal,
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci,
+            map_workflow=wf,
+        )
+    assert "TEMPORAL_GRID_MISALIGNED" in str(exc.value) or "MISALIGNED" in str(exc.value)
+
+
+def test_exact_08_09_success() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 8, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 10, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [8, 9])
+    req = build_demand_package_request(
+        request_id="demand-req-001",
+        created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+        source=_source(),
+        temporal=temporal,
+        network=_network(wf),
+        demand_method="count_constrained_candidate_v1",
+        deterministic_seed=None,
+        scaling=_scaling(),
+        count_input=ci,
+        map_workflow=wf,
+    )
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    assert res.software_standing == "SOFTWARE_VALID"
+    assert res.counts.admitted == 2
+    assert res.counts.expected_interval_cells == 2
+    assert res.counts.missing_hours == 0
+
+
+def test_midnight_wrap_23_00_success() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 23, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 27, 1, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [23, 0])
+    req = build_demand_package_request(
+        request_id="demand-req-001",
+        created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+        source=_source(),
+        temporal=temporal,
+        network=_network(wf),
+        demand_method="count_constrained_candidate_v1",
+        deterministic_seed=None,
+        scaling=_scaling(),
+        count_input=ci,
+        map_workflow=wf,
+    )
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    assert res.software_standing == "SOFTWARE_VALID"
+    assert res.counts.expected_interval_cells == 2
+    assert res.counts.missing_hours == 0
+
+
+def test_missing_slot_reports_exactly_one() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 8, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 10, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [8])
+    req = build_demand_package_request(
+        request_id="demand-req-001",
+        created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+        source=_source(),
+        temporal=temporal,
+        network=_network(wf),
+        demand_method="count_constrained_candidate_v1",
+        deterministic_seed=None,
+        scaling=_scaling(),
+        count_input=ci,
+        map_workflow=wf,
+    )
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    assert res.counts.expected_interval_cells == 2
+    assert res.counts.admitted == 1
+    assert res.counts.missing_hours == 1
+
+
+def test_hour_start_end_inconsistency_refused() -> None:
+    wf = _workflow_auto(1)
+    temporal = _temporal()
+    bad_cell = EdgeHourCount(
+        edge_id="e1",
+        count_point_id=1,
+        direction_of_travel="N",
+        hour=8,
+        interval_start_s=9 * 3600,
+        interval_end_s=10 * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+    ledger = DemandInputLedger(
+        sites_offered=1,
+        sites_admissible=1,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=1,
+        directions_bound=1,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=1,
+        measured_zero_cells_bound=0,
+    )
+    res = DirectionResolution(
+        count_point_id=1,
+        direction_of_travel="N",
+        binding="bound_to_single_edge",
+        edge_id="e1",
+        considered=(("e1", Decimal("0")),),
+        target_bearing_degrees=Decimal("0"),
+        tolerance_degrees=Decimal("45"),
+        reason="exactly one member edge lies within the approved bearing tolerance",
+    )
+    ci = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=(bad_cell,),
+        resolutions=(res,),
+        ledger=ledger,
+    )
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=temporal,
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci,
+            map_workflow=wf,
+        )
+    assert "HOUR_INTERVAL_MISMATCH" in str(exc.value) or "hour" in str(exc.value).lower()
+
+
+def test_model_copy_tamper_fails_verify() -> None:
+    wf = _workflow_auto(1)
+    ci = _count_input(1)
+    req = _make_request(wf, ci)
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    tampered_req = req.model_copy(
+        update={
+            "temporal": DemandTemporalIdentity(
+                window_start_utc=datetime(2026, 7, 26, 0, 0, 0, tzinfo=UTC),
+                window_end_utc=datetime(2026, 7, 26, 2, 0, 0, tzinfo=UTC),
+                interval_seconds=3600,
+                unit="vehicles_per_interval",
+                time_basis="documented_utc",
+            )
+        }
+    )
+    with pytest.raises((ManchesterDemandPackageError, ValidationError)):
+        verify_demand_package(res, request=tampered_req, map_workflow=wf, count_input=ci)
+    tampered_res = res.model_copy(update={"temporal": tampered_req.temporal})
+    with pytest.raises((ManchesterDemandPackageError, ValidationError)):
+        verify_demand_package(tampered_res, request=req, map_workflow=wf, count_input=ci)
+
+
+def test_rebuilt_fingerprint_tamper_fails() -> None:
+    wf = _workflow_auto(1)
+    ci = _count_input(1)
+    req = _make_request(wf, ci)
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    tampered = res.model_copy(update={"result_fingerprint": "0" * 64})
+    with pytest.raises((ManchesterDemandPackageError, ValidationError)):
+        verify_demand_package(tampered, request=req, map_workflow=wf, count_input=ci)
+
+
+def test_verification_cannot_bypass_grid() -> None:
+    wf = _workflow_auto(1)
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 0, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 2, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    ci = _count_input_hours(wf, [15])
+    # request build itself must fail, so no valid package to verify
+    with pytest.raises(ManchesterDemandPackageError):
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=temporal,
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci,
+            map_workflow=wf,
+        )
+    # also ensure that a forged result bypassing request would fail verification
+    # build a valid result then tamper its temporal to out-of-window and try verify
+    good_temporal = _temporal()
+    good_ci = _count_input(1)
+    req_good = _make_request(wf, good_ci, temporal=good_temporal)
+    res_good = build_demand_package(
+        request=req_good,
+        map_workflow=wf,
+        count_input=good_ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    forged_res = res_good.model_copy(update={"temporal": temporal})
+    with pytest.raises((ManchesterDemandPackageError, ValidationError)):
+        verify_demand_package(forged_res, request=req_good, map_workflow=wf, count_input=good_ci)
+
+
+def test_acceptance_receipt_cannot_bypass_grid() -> None:
+    wf = _workflow_auto(1)
+    temporal = _temporal()
+    ci = _count_input(1)
+    req = _make_request(wf, ci, temporal=temporal)
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    dec = decide_demand_acceptance(
+        result=res,
+        reviewer_id="reviewer01",
+        reviewer_role="senior_analyst",
+        reviewer_attribution="independent-board",
+        decided_at_utc=datetime(2026, 7, 26, 8, 0, 0, tzinfo=UTC),
+        decision="SCIENTIFICALLY_ACCEPTED_DEMAND",
+        reason="independent calibration baseline attested",
+    )
+    receipt = issue_demand_receipt(
+        result=res, decision=dec, issued_at_utc=datetime(2026, 7, 26, 9, 0, 0, tzinfo=UTC)
+    )
+    # tamper result temporal to invalid window and try to verify receipt
+    bad_temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 0, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 27, 1, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    forged_res = res.model_copy(update={"temporal": bad_temporal})
+    with pytest.raises((ManchesterDemandPackageError, ValidationError)):
+        verify_demand_receipt(receipt, result=forged_res, decision=dec)
+    # also decide should refuse if result has unrepresentable window
+    with pytest.raises((ManchesterDemandPackageError, ValidationError)):
+        decide_demand_acceptance(
+            result=forged_res,
+            reviewer_id="reviewer01",
+            reviewer_role="senior_analyst",
+            reviewer_attribution="independent-board",
+            decided_at_utc=datetime(2026, 7, 26, 8, 0, 0, tzinfo=UTC),
+            decision="SCIENTIFICALLY_ACCEPTED_DEMAND",
+            reason="independent calibration baseline attested",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Denominator identity loophole closure: bound-resolution invariant
+# ---------------------------------------------------------------------------
+
+
+def _two_bound_resolutions(
+    cpid1: int = 1, cpid2: int = 2
+) -> tuple[DirectionResolution, DirectionResolution]:
+    return (
+        DirectionResolution(
+            count_point_id=cpid1,
+            direction_of_travel="N",
+            binding="bound_to_single_edge",
+            edge_id="e1",
+            considered=(("e1", Decimal("0")),),
+            target_bearing_degrees=Decimal("0"),
+            tolerance_degrees=Decimal("45"),
+            reason="exactly one member edge lies within the approved bearing tolerance",
+        ),
+        DirectionResolution(
+            count_point_id=cpid2,
+            direction_of_travel="N",
+            binding="bound_to_single_edge",
+            edge_id="e2",
+            considered=(("e2", Decimal("0")),),
+            target_bearing_degrees=Decimal("0"),
+            tolerance_degrees=Decimal("45"),
+            reason="exactly one member edge lies within the approved bearing tolerance",
+        ),
+    )
+
+
+def _ledger_for_two_bound(cells_bound: int = 2) -> DemandInputLedger:
+    return DemandInputLedger(
+        sites_offered=2,
+        sites_admissible=2,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=2,
+        directions_bound=2,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=cells_bound,
+        measured_zero_cells_bound=0,
+    )
+
+
+def test_forged_ledger_directions_bound_inflated_refused_at_request() -> None:
+    wf = _workflow_multi([1, 2])
+    r1, _r2 = _two_bound_resolutions()
+    # Only one bound resolution present but ledger claims 2
+    forged_ledger = DemandInputLedger(
+        sites_offered=2,
+        sites_admissible=2,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=2,
+        directions_bound=2,  # forged inflated
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=1,
+        measured_zero_cells_bound=0,
+    )
+    cell = EdgeHourCount(
+        edge_id="e1",
+        count_point_id=1,
+        direction_of_travel="N",
+        hour=8,
+        interval_start_s=8 * 3600,
+        interval_end_s=9 * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+    ci_forged = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=(cell,),
+        resolutions=(r1,),
+        ledger=forged_ledger,
+    )
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=_temporal(),
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci_forged,
+            map_workflow=wf,
+        )
+    assert "DIRECTIONS_BOUND_MISMATCH" in str(exc.value)
+    # no input echo
+    assert "e1" not in str(exc.value) and "999" not in str(exc.value)
+
+
+def test_forged_ledger_directions_bound_deflated_refused_at_build() -> None:
+    wf = _workflow_multi([1, 2])
+    r1, r2 = _two_bound_resolutions()
+    # Two bound resolutions present but ledger claims 1 (deflated to hide missing)
+    forged_ledger = DemandInputLedger(
+        sites_offered=2,
+        sites_admissible=2,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=1,
+        directions_bound=1,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=2,
+        measured_zero_cells_bound=0,
+    )
+    cells = (
+        EdgeHourCount(
+            edge_id="e1",
+            count_point_id=1,
+            direction_of_travel="N",
+            hour=8,
+            interval_start_s=8 * 3600,
+            interval_end_s=9 * 3600,
+            all_motor_vehicles=10,
+            measured_zero=False,
+        ),
+        EdgeHourCount(
+            edge_id="e2",
+            count_point_id=2,
+            direction_of_travel="N",
+            hour=8,
+            interval_start_s=8 * 3600,
+            interval_end_s=9 * 3600,
+            all_motor_vehicles=20,
+            measured_zero=False,
+        ),
+    )
+    ci_forged = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=cells,
+        resolutions=(r1, r2),
+        ledger=forged_ledger,
+    )
+    honest_ci = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=cells,
+        resolutions=(r1, r2),
+        ledger=_ledger_for_two_bound(cells_bound=2),
+    )
+    req = _make_request(wf, honest_ci)
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package(
+            request=req,
+            map_workflow=wf,
+            count_input=ci_forged,
+            evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+        )
+    assert "DIRECTIONS_BOUND_MISMATCH" in str(exc.value) or "COUNT_FINGERPRINT" in str(exc.value)
+
+
+def test_forged_ledger_at_verify_via_model_copy() -> None:
+    wf = _workflow_auto(1)
+    ci = _count_input(1)
+    req = _make_request(wf, ci)
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    forged_ledger = DemandInputLedger(
+        sites_offered=1,
+        sites_admissible=1,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=2,
+        directions_bound=2,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=1,
+        measured_zero_cells_bound=0,
+    )
+    forged_ci = ci.model_copy(update={"ledger": forged_ledger})
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        verify_demand_package(res, request=req, map_workflow=wf, count_input=forged_ci)
+    assert "DIRECTIONS_BOUND_MISMATCH" in str(exc.value) or "COUNT_FINGERPRINT" in str(exc.value)
+    assert "forged" not in str(exc.value).lower()
+
+
+def test_duplicate_same_site_direction_bound_resolution_refused() -> None:
+    wf = _workflow_multi([1, 2])
+    r_dup1 = DirectionResolution(
+        count_point_id=1,
+        direction_of_travel="N",
+        binding="bound_to_single_edge",
+        edge_id="e1",
+        considered=(("e1", Decimal("0")),),
+        target_bearing_degrees=Decimal("0"),
+        tolerance_degrees=Decimal("45"),
+        reason="exactly one member edge lies within the approved bearing tolerance",
+    )
+    r_dup2 = DirectionResolution(
+        count_point_id=1,
+        direction_of_travel="N",
+        binding="bound_to_single_edge",
+        edge_id="e2",
+        considered=(("e2", Decimal("0")),),
+        target_bearing_degrees=Decimal("0"),
+        tolerance_degrees=Decimal("45"),
+        reason="exactly one member edge lies within the approved bearing tolerance",
+    )
+    ledger = DemandInputLedger(
+        sites_offered=2,
+        sites_admissible=2,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=2,
+        directions_bound=2,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=1,
+        measured_zero_cells_bound=0,
+    )
+    cell = EdgeHourCount(
+        edge_id="e1",
+        count_point_id=1,
+        direction_of_travel="N",
+        hour=8,
+        interval_start_s=8 * 3600,
+        interval_end_s=9 * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+    ci_dup = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=(cell,),
+        resolutions=(r_dup1, r_dup2),
+        ledger=ledger,
+    )
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=_temporal(),
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci_dup,
+            map_workflow=wf,
+        )
+    assert "DUPLICATE_BOUND_RESOLUTION" in str(exc.value)
+    assert "e2" not in str(exc.value)
+
+
+def test_duplicate_via_model_copy_and_rebuilt_fingerprint() -> None:
+    wf = _workflow_auto(1)
+    ci = _count_input(1)
+    req = _make_request(wf, ci)
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    dup_res = DirectionResolution(
+        count_point_id=1,
+        direction_of_travel="N",
+        binding="bound_to_single_edge",
+        edge_id="e1",
+        considered=(("e1", Decimal("0")),),
+        target_bearing_degrees=Decimal("0"),
+        tolerance_degrees=Decimal("45"),
+        reason="exactly one member edge lies within the approved bearing tolerance",
+    )
+    forged_ci = ci.model_copy(update={"resolutions": (ci.resolutions[0], dup_res)})
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        verify_demand_package(res, request=req, map_workflow=wf, count_input=forged_ci)
+    assert "DUPLICATE_BOUND_RESOLUTION" in str(exc.value) or "COUNT_FINGERPRINT" in str(exc.value)
+    with pytest.raises(ManchesterDemandPackageError) as exc2:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=_temporal(),
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=forged_ci,
+            map_workflow=wf,
+        )
+    assert "DUPLICATE_BOUND_RESOLUTION" in str(exc2.value)
+
+
+def test_count_right_edge_wrong_site_direction_identity_refused() -> None:
+    wf = _workflow_multi([1, 2])
+    r1, r2 = _two_bound_resolutions(cpid1=1, cpid2=2)
+    wrong_cell = EdgeHourCount(
+        edge_id="e1",
+        count_point_id=2,
+        direction_of_travel="N",
+        hour=8,
+        interval_start_s=8 * 3600,
+        interval_end_s=9 * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+    ci_wrong = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=(wrong_cell,),
+        resolutions=(r1, r2),
+        ledger=DemandInputLedger(
+            sites_offered=2,
+            sites_admissible=2,
+            sites_rejected_wrong_disposition=0,
+            directions_offered=2,
+            directions_bound=2,
+            directions_requiring_confirmation=0,
+            directions_unresolved=0,
+            directions_combined_not_forced=0,
+            cells_bound=1,
+            measured_zero_cells_bound=0,
+        ),
+    )
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=_temporal(),
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci_wrong,
+            map_workflow=wf,
+        )
+    assert "COUNT_BOUND_RESOLUTION_MISMATCH" in str(exc.value)
+    assert "e1" not in str(exc.value)
+    wrong_dir_cell = EdgeHourCount(
+        edge_id="e1",
+        count_point_id=1,
+        direction_of_travel="S",
+        hour=8,
+        interval_start_s=8 * 3600,
+        interval_end_s=9 * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+    ci_wrong_dir = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=(wrong_dir_cell,),
+        resolutions=(r1, r2),
+        ledger=DemandInputLedger(
+            sites_offered=2,
+            sites_admissible=2,
+            sites_rejected_wrong_disposition=0,
+            directions_offered=2,
+            directions_bound=2,
+            directions_requiring_confirmation=0,
+            directions_unresolved=0,
+            directions_combined_not_forced=0,
+            cells_bound=1,
+            measured_zero_cells_bound=0,
+        ),
+    )
+    with pytest.raises(ManchesterDemandPackageError) as exc2:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=_temporal(),
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci_wrong_dir,
+            map_workflow=wf,
+        )
+    assert "COUNT_BOUND_RESOLUTION_MISMATCH" in str(exc2.value)
+
+
+def test_count_wrong_identity_via_model_copy_verify() -> None:
+    wf = _workflow_auto(1)
+    ci = _count_input(1)
+    req = _make_request(wf, ci)
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    wrong_cell = EdgeHourCount(
+        edge_id="e1",
+        count_point_id=1,
+        direction_of_travel="S",
+        hour=8,
+        interval_start_s=8 * 3600,
+        interval_end_s=9 * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+    forged_ci = ci.model_copy(update={"counts": (wrong_cell,)})
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        verify_demand_package(res, request=req, map_workflow=wf, count_input=forged_ci)
+    assert "COUNT_BOUND_RESOLUTION_MISMATCH" in str(exc.value) or "COUNT_FINGERPRINT" in str(
+        exc.value
+    )
+
+
+def test_two_bound_direction_window_one_missing_exact_never_zero() -> None:
+    wf = _workflow_multi([1, 2])
+    r1, r2 = _two_bound_resolutions()
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 8, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 9, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    cell_one = EdgeHourCount(
+        edge_id="e1",
+        count_point_id=1,
+        direction_of_travel="N",
+        hour=8,
+        interval_start_s=8 * 3600,
+        interval_end_s=9 * 3600,
+        all_motor_vehicles=10,
+        measured_zero=False,
+    )
+    ledger = DemandInputLedger(
+        sites_offered=2,
+        sites_admissible=2,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=2,
+        directions_bound=2,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=1,
+        measured_zero_cells_bound=0,
+    )
+    ci = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=(cell_one,),
+        resolutions=(r1, r2),
+        ledger=ledger,
+    )
+    req = build_demand_package_request(
+        request_id="demand-req-001",
+        created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+        source=_source(),
+        temporal=temporal,
+        network=_network(wf),
+        demand_method="count_constrained_candidate_v1",
+        deterministic_seed=None,
+        scaling=_scaling(),
+        count_input=ci,
+        map_workflow=wf,
+    )
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    assert res.counts.expected_interval_cells == 2
+    assert res.counts.admitted == 1
+    assert res.counts.missing_hours == 1
+    verify_demand_package(res, request=req, map_workflow=wf, count_input=ci)
+    forged_ledger_one = DemandInputLedger(
+        sites_offered=2,
+        sites_admissible=2,
+        sites_rejected_wrong_disposition=0,
+        directions_offered=1,
+        directions_bound=1,
+        directions_requiring_confirmation=0,
+        directions_unresolved=0,
+        directions_combined_not_forced=0,
+        cells_bound=1,
+        measured_zero_cells_bound=0,
+    )
+    ci_forged_hide = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=(cell_one,),
+        resolutions=(r1, r2),
+        ledger=forged_ledger_one,
+    )
+    with pytest.raises(ManchesterDemandPackageError) as exc:
+        build_demand_package_request(
+            request_id="demand-req-001",
+            created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+            source=_source(),
+            temporal=temporal,
+            network=_network(wf),
+            demand_method="count_constrained_candidate_v1",
+            deterministic_seed=None,
+            scaling=_scaling(),
+            count_input=ci_forged_hide,
+            map_workflow=wf,
+        )
+    assert "DIRECTIONS_BOUND_MISMATCH" in str(exc.value)
+
+
+def test_two_bound_both_present_zero_missing() -> None:
+    wf = _workflow_multi([1, 2])
+    r1, r2 = _two_bound_resolutions()
+    temporal = DemandTemporalIdentity(
+        window_start_utc=datetime(2026, 7, 26, 8, 0, 0, tzinfo=UTC),
+        window_end_utc=datetime(2026, 7, 26, 9, 0, 0, tzinfo=UTC),
+        interval_seconds=3600,
+        unit="vehicles_per_interval",
+        time_basis="documented_utc",
+    )
+    cells = (
+        EdgeHourCount(
+            edge_id="e1",
+            count_point_id=1,
+            direction_of_travel="N",
+            hour=8,
+            interval_start_s=8 * 3600,
+            interval_end_s=9 * 3600,
+            all_motor_vehicles=10,
+            measured_zero=False,
+        ),
+        EdgeHourCount(
+            edge_id="e2",
+            count_point_id=2,
+            direction_of_travel="N",
+            hour=8,
+            interval_start_s=8 * 3600,
+            interval_end_s=9 * 3600,
+            all_motor_vehicles=20,
+            measured_zero=False,
+        ),
+    )
+    ci = CountConstrainedDemandInput(
+        match_policy_id="manchester-dft-map-match-owner-policy-1.1",
+        match_policy_fingerprint=POLICY_FP,
+        direction_tolerance_degrees=Decimal("45"),
+        counts=cells,
+        resolutions=(r1, r2),
+        ledger=_ledger_for_two_bound(cells_bound=2),
+    )
+    req = build_demand_package_request(
+        request_id="demand-req-001",
+        created_at_utc=datetime(2026, 7, 26, 7, 0, 0, tzinfo=UTC),
+        source=_source(),
+        temporal=temporal,
+        network=_network(wf),
+        demand_method="count_constrained_candidate_v1",
+        deterministic_seed=None,
+        scaling=_scaling(),
+        count_input=ci,
+        map_workflow=wf,
+    )
+    res = build_demand_package(
+        request=req,
+        map_workflow=wf,
+        count_input=ci,
+        evaluated_at_utc=datetime(2026, 7, 26, 7, 10, 0, tzinfo=UTC),
+    )
+    assert res.counts.expected_interval_cells == 2
+    assert res.counts.missing_hours == 0
+    assert res.counts.admitted == 2

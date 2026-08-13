@@ -40,7 +40,9 @@ from typing import Literal, TypeAlias
 from pydantic import Field, field_validator, model_validator
 
 from traffictwin.integration.manchester.demand_reconstruction import (
+    BOUND_BINDINGS,
     CountConstrainedDemandInput,
+    EdgeHourCount,
 )
 from traffictwin.integration.manchester.map_match_workflow import (
     MapMatchDftSourceIdentity,
@@ -422,8 +424,6 @@ class ManchesterDemandPackageRequest(ManchesterDemandModel):
         expected = _request_fingerprint(self)
         if self.request_fingerprint != expected:
             raise ValueError("request_fingerprint must be re-derived canonical digest")
-        if "observed" in self.demand_label and "synthetic" not in self.demand_label:
-            pass
         return self
 
 
@@ -790,10 +790,181 @@ def _strict_count_input(ci: CountConstrainedDemandInput) -> CountConstrainedDema
         ) from None
 
 
+def _temporal_window_day_sec(value: datetime) -> int:
+    return value.hour * 3600 + value.minute * 60 + value.second
+
+
+def _allowed_interval_starts(temporal: DemandTemporalIdentity) -> set[int]:
+    total = int((temporal.window_end_utc - temporal.window_start_utc).total_seconds())
+    if total > 86_400:
+        raise ManchesterDemandPackageError(
+            "TEMPORAL_WINDOW_UNREPRESENTABLE",
+            "window exceeds 24h representable limit for date-less cells",
+        )
+    if temporal.window_start_utc.microsecond != 0 or temporal.window_end_utc.microsecond != 0:
+        raise ManchesterDemandPackageError(
+            "TEMPORAL_GRID_MISALIGNED",
+            "window boundaries must be second-aligned",
+        )
+    start_sec = _temporal_window_day_sec(temporal.window_start_utc)
+    if start_sec % temporal.interval_seconds != 0:
+        raise ManchesterDemandPackageError(
+            "TEMPORAL_GRID_MISALIGNED",
+            "window start not aligned to interval grid",
+        )
+    end_sec = _temporal_window_day_sec(temporal.window_end_utc)
+    if end_sec % temporal.interval_seconds != 0:
+        raise ManchesterDemandPackageError(
+            "TEMPORAL_GRID_MISALIGNED",
+            "window end not aligned to interval grid",
+        )
+    intervals = total // temporal.interval_seconds
+    allowed: set[int] = set()
+    for k in range(intervals):
+        allowed.add((start_sec + k * temporal.interval_seconds) % 86_400)
+    return allowed
+
+
+def _validate_temporal_cells(
+    temporal: DemandTemporalIdentity,
+    cells: tuple[EdgeHourCount, ...],
+) -> set[int]:
+    allowed = _allowed_interval_starts(temporal)
+    seen_full: set[tuple[object, ...]] = set()
+    seen_edge: set[tuple[object, ...]] = set()
+    for cell in cells:
+        if cell.hour != cell.interval_start_s // 3600:
+            raise ManchesterDemandPackageError(
+                "HOUR_INTERVAL_MISMATCH",
+                "hour does not match interval_start_s",
+            )
+        if temporal.interval_seconds == 3600 and cell.interval_start_s != cell.hour * 3600:
+            raise ManchesterDemandPackageError(
+                "HOUR_INTERVAL_MISMATCH",
+                "hour does not match interval_start_s for hourly grid",
+            )
+        if cell.interval_start_s < 0 or cell.interval_start_s >= 86_400:
+            raise ManchesterDemandPackageError(
+                "CELL_INTERVAL_OUT_OF_WINDOW",
+                "interval start out of day range",
+            )
+        if cell.interval_end_s > 86_400 or cell.interval_end_s <= cell.interval_start_s:
+            raise ManchesterDemandPackageError(
+                "CELL_INTERVAL_OUT_OF_WINDOW",
+                "interval end out of day range",
+            )
+        dur = cell.interval_end_s - cell.interval_start_s
+        if dur != temporal.interval_seconds:
+            raise ManchesterDemandPackageError(
+                "INTERVAL_MISMATCH",
+                "count interval duration incompatible with temporal identity",
+            )
+        if cell.interval_start_s not in allowed:
+            raise ManchesterDemandPackageError(
+                "CELL_INTERVAL_OUT_OF_WINDOW",
+                "cell interval not on allowed temporal grid",
+            )
+        full_key = (
+            cell.count_point_id,
+            cell.direction_of_travel,
+            cell.edge_id,
+            cell.interval_start_s,
+        )
+        if full_key in seen_full:
+            raise ManchesterDemandPackageError(
+                "CELL_DUPLICATE_INTERVAL",
+                "duplicate site/direction/edge/interval",
+            )
+        seen_full.add(full_key)
+        edge_key = (cell.edge_id, cell.interval_start_s)
+        if edge_key in seen_edge:
+            raise ManchesterDemandPackageError(
+                "CELL_DUPLICATE_EDGE_INTERVAL",
+                "duplicate edge interval",
+            )
+        seen_edge.add(edge_key)
+    return allowed
+
+
 def _expected_interval_cells(temporal: DemandTemporalIdentity, directions_bound: int) -> int:
     total = int((temporal.window_end_utc - temporal.window_start_utc).total_seconds())
     intervals = total // temporal.interval_seconds
     return intervals * directions_bound
+
+
+def _verified_bound_resolution_keys(
+    ci: CountConstrainedDemandInput,
+) -> set[tuple[int, str, str]]:
+    """Fail-closed bound-resolution invariant.
+
+    Derives exact canonical bound keys from ``ci.resolutions`` whose
+    ``binding`` is in :data:`BOUND_BINDINGS`. Rejects:
+
+    * duplicate resolution identities (same site/direction appearing more than
+      once, including same site/direction bound more than once);
+    * mismatched ``ledger.directions_bound`` vs verified canonical count;
+    * a count whose exact ``(count_point_id, direction_of_travel, edge_id)``
+      triple is not one canonical bound resolution (right edge but wrong
+      site/direction identity is refused, not merely any edge that appears
+      somewhere).
+
+    Bases expected denominator on the verified bound-resolution count so
+    forged ledger direction metadata cannot report false zero missingness.
+    Stable typed codes, no input echo.
+    """
+    # Duplicate resolution identity across all resolutions (site/direction)
+    seen_sd: set[tuple[int, str]] = set()
+    for res in ci.resolutions:
+        sd = (res.count_point_id, res.direction_of_travel)
+        if sd in seen_sd:
+            raise ManchesterDemandPackageError(
+                "DUPLICATE_BOUND_RESOLUTION",
+                "duplicate bound resolution identity",
+            )
+        seen_sd.add(sd)
+
+    # Canonical bound keys: exact (site, direction, edge) for bound bindings
+    bound_keys: set[tuple[int, str, str]] = set()
+    seen_bound_sd: set[tuple[int, str]] = set()
+    for res in ci.resolutions:
+        if res.binding not in BOUND_BINDINGS:
+            continue
+        if res.edge_id is None:
+            raise ManchesterDemandPackageError(
+                "BOUND_RESOLUTION_MISSING_EDGE",
+                "bound resolution missing edge",
+            )
+        sd = (res.count_point_id, res.direction_of_travel)
+        # duplicate bound site/direction already caught above, but keep explicit
+        if sd in seen_bound_sd:
+            raise ManchesterDemandPackageError(
+                "DUPLICATE_BOUND_RESOLUTION",
+                "duplicate bound site direction",
+            )
+        seen_bound_sd.add(sd)
+        key = (res.count_point_id, res.direction_of_travel, res.edge_id)
+        if key in bound_keys:
+            raise ManchesterDemandPackageError(
+                "DUPLICATE_BOUND_RESOLUTION",
+                "duplicate bound resolution key",
+            )
+        bound_keys.add(key)
+
+    verified = len(bound_keys)
+    if ci.ledger.directions_bound != verified:
+        raise ManchesterDemandPackageError(
+            "DIRECTIONS_BOUND_MISMATCH",
+            "ledger directions_bound mismatch canonical bound resolutions",
+        )
+
+    for cell in ci.counts:
+        ckey = (cell.count_point_id, cell.direction_of_travel, cell.edge_id)
+        if ckey not in bound_keys:
+            raise ManchesterDemandPackageError(
+                "COUNT_BOUND_RESOLUTION_MISMATCH",
+                "count does not bind canonical bound resolution",
+            )
+    return bound_keys
 
 
 # ---------------------------------------------------------------------------
@@ -848,14 +1019,21 @@ def build_demand_package_request(
         raise ManchesterDemandPackageError(
             "COUNT_POLICY_MISMATCH", "count input policy id mismatch network"
         )
-    for cell in ci.counts:
-        dur = cell.interval_end_s - cell.interval_start_s
-        if dur != temporal.interval_seconds:
-            raise ManchesterDemandPackageError(
-                "INTERVAL_MISMATCH", "count interval duration incompatible with temporal identity"
-            )
-        if cell.interval_start_s < 0 or cell.interval_end_s < 0:
-            raise ManchesterDemandPackageError("INTERVAL_MISMATCH", "negative interval")
+    is_count_constrained = demand_method != "synthetic_uniform_v1"
+    if is_count_constrained:
+        _validate_temporal_cells(temporal, ci.counts)
+    else:
+        for cell in ci.counts:
+            dur = cell.interval_end_s - cell.interval_start_s
+            if dur != temporal.interval_seconds:
+                raise ManchesterDemandPackageError(
+                    "INTERVAL_MISMATCH",
+                    "count interval duration incompatible with temporal identity",
+                )
+            if cell.interval_start_s < 0 or cell.interval_end_s < 0:
+                raise ManchesterDemandPackageError("INTERVAL_MISMATCH", "negative interval")
+    # Fail-closed bound-resolution invariant at request boundary
+    _verified_bound_resolution_keys(ci)
     demand_label: DemandLabel = (
         "synthetic_engineering_candidate_demand"
         if demand_method == "synthetic_uniform_v1"
@@ -957,13 +1135,19 @@ def build_demand_package(
         raise ManchesterDemandPackageError(
             "COUNT_POLICY_MISMATCH", "count policy id mismatch at build"
         )
-    # Rejected source/ledger/workflow dependency mismatch typed fail
-    if ci.ledger.sites_offered != wf.observations.__len__() and False:
-        # placeholder to ensure ledger/workflow source dependency is checked via counts subset below
-        pass
-    for cell in ci.counts:
-        if (cell.interval_end_s - cell.interval_start_s) != req.temporal.interval_seconds:
-            raise ManchesterDemandPackageError("INTERVAL_MISMATCH", "interval mismatch at build")
+    is_synthetic = req.demand_method == "synthetic_uniform_v1"
+    if not is_synthetic:
+        _validate_temporal_cells(req.temporal, ci.counts)
+    else:
+        for cell in ci.counts:
+            if (cell.interval_end_s - cell.interval_start_s) != req.temporal.interval_seconds:
+                raise ManchesterDemandPackageError(
+                    "INTERVAL_MISMATCH", "interval mismatch at build"
+                )
+    # Fail-closed bound-resolution invariant at build boundary (keeps
+    # accepted map/source and unique (edge, interval) contracts)
+    verified_bound_keys = _verified_bound_resolution_keys(ci)
+    verified_bound = len(verified_bound_keys)
     accepted_ids = set(wf.auto_accepted_ids) | set(wf.human_accepted_ids)
     rejected_ids = set(wf.rejected_ids) | set(wf.unresolved_ids)
     count_cp_ids = {c.count_point_id for c in ci.counts}
@@ -993,7 +1177,6 @@ def build_demand_package(
     # Direction counts coherence: ledger direction outcomes must be consistent
     # (no coercion; validated via ledger model)
 
-    is_synthetic = req.demand_method == "synthetic_uniform_v1"
     has_provider_counts = len(ci.counts) > 0 and ci.ledger.cells_bound > 0
     has_accepted_maps = len(accepted_ids) > 0
     if is_synthetic:
@@ -1010,8 +1193,14 @@ def build_demand_package(
             software_standing = "SOFTWARE_VALID"
             scientific_standing = "SCIENTIFICALLY_NOT_ACCEPTED"
     # Truthful counts summary with coherent units and explicit denominator
+    # Expected denominator bases on verified bound-resolution count (must equal
+    # ledger) so skewed/forged direction metadata cannot report false zero missingness
     try:
-        expected = _expected_interval_cells(req.temporal, ci.ledger.directions_bound)
+        if not is_synthetic:
+            allowed_for_expected = _allowed_interval_starts(req.temporal)
+            expected = len(allowed_for_expected) * verified_bound
+        else:
+            expected = _expected_interval_cells(req.temporal, verified_bound)
         # Synthetic may have 0 bound directions; expected 0 is valid
         if len(ci.counts) > expected and expected != 0:
             raise ManchesterDemandPackageError(
@@ -1156,6 +1345,11 @@ def verify_demand_package(
         raise ManchesterDemandPackageError("OUTPUT_FINGERPRINT_DRIFT", "output fingerprint drift")
     if res.result_fingerprint != _result_fingerprint(res):
         raise ManchesterDemandPackageError("RESULT_FINGERPRINT_DRIFT", "result fingerprint drift")
+    # Fail-closed bound-resolution invariant at verification boundary
+    _verified_bound_resolution_keys(ci)
+    if res.standing != "SYNTHETIC_ENGINEERING_CANDIDATE":
+        _allowed_interval_starts(res.temporal)
+        _allowed_interval_starts(req.temporal)
     rebuilt = build_demand_package(
         request=req, map_workflow=wf, count_input=ci, evaluated_at_utc=res.evaluated_at_utc
     )
@@ -1181,6 +1375,8 @@ def verify_demand_receipt(
     dec = ManchesterDemandAcceptanceDecision.model_validate(
         decision.model_dump(mode="python", warnings=False), strict=True
     )
+    if res.standing != "SYNTHETIC_ENGINEERING_CANDIDATE":
+        _allowed_interval_starts(res.temporal)
     # Strict fingerprint drift
     if dec.decision_fingerprint != _decision_fingerprint(dec):
         raise ManchesterDemandPackageError(
@@ -1301,6 +1497,8 @@ def decide_demand_acceptance(
     res = ManchesterDemandPackageResult.model_validate(
         result.model_dump(mode="python", warnings=False), strict=True
     )
+    if res.standing != "SYNTHETIC_ENGINEERING_CANDIDATE":
+        _allowed_interval_starts(res.temporal)
     # Bounded reviewer identity / role / attribution
     _reject_private_path(reviewer_id, "reviewer_id")
     _reject_secret(reviewer_id, "reviewer_id")
@@ -1439,6 +1637,8 @@ def issue_demand_receipt(
     dec = ManchesterDemandAcceptanceDecision.model_validate(
         decision.model_dump(mode="python", warnings=False), strict=True
     )
+    if res.standing != "SYNTHETIC_ENGINEERING_CANDIDATE":
+        _allowed_interval_starts(res.temporal)
     if (
         dec.request_fingerprint != res.request_fingerprint
         or dec.result_fingerprint != res.result_fingerprint
