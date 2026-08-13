@@ -2735,15 +2735,169 @@ def validate_contract(data: object) -> dict[str, Any]:
                 errors,
                 "v2i_latency_outcome_contract raw_work_enqueued_is_never_divided_by_u must be true",
             )
-        if (
-            adm.get("deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline")
-            is not True
+        # --- Narrow comparator correction: strict < was wrong for outcome; require inherited <= ---
+        # Reject legacy boolean key if present (misleading strict <)
+        if "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline" in adm:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract must not contain legacy boolean "
+                "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline "
+                "(replaced by typed comparator fields)",
+            )
+        if adm.get("deadline_success_comparator") != "<=":
+            _err(
+                errors,
+                "v2i_latency_outcome_contract deadline_success_comparator must be exactly '<=' "
+                "(strict '<', '>=' , spaced or missing are forbidden; equality is success)",
+            )
+        if adm.get("deadline_success_rule") != "simulated_latency_ms <= task_deadline_ms":
+            _err(
+                errors,
+                "v2i_latency_outcome_contract deadline_success_rule must be exactly "
+                "'simulated_latency_ms <= task_deadline_ms' (no alternate spacing or comparator)",
+            )
+        if adm.get("deadline_success_equality_is_success") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract deadline_success_equality_is_success must be true "
+                "(equality is success)",
+            )
+        if adm.get("inherited_e2d_outcome_compatibility") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract inherited_e2d_outcome_compatibility must be true "
+                "(inherited E2d comparator binding)",
+            )
+        if adm.get("deadline_success_is_inherited_e2d_outcome") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract deadline_success_is_inherited_e2d_outcome "  # noqa: E501
+                "must be true",
+            )
+        if "deadline_met = latency <= deadline" not in str(adm.get("inherited_e2d_reference", "")):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract inherited_e2d_reference must contain "
+                "'deadline_met = latency <= deadline' and vec_env reference",
+            )
+        if "2f63706f46319433a2ba3af1df97afd0e56a95d1" not in str(
+            adm.get("inherited_e2d_reference", "")
         ):
             _err(
                 errors,
-                "v2i_latency_outcome_contract "
-                "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline "
-                "must be true",
+                "v2i_latency_outcome_contract inherited_e2d_reference must contain "
+                "vec_env commit 2f63706f46319433a2ba3af1df97afd0e56a95d1",
+            )
+        if "jaxmarl/env/vec_jax.py:736" not in str(adm.get("inherited_e2d_reference", "")):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract inherited_e2d_reference must contain "
+                "jaxmarl/env/vec_jax.py:736",
+            )
+        # Strict admission feasibility must remain < ; reject <= conflation
+        if adm.get("admission_feasibility_predicate_is_strict_less") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract admission_feasibility_predicate_is_strict_less "
+                "must be true (admission gate remains strict <)",
+            )
+        if (
+            adm.get("admission_feasibility_predicate_reference")
+            != "observed_decision_backlog_work_ms[rsu] < task_deadline_ms"
+        ):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract admission_feasibility_predicate_reference must be "
+                "exactly 'observed_decision_backlog_work_ms[rsu] < task_deadline_ms' (strict <)",
+            )
+        if adm.get("equality_at_admission_gate_is_infeasible") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract equality_at_admission_gate_is_infeasible "  # noqa: E501
+                "must be true (equality at backlog gate remains infeasible)",
+            )
+        if adm.get("outcome_and_feasibility_comparators_are_distinct") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract outcome_and_feasibility_comparators_are_distinct "
+                "must be true (comparators are distinct and not interchangeable)",
+            )
+        if adm.get("comparator_conflation_forbidden") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract comparator_conflation_forbidden must be true",
+            )
+        # Reject any bool-typed comparator (legacy misleading) or alternate values
+        comp_val = adm.get("deadline_success_comparator")
+        if isinstance(comp_val, bool):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract deadline_success_comparator must not be bool "
+                "(typed string '<=' required)",
+            )
+        if comp_val in ("<", ">=", ">", "==", "=<", " =>"):
+            _err(
+                errors,
+                f"v2i_latency_outcome_contract deadline_success_comparator alternate "  # noqa: E501
+                f"{comp_val!r} forbidden (must be exactly '<=')",
+            )
+        if isinstance(comp_val, str) and comp_val.strip() != comp_val:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract deadline_success_comparator "  # noqa: E501
+                "must not contain surrounding spaces",
+            )
+        if isinstance(comp_val, str) and " " in comp_val:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract deadline_success_comparator must not contain spaces",
+            )
+        # Conflation: comparator identical claim is forbidden
+        if adm.get("outcome_and_feasibility_comparators_are_identical") is True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract outcome_and_feasibility_comparators_are_identical "  # noqa: E501
+                "must not be true (comparators are distinct <= vs <)",
+            )
+        if adm.get("comparators_are_identical") is True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract comparators_are_identical must not be true",
+            )
+        if vl.get("outcome_and_feasibility_comparators_are_identical") is True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract (top-level) "  # noqa: E501
+                "outcome_and_feasibility_comparators_are_identical must not be true",
+            )
+        if vl.get("comparators_are_identical") is True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract (top-level) comparators_are_identical "  # noqa: E501
+                "must not be true",
+            )
+        # If someone claims feasibility uses <=, reject (strict < required)
+        adm_ref_str = str(adm.get("admission_feasibility_predicate_reference", ""))
+        if "<=" in adm_ref_str and "< task_deadline" in adm_ref_str:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract admission_feasibility_predicate_reference "  # noqa: E501
+                "must not contain '<=' (must remain strict '<')",
+            )
+        # Top-level distinctness also required (cross-reference)
+        if vl.get("admission_feasibility_predicate_is_strict_less") is not True:
+            _err(
+                errors,
+                "v2i_latency_outcome_contract admission_feasibility_predicate_is_strict_less (top-level) must be true",  # noqa: E501
+            )
+        if (
+            vl.get("admission_feasibility_predicate_reference")
+            != "observed_decision_backlog_work_ms[rsu] < task_deadline_ms"
+        ):
+            _err(
+                errors,
+                "v2i_latency_outcome_contract admission_feasibility_predicate_reference (top-level) must be "  # noqa: E501
+                "exactly 'observed_decision_backlog_work_ms[rsu] < task_deadline_ms'",
             )
         if (
             adm.get("later_scaling_does_not_recompute_latency") is not True
@@ -3415,6 +3569,40 @@ def render_markdown(data: dict[str, Any]) -> str:
         "- not evidence of physical started/completed/returned lifecycle; "
         "do not retroactively reprice."
     )
+    # --- Narrow comparator correction: explicit typed fields ---
+    vl_raw = _get(["v2i_latency_outcome_contract"], {})
+    vl_dict: dict[str, Any] = vl_raw if isinstance(vl_raw, dict) else {}
+    atadm_raw = vl_dict.get("at_admission_record_with_u_current_applied_units", {})
+    atadm: dict[str, Any] = atadm_raw if isinstance(atadm_raw, dict) else {}
+    comp = atadm.get("deadline_success_comparator", "<=")
+    rule = atadm.get("deadline_success_rule", "simulated_latency_ms <= task_deadline_ms")
+    inherited_ref = atadm.get(
+        "inherited_e2d_reference",
+        "vec_env 2f63706f46319433a2ba3af1df97afd0e56a95d1 jaxmarl/env/vec_jax.py:736 deadline_met = latency <= deadline",  # noqa: E501
+    )
+    adm_ref = atadm.get(
+        "admission_feasibility_predicate_reference",
+        "observed_decision_backlog_work_ms[rsu] < task_deadline_ms",
+    )
+    out.append(
+        f'- deadline_success_comparator: "{comp}" (typed string, not bool; exactly "<="; equality is success)'  # noqa: E501
+    )
+    out.append(
+        f'- deadline_success_rule: "{rule}" (exactly "simulated_latency_ms <= task_deadline_ms"; inherited E2d outcome compatibility)'  # noqa: E501
+    )
+    out.append(
+        "- equality is success for deadline_success (simulated_latency_ms == task_deadline_ms is success)"  # noqa: E501
+    )
+    out.append(f"- inherited E2d outcome compatibility: {inherited_ref}")
+    out.append(
+        f'- admission feasibility predicate (strict): "{adm_ref}" (strict "<"; equality at the backlog gate remains infeasible)'  # noqa: E501
+    )
+    out.append(
+        "- outcome and feasibility comparators are distinct and not interchangeable; comparator conflation is forbidden"  # noqa: E501
+    )
+    out.append(
+        '- cross-reference: strict feasibility lives in p2c_candidate_predicate.feasible_RSU_predicate.conditions_both, stale_state_semantics.deadline_formula_unchanged, and admission_gate.formula; outcome uses "<=" at admission while feasibility uses "<"'  # noqa: E501
+    )
     out.append("")
     out.append("---")
     out.append("")
@@ -3774,6 +3962,40 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
     for needle, label in staged_phrases:
         if needle.lower() not in md_text.lower():
             errors.append(f"markdown missing {label}: {needle!r}")
+    # Narrow comparator correction — explicit markdown phrases for outcome vs feasibility
+    comparator_markdown_checks = [
+        ('deadline_success_comparator: "<="', "deadline_success_comparator <= in markdown"),
+        (
+            'deadline_success_rule: "simulated_latency_ms <= task_deadline_ms"',
+            "deadline_success_rule in markdown",
+        ),
+        ("equality is success", "equality is success in markdown"),
+        ("inherited E2d outcome compatibility", "inherited E2d outcome compatibility in markdown"),
+        ("deadline_met = latency <= deadline", "deadline_met = latency <= deadline in markdown"),
+        ("2f63706f46319433a2ba3af1df97afd0e56a95d1", "vec_env commit in markdown"),
+        ("jaxmarl/env/vec_jax.py:736", "vec_jax line in markdown"),
+        (
+            "observed_decision_backlog_work_ms[rsu] < task_deadline_ms",
+            "strict admission feasibility < in markdown",
+        ),
+        (
+            "equality at the backlog gate remains infeasible",
+            "equality at backlog gate infeasible in markdown",
+        ),
+        (
+            "outcome and feasibility comparators are distinct",
+            "comparators are distinct in markdown",
+        ),
+        ("comparator conflation is forbidden", "conflation forbidden in markdown"),
+        ("cross-reference: strict feasibility lives in", "cross-reference in markdown"),
+        (
+            'outcome uses "<=" at admission while feasibility uses "<"',
+            "outcome vs feasibility distinction in markdown",
+        ),
+    ]
+    for needle, label in comparator_markdown_checks:
+        if needle not in md_text:
+            errors.append(f"markdown missing {label}: {needle!r}")
     # New normative distinctions — must be present in markdown prose
     new_distinction_checks = [
         ("observed_decision_backlog_work_ms", "observed_decision_backlog_work_ms in markdown"),
@@ -3987,6 +4209,31 @@ def validate_markdown_contains(md_text: str, data: dict[str, Any]) -> list[str]:
                 continue
             return True
         return False
+
+    # Comparator conflation: markdown must not claim comparators are identical or interchangeable as same  # noqa: E501
+    comparator_conflation_phrases = [
+        ("comparators are identical", "comparator conflation: comparators are identical"),
+        (
+            "outcome and feasibility comparators are identical",
+            "comparator conflation: outcome/feasibility identical",
+        ),
+        (
+            "comparator is the same for outcome and feasibility",
+            "comparator conflation: same comparator for both",
+        ),
+        ("reuse one comparator for both", "comparator conflation: reuse one comparator"),
+        ("outcome uses < and feasibility uses <", "strict < outcome conflation"),
+        ("deadline_success is < task_deadline", "strict < outcome conflation (must be <=)"),
+        (
+            "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline",
+            "legacy bool deadline_success < forbidden",
+        ),
+    ]
+    for phrase, label in comparator_conflation_phrases:
+        if _has_positive_claim(lower_without, phrase.lower()):
+            errors.append(
+                f"markdown contains forbidden {label}: {phrase!r} (comparators must be distinct <= vs <)"  # noqa: E501
+            )
 
     for phrase, label in inverse_phrases:
         phrase_l = phrase.lower()

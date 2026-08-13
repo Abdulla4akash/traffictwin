@@ -154,6 +154,13 @@ Hypotheses are not expected truths; negative results acceptable.
 - optimistic stale admitted executes and may miss per true latency; pessimistic stale rejected never executes.
 - deadline_success is based on true simulated latency, never the controller's stale estimate.
 - not evidence of physical started/completed/returned lifecycle; do not retroactively reprice.
+- deadline_success_comparator: "<=" (typed string, not bool; exactly "<="; equality is success)
+- deadline_success_rule: "simulated_latency_ms <= task_deadline_ms" (exactly "simulated_latency_ms <= task_deadline_ms"; inherited E2d outcome compatibility)
+- equality is success for deadline_success (simulated_latency_ms == task_deadline_ms is success)
+- inherited E2d outcome compatibility: vec_env 2f63706f46319433a2ba3af1df97afd0e56a95d1 jaxmarl/env/vec_jax.py:736 deadline_met = latency <= deadline
+- admission feasibility predicate (strict): "observed_decision_backlog_work_ms[rsu] < task_deadline_ms" (strict "<"; equality at the backlog gate remains infeasible)
+- outcome and feasibility comparators are distinct and not interchangeable; comparator conflation is forbidden
+- cross-reference: strict feasibility lives in p2c_candidate_predicate.feasible_RSU_predicate.conditions_both, stale_state_semantics.deadline_formula_unchanged, and admission_gate.formula; outcome uses "<=" at admission while feasibility uses "<"
 
 ---
 
@@ -1344,10 +1351,22 @@ The entire Markdown bytes must equal `render_markdown(canonical_json)`. Any addi
     "within_tick_task_slots": 5
   },
   "v2i_latency_outcome_contract": {
+    "admission_feasibility_predicate_is_strict_less": true,
+    "admission_feasibility_predicate_reference": "observed_decision_backlog_work_ms[rsu] < task_deadline_ms",
     "at_admission_record_with_u_current_applied_units": {
+      "admission_feasibility_predicate_is_strict_less": true,
+      "admission_feasibility_predicate_reference": "observed_decision_backlog_work_ms[rsu] < task_deadline_ms",
       "backlog_still_evolves_thereafter_under_actual_capacity": true,
-      "deadline_success_is_recorded_admitted_simulated_latency_less_task_deadline": true,
+      "comparator_conflation_forbidden": true,
+      "deadline_success_comparator": "<=",
+      "deadline_success_equality_is_success": true,
+      "deadline_success_is_inherited_e2d_outcome": true,
+      "deadline_success_rule": "simulated_latency_ms <= task_deadline_ms",
+      "equality_at_admission_gate_is_infeasible": true,
+      "inherited_e2d_outcome_compatibility": true,
+      "inherited_e2d_reference": "vec_env 2f63706f46319433a2ba3af1df97afd0e56a95d1 jaxmarl/env/vec_jax.py:736 deadline_met = latency <= deadline",
       "later_scaling_does_not_recompute_latency": true,
+      "outcome_and_feasibility_comparators_are_distinct": true,
       "radio_forward_return_formulas_and_random_raw_service_draw_remain_inherited": true,
       "raw_work_enqueued_is_never_divided_by_u": true,
       "rejected_work_never_enqueues_never_succeeds_and_inherited_10_deadline_penalty_is_explicitly_not_valid_latency_observation": true,
