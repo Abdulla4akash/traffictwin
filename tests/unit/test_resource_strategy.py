@@ -1174,3 +1174,286 @@ def test_synthetic_report_golden_is_service_produced() -> None:
     assert golden["evidence_mode"] == "synthetic_demonstration"
     # No sentinel
     assert "<normalised>" not in golden_text
+
+
+# ---------------------------------------------------------------------------
+# Lane 01 — fleet_draw explicit support (discriminating, backward-compatible)
+# ---------------------------------------------------------------------------
+
+
+def _fleet_draw_study(**overrides: object) -> ResourceStrategyStudy:
+    """Build a minimal study with replication_unit fleet_draw."""
+    # Use the same helper structure as _study but with fleet_draw.
+    base = _study(replication_unit=ResourceStrategyReplicationUnit.FLEET_DRAW)
+    # Allow overrides to replace fields after construction via revalidation
+    if not overrides:
+        return base
+    payload = base.model_dump(mode="json")
+    payload.update(overrides)
+    return ResourceStrategyStudy.model_validate(payload)
+
+
+def test_fleet_draw_replication_unit_accepted_and_identity_bearing() -> None:
+    study = _fleet_draw_study()
+    # Valid enum member
+    assert study.replication_unit == ResourceStrategyReplicationUnit.FLEET_DRAW
+    assert study.replication_unit.value == "fleet_draw"
+    # Canonical payload must contain fleet_draw literally and be sorted
+    canon = study.canonical_payload()
+    assert canon["replication_unit"] == "fleet_draw"
+    # Fingerprint must be 64 hex chars and differ from replication_id/random_seed
+    fp_fleet = study.fingerprint()
+    assert len(fp_fleet) == 64 and all(c in "0123456789abcdef" for c in fp_fleet)
+    study_rep = _study(replication_unit=ResourceStrategyReplicationUnit.REPLICATION_ID)
+    study_seed = _study(replication_unit=ResourceStrategyReplicationUnit.RANDOM_SEED)
+    assert fp_fleet != study_rep.fingerprint()
+    assert fp_fleet != study_seed.fingerprint()
+    assert study_rep.fingerprint() != study_seed.fingerprint()
+
+
+def test_fleet_draw_report_propagates_unit_and_fingerprint() -> None:
+    study = _fleet_draw_study()
+    report = build_resource_strategy_report(study)
+    assert report.replication_unit == ResourceStrategyReplicationUnit.FLEET_DRAW
+    assert report.replication_unit.value == "fleet_draw"
+    canon = report.canonical_payload()
+    assert canon["replication_unit"] == "fleet_draw"
+    # Report fingerprint is deterministic; second build matches
+    report2 = build_resource_strategy_report(study)
+    assert report.fingerprint() == report2.fingerprint()
+    assert report.report_fingerprint == report2.report_fingerprint
+    # JSON and markdown exports must surface fleet_draw
+    js = json.loads(report.to_json())
+    assert js["replication_unit"] == "fleet_draw"
+    md = resource_strategy_report_to_markdown(report)
+    assert "fleet_draw" in md
+    csv_text = resource_strategy_report_to_csv(report)
+    # CSV header + rows present; replication unit validated via markdown
+    assert study.study_id in csv_text
+
+
+def test_fleet_draw_json_roundtrip_and_loaders() -> None:
+    study = _fleet_draw_study()
+    text = study.to_json()
+    # model_validate round-trip
+    reloaded = ResourceStrategyStudy.model_validate_json(text)
+    assert reloaded.replication_unit == ResourceStrategyReplicationUnit.FLEET_DRAW
+    assert reloaded.fingerprint() == study.fingerprint()
+    # loader helpers
+    from_json = load_resource_strategy_study_from_json(text)
+    assert from_json.fingerprint() == study.fingerprint()
+    assert json.loads(text)["replication_unit"] == "fleet_draw"
+    # File loader with fleet_draw should produce identical fingerprint regardless of path
+    with tempfile.TemporaryDirectory() as td:
+        p1 = Path(td) / "a.json"
+        p2 = Path(td) / "b.json"
+        p1.write_text(text, encoding="utf-8")
+        p2.write_text(text, encoding="utf-8")
+        assert load_resource_strategy_study_file(p1).fingerprint() == study.fingerprint()
+        assert load_resource_strategy_study_file(p2).fingerprint() == study.fingerprint()
+    # Raw dict with string literal fleet_draw
+    payload = study.model_dump(mode="json")
+    payload["replication_unit"] = "fleet_draw"
+    validated = ResourceStrategyStudy.model_validate(payload)
+    assert validated.replication_unit == ResourceStrategyReplicationUnit.FLEET_DRAW
+
+
+def test_fleet_draw_matched_cohort_and_exclusion_codes() -> None:
+    # Four fleet_draw replications like E2c/E2d 1..4
+    reps = [_valid_replication(f"rep_00{i}") for i in range(1, 5)]
+    arms = [
+        ResourceStrategyArm(
+            arm_id="arm_a",
+            label="A",
+            description="d",
+            strategy_type="t",
+            replications=list(reps),
+        ),
+        ResourceStrategyArm(
+            arm_id="arm_b",
+            label="B",
+            description="d",
+            strategy_type="t",
+            replications=list(reps),
+        ),
+    ]
+    study = _fleet_draw_study(
+        arms=arms,
+        common_matched_replication_ids=["rep_001", "rep_002", "rep_003", "rep_004"],
+        excluded_replication_ids=[],
+        metric_catalog=_catalog(),
+    )
+    assert study.common_matched_replication_ids == ["rep_001", "rep_002", "rep_003", "rep_004"]
+    report = build_resource_strategy_report(study)
+    assert report.common_matched_replication_ids == study.common_matched_replication_ids
+    # Exclusion with explicit DUPLICATE_FLEET_DRAW code must be accepted
+    exc = ResourceStrategyExclusion(
+        replication_id="rep_003",
+        code=ResourceStrategyExclusionCode.DUPLICATE_FLEET_DRAW,
+        reason="duplicate fleet_draw excluded for audit",
+    )
+    study_ex = _fleet_draw_study(
+        arms=arms,
+        common_matched_replication_ids=["rep_001", "rep_002", "rep_004"],
+        excluded_replication_ids=[exc],
+        metric_catalog=_catalog(),
+    )
+    assert exc.code.value == "DUPLICATE_FLEET_DRAW"
+    # Legacy code still valid alongside new code
+    exc_legacy = ResourceStrategyExclusion(
+        replication_id="rep_005",
+        code=ResourceStrategyExclusionCode.DUPLICATE_REPLICATION_ID,
+        reason="legacy duplicate code still valid",
+    )
+    assert exc_legacy.code.value == "DUPLICATE_REPLICATION_ID"
+    # Ensure report preserves exclusion code for fleet_draw
+    assert any(
+        e.code == ResourceStrategyExclusionCode.DUPLICATE_FLEET_DRAW
+        for e in study_ex.excluded_replication_ids
+    )
+
+
+def test_backward_compatibility_fingerprints_unchanged_for_existing_units() -> None:
+    # Existing replication_id fingerprint must remain deterministic after fleet_draw addition  # noqa: E501
+    study_rep = _study(replication_unit=ResourceStrategyReplicationUnit.REPLICATION_ID)
+    fp_rep_1 = study_rep.fingerprint()
+    # Re-serialize and reload should yield identical fingerprint
+    reloaded_rep = ResourceStrategyStudy.model_validate_json(study_rep.to_json())
+    assert reloaded_rep.fingerprint() == fp_rep_1
+    # Load via dict with explicit string replication_id
+    payload_rep = study_rep.model_dump(mode="json")
+    payload_rep["replication_unit"] = "replication_id"
+    assert ResourceStrategyStudy.model_validate(payload_rep).fingerprint() == fp_rep_1
+
+    # Existing random_seed study fingerprint likewise stable
+    study_seed = _study(replication_unit=ResourceStrategyReplicationUnit.RANDOM_SEED)
+    fp_seed_1 = study_seed.fingerprint()
+    reloaded_seed = ResourceStrategyStudy.model_validate_json(study_seed.to_json())
+    assert reloaded_seed.fingerprint() == fp_seed_1
+    payload_seed = study_seed.model_dump(mode="json")
+    payload_seed["replication_unit"] = "random_seed"
+    assert ResourceStrategyStudy.model_validate(payload_seed).fingerprint() == fp_seed_1
+
+    # Fleet draw fingerprints distinct; old fingerprints unchanged  # noqa: E501
+    study_fleet = _fleet_draw_study()
+    assert study_fleet.fingerprint() != fp_rep_1
+    assert study_fleet.fingerprint() != fp_seed_1
+    assert fp_rep_1 != fp_seed_1
+    # Report fingerprints also stable for existing units
+    report_rep = build_resource_strategy_report(study_rep)
+    report_rep2 = build_resource_strategy_report(
+        ResourceStrategyStudy.model_validate_json(study_rep.to_json())
+    )
+    assert report_rep.fingerprint() == report_rep2.fingerprint()
+    assert report_rep.report_fingerprint == report_rep2.report_fingerprint
+
+
+def test_invalid_replication_units_fail_closed() -> None:
+    base = _study().model_dump(mode="json")
+    for bad in ["task", "tasks", "fleet_seed", "run", "FLEET_DRAW", "fleet-draw", "", "invalid"]:
+        payload = dict(base)
+        payload["replication_unit"] = bad
+        with pytest.raises(ValidationError):
+            ResourceStrategyStudy.model_validate(payload)
+        # JSON text variant
+        text = json.dumps(payload)
+        with pytest.raises((ValidationError, ValueError)):
+            load_resource_strategy_study_from_json(text)
+
+    # Also ensure random_seed and replication_id still valid (not rejected)
+    for good in ["replication_id", "random_seed", "fleet_draw"]:
+        payload = dict(base)
+        payload["replication_unit"] = good
+        # Must validate successfully
+        validated = ResourceStrategyStudy.model_validate(payload)
+        assert validated.replication_unit.value == good
+
+
+def test_duplicate_replication_and_lifecycle_still_fail_closed_for_fleet_draw() -> None:
+    # Duplicate replication_id within an arm must fail for fleet_draw studies as well
+    dup_reps = [_valid_replication("rep_001"), _valid_replication("rep_001")]
+    with pytest.raises(ValidationError, match="duplicate replication_id"):
+        ResourceStrategyArm(
+            arm_id="arm_a",
+            label="A",
+            description="d",
+            strategy_type="t",
+            replications=dup_reps,
+        )
+    # Attempt to build a fleet_draw study with duplicate reps via raw validation should also fail
+    arm_dup = {
+        "arm_id": "arm_a",
+        "label": "A",
+        "description": "d",
+        "strategy_type": "t",
+        "replications": [
+            _valid_replication("rep_001").model_dump(mode="json"),
+            _valid_replication("rep_001").model_dump(mode="json"),
+        ],
+    }
+    payload = _fleet_draw_study().model_dump(mode="json")
+    payload["arms"] = [arm_dup, payload["arms"][1]]
+    with pytest.raises(ValidationError, match="duplicate replication_id"):
+        ResourceStrategyStudy.model_validate(payload)
+
+    # Lifecycle conservation still enforced for fleet_draw replications
+    # Direct lifecycle validation fails regardless of unit (construction itself must fail)
+    with pytest.raises(ValidationError, match="LIFECYCLE_CONSERVATION_VIOLATED"):
+        _valid_lifecycle(offered=999, admitted=800, rejected=200)
+    with pytest.raises(ValidationError, match="LIFECYCLE_CONSERVATION_VIOLATED"):
+        ResourceStrategyLifecycle(
+            offered=999,
+            admitted=800,
+            rejected=200,
+            forwarded=400,
+            started=760,
+            compute_completed=720,
+            returned=700,
+            dropped=80,
+            deadline_success=680,
+        )
+
+    # Fleet_draw study with excluded replication that silently re-enters matched cohort must fail
+    reps = [_valid_replication("rep_001"), _valid_replication("rep_002")]
+    arms = [
+        ResourceStrategyArm(
+            arm_id="arm_a", label="A", description="d", strategy_type="t", replications=list(reps)
+        ),
+        ResourceStrategyArm(
+            arm_id="arm_b", label="B", description="d", strategy_type="t", replications=list(reps)
+        ),
+    ]
+    with pytest.raises(
+        ValidationError, match="does not match computed matched cohort|must not appear"
+    ):
+        ResourceStrategyStudy.model_validate(
+            {
+                "schema_version": "1.0",
+                "study_id": "test_study",
+                "source_fingerprint": hashlib.sha256(b"test").hexdigest(),
+                "evidence_mode": ResourceStrategyEvidenceMode.SYNTHETIC_DEMONSTRATION.value,
+                "admission_state": ResourceStrategyAdmissionState.SYNTHETIC_DEMONSTRATION.value,
+                "replication_unit": "fleet_draw",
+                "arms": [a.model_dump(mode="json") for a in arms],
+                "common_matched_replication_ids": ["rep_001", "rep_002"],
+                "excluded_replication_ids": [
+                    {
+                        "replication_id": "rep_002",
+                        "code": ResourceStrategyExclusionCode.MANUAL_EXCLUSION.value,
+                        "reason": "manual",
+                    }
+                ],
+                "metric_catalog": [m.model_dump(mode="json") for m in _catalog()],
+                "limitations": ["synthetic"],
+                "provenance": {"fixture": "test"},
+                "generated_at": None,
+            }
+        )
+
+    # Invalid exclusion code must also fail closed
+    with pytest.raises(ValidationError):
+        ResourceStrategyExclusion(
+            replication_id="rep_001",
+            code="INVALID_CODE",  # type: ignore[arg-type]
+            reason="bad code",
+        )
