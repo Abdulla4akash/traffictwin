@@ -10,7 +10,6 @@ adapter.
 from __future__ import annotations
 
 import json
-import re
 
 import streamlit as st
 
@@ -30,19 +29,6 @@ from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.components.unavailable import render_unavailable_panel
 
 SESSION_KEY_SELECTED = "research_registry_selected"
-
-_PRIVATE_RE = re.compile(r"(/Users/|/home/|/tmp/|/var/folders/|[A-Za-z]:[\\/])")  # noqa: S108
-_SECRET_RE = re.compile(
-    r"(password|secret|api[_-]?key|token|credential|private[_-]?key|bearer)",
-    re.IGNORECASE,
-)
-
-
-def _sanitize_exc_message(exc: Exception) -> str:
-    raw = str(exc)[:500]
-    sanitized = _PRIVATE_RE.sub("[redacted path]", raw)
-    sanitized = _SECRET_RE.sub("[redacted secret]", sanitized)
-    return sanitized
 
 
 def _load_snapshot() -> RegistrySnapshot:
@@ -102,14 +88,11 @@ def _render_lineage_warning() -> None:
 
 
 def _render_unavailable_snapshot_error(exc: Exception) -> None:
-    safe = _sanitize_exc_message(exc)
-    st.error(f"Research Registry snapshot could not be constructed: {safe}")
+    del exc
+    st.error("Research Registry snapshot could not be constructed: REGISTRY_CONSTRUCTION_FAILED")
     render_unavailable_panel(
         "Research Registry unavailable",
-        [
-            "Typed registry construction or verification failed — snapshot unavailable",
-            safe,
-        ],
+        ["Typed registry construction or verification failed — snapshot unavailable"],
         ["REGISTRY_CONSTRUCTION_FAILED"],
     )
     st.caption(
@@ -195,12 +178,28 @@ def _render_question_hypothesis(record: ResearchStudyRecord) -> None:
         st.markdown(f"**Hypothesis:** {record.hypothesis}")
     else:
         st.caption("Hypothesis: Unavailable — no hypothesis declared for this study.")
-    # Mechanism where available: represented by limitations/non-claims wording; do not invent
     st.caption(
         "Mechanism description is taken only from typed record fields where available; "
         "no mechanism is inferred or fabricated for unavailable studies."
     )
-    if record.study in {E2B_STUDY, E2C_STUDY, E2D_STUDY}:
+    # Derive mechanism framing from typed fields, not hardcoded study ID
+    typed_text = " ".join(
+        part
+        for part in [
+            record.question,
+            record.hypothesis or "",
+            record.estimand or "",
+            record.declared_summary.method if record.declared_summary else "",
+        ]
+        if part
+    )
+    low = typed_text.lower()
+    lineage_text = " ".join(
+        r.lower()
+        for r in (record.limitations or []) + (record.non_claims or [])  # noqa: UP034
+    )
+    combined = f"{low} {lineage_text}"
+    if "placement" in combined or "rsu" in combined or "deadline" in combined:
         st.caption(
             "Placement is deterministic infrastructure-side RSU management; not learned, "
             "not Kubernetes deployment."
@@ -235,7 +234,7 @@ def _render_identities(record: ResearchStudyRecord) -> None:
                 st.code(val, language=None)
                 st.caption(f"Fingerprint summary: `{fingerprint_summary(val)}`")
     # Also show snapshot fingerprint binding if available via outer scope
-    st.caption("Identities are verified at typed service boundaries; E3 has no such identities.")
+    st.caption("Identities are verified at typed service boundaries.")
 
 
 def _render_design(record: ResearchStudyRecord) -> None:
@@ -272,10 +271,17 @@ def _render_design(record: ResearchStudyRecord) -> None:
         },
     ]
     st.dataframe(design_rows, hide_index=True, width="stretch")
-    st.caption(
-        "Replication unit is fleet_draw for E2; tasks are accounting records, "
-        "not independent replicates."
-    )
+    # Derive caption from typed replication_unit, never hardcode fleet_draw
+    if record.replication_unit:
+        st.caption(
+            f"Replication unit is {record.replication_unit}; tasks are accounting records, "
+            "not independent replicates."
+        )
+    else:
+        st.caption(
+            "Replication unit unavailable; tasks are accounting records, "
+            "not independent replicates."
+        )
 
 
 def _render_per_draw_and_summary(record: ResearchStudyRecord) -> None:
@@ -310,7 +316,8 @@ def _render_per_draw_and_summary(record: ResearchStudyRecord) -> None:
         s = record.declared_summary
         st.markdown(f"**Estimate:** `{s.estimate}`")
         if s.ci_lower is not None and s.ci_upper is not None:
-            st.markdown(f"**Declared 95% interval:** `[{s.ci_lower}, {s.ci_upper}]`")
+            # Generic label: Declared interval unless typed coverage exists
+            st.markdown(f"**Declared interval:** `[{s.ci_lower}, {s.ci_upper}]`")
         else:
             st.caption("Declared interval: Unavailable")
         if s.method:
@@ -517,15 +524,6 @@ def render(config: object) -> None:  # noqa: ANN001, ARG001
 
     _render_boundaries()
     _render_lineage_warning()
-
-    all_recs = _all_records(snapshot)
-    # Discriminating: E3 must be absent
-    if any(r.study == "E3" for r in all_recs):
-        st.error(
-            "Registry contains unexpected E3 record — this violates the "
-            "absent/unavailable requirement."
-        )
-        return
 
     selected = _render_study_list(snapshot)
     if selected is None:
