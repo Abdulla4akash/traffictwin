@@ -139,7 +139,7 @@ def _agreement_for(
         "causal_disclaimer": CAUSAL_DISCLAIMER,
     }
     base.update(overrides)
-    return SideBySideAgreement(**base)
+    return SideBySideAgreement.model_validate(base)
 
 
 # ---------------------------------------------------------------------------
@@ -155,19 +155,21 @@ def test_side_by_side_requires_explicit_agreement() -> None:
     replay = SideBySideReplay(left, right, agreement)
     state = replay.synchronized_state()
     assert state.agreement_fingerprint == agreement.fingerprint()
-    # Missing fingerprints fails
+    # Missing fingerprints fails (invalid pattern triggers ValidationError via runtime payload)
     with pytest.raises(ValidationError):
-        SideBySideAgreement(  # type: ignore[call-arg]
-            time_basis="simulator_time_s",
-            time_units="seconds",
-            alignment="clock_align",
-            tolerance_s=0.1,
-            window_start_s=0.0,
-            window_end_s=1.0,
-            left_stream_fingerprint="bad",
-            right_stream_fingerprint=right.fingerprint(),
-            identity_namespace="src-001",
-            causal_disclaimer=CAUSAL_DISCLAIMER,
+        SideBySideAgreement.model_validate(
+            {
+                "time_basis": "simulator_time_s",
+                "time_units": "seconds",
+                "alignment": "clock_align",
+                "tolerance_s": 0.1,
+                "window_start_s": 0.0,
+                "window_end_s": 1.0,
+                "left_stream_fingerprint": "bad",
+                "right_stream_fingerprint": right.fingerprint(),
+                "identity_namespace": "src-001",
+                "causal_disclaimer": CAUSAL_DISCLAIMER,
+            }
         )
 
 
@@ -175,9 +177,9 @@ def test_same_time_basis_and_units_enforced() -> None:
     left = _stream()
     right = _stream()
     with pytest.raises(ValidationError):
-        _agreement_for(left, right, time_basis="wall_clock")  # type: ignore[arg-type]
+        _agreement_for(left, right, time_basis="wall_clock")
     with pytest.raises(ValidationError):
-        _agreement_for(left, right, time_units="milliseconds")  # type: ignore[arg-type]
+        _agreement_for(left, right, time_units="milliseconds")
 
 
 def test_compatible_source_schema_and_fingerprints() -> None:
@@ -421,7 +423,9 @@ def test_scale_and_resource_are_generic_source_present_only() -> None:
     assert any(ev.event_type is EventType.SCALE_ACTION for ev in state.left_window)
     # No inferred P2C or stale state
     rs = [e for e in state.left_window if e.event_type is EventType.RESOURCE_STATE][0]
-    assert rs.payload.measurements[0].metric_id == "cpu_load"  # type: ignore[union-attr]
+    # Narrow to ResourceStateEvent for typed payload access
+    assert isinstance(rs.payload, ResourceStatePayload)
+    assert rs.payload.measurements[0].metric_id == "cpu_load"
 
 
 def test_side_by_side_state_and_controls_discriminated() -> None:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 from pydantic import ValidationError
 
@@ -118,17 +120,19 @@ def _vehicle_event(
     )
 
 
-def _stream_with_events(
-    events: tuple[ReplayEvent, ...] | list[ReplayEvent],
-) -> ReplayEventStream:
-    # Determine present types canonically sorted
+def _stream_with_events(events: Sequence[ReplayEvent]) -> ReplayEventStream:
+    # Canonically tuple-ise (Sequence is covariant, so list[SimulationTimeEvent] is accepted)
+    events_tuple = tuple(events)
     src = _source()
+    # Determine present types canonically sorted
     manifest = _manifest(
         source=src,
-        available=tuple(sorted({e.event_type for e in events}, key=str)) if events else (),
+        available=tuple(sorted({e.event_type for e in events_tuple}, key=str))
+        if events_tuple
+        else (),
     )
     # If events empty, manifest available empty
-    if not events:
+    if not events_tuple:
         manifest = _manifest(source=src, available=())
         return ReplayEventStream(
             stream_id="stream-001",
@@ -138,13 +142,13 @@ def _stream_with_events(
             limitations=("a",),
         )
     # Ensure manifest covers types
-    present = tuple(sorted({e.event_type for e in events}, key=str))
+    present = tuple(sorted({e.event_type for e in events_tuple}, key=str))
     manifest = _manifest(source=src, available=present)
     return ReplayEventStream(
         stream_id="stream-001",
         capability_manifest=manifest,
         present_event_types=present,
-        events=tuple(events),
+        events=events_tuple,
         limitations=("a",),
     )
 
@@ -393,12 +397,12 @@ def test_immutable_source_and_tamper_detection() -> None:
     # fingerprint if we mutated internally;
     # Simulate by manually patching engine's stream reference (simulating tamper)
     other_stream = _stream_with_events([_sim_event(seq=0, time=0.0), extra])
-    engine._stream = other_stream  # type: ignore[attr-defined]
+    object.__setattr__(engine, "_stream", other_stream)
     with pytest.raises(ReplayEngineError, match="TAMPER"):
         engine.state()
     # Restore and verify passes
-    engine._stream = stream  # type: ignore[attr-defined]
-    engine._stream_fingerprint = fp  # type: ignore[attr-defined]
+    object.__setattr__(engine, "_stream", stream)
+    object.__setattr__(engine, "_stream_fingerprint", fp)
     assert engine.verify_integrity(fp) is True
 
 
@@ -528,7 +532,7 @@ def test_scale_and_resource_events_are_generic_only() -> None:
     assert win[0].payload.measurements[0].metric_id == "cpu_load"  # type: ignore[union-attr]
     assert win[1].payload.source_declared_action == "scale_up"  # type: ignore[union-attr]
     # Using engine must not mutate or enrich payloads.
-    assert win[0].payload == r_evt.payload  # type: ignore[union-attr]
+    assert win[0].payload == r_evt.payload
 
 
 def test_invalid_step_counts_fail_closed() -> None:
