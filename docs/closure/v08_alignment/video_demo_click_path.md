@@ -42,4 +42,4 @@ Steps are read in order; cursor moves are the only animation; no step exceeds 12
 
 - Frozen baseline SHAs as in script.
 - Manchester demo SHAs recomputed from `manchester_demo/*.json` committed files.
-- Strategy / improved artifacts at exact frozen lane SHAs declared in `.harness/context/dependency_sha_manifest.json`.
+- Strategy / improved artifacts at exact frozen lane SHAs declared in the frozen-dependency manifest (controller-only `.harness` provenance, excluded from committed locator resolution).

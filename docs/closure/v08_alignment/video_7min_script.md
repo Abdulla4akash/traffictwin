@@ -4,7 +4,7 @@
 **Base SHA:** `bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6` · **Prepared base:** `1185286b6dc651347b54039031ca9c28c639c38a`
 **Feature:** Seven-minute video package (complements report, not recorded submission)
 **Total duration:** 420 seconds (7:00) — exactly 8 segments, no gap or overlap
-**Word budget:** 880 words total (~126 wpm, 6.9 min spoken) — validated by `scripts/validate_v08_video_package.py`
+**Word budget:** 826 words total (~118 wpm, 7.0 min spoken) — validated by `scripts/validate_v08_video_package.py`
 
 > Source-honesty labels used throughout: **SOURCE-DERIVED FACT**, **IMPLEMENTATION-VERIFIED FACT**, **RESEARCH-EVIDENCE FACT**, **INFERENCE**, **PROVISIONAL WORDING**, **EXTERNAL DECISION REQUIRED**. Violating label discipline is a contract defect.
 
@@ -33,15 +33,15 @@
 | # | Segment | Start | End | Duration (s) | Words | WPM implied | Honesty |
 |---|---------|-------|-----|--------------|-------|-------------|---------|
 | 1 | Requirements — Negotiated Version 1 baseline | 0:00 | 0:30 | 30 | 63 | 126 | SOURCE-DERIVED FACT |
-| 2 | Services — two bounded ITS services | 0:30 | 1:15 | 45 | 95 | 127 | SOURCE-DERIVED FACT + IMPLEMENTATION-VERIFIED FACT |
-| 3 | Manchester / data engineering — bounded current-context view | 1:15 | 2:15 | 60 | 128 | 128 | IMPLEMENTATION-VERIFIED FACT |
-| 4 | Existing strategies — strategy matrix | 2:15 | 3:10 | 55 | 115 | 125 | IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT |
-| 5 | Improved strategy — per-task least-busy placement | 3:10 | 4:10 | 60 | 128 | 128 | RESEARCH-EVIDENCE FACT |
-| 6 | Evidence — one improved result with uncertainty and reproducibility | 4:10 | 5:15 | 65 | 135 | 125 | RESEARCH-EVIDENCE FACT |
-| 7 | Short demo — click path (reachable artifacts only) | 5:15 | 6:15 | 60 | 126 | 126 | IMPLEMENTATION-VERIFIED FACT |
-| 8 | Contribution / limits / conclusion | 6:15 | 7:00 | 45 | 92 | 123 | INFERENCE + EXTERNAL DECISION REQUIRED |
+| 2 | Services — two bounded ITS services | 0:30 | 1:15 | 45 | 92 | 122 | SOURCE-DERIVED FACT + IMPLEMENTATION-VERIFIED FACT |
+| 3 | Manchester / data engineering — bounded current-context view | 1:15 | 2:15 | 60 | 110 | 110 | IMPLEMENTATION-VERIFIED FACT |
+| 4 | Existing strategies — strategy matrix | 2:15 | 3:10 | 55 | 110 | 120 | IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT |
+| 5 | Improved strategy — per-task least-busy placement | 3:10 | 4:10 | 60 | 108 | 108 | RESEARCH-EVIDENCE FACT |
+| 6 | Evidence — one improved result with uncertainty and reproducibility | 4:10 | 5:15 | 65 | 141 | 130 | RESEARCH-EVIDENCE FACT |
+| 7 | Short demo — click path (reachable artifacts only) | 5:15 | 6:15 | 60 | 114 | 114 | IMPLEMENTATION-VERIFIED FACT |
+| 8 | Contribution / limits / conclusion | 6:15 | 7:00 | 45 | 88 | 117 | INFERENCE + EXTERNAL DECISION REQUIRED |
 
-**Word budget check:** total 880, per-segment 63–135, all within 40–180. Timing check: 30+45+60+55+60+65+60+45 = 420.
+**Word budget check:** total 826, per-segment 63–141, all within 40–180. Timing check: 30+45+60+55+60+65+60+45 = 420.
 
 ---
 
@@ -58,11 +58,11 @@
 
 ---
 
-### Segment 2 — Services — two bounded ITS services (0:30–1:15, 45 s, ~95 words)
+### Segment 2 — Services — two bounded ITS services (0:30–1:15, 45 s, ~92 words)
 
 **Standing:** SOURCE-DERIVED FACT (S-001 scope) + IMPLEMENTATION-VERIFIED FACT (code paths at bd4570fd).
 
-**Narration (95 words):**
+**Narration (92 words):**
 > We exercise the methodology with two bounded services, not a live operator product. Service A is a Manchester current-context review: an analyst demonstrates what is actually available — historic counts, bus positions when keyed, strategic-road snapshots — versus synthetic or unavailable inputs, without claiming a live city twin. Service B is deadline-aware VEC offloading: vehicles emit tasks, the frozen MAPPO actor chooses offload intent, infrastructure admits and places V2I tasks against backlog deadlines and a waiting-room ceiling. Both are bounded, offline-first demonstrations, exercised through committed fixtures and a single synthetic smoke scenario.
 
 **On-screen:** Use-case A/B manifests + navigation locators.
@@ -70,11 +70,11 @@
 
 ---
 
-### Segment 3 — Manchester / data engineering — bounded current-context view (1:15–2:15, 60 s, ~128 words)
+### Segment 3 — Manchester / data engineering — bounded current-context view (1:15–2:15, 60 s, ~110 words)
 
 **Standing:** IMPLEMENTATION-VERIFIED FACT (bounded adapters at bd4570fd) — MIXED standing.
 
-**Narration (128 words):**
+**Narration (110 words):**
 > Manchester is shown as a MIXED bounded demonstration, not a live deployment. One honest view suffices: the Manchester Evidence Hub at slash manchester-evidence-hub plus Manchester Operations at slash manchester. With no credentials, both render honest blockers: bus positions and strategic-road snapshots show not-ready-credential-missing and no retrieval is attempted; the deterministic demo replays committed receipts only. Historic DfT counts and the static ONS boundary are accepted available; TfGM signal locations are static; general live road traffic from BODS and a continuous city-wide live twin are explicitly DESIGN-ONLY CAPABILITY and remain blocked. The view separates REAL MANCHESTER DATA from REAL EXTERNAL NON-MANCHESTER DATA — strategic-road only, never presented as Manchester city-road traffic.
 
 **On-screen (one honest Manchester/current-data view):** `manchester_demo/current_view_artifact.json` MIXED packet — Hub readiness table, blocked unavailable rows, fingerprint from typed state.
@@ -83,11 +83,11 @@
 
 ---
 
-### Segment 4 — Existing strategies — strategy matrix (2:15–3:10, 55 s, ~115 words)
+### Segment 4 — Existing strategies — strategy matrix (2:15–3:10, 55 s, ~110 words)
 
 **Standing:** IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT — matrix at `strategy_matrix.json`.
 
-**Narration (115 words):**
+**Narration (110 words):**
 > Existing strategies are compared through the frozen matrix, not by ad-hoc narrative. Three arms share one frozen actor and one incident-hour trace, differing only in infrastructure authority. Off uses strongest-link execution with no load balancing. JSQ without gate picks the least-busy RSU by remaining service work, argmin of rsu-busy-ms, common-target per substep, without a deadline gate — least-busy, not canonical queue-length. Ingress DLA keeps strongest-link execution and adds the backlog deadline gate. Direction A deterministic load balancing and directions B and C learning-based load balancing from the direct body S-035 are requested investigations, not mandatory implementations until authority confirms scope. Zero backhaul is a controlled idealisation, not a deployment claim.
 
 **On-screen (one strategy matrix):** `strategy_matrix.json` — three arms, admission vs placement separation, information, authority, limits.
@@ -95,11 +95,11 @@
 
 ---
 
-### Segment 5 — Improved strategy — per-task least-busy placement (3:10–4:10, 60 s, ~128 words)
+### Segment 5 — Improved strategy — per-task least-busy placement (3:10–4:10, 60 s, ~108 words)
 
 **Standing:** IMPLEMENTATION-VERIFIED FACT + RESEARCH-EVIDENCE FACT — contract `improved_dynamic_strategy_contract.json` (per_task_dla).
 
-**Narration (128 words):**
+**Narration (108 words):**
 > The improved proposal is per-task sequential least-busy feasible placement, called per_task_dla in the E2d robustness study. After the actor's intent, infrastructure selects the feasible RSU with least remaining service work, recomputed for every candidate with immediate reservation of admitted service and lowest-index tie break. Deadline gate and waiting-room ceiling apply at the selected target. It is deterministic, not learned, and does not observe policy load. The bound is explicit: four matched fleet draws, seeds one to four, one incident hour, evaluator seed zero, 2.5× queue ceiling, fixed 1× service, zero backhaul. Naming follows the frozen E2d manifest f77afb231, not an invented label, and canonical JSQ is explicitly denied.
 
 **On-screen (one improved result hook):** contract identity block + order/reservation diagram (no overclaim).
@@ -108,24 +108,24 @@
 
 ---
 
-### Segment 6 — Evidence — one improved result with uncertainty and reproducibility (4:10–5:15, 65 s, ~135 words)
+### Segment 6 — Evidence — one improved result with uncertainty and reproducibility (4:10–5:15, 65 s, ~141 words)
 
 **Standing:** RESEARCH-EVIDENCE FACT — E2d per-task robustness comparison, one improved result shown.
 
-**Narration (135 words):**
-> One reproducible result is shown, with its limitation stated. At E2d matched fleet seed two, per-task placement moves offered attainment by plus zero point zero two versus the common-target DLA baseline, with a paired difference descriptive only; across seeds one to four the effect ranges from negative zero point zero two to positive zero point zero two and is not a confirmed improvement without a primary statistical plan. Admitted latency and forwarding share are reported alongside attainment as a trade-off, not a headline alone. Replication unit is fleet draw, not per-task count. Every row carries a manifest SHA, actor SHA 93c97, and trace SHA e188ce. Reproducibility is via the committed comparison JSON and validation report at the frozen E2d head 80e8ae55, not via a live re-run in the video.
+**Narration (141 words):**
+> One reproducible result is shown, with its limitation stated. At E2d matched fleet seed two, figure fig3_e2d_per_task_minus_ingress_seed2 gives per_task_dla minus ingress_dla offered attainment plus zero point zero zero five eight seven, paired difference plus 0.00587 versus the ingress_dla baseline, descriptive per draw. Across seeds one to four the paired differences are 0.00464, 0.00587, 0.00507, 0.00551, mean 0.00527, two-sided Student-t 95 percent interval 0.00442 to 0.00612, which excludes zero within the bounded four-draw replication and is the predeclared primary interval e2d_primary_interval. Admitted latency and forwarding share are reported alongside attainment as a trade-off, not a headline alone. Replication unit is fleet draw, not per-task count. Every row carries manifest SHA f77afb231, actor SHA 93c97059, and trace SHA e188ce. Reproducibility is via the committed comparison JSON and validation report at the frozen E2d head 80e8ae55, not via a live re-run in the video.
 
-**On-screen (one improved result + reproducibility artifact):** single-row figure `dla vs per_task_dla` + artifact card with SHAs, manifest path, validation path.
-**Limitation spoken:** One-draw descriptive, no confidence interval without pre-declared plan; cannot generalise beyond E2d hour/cap/service/actor.
+**On-screen (one improved result + reproducibility artifact):** single-row figure `per_task_dla minus ingress_dla` `fig3_e2d_per_task_minus_ingress_seed2` (seed 2 +0.00587, range 0.00464..0.00587, mean 0.00527, 95% interval 0.00442–0.00612) + artifact card with SHAs, manifest path, validation path.
+**Limitation spoken:** Bounded four-draw replication; interval e2d_primary_interval 0.00442–0.00612 excludes zero within bound; cannot generalise beyond E2d hour/cap/service/actor; replication unit is fleet draw.
 **Boundary:** No task-level significance inferred from per-task N.
 
 ---
 
-### Segment 7 — Short demo — click path (5:15–6:15, 60 s, ~126 words)
+### Segment 7 — Short demo — click path (5:15–6:15, 60 s, ~114 words)
 
 **Standing:** IMPLEMENTATION-VERIFIED FACT — all locators verified at bd4570fd and prepared base.
 
-**Narration (126 words):**
+**Narration (114 words):**
 > The sixty-second demo follows an exact click path with no invented pages. One: open Manchester Evidence Hub at slash manchester-evidence-hub, verify readiness table shows blocked DESIGN-ONLY rows and deterministic fingerprint. Two: open Manchester Operations at slash manchester, inspect strategic-road National Highways card — blocked without key or labelled REAL EXTERNAL NON-MANCHESTER DATA when keyed. Three: open the bounded DfT historic catalogue and ONS boundary layer. Four: open the strategy matrix JSON and highlight the three arms. Five: open the per_task_dla contract and figure data CSV. Six: run traffictwin doctor and bundle diagnostics in read-only mode. All steps are offline-first with no live retrieval unless credentials are locally configured, and no step tours all pages.
 
 **On-screen:** step counter + locator + route overlay matching `video_demo_click_path.md`.
@@ -133,11 +133,11 @@
 
 ---
 
-### Segment 8 — Contribution / limits / conclusion (6:15–7:00, 45 s, ~92 words)
+### Segment 8 — Contribution / limits / conclusion (6:15–7:00, 45 s, ~88 words)
 
 **Standing:** INFERENCE (contribution) + EXTERNAL DECISION REQUIRED (limits) — no stakeholder approval claim.
 
-**Narration (92 words):**
+**Narration (88 words):**
 > Contribution is bounded: one reproducible infrastructure placement rule, one honest Manchester current-context packet, and a strategy comparison that distinguishes admission from placement. Limits are explicit: P0 gaps in service reconciliation, strategy assessment, and adequate QoS evaluation; P1 gaps in RQ confirmation, profiling reconciliation, video recording, three-arm RSU comparison, and RSU ceiling probe; seven external decisions remain open before final submission. No feature count, page rendering, or repository merge creates a negotiated requirement. Any future confirmation requires a new primary source ID and SHA with a new baseline hash.
 
 **On-screen:** limitations register rows P0/P1 + external decisions ED-001..ED-007; closing hash banner.
@@ -149,7 +149,7 @@
 
 Validated by `scripts/validate_v08_video_package.py`:
 
-- Total 880 words, total 420 s.
+- Total 826 words, total 420 s.
 - Each narration boundary present.
 - No forbidden phrase.
 - One Manchester view, one matrix, one improved result, one reproducibility artifact each present.
