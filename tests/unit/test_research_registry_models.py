@@ -97,7 +97,12 @@ def test_valid_completed_with_evidence_requires_hashes() -> None:
             for i in [1, 2, 3, 4]
         ],
         declared_summary=DeclaredSummary(
-            estimate=0.01, ci_lower=0.005, ci_upper=0.015, method="t-interval"
+            estimate=0.01,
+            ci_lower=0.005,
+            ci_upper=0.015,
+            method="t-interval",
+            arm="dla",
+            metric="offered_task_deadline_attainment",
         ),
         limitations=["one Manchester incident hour", "four matched draws"],
         non_claims=["no population inference", "no universal superiority"],
@@ -377,6 +382,7 @@ def test_e3_not_admitted_is_valid_future() -> None:
 def test_non_e3_admitted_is_valid_with_hashes() -> None:
     rec = _minimal_valid(
         study="E2",
+        status=StudyStatus.COMPLETED,
         evidence=EvidenceStanding.AVAILABLE,
         admission=AdmissionStatus.ADMITTED,
         code_sha=HEX40_A,
@@ -412,7 +418,7 @@ def test_generic_e3_structurally_valid_without_trusted_claim() -> None:
             ),
         ],
         declared_summary=DeclaredSummary(
-            estimate=0.55, ci_lower=0.4, ci_upper=0.7, method="bootstrap"
+            estimate=0.55, ci_lower=0.4, ci_upper=0.7, method="bootstrap", arm="control"
         ),
     )
     assert rec.study == "E3"
@@ -441,7 +447,7 @@ def test_generic_e3_structurally_valid_without_trusted_claim() -> None:
             ),
         ],
         declared_summary=DeclaredSummary(
-            estimate=0.55, ci_lower=0.4, ci_upper=0.7, method="bootstrap"
+            estimate=0.55, ci_lower=0.4, ci_upper=0.7, method="bootstrap", arm="control"
         ),
     )
     assert rec.fingerprint() == rec2.fingerprint()
@@ -576,11 +582,12 @@ def test_generic_study_not_hardcoded_e2() -> None:
         code_sha=HEX40_B,
         manifest_hash=HEX64_B,
         replication_unit="random_seed",
+        draws=[0],
         arms=["control", "treatment"],
         primary_metrics=["latency_ms"],
-        per_draw_values=[PerDrawValue(draw=0, value=12.5)],
+        per_draw_values=[PerDrawValue(draw=0, value=12.5, arm="control", metric="latency_ms")],
         declared_summary=DeclaredSummary(
-            estimate=12.5, ci_lower=10.0, ci_upper=15.0, method="bootstrap 95%"
+            estimate=12.5, ci_lower=10.0, ci_upper=15.0, method="bootstrap 95%", arm="control"
         ),
     )
     assert rec.study == "X-99"
@@ -592,3 +599,363 @@ def test_extra_field_in_declared_summary_rejected() -> None:
         DeclaredSummary.model_validate(
             {"estimate": 1.0, "ci_lower": 0.5, "ci_upper": 1.5, "method": "t", "extra": "nope"}
         )
+
+
+# ---------------------------------------------------------------------------
+# Mutation/discriminating: admission inflation (fail closed)
+# ---------------------------------------------------------------------------
+
+
+def test_admitted_with_planned_rejected() -> None:
+    with pytest.raises(ValidationError, match="admitted.*status|must be completed"):
+        _minimal_valid(
+            study="G-01",
+            status=StudyStatus.PLANNED,
+            evidence=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+            admission=AdmissionStatus.ADMITTED,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+        )
+
+
+def test_admitted_with_in_progress_rejected() -> None:
+    with pytest.raises(ValidationError, match="admitted.*status|must be completed"):
+        _minimal_valid(
+            study="G-02",
+            status=StudyStatus.IN_PROGRESS,
+            evidence=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+            admission=AdmissionStatus.ADMITTED,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+        )
+
+
+def test_admitted_with_unavailable_status_rejected() -> None:
+    with pytest.raises(ValidationError, match="admitted.*status|must be completed"):
+        _minimal_valid(
+            study="G-03",
+            status=StudyStatus.UNAVAILABLE,
+            evidence=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+            admission=AdmissionStatus.ADMITTED,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+        )
+
+
+def test_admitted_with_withdrawn_rejected() -> None:
+    with pytest.raises(ValidationError, match="admitted.*status|must be completed"):
+        _minimal_valid(
+            study="G-04",
+            status=StudyStatus.WITHDRAWN,
+            evidence=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+            admission=AdmissionStatus.ADMITTED,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+        )
+
+
+def test_admitted_with_provisional_evidence_rejected() -> None:
+    with pytest.raises(ValidationError, match="admitted.*evidence|provisional|must be RESEARCH"):
+        _minimal_valid(
+            study="G-05",
+            status=StudyStatus.COMPLETED,
+            evidence=EvidenceStanding.PROVISIONAL,
+            admission=AdmissionStatus.ADMITTED,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+        )
+
+
+def test_admitted_with_derived_evidence_rejected() -> None:
+    with pytest.raises(ValidationError, match="admitted.*evidence|derived|must be RESEARCH"):
+        _minimal_valid(
+            study="G-06",
+            status=StudyStatus.COMPLETED,
+            evidence=EvidenceStanding.DERIVED,
+            admission=AdmissionStatus.ADMITTED,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+        )
+
+
+def test_admitted_with_unavailable_evidence_rejected() -> None:
+    with pytest.raises(ValidationError, match="admitted.*evidence|unavailable|must be RESEARCH"):
+        _minimal_valid(
+            study="G-07",
+            status=StudyStatus.COMPLETED,
+            evidence=EvidenceStanding.UNAVAILABLE,
+            admission=AdmissionStatus.ADMITTED,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+        )
+
+
+def test_admitted_with_superseded_is_valid_historical() -> None:
+    rec = _minimal_valid(
+        study="G-08",
+        status=StudyStatus.SUPERSEDED,
+        evidence=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+        admission=AdmissionStatus.ADMITTED,
+        code_sha=HEX40_A,
+        manifest_hash=HEX64_A,
+    )
+    assert rec.status == StudyStatus.SUPERSEDED
+    assert rec.admission_status == AdmissionStatus.ADMITTED
+
+
+def test_admitted_with_completed_and_available_is_valid() -> None:
+    rec = _minimal_valid(
+        study="G-09",
+        status=StudyStatus.COMPLETED,
+        evidence=EvidenceStanding.AVAILABLE,
+        admission=AdmissionStatus.ADMITTED,
+        code_sha=HEX40_A,
+        manifest_hash=HEX64_A,
+    )
+    assert rec.admission_status == AdmissionStatus.ADMITTED
+
+
+# ---------------------------------------------------------------------------
+# Mutation/discriminating: per-draw deterministic identities
+# ---------------------------------------------------------------------------
+
+
+def test_per_draw_without_declared_draws_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw_values requires declared draws"):
+        _minimal_valid(
+            study="G-10",
+            status=StudyStatus.COMPLETED,
+            evidence=EvidenceStanding.AVAILABLE,
+            admission=AdmissionStatus.NOT_APPLICABLE,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+            per_draw_values=[PerDrawValue(draw=0, value=1.0)],
+        )
+
+
+def test_per_draw_draw_not_in_declared_draws_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw draw.*not in declared draws"):
+        _minimal_valid(
+            draws=[1, 2],
+            per_draw_values=[PerDrawValue(draw=99, value=1.0)],
+        )
+
+
+def test_per_draw_missing_arm_when_arms_declared_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw arm required when arms declared"):
+        _minimal_valid(
+            draws=[0, 1],
+            arms=["control", "treatment"],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0)],
+        )
+
+
+def test_per_draw_missing_metric_when_metrics_declared_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw metric required when metrics declared"):
+        _minimal_valid(
+            draws=[0],
+            primary_metrics=["latency_ms"],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0)],
+        )
+
+
+def test_per_draw_missing_metric_when_secondary_metrics_declared_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw metric required"):
+        _minimal_valid(
+            draws=[0],
+            secondary_metrics=["secondary_m"],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0)],
+        )
+
+
+def test_per_draw_missing_arm_and_metric_when_both_declared_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw arm required"):
+        _minimal_valid(
+            draws=[0],
+            arms=["a", "b"],
+            primary_metrics=["m1"],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0)],
+        )
+
+
+def test_per_draw_orphan_arm_without_declared_arms_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw arm.*orphan without declared arms"):
+        _minimal_valid(
+            draws=[0],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0, arm="orphan")],
+        )
+
+
+def test_per_draw_orphan_metric_without_declared_metrics_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw metric.*orphan without declared metrics"):
+        _minimal_valid(
+            draws=[0],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0, metric="orphan_m")],
+        )
+
+
+def test_per_draw_arm_not_in_declared_set_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw arm.*not in declared arms"):
+        _minimal_valid(
+            draws=[0],
+            arms=["control", "treatment"],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0, arm="unknown")],
+        )
+
+
+def test_per_draw_metric_not_in_declared_set_rejected() -> None:
+    with pytest.raises(ValidationError, match="per_draw metric.*not in declared metrics"):
+        _minimal_valid(
+            draws=[0],
+            primary_metrics=["m1"],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0, metric="unknown_m")],
+        )
+
+
+def test_per_draw_undeclared_draws_with_arm_metric_rejected() -> None:
+    # Even fully identified values are orphan if draws missing.
+    with pytest.raises(ValidationError, match="per_draw_values requires declared draws"):
+        _minimal_valid(
+            arms=["a"],
+            primary_metrics=["m1"],
+            per_draw_values=[PerDrawValue(draw=0, value=1.0, arm="a", metric="m1")],
+        )
+
+
+def test_per_draw_single_series_without_arm_metric_is_valid() -> None:
+    rec = _minimal_valid(
+        study="G-20",
+        status=StudyStatus.COMPLETED,
+        evidence=EvidenceStanding.AVAILABLE,
+        admission=AdmissionStatus.NOT_APPLICABLE,
+        code_sha=HEX40_A,
+        manifest_hash=HEX64_A,
+        draws=[0, 1, 2],
+        per_draw_values=[
+            PerDrawValue(draw=0, value=0.1),
+            PerDrawValue(draw=1, value=0.2),
+            PerDrawValue(draw=2, value=0.3),
+        ],
+    )
+    assert len(rec.per_draw_values or []) == 3
+    assert all(v.arm is None and v.metric is None for v in rec.per_draw_values or [])
+
+
+def test_per_draw_single_arm_single_metric_explicit_is_valid() -> None:
+    rec = _minimal_valid(
+        draws=[0],
+        arms=["only_arm"],
+        primary_metrics=["only_metric"],
+        per_draw_values=[PerDrawValue(draw=0, value=5.0, arm="only_arm", metric="only_metric")],
+    )
+    assert rec.per_draw_values is not None
+
+
+# ---------------------------------------------------------------------------
+# Mutation/discriminating: declared_summary identity
+# ---------------------------------------------------------------------------
+
+
+def test_declared_summary_arm_required_when_multiple_arms_rejected() -> None:
+    with pytest.raises(ValidationError, match="declared_summary arm required when multiple arms"):
+        _minimal_valid(
+            study="G-30",
+            status=StudyStatus.COMPLETED,
+            evidence=EvidenceStanding.AVAILABLE,
+            admission=AdmissionStatus.NOT_APPLICABLE,
+            code_sha=HEX40_A,
+            manifest_hash=HEX64_A,
+            arms=["control", "treatment"],
+            primary_metrics=["m1"],
+            declared_summary=DeclaredSummary(estimate=1.0),
+        )
+
+
+def test_declared_summary_metric_required_when_multiple_metrics_rejected() -> None:
+    with pytest.raises(
+        ValidationError, match="declared_summary metric required when multiple metrics"
+    ):
+        _minimal_valid(
+            primary_metrics=["m1"],
+            secondary_metrics=["m2"],
+            declared_summary=DeclaredSummary(estimate=1.0),
+        )
+
+
+def test_declared_summary_metric_required_when_multiple_primary_metrics_rejected() -> None:
+    with pytest.raises(ValidationError, match="declared_summary metric required"):
+        _minimal_valid(
+            primary_metrics=["m1", "m2"],
+            declared_summary=DeclaredSummary(estimate=2.0, arm=None),
+        )
+
+
+def test_declared_summary_orphan_arm_without_declared_arms_rejected() -> None:
+    with pytest.raises(ValidationError, match="declared_summary arm.*orphan without declared arms"):
+        _minimal_valid(
+            declared_summary=DeclaredSummary(estimate=1.0, arm="orphan"),
+        )
+
+
+def test_declared_summary_orphan_metric_without_declared_metrics_rejected() -> None:
+    with pytest.raises(
+        ValidationError, match="declared_summary metric.*orphan without declared metrics"
+    ):
+        _minimal_valid(
+            declared_summary=DeclaredSummary(estimate=1.0, metric="orphan_m"),
+        )
+
+
+def test_declared_summary_arm_not_in_declared_set_rejected() -> None:
+    with pytest.raises(ValidationError, match="declared_summary arm.*not in declared arms"):
+        _minimal_valid(
+            arms=["a", "b"],
+            declared_summary=DeclaredSummary(estimate=1.0, arm="unknown"),
+        )
+
+
+def test_declared_summary_metric_not_in_declared_set_rejected() -> None:
+    with pytest.raises(ValidationError, match="declared_summary metric.*not in declared metrics"):
+        _minimal_valid(
+            primary_metrics=["m1"],
+            declared_summary=DeclaredSummary(estimate=1.0, metric="unknown_m"),
+        )
+
+
+def test_declared_summary_single_arm_without_identity_is_valid() -> None:
+    # Single arm + single metric => summary may omit explicit identities unambiguously.
+    rec = _minimal_valid(
+        arms=["only_arm"],
+        primary_metrics=["only_metric"],
+        declared_summary=DeclaredSummary(estimate=1.0),
+    )
+    assert rec.declared_summary is not None
+    assert rec.declared_summary.arm is None
+
+
+def test_declared_summary_single_arm_with_explicit_identity_is_valid() -> None:
+    rec = _minimal_valid(
+        arms=["only_arm"],
+        primary_metrics=["only_metric"],
+        draws=[0],
+        per_draw_values=[PerDrawValue(draw=0, value=1.0, arm="only_arm", metric="only_metric")],
+        declared_summary=DeclaredSummary(estimate=1.0, arm="only_arm", metric="only_metric"),
+    )
+    assert rec.declared_summary is not None
+    assert rec.declared_summary.arm == "only_arm"
+
+
+def test_declared_summary_multiple_arms_with_explicit_identity_is_valid() -> None:
+    rec = _minimal_valid(
+        study="G-31",
+        status=StudyStatus.COMPLETED,
+        evidence=EvidenceStanding.AVAILABLE,
+        admission=AdmissionStatus.NOT_APPLICABLE,
+        code_sha=HEX40_A,
+        manifest_hash=HEX64_A,
+        arms=["control", "treatment"],
+        primary_metrics=["m1"],
+        declared_summary=DeclaredSummary(estimate=1.0, arm="control"),
+    )
+    assert rec.declared_summary is not None
+    assert rec.declared_summary.arm == "control"

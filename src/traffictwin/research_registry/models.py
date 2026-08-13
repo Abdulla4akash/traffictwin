@@ -26,6 +26,61 @@ ingestion/service concern (Lane 08 trusted adapter), not inferable from
 study letters in this generic model.
 
 Do not hardcode E2 or E3; this family is generic.
+
+Admission semantics (declared field, not trusted-package proof)
+-------------------------------------------------------------
+``admission_status`` is a *declared* structural field: it states what
+the record claims, not whether Lane 08's trusted adapter has verified an
+external package. This lane verifies internal coherence fail-closed,
+without hard-coded study IDs and without taking over Lane 08 trust
+verification:
+
+* ``ADMITTED`` requires ``status`` in ``{COMPLETED, SUPERSEDED}``.
+  ``PLANNED``, ``IN_PROGRESS``, ``UNAVAILABLE``, and ``WITHDRAWN``
+  cannot be admitted — they denote work not yet done, unavailable, or
+  retracted. ``SUPERSEDED`` is permitted so a once-admitted historical
+  record that is later superseded remains structurally valid.
+* ``ADMITTED`` requires ``evidence_standing`` in
+  ``{RESEARCH_EVIDENCE_FACT, AVAILABLE}`` and exact 40-hex ``code_sha``
+  plus 64-hex ``manifest_hash``. ``UNAVAILABLE``, ``PROVISIONAL``, and
+  ``DERIVED`` cannot be admitted: ``UNAVAILABLE`` has no evidence,
+  ``PROVISIONAL`` denotes interim/unvetted evidence, and ``DERIVED``
+  denotes secondary/transformed evidence — none are truthfully
+  ``RESEARCH-EVIDENCE FACT``. ``AVAILABLE`` is permitted alongside
+  ``RESEARCH-EVIDENCE FACT`` as a generic vetted-available standing;
+  ``PROVISIONAL``/``DERIVED`` are not silently equated with it. Lane 08
+  remains responsible for deciding whether an external package is
+  genuinely trusted.
+
+Per-draw contract
+-----------------
+When ``per_draw_values`` is present the record is a multi-draw
+observation table and must be fully identified:
+
+* ``draws`` must be declared (non-empty) and every ``PerDrawValue.draw``
+  must belong to ``draws``.
+* If ``arms`` is declared, every value must carry ``arm`` explicitly and
+  that arm must belong to ``arms``; if ``arms`` is not declared, every
+  value must have ``arm is None`` (no orphan arms).
+* If any metric dimension is declared (``primary_metrics`` or
+  ``secondary_metrics``), every value must carry ``metric`` explicitly
+  and belong to the declared metric set; if no metrics are declared,
+  every value must have ``metric is None``.
+* A single-series representation (no ``arms``/metrics declared, each
+  value with ``arm``/``metric`` ``None`` and only ``draw``+``value``) is
+  permitted; its semantics are exact because there is exactly one
+  series.
+
+Declared summary identity
+-------------------------
+``DeclaredSummary`` carries optional ``arm``/``metric`` identity fields.
+When a dimension has multiple declared values the summary must name
+which one it summarises (required when ``len(arms) > 1`` or
+``len(combined_metrics) > 1``); otherwise the single summary would
+ambiguously masquerade as summarising several arms/metrics. Any
+supplied identity must belong to the declared sets; orphan identities
+without a declared dimension are rejected. This is the smallest
+future-generic typed change that makes the single summary unambiguous.
 """
 
 from __future__ import annotations
@@ -205,7 +260,7 @@ class PerDrawValue(StrictFrozenModel):
 
 
 class DeclaredSummary(StrictFrozenModel):
-    """Declared summary with optional interval."""
+    """Declared summary with optional interval and optional arm/metric identity."""
 
     estimate: float = Field(description="Point estimate, must be finite")
     ci_lower: float | None = Field(
@@ -216,6 +271,20 @@ class DeclaredSummary(StrictFrozenModel):
     )
     method: str | None = Field(
         default=None, min_length=1, max_length=200, description="Method label"
+    )
+    arm: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        pattern=ARM_RE.pattern,
+        description="Arm identity if summary is arm-specific",
+    )
+    metric: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        pattern=METRIC_RE.pattern,
+        description="Metric identity if summary is metric-specific",
     )
 
     @field_validator("estimate", "ci_lower", "ci_upper")
@@ -233,6 +302,14 @@ class DeclaredSummary(StrictFrozenModel):
         if v is None:
             return None
         _check_no_private_or_secret(v, "declared_summary.method")
+        return v
+
+    @field_validator("arm", "metric")
+    @classmethod
+    def _arm_metric_no_secret(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        _check_no_private_or_secret(v, "declared_summary arm/metric")
         return v
 
     @model_validator(mode="after")
@@ -583,9 +660,27 @@ class ResearchStudyRecord(StrictFrozenModel):
             if not HEX64_RE.match(self.manifest_hash):
                 raise ValueError(f"manifest_hash must be 64-hex, got {self.manifest_hash!r}")
 
-        # Admission coherence: admitted implies evidence is not unavailable
-        if admission_requires_hash and is_unavailable_evidence:
-            raise ValueError("admitted record cannot have unavailable evidence standing")
+        # Admission coherence: admitted must be COMPLETED/SUPERSEDED and fact-available evidence
+        if admission_requires_hash:
+            if self.status in (
+                StudyStatus.PLANNED,
+                StudyStatus.IN_PROGRESS,
+                StudyStatus.UNAVAILABLE,
+                StudyStatus.WITHDRAWN,
+            ):
+                raise ValueError(
+                    f"admitted record cannot have status {self.status!r}; "
+                    "must be completed or superseded"
+                )
+            if self.evidence_standing not in (
+                EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+                EvidenceStanding.AVAILABLE,
+            ):
+                raise ValueError(
+                    f"admitted record cannot have evidence standing {self.evidence_standing!r}; "
+                    "must be RESEARCH-EVIDENCE FACT or available "
+                    "(provisional/derived/unavailable are not truthfully admitted)"
+                )
 
         # Duplicate across primary/secondary metrics
         if self.primary_metrics is not None and self.secondary_metrics is not None:
@@ -595,22 +690,34 @@ class ResearchStudyRecord(StrictFrozenModel):
                     f"primary and secondary metrics must not overlap duplicate {overlap!r}"
                 )
 
-        # Per-draw draws/metrics coherence with declared collections
+        # Per-draw deterministic, unambiguous contract
         if self.per_draw_values is not None:
-            if self.draws is not None:
-                draw_set = set(self.draws)
-                for pd in self.per_draw_values:
-                    if pd.draw not in draw_set:
-                        raise ValueError(
-                            f"per_draw draw {pd.draw!r} not in declared draws {self.draws!r}"
-                        )
+            if self.draws is None:
+                raise ValueError("per_draw_values requires declared draws")
+            draw_set = set(self.draws)
+            for pd in self.per_draw_values:
+                if pd.draw not in draw_set:
+                    raise ValueError(
+                        f"per_draw draw {pd.draw!r} not in declared draws {self.draws!r}"
+                    )
+            # Arm dimension
             if self.arms is not None:
                 arm_set = set(self.arms)
                 for pd in self.per_draw_values:
-                    if pd.arm is not None and pd.arm not in arm_set:
+                    if pd.arm is None:
+                        raise ValueError(
+                            f"per_draw arm required when arms declared {self.arms!r}; "
+                            f"got value without arm for draw {pd.draw!r}"
+                        )
+                    if pd.arm not in arm_set:
                         raise ValueError(
                             f"per_draw arm {pd.arm!r} not in declared arms {self.arms!r}"
                         )
+            else:
+                for pd in self.per_draw_values:
+                    if pd.arm is not None:
+                        raise ValueError(f"per_draw arm {pd.arm!r} orphan without declared arms")
+            # Metric dimension
             known_metrics: set[str] = set()
             if self.primary_metrics is not None:
                 known_metrics.update(self.primary_metrics)
@@ -618,11 +725,71 @@ class ResearchStudyRecord(StrictFrozenModel):
                 known_metrics.update(self.secondary_metrics)
             if known_metrics:
                 for pd in self.per_draw_values:
-                    if pd.metric is not None and pd.metric not in known_metrics:
+                    if pd.metric is None:
+                        raise ValueError(
+                            "per_draw metric required when metrics declared "
+                            f"{sorted(known_metrics)!r}; got value without metric "
+                            f"for draw {pd.draw!r}"
+                        )
+                    if pd.metric not in known_metrics:
                         raise ValueError(
                             f"per_draw metric {pd.metric!r} not in declared metrics "
                             f"{sorted(known_metrics)!r}"
                         )
+            else:
+                for pd in self.per_draw_values:
+                    if pd.metric is not None:
+                        raise ValueError(
+                            f"per_draw metric {pd.metric!r} orphan without declared metrics"
+                        )
+
+        # Declared summary unambiguous identity
+        if self.declared_summary is not None:
+            # Arm identity
+            if self.arms is not None:
+                if len(self.arms) > 1 and self.declared_summary.arm is None:
+                    raise ValueError(
+                        f"declared_summary arm required when multiple arms declared {self.arms!r}"
+                    )
+                if self.declared_summary.arm is not None and self.declared_summary.arm not in set(
+                    self.arms
+                ):
+                    raise ValueError(
+                        f"declared_summary arm {self.declared_summary.arm!r} "
+                        f"not in declared arms {self.arms!r}"
+                    )
+            else:
+                if self.declared_summary.arm is not None:
+                    raise ValueError(
+                        f"declared_summary arm {self.declared_summary.arm!r} "
+                        "orphan without declared arms"
+                    )
+            # Metric identity
+            combined_metrics: set[str] = set()
+            if self.primary_metrics is not None:
+                combined_metrics.update(self.primary_metrics)
+            if self.secondary_metrics is not None:
+                combined_metrics.update(self.secondary_metrics)
+            if combined_metrics:
+                if len(combined_metrics) > 1 and self.declared_summary.metric is None:
+                    raise ValueError(
+                        "declared_summary metric required when multiple metrics declared "
+                        f"{sorted(combined_metrics)!r}"
+                    )
+                if (
+                    self.declared_summary.metric is not None
+                    and self.declared_summary.metric not in combined_metrics
+                ):
+                    raise ValueError(
+                        f"declared_summary metric {self.declared_summary.metric!r} "
+                        f"not in declared metrics {sorted(combined_metrics)!r}"
+                    )
+            else:
+                if self.declared_summary.metric is not None:
+                    raise ValueError(
+                        f"declared_summary metric {self.declared_summary.metric!r} "
+                        "orphan without declared metrics"
+                    )
 
         # Deep scan for private paths / secrets across all string content
         dump = self.model_dump(mode="json")
