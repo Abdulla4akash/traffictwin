@@ -186,10 +186,14 @@ def render() -> None:
         "None on zero denominators or unavailable inputs and no composite quality "
         "score is invented. Accepted/rejected row counts are in **rows** from the "
         "latest accepted/rejected snapshot record_count only (aggregation: latest "
-        "exact pointer per family/state ordered by retrieved_at, no summation). "
+        "exact pointer per family/state ordered by (retrieved_at_utc, registration_id) "
+        "tie-break, bounded 0..10_000_000, no summation). "
         "Components not measured by the snapshot contract (total_expected, missing, "
-        "duplicates, interval gaps, parser rejected rows, spatial denominator) are "
-        "unavailable and shown as —."
+        "duplicates, interval gaps where no defined interval check ran, parser warnings "
+        "where not measured, spatial denominator) are unavailable and shown as —. "
+        "Measured interval_gap_count is exact 0 only when a defined interval check "
+        "actually ran over adequate evidence; otherwise it is —. Parser warning "
+        "count is — when not measured, 0 only when measured zero warnings."
     )
     quality_rows = []
     for family, diag in diagnostics.items():
@@ -219,8 +223,12 @@ def render() -> None:
                 "freshness_delay_s": str(diag.freshness_delay_seconds)
                 if diag.freshness_delay_seconds is not None
                 else "—",
-                "interval_gaps": diag.interval_gap_count,
-                "parser_warnings": diag.parser_warning_count,
+                "interval_gaps": "—"
+                if diag.interval_gap_count is None
+                else str(diag.interval_gap_count),
+                "parser_warnings": "—"
+                if diag.parser_warning_count is None
+                else str(diag.parser_warning_count),
                 "limitations": "; ".join(diag.limitations) or "—",
             }
         )
@@ -236,6 +244,8 @@ def render() -> None:
                 "duplicate_rate": ColumnDisplay(key="duplicate_rate", label="Duplicate rate"),
                 "rejected_rate": ColumnDisplay(key="rejected_rate", label="Rejected rate (rows)"),
                 "spatial_coverage": ColumnDisplay(key="spatial_coverage", label="Spatial coverage"),
+                "interval_gaps": ColumnDisplay(key="interval_gaps", label="Interval gaps"),
+                "parser_warnings": ColumnDisplay(key="parser_warnings", label="Parser warnings"),
             },
         ),
     )
@@ -243,11 +253,16 @@ def render() -> None:
         "Denominators (exact units): missingness = missing_rows (rows) / "
         "total_expected_rows (rows); duplicate_rate = duplicate_rows (rows) / "
         "present_rows (rows); rejected_rate = rejected_rows (rows) / "
-        "(accepted_rows (rows) + rejected_rows (rows)); spatial_coverage = "
-        "covered_cells / total_cells; "
-        "all None on zero/absent denominators; interval gaps where gap > expected interval. "
-        "Unavailable (—) means not measured by the snapshot contract — never inferred as 0. "
-        "Rejected rate denominator is rows from latest snapshots only, never snapshot counts."
+        "(accepted_rows (rows) + rejected_rows (rows)) bounded 0..10_000_000, "
+        "aggregation latest (retrieved_at_utc, registration_id) only; "
+        "spatial_coverage = covered_cells / total_cells; "
+        "all None on zero/absent denominators; interval_gap_count is None (—) when "
+        "no defined interval and >=2 timestamps, exact 0 only when check ran and "
+        "found no gap, otherwise gap count where gap > expected interval. "
+        "Parser_warning_count is None (—) when not measured, exact 0 only when "
+        "measured zero warnings. Unavailable (—) means not measured by snapshot "
+        "contract — never inferred as 0. Rejected rate denominator is rows from "
+        "latest snapshots only, never snapshot counts."
     )
     with st.expander("Advanced: catalogue JSON (secret-free)"):
         st.download_button(

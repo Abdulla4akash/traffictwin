@@ -22,7 +22,10 @@ from traffictwin.integration.manchester.snapshot_registry import (
     SnapshotRegistration,
     SnapshotRegistry,
     SnapshotValidationState,
+    latest_accepted_for_family,
+    latest_rejected_for_family,
     register_snapshot,
+    snapshot_registry_fingerprint,
 )
 from traffictwin.integration.manchester.source_operations_models import (
     CredentialPresence,
@@ -349,6 +352,79 @@ def catalogue_row_display(row: SourceReadiness) -> dict[str, str]:
     }
 
 
+def _verify_catalogue_registry_consistency(
+    catalogue: SourceOperationsCatalogue,
+    registry: SnapshotRegistry,
+) -> None:
+    """Verify exact snapshot pointer and fingerprint consistency.
+
+    The registry supplied must be the same canonical registry used to build
+    the catalogue. Fingerprint divergence or any catalogue latest pointer
+    that has no matching canonical registration (by registration_id,
+    family, validation_state, and record_count identity) fails closed
+    typed rather than displaying a split-brain catalogue.
+    """
+
+    fp = snapshot_registry_fingerprint(registry)
+    if fp != catalogue.snapshot_registry_fingerprint:
+        raise ValueError(
+            f"CATALOGUE_REGISTRY_MISMATCH: catalogue fingerprint "
+            f"{catalogue.snapshot_registry_fingerprint[:12]}… does not match "
+            f"registry {fp[:12]}…"
+        )
+    for row in catalogue.sources:
+        fam = row.source.family
+        for pointer, expected_state in (
+            (row.latest_accepted_snapshot, SnapshotValidationState.ACCEPTED),
+            (row.latest_rejected_snapshot, SnapshotValidationState.REJECTED),
+        ):
+            if pointer is None:
+                continue
+            helper = (
+                latest_accepted_for_family
+                if expected_state is SnapshotValidationState.ACCEPTED
+                else latest_rejected_for_family
+            )
+            reg = helper(registry, fam)
+            if reg is None:
+                raise ValueError(
+                    f"SPLIT_BRAIN: catalogue pointer {pointer.registration_id!r} "
+                    f"for {fam.value} has no matching registry registration"
+                )
+            if reg.registration_id != pointer.registration_id:
+                raise ValueError(
+                    f"SPLIT_BRAIN: registration_id mismatch for {fam.value}: "
+                    f"catalogue {pointer.registration_id!r} vs registry {reg.registration_id!r}"
+                )
+            if reg.snapshot_identity != pointer.snapshot_identity:
+                raise ValueError(
+                    f"SPLIT_BRAIN: snapshot identity mismatch for {pointer.registration_id!r}"
+                )
+            if reg.source_family is not fam or pointer.source_family is not fam:
+                raise ValueError(f"SPLIT_BRAIN: pointer family mismatch for {fam.value}")
+            if (
+                reg.validation_state is not expected_state
+                or pointer.validation_state is not expected_state
+            ):
+                raise ValueError(f"SPLIT_BRAIN: validation state mismatch for {fam.value}")
+            if reg.content_fingerprint != pointer.content_fingerprint:
+                raise ValueError(
+                    f"SPLIT_BRAIN: content fingerprint mismatch for {pointer.registration_id!r}"
+                )
+            if reg.validation_receipt_fingerprint != pointer.validation_receipt_fingerprint:
+                raise ValueError(
+                    f"SPLIT_BRAIN: validation receipt mismatch for {pointer.registration_id!r}"
+                )
+            if reg.retrieved_at_utc != pointer.retrieved_at_utc:
+                raise ValueError(
+                    f"SPLIT_BRAIN: retrieved time mismatch for {pointer.registration_id!r}"
+                )
+            if reg.validated_at_utc != pointer.validated_at_utc:
+                raise ValueError(
+                    f"SPLIT_BRAIN: validated time mismatch for {pointer.registration_id!r}"
+                )
+
+
 def build_quality_inputs_for_catalogue(
     catalogue: SourceOperationsCatalogue,
     registry: SnapshotRegistry,
@@ -359,18 +435,22 @@ def build_quality_inputs_for_catalogue(
     Each diagnostic uses **row counts** from the latest accepted/rejected
     ``SnapshotRegistration`` matching the catalogue row's family and
     validation state (aggregation policy: latest exact pointer only,
-    ordered by ``(retrieved_at_utc, registration_id)``; no summation).
-    The registry is canonically revalidated at the boundary so a forged
-    ``model_copy`` cannot supply arbitrary counts. Source-family/state
-    matching is exact; a DFT ``record_count=7`` and WebTRIS ``999`` yield
-    exactly those accepted row counts.
+    ordered by ``(retrieved_at_utc, registration_id)`` tie-break; no
+    summation). The registry is canonically revalidated at the boundary
+    so a forged ``model_copy`` cannot supply arbitrary counts.
+    Source-family/state matching is exact; a DFT ``record_count=7`` and
+    WebTRIS ``999`` yield exactly those accepted row counts.
 
     Accepted/rejected rates use row-count denominators
-    ``rejected / (accepted + rejected)`` in **rows**; zero denominators
-    yield ``None`` (rendered as —). Components not measured by the
-    snapshot contract (true expected rows, missing rows, duplicates,
-    interval gaps, parser rejected rows, spatial denominator) are
-    ``None``/unavailable and rendered as — — never inferred as 0.
+    ``rejected / (accepted + rejected)`` in **rows** bounded
+    ``0..10_000_000``; zero denominators yield ``None`` (rendered as —).
+    Components not measured by the snapshot contract (true expected rows,
+    missing rows, duplicates, interval gaps, parser rejected rows,
+    spatial denominator) are ``None``/unavailable and rendered as — —
+    never inferred as 0. ``interval_gap_count`` is ``None`` when no
+    defined interval check ran (requires interval and >=2 timestamps);
+    ``parser_warning_count`` is ``None`` when parser warnings were not
+    measured.
     """
 
     if evaluated_at_utc is None:
@@ -385,46 +465,13 @@ def build_quality_inputs_for_catalogue(
         catalogue = SourceOperationsCatalogue.model_validate(catalogue.model_dump(mode="python"))
     except Exception as exc:
         raise ValueError("source catalogue failed canonical revalidation") from exc
-    # Verify registry fingerprint binds to catalogue (truthful provenance).
-    try:
-        from traffictwin.integration.manchester.snapshot_registry import (
-            snapshot_registry_fingerprint,
-        )
-
-        fp = snapshot_registry_fingerprint(registry)
-        if fp != catalogue.snapshot_registry_fingerprint:
-            # Mismatch is allowed when caller supplies a derived registry,
-            # but we emit a deterministic diagnostic by still using the
-            # supplied registry's counts. No fallback to hardcoded literals.
-            pass
-    except Exception:  # noqa: S110
-        pass
-
-    # Build lookup: latest accepted/rejected registration per family (rows).
-    latest_accepted: dict[SourceFamily, SnapshotRegistration | None] = dict.fromkeys(SourceFamily)
-    latest_rejected: dict[SourceFamily, SnapshotRegistration | None] = dict.fromkeys(SourceFamily)
-    for reg in registry.snapshots:
-        fam = reg.source_family
-        if reg.validation_state is SnapshotValidationState.ACCEPTED:
-            cur = latest_accepted[fam]
-            if cur is None or (reg.retrieved_at_utc, reg.registration_id) > (
-                cur.retrieved_at_utc,
-                cur.registration_id,
-            ):
-                latest_accepted[fam] = reg
-        elif reg.validation_state is SnapshotValidationState.REJECTED:
-            cur = latest_rejected[fam]
-            if cur is None or (reg.retrieved_at_utc, reg.registration_id) > (
-                cur.retrieved_at_utc,
-                cur.registration_id,
-            ):
-                latest_rejected[fam] = reg
+    _verify_catalogue_registry_consistency(catalogue, registry)
 
     out: dict[SourceFamily, SourceQualityDiagnostics] = {}
     for row in catalogue.sources:
         fam = row.source.family
-        acc_reg = latest_accepted.get(fam)
-        rej_reg = latest_rejected.get(fam)
+        acc_reg = latest_accepted_for_family(registry, fam)
+        rej_reg = latest_rejected_for_family(registry, fam)
         accepted_rows = acc_reg.record_count if acc_reg is not None else 0
         rejected_rows = rej_reg.record_count if rej_reg is not None else 0
         # Unmeasured components are None (unavailable), not 0.
@@ -437,7 +484,7 @@ def build_quality_inputs_for_catalogue(
             duplicate_rows=None,
             accepted_rows=accepted_rows,
             rejected_rows=rejected_rows,
-            parser_warnings=(),
+            parser_warnings=None,
             expected_interval_seconds=None,
             observed_timestamps_utc=(),
             spatial_cells_total=None,

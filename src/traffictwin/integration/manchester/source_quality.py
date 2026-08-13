@@ -24,24 +24,37 @@ Denominator semantics (exact units — rows unless stated):
 * ``spatial_coverage_rate = spatial_cells_covered / spatial_cells_total``
   — denominator is spatial cells; ``None`` when either input is absent
   or total is 0.
-* ``interval_gaps`` are derived from ``observed_timestamps_utc`` and
-  ``expected_interval_seconds``; both must be present else gaps are
-  empty/``None``. The snapshot contract does not provide timestamps, so
-  production inputs leave these ``None``.
-* ``parser_warning_count`` counts parser warnings supplied by the
-  caller; the snapshot contract does not expose parser-rejected row
-  counts, so those remain ``None``/unavailable unless explicitly
-  provided.
+* ``interval_gap_count`` is ``None`` (unavailable, rendered as —) when
+  ``expected_interval_seconds`` is ``None`` or
+  ``observed_timestamps_utc`` provides fewer than two timestamps
+  (inadequate evidence for a gap check). Only when a defined interval
+  check actually ran over adequate timestamp evidence (``>=2`` sorted
+  unique UTC timestamps and a defined interval) does
+  ``interval_gap_count`` report an exact measured value: ``0`` when no
+  gap exceeds the interval, ``1+`` when gaps exist. The snapshot
+  contract provides no timestamps, so production inputs leave this
+  ``None``.
+* ``parser_warning_count`` is ``None`` (unavailable, —) when
+  ``parser_warnings`` is ``None`` (the snapshot contract does not
+  measure parser warnings or rejected rows). Only when the caller
+  supplies an explicit ``tuple[str, ...]`` does the count reflect a
+  measured value: ``0`` for an empty tuple (measured zero warnings) and
+  ``N`` for ``N`` warnings. No unmeasured quantity defaults to ``0``;
+  parser-rejected row counts remain ``None`` unless a truthful optional
+  field is supplied.
 
 Aggregation policy (deterministic, bounded):
 
 When multiple accepted or rejected registrations exist for one family,
 the quality view uses **latest exact pointer only** — the single
 registration with the greatest ``(retrieved_at_utc, registration_id)``
-matching the family and the required validation state. No summation or
-double-counting across historical registrations occurs. This is declared
-and tested explicitly. An empty registry yields ``0`` accepted/rejected
-rows and ``None`` for all unmeasured inputs.
+(tie-break by registration_id) matching the family and the required
+validation state. No summation or double-counting across historical
+registrations occurs. This is declared and tested explicitly. An empty
+registry yields ``0`` accepted/rejected rows and ``None`` for all
+unmeasured inputs. ``record_count`` (and therefore ``accepted_rows`` /
+``rejected_rows``) is bounded ``0 <= count <= 10_000_000`` consistent
+with the registry maximum; larger counts fail closed.
 
 Unavailable semantics:
 
@@ -147,8 +160,12 @@ class SourceQualityInput(SourceQualityModel):
     interval gaps, spatial denominator, parser-rejected rows) are ``None``
     when not measured by the snapshot contract — never inferred as 0.
     Accepted/rejected rows are measured in **rows** from snapshot
-    registrations (latest exact pointer only per aggregation policy);
-    see module docstring for denominator semantics.
+    registrations (latest exact pointer only ordered by
+    ``(retrieved_at_utc, registration_id)``; no summation) and bounded
+    ``0..10_000_000`` consistent with the registry maximum; see module
+    docstring for denominator semantics. ``interval_gap_count`` is
+    ``None`` when no defined interval check ran; ``parser_warnings`` is
+    ``None`` when not measured, not an implicit empty tuple.
     """
 
     source_family: SourceFamily
@@ -158,10 +175,10 @@ class SourceQualityInput(SourceQualityModel):
     present_rows: int | None = Field(default=None, ge=0)
     missing_rows: int | None = Field(default=None, ge=0)
     duplicate_rows: int | None = Field(default=None, ge=0)
-    # Measured from registry latest pointers — rows unit.
-    accepted_rows: int = Field(ge=0)
-    rejected_rows: int = Field(ge=0)
-    parser_warnings: tuple[str, ...] = ()
+    # Measured from registry latest pointers — rows unit, bounded like registry record_count.
+    accepted_rows: int = Field(ge=0, le=10_000_000)
+    rejected_rows: int = Field(ge=0, le=10_000_000)
+    parser_warnings: tuple[str, ...] | None = None
     expected_interval_seconds: int | None = Field(default=None, gt=0)
     observed_timestamps_utc: tuple[datetime, ...] = ()
     spatial_cells_total: int | None = Field(default=None, ge=0)
@@ -239,8 +256,8 @@ class SourceQualityInput(SourceQualityModel):
             raise ValueError("observed timestamps must be sorted ascending")
         if len(self.observed_timestamps_utc) != len(set(self.observed_timestamps_utc)):
             raise ValueError("observed timestamps must be unique")
-        if self.observed_timestamps_utc and self.expected_interval_seconds is None:
-            pass
+        # Do not default unmeasured quantities to zero: if interval is undefined,
+        # timestamps are retained but gap detection remains unavailable (None).
         return self
 
 
@@ -251,11 +268,14 @@ class SourceQualityDiagnostics(SourceQualityModel):
     explicit denominator and returns ``None`` when that denominator is zero,
     absent, or the prerequisite input is ``None``, never a synthetic default.
     See module docstring for exact denominator semantics and aggregation
-    policy (latest exact pointer only, rows unit).
+    policy (latest exact pointer only ordered by
+    ``(retrieved_at_utc, registration_id)``, rows unit, bounded counts).
 
     Fields with ``None`` mean unavailable/not measured by the snapshot
     contract and must be rendered as ``—`` / explicit unavailable — never
-    inferred as ``0``.
+    inferred as ``0``. ``interval_gap_count`` is ``None`` when no defined
+    interval check ran over adequate evidence; ``parser_warning_count`` is
+    ``None`` when parser warnings were not measured.
     """
 
     source_family: SourceFamily
@@ -264,18 +284,18 @@ class SourceQualityDiagnostics(SourceQualityModel):
     present_rows: int | None = Field(default=None, ge=0)
     missing_rows: int | None = Field(default=None, ge=0)
     duplicate_rows: int | None = Field(default=None, ge=0)
-    accepted_rows: int = Field(ge=0)
-    rejected_rows: int = Field(ge=0)
+    accepted_rows: int = Field(ge=0, le=10_000_000)
+    rejected_rows: int = Field(ge=0, le=10_000_000)
     missingness: float | None = Field(default=None, ge=0.0, le=1.0)
     duplicate_rate: float | None = Field(default=None, ge=0.0, le=1.0)
     rejected_rate: float | None = Field(default=None, ge=0.0, le=1.0)
     spatial_coverage_rate: float | None = Field(default=None, ge=0.0, le=1.0)
     timestamp_range_seconds: int | None = Field(default=None, ge=0)
     freshness_delay_seconds: int | None = Field(default=None, ge=0)
-    interval_gap_count: int = Field(ge=0)
+    interval_gap_count: int | None = Field(default=None, ge=0)
     interval_gaps: tuple[IntervalGap, ...] = ()
-    parser_warning_count: int = Field(ge=0)
-    parser_warnings: tuple[str, ...] = ()
+    parser_warning_count: int | None = Field(default=None, ge=0)
+    parser_warnings: tuple[str, ...] | None = None
     limitations: tuple[str, ...] = ()
     freshness: SourceFreshnessStanding | None = None
     schema_version: str | None = Field(default=None, pattern=_SAFE_LABEL_PATTERN)
@@ -293,8 +313,19 @@ class SourceQualityDiagnostics(SourceQualityModel):
                 IntervalGap.model_validate(gap.model_dump(mode="python"))
             except Exception as exc:
                 raise ValueError("interval gap failed canonical revalidation") from exc
-        if self.interval_gap_count != len(self.interval_gaps):
+        if self.interval_gap_count is None:
+            if self.interval_gaps:
+                raise ValueError("unmeasured gap count must have empty gaps")
+        elif self.interval_gap_count != len(self.interval_gaps):
             raise ValueError("gap count must equal gaps length")
+        if self.parser_warning_count is None:
+            if self.parser_warnings is not None:
+                raise ValueError("unmeasured parser warning count requires warnings None")
+        elif self.parser_warning_count is not None and self.parser_warnings is not None:
+            if self.parser_warning_count != len(self.parser_warnings):
+                raise ValueError("parser warning count must equal warnings length")
+        elif self.parser_warning_count is not None and self.parser_warnings is None:
+            raise ValueError("measured parser warning count requires warnings tuple")
         return self
 
 
@@ -344,9 +375,9 @@ def _compute_freshness_delay(evaluated: datetime, latest: datetime | None) -> in
 def _detect_interval_gaps(
     timestamps: tuple[datetime, ...],
     expected_interval_seconds: int | None,
-) -> tuple[IntervalGap, ...]:
+) -> tuple[IntervalGap, ...] | None:
     if expected_interval_seconds is None or len(timestamps) < 2:
-        return ()
+        return None
     gaps: list[IntervalGap] = []
     for a, b in zip(timestamps, timestamps[1:], strict=False):
         diff = int((b - a).total_seconds())
@@ -398,6 +429,10 @@ def compute_source_quality_diagnostics(
     gaps = _detect_interval_gaps(
         quality_input.observed_timestamps_utc, quality_input.expected_interval_seconds
     )
+    interval_gap_count = None if gaps is None else len(gaps)
+    interval_gaps_tuple: tuple[IntervalGap, ...] = () if gaps is None else gaps
+    parser_warnings_in = quality_input.parser_warnings
+    parser_warning_count = None if parser_warnings_in is None else len(parser_warnings_in)
 
     diagnostics = SourceQualityDiagnostics(
         source_family=quality_input.source_family,
@@ -414,10 +449,10 @@ def compute_source_quality_diagnostics(
         spatial_coverage_rate=spatial_coverage,
         timestamp_range_seconds=timestamp_range,
         freshness_delay_seconds=freshness_delay,
-        interval_gap_count=len(gaps),
-        interval_gaps=gaps,
-        parser_warning_count=len(quality_input.parser_warnings),
-        parser_warnings=quality_input.parser_warnings,
+        interval_gap_count=interval_gap_count,
+        interval_gaps=interval_gaps_tuple,
+        parser_warning_count=parser_warning_count,
+        parser_warnings=parser_warnings_in,
         limitations=quality_input.limitations,
         freshness=quality_input.freshness,
         schema_version=quality_input.schema_version,
