@@ -1028,3 +1028,177 @@ def test_opus_b2_max_events_bound_and_duplicate_unavailable() -> None:
     )
     with pytest.raises((ValidationError, ComparisonAgreementError)):
         forged_dup2.verify_against(left, right)
+
+
+# ---------------------------------------------------------------------------
+# Remediation BLOCKER 2: stale same-timestamp state/receipt must fail live verification
+# ---------------------------------------------------------------------------
+
+
+def _same_time_stream(num: int = 3, time: float = 5.0) -> ReplayEventStream:
+    src = _source()
+    evs = []
+    for i in range(num):
+        evs.append(_sim_event(seq=i, time=time, source=src, event_id=f"evt-same-{i:03d}"))
+    present = tuple(sorted({e.event_type for e in evs}, key=str))
+    manifest = SourceCapabilityManifest(
+        manifest_id="m-same",
+        source=src,
+        source_data_kind=SourceDataKind.EVENT_STREAM,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        available_event_types=present,
+        limitations=("a",),
+    )
+    return ReplayEventStream(
+        stream_id=f"stream-same-{num}",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=tuple(evs),
+        limitations=("a",),
+    )
+
+
+def test_remediation_stale_same_timestamp_left_right_both_states() -> None:
+    left = _same_time_stream(3, 5.0)
+    right = _same_time_stream(3, 5.0)
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    stale_state = replay.synchronized_state()
+    stale_receipt = replay.synchronized_receipt()
+    # Current objects must pass live verification
+    stale_state.verify_against_replay(replay)
+    stale_state.verify_exact_replay(replay)
+    stale_receipt.verify_against_replay(replay)
+    stale_receipt.verify_exact_replay(replay)
+    # Structural verifier passes for stale (intentionally not live)
+    stale_state.verify_against(left, right)
+    stale_state.verify_exact(left, right)
+    stale_receipt.verify_against(left, right)
+    # After step_both(1), cursor moves from index0 to index1 (same time 5.0)
+    replay.step_both(1, "forward")
+    cur_state = replay.synchronized_state()
+    cur_receipt = replay.synchronized_receipt()
+    # Current must pass
+    cur_state.verify_against_replay(replay)
+    cur_receipt.verify_against_replay(replay)
+    # Stale must now fail live verification despite same timestamp (playhead same)
+    with pytest.raises(ComparisonAgreementError):
+        stale_state.verify_against_replay(replay)
+    with pytest.raises(ComparisonAgreementError):
+        stale_state.verify_exact_replay(replay)
+    with pytest.raises(ComparisonAgreementError):
+        stale_receipt.verify_against_replay(replay)
+    # Structural still passes (not live)
+    stale_state.verify_against(left, right)
+    stale_receipt.verify_against(left, right)
+    # Hybrid stale left: left stale but right current should fail live, but structural
+    # still passes because left cursor remains self-consistent.
+    hybrid_left_stale = cur_state.model_copy(update={"left_state": stale_state.left_state})
+    # Structural (stream-only) passes because stale left is still self-consistent.
+    hybrid_left_stale.verify_against(left, right)
+    # Live must fail due to left index mismatch.
+    with pytest.raises(ComparisonAgreementError):
+        hybrid_left_stale.verify_against_replay(replay)
+    # Verify that left index stale fails even though playhead time equal (5.0)
+    assert (
+        stale_state.left_state.cursor.simulator_time_s
+        == cur_state.left_state.cursor.simulator_time_s
+        == 5.0
+    )
+    assert stale_state.left_state.cursor.index != cur_state.left_state.cursor.index
+    hybrid = stale_state
+    with pytest.raises(ComparisonAgreementError):
+        hybrid.verify_against_replay(replay)
+    # Right-only stale similarly
+    right_stale = replay.synchronized_state()
+    replay.step_both(1, "forward")  # now at index2
+    newer = replay.synchronized_state()
+    assert right_stale.right_state.cursor.index == 1
+    assert newer.right_state.cursor.index == 2
+    assert (
+        right_stale.right_state.cursor.simulator_time_s
+        == newer.right_state.cursor.simulator_time_s
+        == 5.0
+    )
+    with pytest.raises(ComparisonAgreementError):
+        right_stale.verify_against_replay(replay)
+    # Both stale (original) still fails after two steps
+    with pytest.raises(ComparisonAgreementError):
+        stale_state.verify_against_replay(replay)
+
+
+def test_remediation_stale_same_timestamp_receipts_left_right() -> None:
+    left = _same_time_stream(3, 5.0)
+    right = _same_time_stream(3, 5.0)
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    r0 = replay.synchronized_receipt()
+    r0.verify_against_replay(replay)
+    replay.step_both(1, "forward")
+    r1 = replay.synchronized_receipt()
+    r1.verify_against_replay(replay)
+    # r0 is stale (index0) must fail live even though same time
+    with pytest.raises(ComparisonAgreementError):
+        r0.verify_against_replay(replay)
+    with pytest.raises(ComparisonAgreementError):
+        r0.verify_exact_replay(replay)
+    # structural still passes
+    r0.verify_against(left, right)
+    # left/right both checked via state inside receipt; ensure cursor index mismatch triggers
+    assert r0.resulting_state.left_state.cursor.index == 0
+    assert r1.resulting_state.left_state.cursor.index == 1
+    assert r0.resulting_state.left_state.cursor.simulator_time_s == 5.0
+    # paused/playing: step sets paused, but verify still requires exact cursor
+    assert r1.resulting_state.left_state.cursor.index == 1
+    # After another step, r1 becomes stale
+    replay.step_both(1, "forward")
+    with pytest.raises(ComparisonAgreementError):
+        r1.verify_against_replay(replay)
+
+
+def test_remediation_stale_after_seek_same_timestamp() -> None:
+    left = _same_time_stream(3, 5.0)
+    right = _same_time_stream(3, 5.0)
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    # Seek to 5.0 lands on first of group (paused)
+    replay.seek_both(5.0)
+    s_seek = replay.synchronized_state()
+    r_seek = replay.synchronized_receipt()
+    s_seek.verify_against_replay(replay)
+    r_seek.verify_against_replay(replay)
+    # Step to next sibling (still paused after step)
+    replay.step_both(1, "forward")
+    with pytest.raises(ComparisonAgreementError):
+        s_seek.verify_against_replay(replay)
+    with pytest.raises(ComparisonAgreementError):
+        r_seek.verify_against_replay(replay)
+    # Current passes
+    cur = replay.synchronized_state()
+    cur.verify_against_replay(replay)
+    # Structural verifier for s_seek still passes (not live)
+    s_seek.verify_against(left, right)
+
+
+def test_remediation_structural_vs_live_verifier_naming() -> None:
+    left = _same_time_stream(3, 5.0)
+    right = _same_time_stream(3, 5.0)
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    receipt = replay.synchronized_receipt()
+    # Structural verifiers are clearly named and do not assert freshness
+    state.verify_against(left, right)
+    state.verify_exact(left, right)
+    receipt.verify_against(left, right)
+    receipt.verify_exact(left, right)
+    # Live verifiers are clearly separate
+    state.verify_against_replay(replay)
+    state.verify_exact_replay(replay)
+    receipt.verify_against_replay(replay)
+    receipt.verify_exact_replay(replay)
+    # After stale, structural still passes but live fails
+    replay.step_both(1, "forward")
+    state.verify_against(left, right)  # structural still passes
+    with pytest.raises(ComparisonAgreementError):
+        state.verify_against_replay(replay)

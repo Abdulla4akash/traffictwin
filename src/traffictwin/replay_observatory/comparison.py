@@ -19,6 +19,7 @@ from pydantic import Field, ValidationError, field_validator, model_validator
 
 from traffictwin.replay_observatory.engine import (
     ReplayEngine,
+    ReplayEngineError,
     ReplayEngineState,
 )
 from traffictwin.replay_observatory.models import (
@@ -51,8 +52,6 @@ def _revalidate_stream(stream: ReplayEventStream) -> ReplayEventStream:
         raise ComparisonAgreementError(
             "INVALID_STREAM", f"stream revalidation failed: {exc}"
         ) from exc
-    except Exception as exc:  # pragma: no cover
-        raise ComparisonAgreementError("INVALID_STREAM", str(exc)) from exc
     return validated
 
 
@@ -63,8 +62,6 @@ def _revalidate_agreement(agreement: SideBySideAgreement) -> SideBySideAgreement
         raise ComparisonAgreementError(
             "INVALID_AGREEMENT", f"agreement revalidation failed: {exc}"
         ) from exc
-    except Exception as exc:  # pragma: no cover
-        raise ComparisonAgreementError("INVALID_AGREEMENT", str(exc)) from exc
     return validated
 
 
@@ -266,16 +263,18 @@ class SideBySideState(ReplayModel):
             raise ComparisonAgreementError("WINDOW_MISMATCH", "right_window mismatch")
         if self.causal_disclaimer != CAUSAL_DISCLAIMER:
             raise ComparisonAgreementError("DISCLAIMER_MISMATCH", "causal disclaimer mismatch")
-        # Bind actual cursors/states via exact engine verification patterns
+        # Structural cursor coherence (self-consistent, not live freshness).
+        # Intentionally structural-only; live freshness is asserted via
+        # verify_against_replay / verify_exact_replay.
         try:
             self.left_state.cursor.verify_against_stream(ls)
-        except Exception as exc:
+        except (ComparisonAgreementError, ReplayEngineError, ValidationError) as exc:
             raise ComparisonAgreementError(
                 "STATE_MISMATCH", f"left cursor mismatch: {exc}"
             ) from exc
         try:
             self.right_state.cursor.verify_against_stream(rs)
-        except Exception as exc:
+        except (ComparisonAgreementError, ReplayEngineError, ValidationError) as exc:
             raise ComparisonAgreementError(
                 "STATE_MISMATCH", f"right cursor mismatch: {exc}"
             ) from exc
@@ -323,24 +322,34 @@ class SideBySideState(ReplayModel):
         Canonically compares this state against the replay's exact
         live streams, agreement, left/right engine states/cursors/
         playheads, full windows and truthfulness fields. Fails if
-        stale, tampered or otherwise inconsistent.
+        stale, tampered or otherwise inconsistent. Compares exact
+        cursor indices, not merely playhead time.
         """
         try:
             SideBySideState.model_validate_json(self.model_dump_json())
         except ValidationError as exc:
             raise ComparisonAgreementError("INVALID_STATE", str(exc)) from exc
-        # Verify replay integrity and check structural coherence.
         replay._verify_integrity()
-        # Structural checks against live streams ensure windows/truthfulness.
         self.verify_against(replay._left_stream, replay._right_stream)
-        # Live cursor/playhead binding via engine verifiers.
+        # Exact live cursor/index and playhead binding; stale same-timestamp
+        # must fail even when playhead time collides.
+        if self.left_state.cursor.index != replay.left_engine.cursor_index:
+            raise ComparisonAgreementError("STATE_MISMATCH", "left cursor index stale")
+        if self.right_state.cursor.index != replay.right_engine.cursor_index:
+            raise ComparisonAgreementError("STATE_MISMATCH", "right cursor index stale")
+        if self.left_state.playhead_time_s != replay.left_engine._playhead_time_s:
+            raise ComparisonAgreementError("STATE_MISMATCH", "left playhead stale")
+        if self.right_state.playhead_time_s != replay.right_engine._playhead_time_s:
+            raise ComparisonAgreementError("STATE_MISMATCH", "right playhead stale")
+        # Delegate to engine verifiers for full live binding (including
+        # speed, fingerprint, window, unavailable, etc.).
         try:
             self.left_state.verify_against_engine(replay.left_engine)
-        except Exception as exc:
+        except (ComparisonAgreementError, ReplayEngineError, ValidationError) as exc:
             raise ComparisonAgreementError("STATE_MISMATCH", f"left_state not live: {exc}") from exc
         try:
             self.right_state.verify_against_engine(replay.right_engine)
-        except Exception as exc:
+        except (ComparisonAgreementError, ReplayEngineError, ValidationError) as exc:
             raise ComparisonAgreementError(
                 "STATE_MISMATCH", f"right_state not live: {exc}"
             ) from exc

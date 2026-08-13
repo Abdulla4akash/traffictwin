@@ -792,19 +792,27 @@ def test_advance_equal_time_ordering() -> None:
     )
     engine = ReplayEngine(stream)
     engine.play()
-    # At time 0.0, advance 1.0 => target 1.0 lands on first of equal-time group (e1)
+    # Additive contract: advance accumulates playhead; cursor advances through
+    # every event whose time <= new_playhead, consuming equal-time groups
+    # atomically. No event is skipped and partitioning does not change final.
     r = engine.advance(1.0)
-    assert r.resulting_state.cursor.index == 1
-    assert r.resulting_state.cursor.event_id == "evt-aaa-001"
-    # Next advance 0.0 stays at same group head
+    # Both events at 1.0 are <=1.0, so both are consumed atomically.
+    assert r.resulting_state.cursor.index == 2
+    assert r.resulting_state.cursor.event_id == "evt-aaa-002"
+    assert r.resulting_state.playhead_time_s == 1.0
+    # Next advance 0.0 is pure no-op.
     r2 = engine.advance(0.0)
-    assert r2.resulting_state.cursor.index == 1
-    # Advance 0.5 at 1x with playhead accumulation: from 1.0 group, next advance of 0.5
-    # should step to next member of same-time group (e2) to preserve stable order,
-    # not jump to 2.0
+    assert r2.resulting_state.cursor.index == 2
+    assert r2.resulting_state.playhead_time_s == 1.0
+    # Advance 0.5 => playhead 1.5, next event at 2.0 not yet reached, stays.
     r3 = engine.advance(0.5)
     assert r3.resulting_state.cursor.index == 2
     assert r3.resulting_state.cursor.event_id == "evt-aaa-002"
+    assert r3.resulting_state.playhead_time_s == 1.5
+    # Advance another 0.5 => playhead 2.0, reaches e3.
+    r4 = engine.advance(0.5)
+    assert r4.resulting_state.cursor.index == 3
+    assert r4.resulting_state.cursor.event_id == "evt-aaa-003"
 
 
 def test_advance_paused_and_ended_explicit() -> None:
@@ -923,7 +931,7 @@ def test_opus_b1_advance_zero_is_noop_from_middle_of_equal_time_group() -> None:
 
 def test_opus_b1_advance_from_middle_half_and_double_speed() -> None:
     stream = _equal_time_stream_5()
-    # half speed
+    # half speed: start at index2 (middle of 1.0 group, playhead 1.0)
     engine_h = ReplayEngine(stream)
     engine_h.step(2, "forward")
     engine_h.play()
@@ -931,12 +939,14 @@ def test_opus_b1_advance_from_middle_half_and_double_speed() -> None:
     engine_h.play()
     before_h = engine_h.state().playhead_time_s
     r_h = engine_h.advance(1.0)
-    # effective 0.5, must move exactly one within equal-time group, monotonic, never rewind
+    # effective 0.5 => new playhead 1.5, remaining at 1.0 group (index3) is <=1.5, so
+    # it advances one to index3; next distinct time 2.0 not yet reached.
     assert r_h.resulting_state.cursor.index == 3
     assert r_h.resulting_state.cursor.event_id == "evt-aaa-003"
     assert r_h.resulting_state.playhead_time_s == pytest.approx(before_h + 0.5)
     assert r_h.resulting_state.cursor.index > 2
-    # double speed
+    # double speed: effective 1.0 => new playhead 2.0, consumes remainder of 1.0
+    # group and the next distinct time 2.0.
     engine_d = ReplayEngine(stream)
     engine_d.step(2, "forward")
     engine_d.play()
@@ -944,11 +954,10 @@ def test_opus_b1_advance_from_middle_half_and_double_speed() -> None:
     engine_d.play()
     before_d = engine_d.state().playhead_time_s
     r_d = engine_d.advance(0.5)
-    # effective 1.0, also one step within group for our deterministic equal-time handling
-    assert r_d.resulting_state.cursor.index == 3
+    assert r_d.resulting_state.cursor.index == 4
+    assert r_d.resulting_state.cursor.event_id == "evt-aaa-004"
     assert r_d.resulting_state.playhead_time_s == pytest.approx(before_d + 1.0)
-    # both preserve stable order by event_id
-    assert r_h.resulting_state.cursor.event_id == r_d.resulting_state.cursor.event_id
+    # half-speed landed at last of 1.0 group, double-speed consumed group + next.
 
 
 def test_opus_b1_repeated_fractional_advances_accumulate() -> None:
@@ -1044,3 +1053,243 @@ def test_opus_b1_playhead_bind_through_transitions() -> None:
     forged_state = r.resulting_state.model_copy(update={"playhead_time_s": 999.0})
     with pytest.raises((ValidationError, ReplayEngineError)):
         forged_state.verify_against_engine(engine)
+
+
+# ---------------------------------------------------------------------------
+# Remediation BLOCKER 1: additive advance, gap seek, pure state, boundaries
+# ---------------------------------------------------------------------------
+
+
+def _stream_gap() -> ReplayEventStream:
+    src = _source()
+    e0 = _sim_event(seq=0, time=0.0, source=src, event_id="evt-gap-000")
+    e1 = _sim_event(seq=1, time=10.0, source=src, event_id="evt-gap-001")
+    e2 = _sim_event(seq=2, time=20.0, source=src, event_id="evt-gap-002")
+    present = tuple(sorted({e.event_type for e in (e0, e1, e2)}, key=str))
+    manifest = _manifest(source=src, available=present)
+    return ReplayEventStream(
+        stream_id="stream-gap",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=(e0, e1, e2),
+        limitations=("a",),
+    )
+
+
+def test_remediation_advance_additive_large_vs_partitioned() -> None:
+    # events at 0,1,1,2
+    src = _source()
+    events = [
+        _sim_event(seq=0, time=0.0, source=src, event_id="evt-add-000"),
+        _sim_event(seq=1, time=1.0, source=src, event_id="evt-add-001"),
+        _sim_event(seq=2, time=1.0, source=src, event_id="evt-add-002"),
+        _sim_event(seq=3, time=2.0, source=src, event_id="evt-add-003"),
+    ]
+    present = tuple(sorted({e.event_type for e in events}, key=str))
+    manifest = _manifest(source=src, available=present)
+    stream = ReplayEventStream(
+        stream_id="stream-add",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=tuple(events),
+        limitations=("a",),
+    )
+    # Single large advance 2.0 from start
+    e_large = ReplayEngine(stream)
+    e_large.play()
+    e_large.advance(2.0)
+    large_state = e_large.state()
+    # Partitioned 1.0 + 1.0
+    e_part = ReplayEngine(stream)
+    e_part.play()
+    e_part.advance(1.0)
+    e_part.advance(1.0)
+    part_state = e_part.state()
+    assert large_state.cursor.index == part_state.cursor.index == 3
+    assert large_state.playhead_time_s == part_state.playhead_time_s == pytest.approx(2.0)
+    # Partitioned 4x0.5 also same
+    e_frac = ReplayEngine(stream)
+    e_frac.play()
+    for d in [0.5, 0.5, 0.5, 0.5]:
+        e_frac.advance(d)
+    frac_state = e_frac.state()
+    assert frac_state.cursor.index == large_state.cursor.index
+    assert frac_state.playhead_time_s == large_state.playhead_time_s
+    # Never skipped: both large and partitioned visited all events up to playhead
+    # (implicit via final index). Intermediate step after first 1.0 must have
+    # consumed both equal-time siblings atomically.
+    e_check = ReplayEngine(stream)
+    e_check.play()
+    r1 = e_check.advance(1.0)
+    assert r1.resulting_state.cursor.index == 2  # both 1.0 siblings consumed
+
+
+def test_remediation_advance_multiple_equal_time_groups() -> None:
+    # Two distinct equal-time groups: (1,1) and (2,2,2)
+    src = _source()
+    evs = [
+        _sim_event(seq=0, time=0.0, source=src, event_id="evt-mg-000"),
+        _sim_event(seq=1, time=1.0, source=src, event_id="evt-mg-001"),
+        _sim_event(seq=2, time=1.0, source=src, event_id="evt-mg-002"),
+        _sim_event(seq=3, time=2.0, source=src, event_id="evt-mg-003"),
+        _sim_event(seq=4, time=2.0, source=src, event_id="evt-mg-004"),
+        _sim_event(seq=5, time=2.0, source=src, event_id="evt-mg-005"),
+        _sim_event(seq=6, time=5.0, source=src, event_id="evt-mg-006"),
+    ]
+    present = tuple(sorted({e.event_type for e in evs}, key=str))
+    manifest = _manifest(source=src, available=present)
+    stream = ReplayEventStream(
+        stream_id="stream-mg",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=tuple(evs),
+        limitations=("a",),
+    )
+    e = ReplayEngine(stream)
+    e.play()
+    # Advance to 2.0 in one go should consume groups at 1.0 and 2.0 atomically.
+    r = e.advance(2.0)
+    assert r.resulting_state.cursor.index == 5
+    assert r.resulting_state.cursor.event_id == "evt-mg-005"
+    # Partitioned 1.0 + 1.0 should be identical
+    e2 = ReplayEngine(stream)
+    e2.play()
+    e2.advance(1.0)
+    assert e2.state().cursor.index == 2
+    e2.advance(1.0)
+    assert e2.state().cursor.index == 5
+    assert e2.state().fingerprint() == r.resulting_state.fingerprint()
+
+
+def test_remediation_advance_fractional_speed_additive() -> None:
+    src = _source()
+    events = [_sim_event(seq=i, time=float(i), source=src) for i in range(5)]
+    stream = _stream_with_events(events)
+    # speed 0.5: effective 1.0 after 2.0 delta
+    e_half = ReplayEngine(stream, speed_multiplier=0.5)
+    e_half.play()
+    e_half.advance(2.0)
+    assert e_half.state().cursor.index == 1
+    assert e_half.state().playhead_time_s == pytest.approx(1.0)
+    # speed 2.0: effective 2.0 after 1.0 delta, different cursor due to speed
+    e_double = ReplayEngine(stream, speed_multiplier=2.0)
+    e_double.play()
+    e_double.advance(1.0)
+    assert e_double.state().cursor.index == 2
+    assert e_double.state().playhead_time_s == pytest.approx(2.0)
+    # Partitioned fractional accumulates correctly and equals single large
+    e_part = ReplayEngine(stream, speed_multiplier=0.5)
+    e_part.play()
+    e_part.advance(1.0)
+    e_part.advance(1.0)
+    assert e_part.state().cursor.index == 1
+    assert e_part.state().playhead_time_s == e_half.state().playhead_time_s
+    assert e_part.state().fingerprint() == e_half.state().fingerprint()
+
+
+def test_remediation_gap_seek_distinguishes_requested_vs_selected() -> None:
+    stream = _stream_gap()
+    engine = ReplayEngine(stream)
+    # Seek to gap time 5.0 between 0 and 10
+    r = engine.seek(5.0)
+    # Requested playhead must be 5.0, not silently coerced to 10.0
+    assert r.resulting_state.playhead_time_s == 5.0
+    # Cursor must be at next event (10.0)
+    assert r.resulting_state.cursor.index == 1
+    assert r.resulting_state.cursor.simulator_time_s == 10.0
+    # State truthfully distinguishes: playhead 5.0 < cursor 10.0
+    assert r.resulting_state.playhead_time_s < r.resulting_state.cursor.simulator_time_s
+    # No causal claim: disclaimer still present via receipt
+    assert r.causal_disclaimer == "replay is deterministic; no causality implied"
+    # Seek to another gap 15.0
+    r2 = engine.seek(15.0)
+    assert r2.resulting_state.playhead_time_s == 15.0
+    assert r2.resulting_state.cursor.index == 2
+    assert r2.resulting_state.cursor.simulator_time_s == 20.0
+
+
+def test_remediation_gap_seek_state_pure_no_mutation() -> None:
+    stream = _stream_gap()
+    engine = ReplayEngine(stream)
+    engine.seek(5.0)
+    ph_before = engine._playhead_time_s
+    idx_before = engine.cursor_index
+    s1 = engine.state()
+    s2 = engine.state()
+    # state() must be pure: not mutate engine
+    assert engine._playhead_time_s == ph_before
+    assert engine.cursor_index == idx_before
+    # repeated calls produce identical snapshot
+    assert s1.fingerprint() == s2.fingerprint()
+    assert s1.playhead_time_s == 5.0
+    assert s1.cursor.index == 1
+    # After gap seek, advance while playing should be based on playhead 5.0
+    engine.play()
+    r = engine.advance(
+        5.0
+    )  # playhead 5.0+5.0=10.0, should reach next distinct time 10? already at 10
+    # Since cursor already at 10 and playhead catches up to 10, stays
+    assert r.resulting_state.playhead_time_s == 10.0
+    assert r.resulting_state.cursor.index == 1
+    # Advance another 5.0 => playhead 15, still before 20, stays
+    r2 = engine.advance(5.0)
+    assert r2.resulting_state.playhead_time_s == 15.0
+    assert r2.resulting_state.cursor.index == 1
+    # Advance 5.0 => playhead 20, reaches last
+    r3 = engine.advance(5.0)
+    assert r3.resulting_state.playhead_time_s == 20.0
+    assert r3.resulting_state.cursor.index == 2
+
+
+def test_remediation_advance_start_end_boundaries() -> None:
+    src = _source()
+    events = [_sim_event(seq=i, time=float(i), source=src) for i in range(3)]
+    stream = _stream_with_events(events)
+    engine = ReplayEngine(stream)
+    # start boundary: initial playhead 0, cursor 0
+    s0 = engine.state()
+    assert s0.playhead_time_s == 0.0
+    assert s0.cursor.index == 0
+    # advance exactly to last event
+    engine.play()
+    r = engine.advance(2.0)
+    assert r.resulting_state.cursor.index == 2
+    assert r.resulting_state.playhead_time_s == 2.0
+    assert not r.resulting_state.end_of_stream
+    # advance beyond last => goes to end
+    r2 = engine.advance(0.1)
+    assert r2.resulting_state.end_of_stream is True
+    assert r2.resulting_state.cursor.is_at_end is True
+    assert r2.resulting_state.playback_state is PlaybackState.ENDED
+    # further advance while ended is no-op
+    ph_before = r2.resulting_state.playhead_time_s
+    r3 = engine.advance(1.0)
+    assert r3.resulting_state.end_of_stream is True
+    assert r3.resulting_state.playhead_time_s == ph_before
+    # seek back to start
+    r4 = engine.seek(0.0)
+    assert r4.resulting_state.cursor.index == 0
+    assert r4.resulting_state.playhead_time_s == 0.0
+    assert r4.resulting_state.playback_state is PlaybackState.PAUSED
+
+
+def test_remediation_advance_repeated_no_ops() -> None:
+    src = _source()
+    events = [_sim_event(seq=i, time=float(i), source=src) for i in range(3)]
+    stream = _stream_with_events(events)
+    engine = ReplayEngine(stream)
+    engine.play()
+    s_before = engine.state().fingerprint()
+    ph_before = engine.state().playhead_time_s
+    for _ in range(5):
+        r = engine.advance(0.0)
+        assert r.resulting_state.cursor.index == 0
+        assert r.resulting_state.playhead_time_s == ph_before
+        assert r.resulting_state.fingerprint() == s_before
+        assert engine.state().fingerprint() == s_before
+    # after real advance, repeated no-ops still preserve
+    engine.advance(1.0)
+    s_mid = engine.state().fingerprint()
+    for _ in range(3):
+        r = engine.advance(0.0)
+        assert r.resulting_state.fingerprint() == s_mid
