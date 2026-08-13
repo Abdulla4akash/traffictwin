@@ -206,11 +206,21 @@ def _describe_receipt(receipt: object, before: ReplayEngineState | None) -> tupl
                 t_f = float(target) if target is not None else rs.playhead_time_s
             except Exception:
                 t_f = rs.playhead_time_s
+            # Conditional truth: only claim distinct when gap; otherwise coincide.
+            cursor_t = float(rs.cursor.simulator_time_s)
+            playhead_t = float(rs.playhead_time_s)
+            if abs(cursor_t - playhead_t) < 1e-9:
+                return (
+                    "success",
+                    f"Seeked to {t_f:.2f} s — playhead {playhead_t:.2f} s (requested/accumulated), "
+                    f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {cursor_t:.2f} s "
+                    f"(event time) — playhead and cursor coincide at {playhead_t:.2f} s (exact-event seek)",
+                )
             return (
                 "success",
-                f"Seeked to {t_f:.2f} s — playhead {rs.playhead_time_s:.2f} s (requested/accumulated), "
-                f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {rs.cursor.simulator_time_s:.2f} s "
-                f"(event time) — playhead and cursor times are distinct; gap seeks keep playhead < cursor",
+                f"Seeked to {t_f:.2f} s — playhead {playhead_t:.2f} s (requested/accumulated), "
+                f"cursor {rs.cursor.index}/{rs.cursor.total_events} at {cursor_t:.2f} s "
+                f"(event time) — distinct; gap seek keeps playhead {playhead_t:.2f} s < cursor {cursor_t:.2f} s",
             )
         # fallback
         return (
@@ -233,7 +243,9 @@ def render(config: object) -> None:  # noqa: ARG001
         "Replay is deterministic; no causality implied."
     )
     st.info(f"Fixed disclaimer: {SYNC_DISCLAIMER}")
-    st.caption("Evidence standing for the synthetic fixture is DESIGN-ONLY CAPABILITY.")
+    # Scoped synthetic disclaimer placeholder — filled after view to avoid claiming
+    # DESIGN-ONLY when aggregate-only mode is active.
+    _synthetic_disclaimer_ph = st.empty()
 
     engine = _ensure_engine()
 
@@ -276,15 +288,12 @@ def render(config: object) -> None:  # noqa: ARG001
     max_time = 0.0
     if engine.stream.events:
         max_time = float(max(ev.simulator_time_s for ev in engine.stream.events))
-    # Use playhead/cursor time for default seek target derived from engine state
+    # Use playhead time for default seek target derived from engine state (pre-action slider default).
     try:
         _st = engine.state()
         default_seek = float(min(_st.playhead_time_s, max(10.0, max_time + 2.0)))
-        # Also keep cursor time available for caption distinctness
-        _cursor_t = float(_st.cursor.simulator_time_s)
     except Exception:
         default_seek = 0.0
-        _cursor_t = 0.0
     seek_target = st.slider(
         "Seek target time (s)",
         min_value=0.0,
@@ -293,10 +302,9 @@ def render(config: object) -> None:  # noqa: ARG001
         step=0.5,
         key="replay_seek_slider",
     )
-    st.caption(
-        f"Seek target {seek_target:.2f} s — cursor event time {_cursor_t:.2f} s vs playhead time {default_seek:.2f} s "
-        f"(distinct; gap seek keeps playhead < cursor event time)"
-    )
+    # Placeholder for post-action seek caption — filled after view construction to avoid
+    # labelling pre-action values as current cursor/playhead time.
+    _seek_caption_ph = st.empty()
     adv_delta = st.number_input(
         "Advance delta (s)",
         min_value=0.0,
@@ -374,7 +382,13 @@ def render(config: object) -> None:  # noqa: ARG001
         ws = 0.0
         we = 10.0
 
-    selected_id = st.session_state.get(_SELECTED_EVENT_KEY)
+    # Ensure selected-event state rendered is post-action: prefer widget's current value
+    # over stale session key, then verify against post-action view.
+    _widget_selected = st.session_state.get("replay_selected_event")
+    if isinstance(_widget_selected, str) and _widget_selected:
+        selected_id = _widget_selected
+    else:
+        selected_id = st.session_state.get(_SELECTED_EVENT_KEY)
     if selected_id is not None and not isinstance(selected_id, str):
         selected_id = None
 
@@ -387,6 +401,33 @@ def render(config: object) -> None:  # noqa: ARG001
     except Exception as exc:
         st.error(f"View construction failed: {exc}")
         return
+
+    # Fill post-action placeholders (scope synthetic disclaimer and seek caption to verified view)
+    if view.is_aggregate_only:
+        _synthetic_disclaimer_ph.caption(
+            "Aggregate-only declaration — zero events, no telemetry synthesised; "
+            "evidence standing is SYNTHETIC DATA (aggregate), not DESIGN-ONLY. "
+            "Synthetic engineering fixture (when loaded) is DESIGN-ONLY CAPABILITY."
+        )
+    else:
+        _synthetic_disclaimer_ph.caption(
+            "Evidence standing for the synthetic engineering fixture (currently loaded stream "
+            f"{view.stream.stream_id}) is DESIGN-ONLY CAPABILITY — not Manchester observation."
+        )
+    # Seek-target caption rendered from post-action view (not pre-action _st)
+    _cursor_t_post = float(view.cursor.simulator_time_s)
+    _playhead_t_post = float(view.engine_state.playhead_time_s)
+    if abs(_cursor_t_post - _playhead_t_post) < 1e-9:
+        _seek_caption_ph.caption(
+            f"Seek target {seek_target:.2f} s — cursor event time {_cursor_t_post:.2f} s and "
+            f"playhead time {_playhead_t_post:.2f} s coincide at {_playhead_t_post:.2f} s (exact-event seek)"
+        )
+    else:
+        _seek_caption_ph.caption(
+            f"Seek target {seek_target:.2f} s — cursor event time {_cursor_t_post:.2f} s vs "
+            f"playhead time {_playhead_t_post:.2f} s — distinct; gap seek keeps playhead "
+            f"{_playhead_t_post:.2f} s < cursor {_cursor_t_post:.2f} s"
+        )
 
     # Truthful receipt banner derived from canonical receipt/resulting_state
     # Show banner for this run's pending receipt, or persisted last receipt if still current
@@ -417,8 +458,16 @@ def render(config: object) -> None:  # noqa: ARG001
                         st.error(text)
                     else:
                         st.info(text)
-        except Exception:  # noqa: S110
-            pass
+                else:
+                    st.warning(
+                        "Receipt state mismatch — banner withheld: receipt no longer matches live engine state"
+                    )
+            else:
+                st.warning("Receipt state mismatch — banner withheld: stream fingerprint mismatch")
+        except Exception:
+            st.error(
+                "Receipt banner error — receipt/state coherence check failed (withheld without leaking internals)"
+            )
 
     # Source / evidence / provenance — derived ONLY from currently loaded stream/manifest
     st.subheader("Source and evidence")
@@ -474,11 +523,19 @@ def render(config: object) -> None:  # noqa: ARG001
     clock_cols[2].metric("Cursor index", f"{cursor.index}/{cursor.total_events}")
     clock_cols[3].metric("Playback state", state.playback_state.value)
     clock_cols[4].metric("Speed", f"{state.speed_multiplier:g}x")
-    st.caption(
-        f"Cursor event time (selected event): {cursor.simulator_time_s:.2f} s · "
-        f"Playhead time (requested/accumulated): {state.playhead_time_s:.2f} s — "
-        f"gap seeks keep these distinct; playhead drives ADVANCE, cursor selects event"
-    )
+    if abs(float(cursor.simulator_time_s) - float(state.playhead_time_s)) < 1e-9:
+        st.caption(
+            f"Cursor event time (selected event): {cursor.simulator_time_s:.2f} s · "
+            f"Playhead time (requested/accumulated): {state.playhead_time_s:.2f} s — "
+            f"they coincide at {state.playhead_time_s:.2f} s (exact-event); gap seeks would keep them distinct"
+        )
+    else:
+        st.caption(
+            f"Cursor event time (selected event): {cursor.simulator_time_s:.2f} s · "
+            f"Playhead time (requested/accumulated): {state.playhead_time_s:.2f} s — "
+            f"distinct; gap seek keeps playhead {state.playhead_time_s:.2f} s < cursor {cursor.simulator_time_s:.2f} s; "
+            f"playhead drives ADVANCE, cursor selects event"
+        )
     st.caption(
         f"Simulator time: {cursor.simulator_time_s:.2f} s · Playhead time: {state.playhead_time_s:.2f} s · "
         f"Cursor index: {cursor.index}/{cursor.total_events} · Playback state: {state.playback_state.value}"
@@ -527,6 +584,8 @@ def render(config: object) -> None:  # noqa: ARG001
     st.session_state[_WINDOW_START_KEY] = float(ws_input)
     st.session_state[_WINDOW_END_KEY] = float(we_input)
     st.caption(
+        f"Bounded window [{float(ws_input):.2f}, {float(we_input):.2f}] s — "
+        f"filtered view (max {int(max_events_input)} events), never synthesises events; "
         f"Timeline window starts at cursor — index {cursor.index} at {cursor.simulator_time_s:.2f} s (event time)"
     )
     window_display: tuple[object, ...] = ()
@@ -572,10 +631,17 @@ def render(config: object) -> None:  # noqa: ARG001
     st.caption(
         "Only event types genuinely present in the stream are listed; others are unavailable."
     )
-    st.caption(
-        f"Timeline window starts at cursor — index {cursor.index} ({cursor.simulator_time_s:.2f} s) — "
-        f"showing up to 200 events from cursor forward (playhead {state.playhead_time_s:.2f} s is distinct)"
-    )
+    if abs(float(cursor.simulator_time_s) - float(state.playhead_time_s)) < 1e-9:
+        st.caption(
+            f"Timeline window starts at cursor — index {cursor.index} ({cursor.simulator_time_s:.2f} s) — "
+            f"showing up to 200 events from cursor forward (playhead {state.playhead_time_s:.2f} s coincides at cursor time; gap seeks would be distinct)"
+        )
+    else:
+        st.caption(
+            f"Timeline window starts at cursor — index {cursor.index} ({cursor.simulator_time_s:.2f} s) — "
+            f"showing up to 200 events from cursor forward (playhead {state.playhead_time_s:.2f} s is distinct; "
+            f"gap seek keeps playhead < cursor)"
+        )
     st.markdown(
         f"**Present event types:** {', '.join(str(t.value) for t in view.present_event_types) or '—'}"
     )

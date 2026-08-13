@@ -625,3 +625,97 @@ def test_no_private_path_exposure(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "/Users/" not in joined
     assert "/home/" not in joined
     assert "file://" not in joined.lower()
+
+
+def test_seek_caption_post_action_coincide_vs_gap_truth(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Discriminating: SEEK caption and metrics must be post-action in same run; exact vs gap truth."""
+
+    app = _app(monkeypatch)
+    assert not app.exception
+    # Initial state coincide at 0
+    assert _metric(app, "Cursor event time") == "0.00 s"
+    assert _metric(app, "Playhead time") == "0.00 s"
+
+    # ---- Exact-event seek to 5.0 must show post-action 5.00 in both caption and metrics, no stale 0.00 ----
+    for s in app.slider:
+        if "Seek" in str(getattr(s, "label", "")):
+            s.set_value(5.0).run(timeout=30)
+            break
+    seek_btn = next(b for b in app.button if b.label == "SEEK")
+    seek_btn.click().run(timeout=30)
+    assert not app.exception, f"seek raised: {app.exception}"
+    # Metrics must be post-action in same rerun
+    cursor_5 = _metric(app, "Cursor event time")
+    playhead_5 = _metric(app, "Playhead time")
+    assert cursor_5 == "5.00 s", f"cursor should be 5.00 post-action, got {cursor_5}"
+    assert playhead_5 == "5.00 s", f"playhead should be 5.00 post-action, got {playhead_5}"
+    assert _metric(app, "Cursor index") == "5/7"
+    # Seek caption placeholder must be filled from post-action view, not pre-action 0.00
+    seek_caps = [c.value for c in app.caption if "Seek target" in str(c.value)]
+    assert len(seek_caps) == 1, f"expected exactly one seek caption, got {seek_caps}"
+    sc_exact = str(seek_caps[0])
+    assert "Seek target 5.00" in sc_exact, f"seek caption should show target 5.00, got {sc_exact}"
+    assert "5.00" in sc_exact
+    # Must say coincide for exact, not distinct
+    assert "coincide" in sc_exact.lower(), (
+        f"exact-event seek caption must say coincide, got {sc_exact}"
+    )
+    assert "distinct" not in sc_exact.lower(), f"exact seek must not claim distinct, got {sc_exact}"
+    # No stale 0.00 claim as current cursor/playhead time in that same caption
+    # The caption is the only element that labels current cursor event time vs playhead time for seek target
+    assert "cursor event time 0.00" not in sc_exact.lower(), (
+        f"stale 0.00 cursor in post-action caption: {sc_exact}"
+    )
+    assert "playhead time 0.00" not in sc_exact.lower(), (
+        f"stale 0.00 playhead in post-action caption: {sc_exact}"
+    )
+    # Receipt must also be correct and not stale
+    joined_exact = _text(app)
+    assert "Seeked to 5.00" in joined_exact
+    assert "playhead 5.00" in joined_exact.lower()
+    assert "cursor 5/7" in joined_exact.lower()
+
+    # Simulation clock caption for exact must say coincide, metrics already prove coincidence
+    sim_caps = [
+        c.value for c in app.caption if "Cursor event time (selected event)" in str(c.value)
+    ]
+    assert any("coincide" in str(v).lower() for v in sim_caps), (
+        f"sim clock should say coincide for exact, got {sim_caps}"
+    )
+
+    # ---- Gap seek to 2.0 must show distinct truth: playhead 2.00 vs cursor 2.50 ----
+    for s in app.slider:
+        if "Seek" in str(getattr(s, "label", "")):
+            s.set_value(2.0).run(timeout=30)
+            break
+    seek_btn2 = next(b for b in app.button if b.label == "SEEK")
+    seek_btn2.click().run(timeout=30)
+    assert not app.exception
+    cursor_gap = _metric(app, "Cursor event time")
+    playhead_gap = _metric(app, "Playhead time")
+    assert playhead_gap == "2.00 s", f"gap playhead should be 2.00, got {playhead_gap}"
+    assert cursor_gap == "2.50 s", f"gap cursor should be 2.50 (next event), got {cursor_gap}"
+    assert cursor_gap != playhead_gap, "gap seek must have distinct times"
+    seek_caps_gap = [c.value for c in app.caption if "Seek target" in str(c.value)]
+    assert len(seek_caps_gap) == 1
+    sc_gap = str(seek_caps_gap[0])
+    assert "Seek target 2.00" in sc_gap, f"gap caption target 2.00, got {sc_gap}"
+    assert "2.00" in sc_gap and "2.50" in sc_gap, (
+        f"gap caption must show both 2.00 and 2.50, got {sc_gap}"
+    )
+    assert "distinct" in sc_gap.lower(), f"gap seek caption must say distinct, got {sc_gap}"
+    assert "coincide" not in sc_gap.lower(), f"gap caption must not say coincide, got {sc_gap}"
+    # Ensure gap caption correctly keeps playhead < cursor ordering
+    assert "2.00" in sc_gap and "2.50" in sc_gap
+    # Receipt for gap must say distinct and not coincide
+    joined_gap = _text(app)
+    assert "Seeked to 2.00" in joined_gap
+    # Find the seek receipt line: should contain distinct and playhead 2.00
+    assert "distinct" in joined_gap.lower()
+    # Verify simulation clock now says distinct
+    sim_caps_gap = [
+        c.value for c in app.caption if "Cursor event time (selected event)" in str(c.value)
+    ]
+    assert any("distinct" in str(v).lower() for v in sim_caps_gap), (
+        f"sim clock should say distinct for gap, got {sim_caps_gap}"
+    )
