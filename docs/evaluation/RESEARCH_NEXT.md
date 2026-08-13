@@ -1,10 +1,14 @@
 # Current authoritative research direction
 
-**Status date:** 2026-08-11
+**Status date:** 2026-08-13
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1, E2, E2b, E2c and E2d are closed; E2d completed its bounded four-draw
-construct-validity study and now awaits independent post-run evidence review
-**Execution authority:** none; E2d grants no automatic follow-on experiment authority
+**Current phase:** E1, E2, E2b, E2c and E2d are closed and frozen; E2d completed its bounded four-draw
+construct-validity study and remains immutable history. E3 dynamic-resource v2 contract v1
+(`e3_dynamic_resource_v2_contract_v1` at `docs/evaluation/e3/e3_dynamic_resource_v2_contract_v1.md/.json`)
+is predeclared on lane `01`/`worker/e3-lane-01-contract` from exact base `80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761`
+and is the active bounded next research direction before any E3 trace execution.
+**Execution authority:** none; E2d grants no automatic follow-on experiment authority, and E3 grants
+no trace execution until its contract, validator, and tests pass independent review with `APPROVE`
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -264,6 +268,8 @@ establishes:
   inherited backlog-only gate and a frozen actor that neither observes RSU load nor selects the
   execution RSU; it provides no task-level, equivalence, universal least-busy, physical-return,
   deployment, Manchester-wide or population-wide claim;
+- E3 predeclared contract v1 (2026-08-13, lane 01, base 80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761): normative Markdown `e3_dynamic_resource_v2_contract_v1.md` and semantically equivalent strict JSON `e3_dynamic_resource_v2_contract_v1.json` are frozen before any E3 trace execution; they preserve exact E2 identities (E2b fe2ed4e9bd9043b19b96a5f179390db629b01ccb, E2c 1a08d6e148a1e8c430da39c3d575eda3f8ea5929, E2d 80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761 with manifest f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740, actor 93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208, trace e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056, evaluator seed 0), distinguish placement/admission/scaling, enforce actor never observes RSU load nor selects execution RSU, queue ceiling is not compute capacity, rejected work never executes, fixed_1x is compute service baseline and static_overprovisioned is fixed 3x compute (multiplier 3, never queue capacity; static3x/static_3x forbidden), dynamic bounds 1--3 with exact reactive signal service_workload_ms (work-ms independent of capacity) scale-up >=800ms and scale-down <=200ms (600ms gap is hysteresis, no extra hysteresis_ms), cooldown 5000ms from applied, actuation delay 2000ms (2 ticks), one level, one pending, apply due before tick decision, stable inclusive edges, and transparent-baseline proactive per-RSU admitted arrival_work_ms at 1s ticks with exact four-point window W oldest-to-newest, warm-up 4, older_mean=mean(W[0:2]), recent_mean=mean(W[2:4]), trend=recent_mean-older_mean, forecast=max(0, mean(W)+2*trend) two ticks ahead, no future leakage (use only samples at or before observation time), same 800/200 thresholds, 600ms gap, cooldown 5000, delay 2000, bounds 1..3, one-level/pending, not optimal predictor, integer simulator-ms state age with 1000 ms outer tick and five within-tick task slots that do not advance physical time and candidate stale levels 0/1000/3000 ms (state age is signal snapshot age), P2C feasibility-first with two distinct feasible candidates via stable counter key (evaluator seed, fleet seed, tick, task slot, sequential ordinal) and inspect-only-pair/lower-workload/stable RSU-id tie/immediate reservation/one-candidate and stale immutable delayed views with same-tick reservation overlay exposing state_age_ms, cost as resource_unit_seconds never monetary, required accounting offered/admitted/rejected/genuine classes/forwarded/deadline_success with unavailable started/compute_completed/returned/dropped remaining null, offered deadline attainment headline and admitted conditional diagnostic with resource_unit_seconds trade-off, staged candidate grid E3a (ingress_dla/per_task_dla/p2c_dla x fixed_1x x seeds 1..4, primary P2C minus per_task offered deadline) / E3b (per_task x fixed_1x/static_overprovisioned/reactive/proactive x seeds 1..4, co-primary deadline/rejection/resource_unit_seconds trade-off) / E3c (per_task vs P2C at fixed_1x and reactive vs proactive at fixed per_task placement over 0/1000/3000 ms reusing identical fresh cells not rerun and not double-counted) with maximum 60 unique cells and mandatory reduction before execution if representative benchmark projects unreasonable bounded local budget and E3c depending on fresh construct gates, paired fleet-draw inference N=4 with per-draw values/mean/95% Student-t interval compatible with E2 unless predeclared otherwise and includes-zero flag and no task-as-N/p-value/citywide/population claims, and validation/tests plus immutable manifest/gate requirements before any full cell; any post-observation source change requires a successor contract; no E3 trace execution has occurred under this contract;
+- E3 validator and tests: `scripts/validate_e3_dynamic_resource_contract.py` strictly enforces the contract and rejects queue==compute, task replication, actor chooses RSU, free/unbounded scaling, unavailable lifecycle zero, monetary cost, hidden fleet_seed label, 200 ms pseudo-time, missing resource denominator, actual Kubernetes, future leakage, and common-target P2C; `tests/test_e3_dynamic_resource_contract.py` proves each rejection by mutating valid payload copies without editing the canonical file in place;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -272,29 +278,19 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Independent post-run evidence review of the exact E2d final head.**
+**Independent contract review of the exact E3 dynamic-resource v2 contract v1 before any E3 trace execution.**
 
-Review the frozen [E2d manifest](e2d/e2d_per_task_placement_robustness_manifest_v1.json),
-[validation](e2d/e2d_per_task_placement_robustness_validation_v1.json),
-[comparison](e2d/e2d_per_task_placement_robustness_comparison_v1.json),
-[mechanism summary](e2d/e2d_per_task_placement_mechanism_summary_v1.json),
-[evidence index](e2d/e2d_per_task_placement_evidence_index_v1.json),
-[full report](e2d/e2d_per_task_placement_report_2026-08-11.md) and
-[supervisor summary](e2d/e2d_per_task_placement_supervisor_summary_2026-08-11.md). Review must bind
-the exact final TrafficTwin head, unchanged vec_env head and frozen manifest SHA, and verify the raw
-root ledger, reused E2c hashes, statistical formulas, mechanism summaries and claim boundaries.
+Review the normative [E3 contract Markdown](e3/e3_dynamic_resource_v2_contract_v1.md), its semantically equivalent strict JSON twin [E3 contract JSON](e3/e3_dynamic_resource_v2_contract_v1.json), the validator [validate_e3_dynamic_resource_contract.py](../../scripts/validate_e3_dynamic_resource_contract.py), and the strong tests [test_e3_dynamic_resource_contract.py](../../tests/test_e3_dynamic_resource_contract.py) on lane `01` (`worker/e3-lane-01-contract`) at exact base `80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761`. Review must verify: exact E2 identities (E2b fe2ed4e9bd9043b19b96a5f179390db629b01ccb, E2c 1a08d6e148a1e8c430da39c3d575eda3f8ea5929, E2d 80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761 with manifest f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740, actor 93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208, trace e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056, evaluator seed 0), replication as fleet_draw keyed by fleet_seed with N=4 and padded-slot semantics, placement/admission/scaling separation and actor/queue/rejected-work guarantees, P2C feasibility-first/stable-counter/inspect-only-pair/common-target prohibition and stale immutable-delayed-view rules, compute-service fixed_1x/static_overprovisioned/dynamic 1--3 bounds with exact thresholds 800/200 (gap 600 is hysteresis, no extra hysteresis_ms), cooldown 5000, two-second delay, one-level, one-pending, apply-due-before-decision, stable inclusive edges, signal units, and reactive service_workload_ms/proactive arrival_work_ms transparency/no-future-leakage constraints, integer-ms time model with 5 within-tick slots and stale levels 0/1000/3000, cost as resource_unit_seconds never monetary, required task accounting with null unavailable lifecycle and headline/diagnostic hierarchy, staged candidate grid E3a/E3b/E3c with maximum 60 unique cells and mandatory benchmark-driven reduction and E3c construct-gate dependency, paired fleet-draw inference with 95% Student-t intervals and includes-zero flags, and fail-closed validator/tests that reject queue==compute/task replication/actor-chooses-RSU/free-unbounded scaling/unavailable-zero/monetary cost/hidden fleet_seed/200 ms pseudo-time/missing resource denominator/actual Kubernetes/future leakage/common-target P2C via copy-mutation without editing the canonical file.
+
+E2, E2b, E2c, and E2d remain frozen history and are not rewritten; the E2d independent post-run evidence review of its final head (manifest/validation/comparison/mechanism summary/evidence index/report/supervisor summary binding the exact TrafficTwin head, unchanged vec_env head, frozen manifest SHA, raw root ledger, reused E2c hashes, statistical formulas, and claim boundaries) remains a retained prerequisite but does not block the bounded E3 contract review.
 
 ### Exit condition
 
-E2d exits this final gate only after independent review accepts the exact final evidence head.
-Review findings must be retained honestly. Neither post-run approval nor any other E2d result
-authorises another experiment.
+E3 contract v1 exits this gate only after independent review returns `APPROVE` for the exact contract Markdown/JSON pair, validator, and tests at the exact base commit, with all checks passing. `APPROVE` authorises only the bounded E3 preparation sequence (unit/construct tests, tiny smoke, representative benchmark, runtime/storage projection, reduced machine plan, and immutable manifest) — it does not authorise any E3 trace execution itself, which requires a separate manifest `APPROVE`. Neither post-run approval of E2d nor contract `APPROVE` of E3 authorises another experiment outside the declared staged grid, and any post-observation source change requires a successor contract.
 
 ## What follows after this gate
 
-Nothing follows automatically after E2d. Any new backhaul, ordinary-traffic, scaling, stale-state,
-placement, learning, fleet, seed or replication study requires a separate direct researcher
-instruction, predeclaration and review.
+If E3 contract v1 is approved, the next authorised work is the E3 preparation sequence under the approved contract: unit/construct tests, tiny smoke per new arm, representative benchmark per arm type with runtime/storage projection and budget reduction if needed, reduced machine plan with exact cell list and order, and an immutable manifest bound to exact TrafficTwin/vec_env/tos-data commits and hashes. Only after that manifest receives its own `APPROVE` may bounded fresh E3a/E3b/E3c cells execute. E2d remains frozen; no additional E2d/E2c replay or E1 cell follows automatically, and any new backhaul, ordinary-traffic, learning, fleet, or replication study beyond E3 requires a separate direct researcher instruction, predeclaration, and review.
 
 ## Explicitly not next
 
@@ -302,17 +298,22 @@ Do not start:
 
 - any additional E2d replay, smoke, full cell, fleet seed or evaluator seed;
 - any full `ingress_dla` or `dla` rerun, or any `off`/`jsq` run;
-- any fleet seed outside 1–4 or any seed-0 E2d run;
-- P2C or DLA-P2C;
-- E3 or any nonzero-backhaul run;
-- static/reactive/proactive scaling;
-- MAPPO or other actor retraining;
-- a learned infrastructure dispatcher;
-- action masking or an RSU-load-augmented actor;
-- proactive prediction or oracle forecasting;
+- any fleet seed outside 1–4 or any seed-0 E2d run, or any task-as-N inference;
+- any E3 trace execution, smoke, benchmark, or full cell before E3 contract v1 `APPROVE`;
+- any E3 cell outside the staged candidate grid (E3a/E3b/E3c as declared, maximum 60 unique cells, reduced plan before execution);
+- any nonzero-backhaul run or queue-as-compute claim;
+- any free/unbounded/fractional scaling outside 1--3 or without thresholds/hysteresis/cooldown/two-second delay/one-level actions;
+- MAPPO or other actor retraining, or any actor that observes RSU load or selects execution RSU;
+- a learned infrastructure dispatcher or ML-based proactive predictor;
+- action masking, an RSU-load-augmented actor, or actual Kubernetes orchestration;
+- proactive prediction with future leakage or non-four/ non-one-second window or undisclosed warm-up/formula;
+- any P2C variant that samples with replacement, uses a global RNG without the stable counter key, inspects beyond the pair, or collapses to a common target;
+- any stale view with 200 ms pseudo-time, non-integer state_age_ms, or within-tick slots advancing physical time;
+- any monetary-cost claim or 0-coerced unavailable lifecycle field or missing resource_unit_seconds denominator;
 - bus modelling as a replacement for the VEC thread;
 - any G4, other-GPU, TPU or cross-backend E1 campaign cell;
-- any additional E1 cell or semantic/cap variant.
+- any additional E1 cell or semantic/cap variant;
+- any successor contract or post-observation source change without a new versioned contract.
 
 ## Active blockers and requests
 

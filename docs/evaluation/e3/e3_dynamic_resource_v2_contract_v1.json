@@ -1,0 +1,539 @@
+{
+  "schema_version": "e3_dynamic_resource_v2_contract_v1",
+  "status": "predeclared_before_any_e3_trace_execution",
+  "created": "2026-08-13",
+  "campaign": "e3-dynamic-resource-v2",
+  "lane": "01",
+  "base_commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+  "branch": "worker/e3-lane-01-contract",
+  "research_question": "Under the frozen Manchester incident trace and frozen MAPPO vehicle actor, do infrastructure-side placement among ingress_dla, per_task_dla, and p2c_dla and dynamic compute-resource scaling among fixed_1x, static_overprovisioned, reactive, and proactive improve offered-task deadline attainment and its trade-off with rejection and resource cost, when evaluated as paired fleet-draw differences over four matched draws within the bounded staged grid where E3a isolates placement at fixed_1x, E3b holds placement fixed at per_task_dla for scaling contrasts, and E3c tests selected stale-state contrasts (0/1000/3000 ms), without fully crossing every placement with every scaler?",
+  "frozen_prerequisites": {
+    "e2b": {
+      "commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "status": "closed"
+    },
+    "e2c": {
+      "commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+      "status": "closed"
+    },
+    "e2d": {
+      "commit": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761",
+      "manifest_sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+      "status": "closed"
+    },
+    "actor": {
+      "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "observes_current_rsu_load": false,
+      "selects_execution_rsu": false,
+      "frozen": true
+    },
+    "trace": {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    },
+    "evaluator_seed": 0
+  },
+  "replication": {
+    "replication_unit": "fleet_draw",
+    "replication_key": "fleet_seed",
+    "n": 4,
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "seed_0_in_primary": false,
+    "fleet_draw_note": "One fleet_draw is one fixed padded-slot assignment for the trace, not a new draw per unique SUMO vehicle.",
+    "tasks_are_not_replicates": true
+  },
+  "scenario": {
+    "scenario": "Manchester incident trace",
+    "date": "2024-03-15",
+    "window_local": "20:00-21:00 Europe/London",
+    "steps": 3600,
+    "smoke_steps": 10,
+    "rsus": 10,
+    "padded_fleet_width": 2488,
+    "fleet": "uk2030",
+    "fleet_status": "provisional",
+    "arrival_lambda": 1.5,
+    "waiting_room_cap_per_vehicle": 2.5,
+    "resolved_cap_tasks_per_rsu": 6220,
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "rsu_cap_mode": "reject",
+    "backhaul_ms": 0.0
+  },
+  "mechanism_separation": {
+    "placement": "Which RSU executes an admitted V2I task",
+    "admission": "Whether an offered V2I task is admitted (deadline feasibility gate)",
+    "scaling": "How many compute units (1-3) are active per RSU over time",
+    "actor_never_observes_rsu_load": true,
+    "actor_never_selects_execution_rsu": true,
+    "queue_ceiling_is_not_compute_capacity": true,
+    "rejected_work_never_executes": true
+  },
+  "time_model": {
+    "outer_tick_ms": 1000,
+    "within_tick_task_slots": 5,
+    "within_tick_slots_advance_physical_time": false,
+    "state_age_unit": "integer_simulator_ms",
+    "state_age_is_signal_snapshot_age": true,
+    "candidate_stale_levels_ms": [
+      0,
+      1000,
+      3000
+    ],
+    "stale_levels_are_candidate_values": true
+  },
+  "admission_gate": {
+    "formula": "effective_busy_ms[selected_rsu] < TASK_DEADLINE_MS[task_type]",
+    "state_units": "milliseconds_of_remaining_service_workload",
+    "excludes": [
+      "own_compute",
+      "radio_transfer",
+      "return_transfer",
+      "forwarding_latency"
+    ],
+    "never_selects_target": true
+  },
+  "placement": {
+    "ingress_dla": {
+      "mechanism": "strongest-link ingress execution",
+      "admission": "inherited_deadline_aware_gate"
+    },
+    "per_task_dla": {
+      "mechanism": "per-task sequential least-busy placement",
+      "state": "effective_busy_ms (remaining service workload)",
+      "order": "ascending task-substep then padded-slot index",
+      "tie_break": "lowest RSU index (jnp.argmin)",
+      "gate": "same inherited deadline gate applied causally per candidate",
+      "reservation": "add service work to effective vectors only on admission",
+      "rng": "none"
+    },
+    "p2c_dla": {
+      "mechanism": "power-of-two-choices with feasibility-first",
+      "feasibility_first": true,
+      "candidates": 2,
+      "without_replacement": true,
+      "distinct_feasible_only": true,
+      "counter_key_fields": [
+        "evaluator_seed",
+        "fleet_seed",
+        "tick",
+        "task_slot",
+        "sequential_ordinal"
+      ],
+      "counter_key_stable": true,
+      "no_global_rng_stream": true,
+      "inspect_only_pair": true,
+      "selection": "lower effective_busy_ms",
+      "tie_break": "lowest RSU id (stable)",
+      "immediate_reservation": true,
+      "one_candidate_per_task": true,
+      "common_target_forbidden": true,
+      "stale_snapshot": {
+        "immutable_delayed_view": true,
+        "delay_ms_field": "state_age_ms",
+        "same_tick_reservation_overlay": true,
+        "no_future_leakage": true,
+        "exposes_state_age_ms": true
+      }
+    }
+  },
+  "compute_scaling": {
+    "unit": "compute_unit (service capacity, not queue slots)",
+    "fixed_1x": {
+      "active_units_per_rsu": 1,
+      "rsu_service_mult": 1.0,
+      "scaling": "off",
+      "multiplier": 1
+    },
+    "static_overprovisioned": {
+      "active_units_per_rsu": 3,
+      "rsu_service_mult": 3.0,
+      "scaling": "off",
+      "multiplier": 3,
+      "is_compute_not_queue": true,
+      "forbidden_synonyms_rejected": [
+        "static3x",
+        "static_3x"
+      ]
+    },
+    "dynamic_bounds": {
+      "min_units": 1,
+      "max_units": 3,
+      "actuation_delay_ticks": 2,
+      "actuation_delay_ms": 2000,
+      "action_step": 1,
+      "one_level_per_action": true,
+      "max_pending_actions": 1,
+      "apply_due_before_tick_decision": true,
+      "free_scaling_forbidden": true,
+      "unbounded_scaling_forbidden": true,
+      "threshold_gap_ms": 600,
+      "hysteresis_is_gap": true,
+      "hysteresis_ms_extra_forbidden": true
+    },
+    "reactive": {
+      "signal": "service_workload_ms",
+      "signal_units": "work_ms_independent_of_capacity",
+      "per_rsu": true,
+      "scale_up_threshold_ms": 800,
+      "scale_up_inclusive": true,
+      "scale_down_threshold_ms": 200,
+      "scale_down_inclusive": true,
+      "threshold_gap_ms": 600,
+      "hysteresis_is_gap": true,
+      "hysteresis_ms_extra": false,
+      "cooldown_ms": 5000,
+      "actuation_delay_ms": 2000,
+      "actuation_delay_ticks": 2,
+      "min_units": 1,
+      "max_units": 3,
+      "action_step": 1,
+      "max_pending_actions": 1,
+      "apply_due_before_tick_decision": true,
+      "stable_inclusive_edges": true,
+      "state_age_ms_values": [
+        0,
+        1000,
+        3000
+      ],
+      "prediction": false
+    },
+    "proactive": {
+      "ml": false,
+      "transparent": true,
+      "transparent_baseline_not_optimal": true,
+      "signal": "arrival_work_ms",
+      "per_rsu": true,
+      "observation_interval_ms": 1000,
+      "window_size": 4,
+      "window_interval_ms": 1000,
+      "window_order": "oldest_to_newest",
+      "warm_up_valid_observations": 4,
+      "warm_up_ticks_declared": true,
+      "no_decisions_during_warm_up": true,
+      "formulas": {
+        "older_mean": "mean(W[0:2])",
+        "recent_mean": "mean(W[2:4])",
+        "trend": "recent_mean - older_mean",
+        "forecast": "max(0, mean(W) + 2*trend)"
+      },
+      "formula_declared": true,
+      "horizon_ms": 2000,
+      "horizon_ticks": 2,
+      "scale_up_threshold_ms": 800,
+      "scale_up_inclusive": true,
+      "scale_down_threshold_ms": 200,
+      "scale_down_inclusive": true,
+      "threshold_gap_ms": 600,
+      "hysteresis_is_gap": true,
+      "cooldown_ms": 5000,
+      "actuation_delay_ms": 2000,
+      "actuation_delay_ticks": 2,
+      "bounds_min": 1,
+      "bounds_max": 3,
+      "action_step": 1,
+      "max_pending_actions": 1,
+      "apply_due_before_tick_decision": true,
+      "stable_inclusive_edges": true,
+      "no_future_leakage": true,
+      "prediction_uses_future": false,
+      "uses_only_samples_at_or_before_observation_time": true,
+      "alternative_formula_forbidden": true
+    }
+  },
+  "cost": {
+    "metric": "resource_unit_seconds",
+    "formula": "sum_over_RSU sum_over_interval (active_compute_units * interval_seconds)",
+    "interval_seconds": 1,
+    "monetary": false,
+    "forbidden_fields": [
+      "cost_currency",
+      "cost_dollars",
+      "cost_price",
+      "cost_billing"
+    ]
+  },
+  "task_accounting": {
+    "required": [
+      "offered",
+      "admitted",
+      "rejected",
+      "genuine_classes",
+      "forwarded",
+      "deadline_success"
+    ],
+    "rejection_breakdown": [
+      "gate_rejected",
+      "cap_rejected",
+      "unavailable"
+    ],
+    "genuine_classes_dimension": "task_type",
+    "unavailable_lifecycle": {
+      "started": null,
+      "started_reason": "physical_execution_not_modelled",
+      "compute_completed": null,
+      "compute_completed_reason": "physical_execution_not_modelled",
+      "returned": null,
+      "returned_reason": "result_return_not_modelled",
+      "dropped": null,
+      "dropped_reason": "physical_drop_not_modelled",
+      "null_means_unmodelled_not_zero": true
+    },
+    "outcome_hierarchy": {
+      "headline": "offered_deadline_attainment = deadline_success / offered",
+      "diagnostic": "admitted_deadline_attainment = deadline_success / admitted (conditional)",
+      "headline_is_offered": true
+    },
+    "rejected_never_executes": true
+  },
+  "staged_design": {
+    "note": "Candidate grid before benchmark reduction; final machine plan must be reduced if representative benchmark projects unreasonable bounded local budget. Identical fresh cells are reused across stage summaries rather than rerun and counted twice.",
+    "maximum_candidate_unique_cells": 60,
+    "budget_reduction_required_if_unreasonable": true,
+    "identical_fresh_cells_reused_not_rerun": true,
+    "not_double_counted": true,
+    "e3a": {
+      "label": "P2C placement under fixed 1x",
+      "placement": [
+        "ingress_dla",
+        "per_task_dla",
+        "p2c_dla"
+      ],
+      "scaling": [
+        "fixed_1x"
+      ],
+      "scaling_ids_exact": [
+        "fixed_1x"
+      ],
+      "stale_ms": [
+        0
+      ],
+      "fleet_seeds": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "fresh": true,
+      "cells": 12,
+      "primary_estimand": "p2c_dla minus per_task_dla offered deadline attainment at fixed_1x stale=0"
+    },
+    "e3b": {
+      "label": "Scaling trade-off family at fixed per-task placement",
+      "placement": [
+        "per_task_dla"
+      ],
+      "scaling": [
+        "fixed_1x",
+        "static_overprovisioned",
+        "reactive",
+        "proactive"
+      ],
+      "scaling_ids_exact": [
+        "fixed_1x",
+        "static_overprovisioned",
+        "reactive",
+        "proactive"
+      ],
+      "stale_ms": [
+        0
+      ],
+      "fleet_seeds": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "fresh": true,
+      "cells": 16,
+      "co_primary_family": [
+        "offered_deadline_attainment",
+        "rejection_rate",
+        "resource_unit_seconds"
+      ],
+      "co_primary_note": "Trade-off family, no single metric dominates"
+    },
+    "e3c": {
+      "label": "Staleness sensitivity (reuses identical fresh cells)",
+      "depends_on": "fresh construct gates (unit, construct, tiny smoke)",
+      "contrasts": [
+        {
+          "comparison": "per_task_dla vs p2c_dla",
+          "fixed": "fixed_1x",
+          "over_stale_ms": [
+            0,
+            1000,
+            3000
+          ]
+        },
+        {
+          "comparison": "reactive vs proactive",
+          "fixed_placement": "per_task_dla",
+          "over_stale_ms": [
+            0,
+            1000,
+            3000
+          ]
+        }
+      ],
+      "reuses_identical_fresh_cells": true,
+      "identical_fresh_cells_reused_not_rerun": true,
+      "not_double_counted": true,
+      "stale_is_view_parameter": true,
+      "additional_stale_variant_cells_max": 32,
+      "total_candidate_with_stale_max": 60
+    }
+  },
+  "inference": {
+    "unit": "fleet_draw",
+    "key": "fleet_seed",
+    "n": 4,
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "per_draw_values_required": true,
+    "paired_differences": "d_i = metric(treatment, draw_i) - metric(control, draw_i) matched on fleet_seed",
+    "mean_difference": "d_bar = mean(d_i)",
+    "sample_sd": "Bessel n-1",
+    "se": "s / sqrt(n)",
+    "interval": "two-sided 95% Student-t, df=3, t_0.975,3 = 3.182",
+    "compatible_with_e2_unless_predeclared": true,
+    "includes_zero_flag": true,
+    "decisions": {
+      "interval_above_zero": "directional_advantage_for_treatment_within_bounded_draws",
+      "interval_below_zero": "directional_deficit_for_treatment_within_bounded_draws",
+      "interval_includes_zero": "inconclusive_at_this_replication_size"
+    },
+    "forbidden": [
+      "task_as_n",
+      "p_value_as_primary",
+      "citywide_generalisation",
+      "population_claim",
+      "equivalence_without_margin",
+      "seed_0_in_primary"
+    ]
+  },
+  "execution_preconditions": {
+    "before_any_full_cell": [
+      "unit_tests_pass",
+      "construct_tests_pass",
+      "tiny_smoke_10step_per_new_arm",
+      "representative_benchmark_3600_per_arm_type",
+      "runtime_storage_projection",
+      "machine_plan_with_exact_cells_and_order",
+      "independent_review_APPROVE_exact_HEAD_and_manifest_SHA",
+      "immutable_manifest_before_first_replay"
+    ],
+    "stop_rules": [
+      "identity_mismatch",
+      "offered_or_fleet_mismatch_across_matched_draws",
+      "task_accounting_or_conservation_failure",
+      "rejected_work_executes_or_forwards",
+      "non_finite_or_negative_or_monetary_cost",
+      "future_leakage",
+      "common_target_p2c",
+      "budget_or_storage_gate_violation",
+      "unpredeclared_arm_or_code_change"
+    ]
+  },
+  "claim_boundaries": {
+    "physical_result_return_tested": false,
+    "monetary_cost_tested": false,
+    "kubernetes_orchestration_tested": false,
+    "learned_controller_tested": false,
+    "manchester_wide_deployment_tested": false,
+    "any_post_observation_source_change_requires_successor": true,
+    "proactive_is_transparent_baseline_not_optimal": true
+  },
+  "permission_boundaries": {
+    "authorised_after_exact_approval": "bounded fresh E3a/E3b/E3c cells as reduced machine plan, matched analysis, private branches",
+    "forbidden": [
+      "trace_run_before_exact_approval",
+      "seed_0_in_primary",
+      "new_ingress_dla_dla_without_fresh",
+      "nonzero_backhaul",
+      "scaling_outside_1_3",
+      "learning_retraining",
+      "actor_observes_rsu_load"
+    ]
+  },
+  "hypotheses": {
+    "note": "All hypotheses are predeclared as hypotheses_not_expected_truths; negative, null, or opposite results are acceptable and remain valid. No hypothesis is an expected truth or guaranteed result.",
+    "hypotheses_are_not_expected_truths": true,
+    "negative_results_acceptable": true,
+    "boundary": "negative, null, or opposite results acceptable; hypotheses are not expected truths",
+    "items": [
+      {
+        "id": "H1",
+        "status": "hypothesis_not_expected_truth",
+        "kind": "hypothesis",
+        "statement": "P2C (p2c_dla) may approach per_task_dla offered deadline attainment with less global inspection, but may not exceed it.",
+        "compares": [
+          "p2c_dla",
+          "per_task_dla"
+        ],
+        "metric": "offered_deadline_attainment",
+        "interpretation": "hypothesis_not_expected_truth"
+      },
+      {
+        "id": "H2",
+        "status": "hypothesis_not_expected_truth",
+        "kind": "hypothesis",
+        "statement": "Reactive scaling may improve deadline attainment or reduce rejection relative to fixed_1x, but may increase resource_unit_seconds and churn (scale actions).",
+        "compares": [
+          "reactive",
+          "fixed_1x"
+        ],
+        "metric": "deadline_attainment_rejection_resource_tradeoff",
+        "interpretation": "hypothesis_not_expected_truth"
+      },
+      {
+        "id": "H3",
+        "status": "hypothesis_not_expected_truth",
+        "kind": "hypothesis",
+        "statement": "Proactive scaling may help relative to reactive when load change outruns the 2s actuation delay, but may not otherwise.",
+        "compares": [
+          "proactive",
+          "reactive"
+        ],
+        "metric": "deadline_attainment",
+        "interpretation": "hypothesis_not_expected_truth"
+      },
+      {
+        "id": "H4",
+        "status": "hypothesis_not_expected_truth",
+        "kind": "hypothesis",
+        "statement": "Global least-busy placement (per_task_dla) may degrade faster than P2C (p2c_dla) under stale state (1000/3000 ms).",
+        "compares": [
+          "per_task_dla",
+          "p2c_dla"
+        ],
+        "metric": "offered_deadline_attainment_under_staleness",
+        "interpretation": "hypothesis_not_expected_truth"
+      },
+      {
+        "id": "H5",
+        "status": "hypothesis_not_expected_truth",
+        "kind": "hypothesis",
+        "statement": "Additional compute (static_overprovisioned or scaling-up policies) may not win once resource_unit_seconds is considered in the deadline–cost trade-off.",
+        "compares": [
+          "static_overprovisioned",
+          "fixed_1x"
+        ],
+        "metric": "resource_unit_seconds_tradeoff",
+        "interpretation": "hypothesis_not_expected_truth"
+      }
+    ]
+  }
+}
