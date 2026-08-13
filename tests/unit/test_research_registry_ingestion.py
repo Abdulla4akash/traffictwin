@@ -482,3 +482,121 @@ def test_admission_policy_exact_match_required() -> None:
     bad_pol = AdmissionPolicy(entries=bad_entries)
     with pytest.raises(ResearchIngestionError, match="not in admission allowlist"):
         ingest_package(pkg.to_json(), bad_pol)
+
+
+# ---------------------------------------------------------------------------
+# BLOCKER 2 adversarial fail-closed generic ingestion
+# ---------------------------------------------------------------------------
+
+
+def test_missing_sha_hash_fails_closed_via_generic_ingestion() -> None:
+    # Missing SHA/hash cannot land in admitted records via generic ingestion
+    from traffictwin.research_registry.adapters import build_unavailable_index_records
+
+    unavailable = build_unavailable_index_records()
+    # Build a package containing only unavailable records (no hashes) — must fail via generic ingest
+    pkg = ResearchStudyPackage.build(records=unavailable, lineage_edges=[])
+    pol_empty = AdmissionPolicy(entries=[])
+    with pytest.raises(ResearchIngestionError, match="ADMITTED|requires exact|unavailable"):
+        ingest_package(pkg.to_json(), pol_empty)
+    # Also fails with E2 policy (not allowlisted)
+    e2_pol = _build_policy_for(_build_valid_package())
+    with pytest.raises(ResearchIngestionError):
+        ingest_package(pkg.to_json(), e2_pol)
+
+
+def test_not_admitted_records_fail_closed_even_with_empty_policy() -> None:
+    # NOT_ADMITTED record via generic ingestion must fail even with empty policy
+    rec = ResearchStudyRecord(
+        study="ATTACK-1",
+        version="1.0",
+        title="Attacker study with sufficient title length for validation",
+        question="Attacker question with sufficient length to pass validation for testing purposes?",  # noqa: E501
+        status=StudyStatus.UNAVAILABLE,
+        evidence_standing=EvidenceStanding.UNAVAILABLE,
+        admission_status=AdmissionStatus.NOT_ADMITTED,
+    )
+    pkg = ResearchStudyPackage.build(records=[rec], lineage_edges=[])
+    pol_empty = AdmissionPolicy(entries=[])
+    with pytest.raises(ResearchIngestionError, match="ADMITTED"):
+        ingest_package(pkg.to_json(), pol_empty)
+
+
+def test_empty_policy_attacker_text_product_links_fail_closed() -> None:
+    # Attacker-authored package with text/product links must not land in records/links with empty policy  # noqa: E501
+    rec = ResearchStudyRecord(
+        study="ATTACK-2",
+        version="1.0",
+        title="Attacker product link study",
+        question="Attacker question with sufficient length to pass validation for testing?",
+        status=StudyStatus.COMPLETED,
+        evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+        admission_status=AdmissionStatus.ADMITTED,
+        code_sha=HEX40_A,
+        manifest_hash=HEX64_A,
+        product_links=["docs/closure/v08_alignment/strategy_matrix.json"],
+        limitations=["Attacker injected limitation to pollute snapshot"],
+    )
+    pkg = ResearchStudyPackage.build(records=[rec], lineage_edges=[])
+    pol_empty = AdmissionPolicy(entries=[])
+    with pytest.raises(ResearchIngestionError, match="not in admission allowlist"):
+        ingest_package(pkg.to_json(), pol_empty)
+    # Also attacker trying to inject extra product link not in policy
+    e2_pol = _build_policy_for(_build_valid_package())
+    with pytest.raises(ResearchIngestionError):
+        ingest_package(pkg.to_json(), e2_pol)
+
+
+def test_model_copy_tampering_fails_closed() -> None:
+    pkg = _build_valid_package()
+    pol = _build_policy_for(pkg)
+    # Tamper via model_copy bypass
+    rec = pkg.records[0]
+    rec.model_copy(update={"limitations": ["Tampered attacker limitation"]})
+    # Build package with tampered record but keep old package fingerprint via manual JSON
+    obj = json.loads(pkg.to_json())
+    obj["records"][0]["limitations"] = ["Tampered attacker limitation"]
+    bad_json = json.dumps(obj)
+    with pytest.raises(ResearchIngestionError, match="drift|not in admission"):
+        ingest_package(bad_json, pol)
+    # Direct object tamper via __setattr__
+    pkg2 = ResearchStudyPackage.model_validate(pkg.model_dump(mode="json"))
+    object.__setattr__(pkg2.records[0], "title", "Tampered title via setattr")
+    # Serialize with stale fingerprint
+    tampered_obj = pkg2.model_dump(mode="json")
+    tampered_obj["package_fingerprint"] = pkg.package_fingerprint
+    bad2 = json.dumps(tampered_obj)
+    with pytest.raises(ResearchIngestionError):
+        ingest_package(bad2, pol)
+
+
+def test_explicit_e0_e1_unavailable_only_via_opt_in_not_generic() -> None:
+    # Generic ingestion of E0/E1 must fail; only explicit unavailable opt-in succeeds
+    from traffictwin.research_registry.adapters import build_unavailable_index_records
+    from traffictwin.research_registry.service import RegistryService
+
+    unavailable = build_unavailable_index_records()
+    # Generic ingestion fails
+    pkg_unavail = ResearchStudyPackage.build(records=unavailable, lineage_edges=[])
+    pol = AdmissionPolicy(entries=[])
+    with pytest.raises(ResearchIngestionError):
+        ingest_package(pkg_unavail.to_json(), pol)
+    # Explicit opt-in via service succeeds and they stay in unavailable_records
+    e2_pkg = _build_valid_package()
+    e2_pol = _build_policy_for(e2_pkg)
+    svc = RegistryService(e2_pol)
+    svc.ingest(e2_pkg.to_json())
+    svc.include_unavailable(unavailable)
+    snap = svc.snapshot()
+    assert snap.get_by_identity("E0", "1.0") is not None
+    assert snap.get_by_identity("E1", "1.0") is not None
+    assert snap.get_by_identity("E0", "1.0").evidence_standing == EvidenceStanding.UNAVAILABLE  # type: ignore[union-attr]
+    assert snap.get_by_identity("E1", "1.0").status == StudyStatus.UNAVAILABLE  # type: ignore[union-attr]
+    # They must be in unavailable_records, not records
+    assert all(r.study not in {"E0", "E1"} for r in snap.records)
+    assert len(snap.unavailable_records) == 2
+    # Product links / limitations from unavailable must not leak — test attacker cannot pollute  # noqa: E501
+    e2_snap = svc.snapshot()
+    attacker_lim = "Attacker injected limitation"
+    assert attacker_lim not in e2_snap.limitations()
+    assert attacker_lim not in e2_snap.product_links()

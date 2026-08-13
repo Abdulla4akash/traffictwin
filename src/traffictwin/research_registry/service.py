@@ -60,6 +60,13 @@ class RegistrySnapshot(BaseModel):
             raise ValueError("snapshot records duplicate identity")
         if keys != sorted(keys):
             raise ValueError("snapshot records must be sorted")
+        for r in revalidated:
+            if r.admission_status.value != "admitted":
+                raise ValueError("snapshot admitted records must be ADMITTED")
+            if r.evidence_standing.value == "unavailable":
+                raise ValueError("admitted record cannot be unavailable")
+            if r.code_sha is None or r.manifest_hash is None:
+                raise ValueError("admitted record requires code_sha+manifest_hash")
         return revalidated
 
     @field_validator("unavailable_records")
@@ -74,6 +81,10 @@ class RegistrySnapshot(BaseModel):
         for r in revalidated:
             if r.evidence_standing.value != "unavailable":
                 raise ValueError("unavailable record must have UNAVAILABLE standing")
+            if r.admission_status.value != "not_admitted":
+                raise ValueError("unavailable record must be NOT_ADMITTED")
+            if r.code_sha is not None or r.manifest_hash is not None:
+                raise ValueError("unavailable record must not have code_sha/manifest_hash")
         return revalidated
 
     @model_validator(mode="after")
@@ -266,9 +277,14 @@ class RegistryService:
             records = build_unavailable_index_records()
         revalidated: list[ResearchStudyRecord] = []
         for r in records:
-            revalidated.append(ResearchStudyRecord.model_validate(r.model_dump(mode="json")))
-            if r.evidence_standing.value != "unavailable":
+            rv = ResearchStudyRecord.model_validate(r.model_dump(mode="json"))
+            if rv.evidence_standing.value != "unavailable":
                 raise ValueError("unavailable record must have UNAVAILABLE standing")
+            if rv.admission_status.value != "not_admitted":
+                raise ValueError("unavailable record must be NOT_ADMITTED")
+            if rv.code_sha is not None or rv.manifest_hash is not None:
+                raise ValueError("unavailable record must not have code_sha/manifest_hash")
+            revalidated.append(rv)
         admitted_keys = {(rec.study, rec.version) for rec in self._records.values()}
         filtered = [r for r in revalidated if (r.study, r.version) not in admitted_keys]
         self._unavailable_records = sorted(filtered, key=lambda x: (x.study, x.version))

@@ -85,6 +85,8 @@ class AdmissionPolicyEntry(BaseModel):
     @classmethod
     def _no_secret(cls, v: str) -> str:
         _check_no_private_or_secret(v, "policy study/version")
+        if "*" in v or "?" in v or v.endswith("%"):
+            raise ValueError("wildcard/prefix not allowed in policy")
         return v
 
     @field_validator("code_sha")
@@ -510,15 +512,14 @@ def ingest_package(
 ) -> tuple[ResearchStudyPackage, ImportReceipt]:
     """Fail-closed ingestion.
 
-    - Parses and strictly validates package (unknown versions, extra fields, hashes,
-      duplicate identities, private paths/secrets, missing SHA, edge endpoints,
-      fingerprint drift all fail closed).
-    - Checks admission allowlist keyed by study+version+code_sha+manifest_hash+package fingerprint.
-      Self-declared ADMITTED without policy match fails closed. No wildcard trust.
-    - Returns deterministic attributable receipt binding package/policy/records/lineage.
-    - Canonically revalidates all Pydantic instances at public boundaries.
-
-    Raises ResearchIngestionError on any failure.
+    Every record placed in admitted ``records`` must match an explicit exact
+    admission-policy entry and satisfy all required identity checks (40-hex
+    code_sha + 64-hex manifest_hash + package_fingerprint). Unknown/malformed
+    packages fail closed. A non-admitted/unavailable index record must use the
+    separate unavailable-record path only through an explicit opt-in contract;
+    arbitrary attacker-authored packages with empty policy must not land in
+    records, links, limitations, lineage, or get(). Generic ingestion therefore
+    requires every record to be ADMITTED and allowlisted.
     """
     # Revalidate policy at boundary
     try:
@@ -534,24 +535,24 @@ def ingest_package(
     except Exception as exc:
         raise ResearchIngestionError(f"package ingestion failed: {exc}") from exc
 
-    # Admission check: every record must be exactly allowlisted with package fingerprint
+    # Fail-closed: every record must be admitted with exact identity and allowlisted.
+    # Unknown/malformed packages (missing SHA/hash, NOT_ADMITTED, empty policy) fail.
     for rec in pkg.records:
-        # For unavailable records (no code_sha), they are not admitted and do not require policy?
-        # But spec says package must not become trusted/admitted because self-declares ADMITTED.
-        # So we enforce: if record.admission_status == ADMITTED or evidence requires hash,
-        # then it must be allowlisted; otherwise unavailable records can pass without allowlist
-        # but package as a whole is only trusted if all admitted records are allowlisted.
-        # Simpler: if any record is ADMITTED, it must be allowlisted; if all are NOT_ADMITTED,
-        # package is not trusted but still structurally valid? For generic ingestion, we require
-        # that any ADMITTED record must be allowlisted; if package contains only unavailable,
-        # it does not need allowlist but receipt still will show not admitted? However spec says
-        # "Unknown packages fail closed." So we should fail if ANY record not in allowlist
-        # and that record is ADMITTED? For fail-closed, treat package as untrusted if not fully allowlisted.  # noqa: E501
-        # We will require that for each record where code_sha is present, there is a matching policy entry.  # noqa: E501
-        # If no matching entry, fail.
+        if rec.admission_status.value != "admitted":
+            raise ResearchIngestionError(
+                f"generic ingestion requires every record to be ADMITTED; "  # noqa: E501
+                f"record {rec.study}:{rec.version} has admission_status={rec.admission_status.value!r}"  # noqa: E501
+            )
+        if rec.evidence_standing.value == "unavailable":
+            raise ResearchIngestionError(
+                f"generic ingestion requires available evidence; "
+                f"record {rec.study}:{rec.version} is unavailable"
+            )
         if rec.code_sha is None or rec.manifest_hash is None:
-            # Unavailable record: skip policy check (truthful unavailable)
-            continue
+            raise ResearchIngestionError(
+                f"generic ingestion requires exact code_sha+manifest_hash for "
+                f"record {rec.study}:{rec.version}"
+            )
         if not policy_validated.allows(
             study=rec.study,
             version=rec.version,
@@ -563,32 +564,6 @@ def ingest_package(
                 f"package record {rec.study}:{rec.version} not in admission allowlist "
                 f"(code_sha={rec.code_sha!r}, manifest={rec.manifest_hash!r}, pkg_fp={pkg.package_fingerprint[:8]}…)"  # noqa: E501
             )
-    # If package contains no admitted records but policy expects admitted, still ok? But we already gate.  # noqa: E501
-    # If package has at least one ADMITTED record and no policy entry matched, we already raised.
-    # If package has zero ADMITTED records (all unavailable), we do not require allowlist but still return receipt.  # noqa: E501
-    # However spec says unknown packages fail closed; so if policy is empty and package contains admitted records,  # noqa: E501
-    # it will fail as desired.
-
-    # Also ensure at least one record required allowlist match if any admitted
-    has_admitted = any(r.admission_status.value == "admitted" for r in pkg.records)  # noqa: E501
-    if has_admitted:
-        # Ensure at least one policy entry matched (already ensured per-record, but double)
-        matched = 0
-        for rec in pkg.records:
-            if (
-                rec.code_sha
-                and rec.manifest_hash
-                and policy_validated.allows(
-                    study=rec.study,
-                    version=rec.version,
-                    code_sha=rec.code_sha,
-                    manifest_hash=rec.manifest_hash,
-                    package_fingerprint=pkg.package_fingerprint,
-                )
-            ):
-                matched += 1
-        if matched == 0:
-            raise ResearchIngestionError("admitted package has no matching policy entry")
 
     receipt = ImportReceipt.build(pkg, policy_validated)
     # Final revalidation

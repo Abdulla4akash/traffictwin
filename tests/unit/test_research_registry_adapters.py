@@ -189,10 +189,14 @@ def test_unavailable_index_truthful_no_fabricated() -> None:
         assert rec.limitations is not None
         assert len(rec.limitations[0]) > 10
         assert rec.product_links is None
+        # Completed historically but unavailable — never PLANNED/prospective
+        assert rec.status == StudyStatus.UNAVAILABLE
+        assert rec.hypothesis is None
     e0 = by_study["E0"]
     assert e0.status == StudyStatus.UNAVAILABLE
+    assert e0.limitations is not None and "cannot admit or reproduce" in e0.limitations[0].lower()
     e1 = by_study["E1"]
-    assert e1.status == StudyStatus.PLANNED
+    assert e1.status == StudyStatus.UNAVAILABLE
     assert e1.limitations is not None and (
         "waiting-room" in e1.limitations[0].lower() or "waiting" in e1.limitations[0].lower()
     )
@@ -200,6 +204,9 @@ def test_unavailable_index_truthful_no_fabricated() -> None:
     assert e1.limitations is not None and "use_case_b_vec_dynamic_service" in e1.limitations[0]
     assert e1.question is not None and "2.5" in e1.question
     assert e1.non_claims is not None and "no e1" in e1.non_claims[0].lower()
+    # Must represent completed-but-unavailable, not prospective/work-not-yet-done
+    assert e1.limitations is not None and "completed historically" in e1.limitations[0].lower()
+    assert "planned" not in e1.title.lower() or "completed historically" in e1.title.lower()
     assert e1.limitations is not None and "if authoritative" not in e1.limitations[0].lower()
 
 
@@ -309,9 +316,22 @@ def test_service_snapshot_deterministic_and_conflict() -> None:
     snap_e2 = RegistryService.with_default_e2().snapshot()
     assert snap_e2.get_by_identity("E0", "1.0") is not None
     assert snap_e2.get_by_identity("E1", "1.0") is not None
-    assert snap_e2.get_by_identity("E1", "1.0").status == StudyStatus.PLANNED  # type: ignore[union-attr]
+    assert snap_e2.get_by_identity("E1", "1.0").status == StudyStatus.UNAVAILABLE  # type: ignore[union-attr]
     assert len(snap_e2.unavailable_records) == 2
     assert len(snap_e2.lineage.edges) == 3
+    # E2 hypotheses must be None unless pre-registration supports exact hypothesis
+    for r in snap_e2.records:
+        assert r.hypothesis is None
+    # Product links must be truthful locators (no broken bare current-tree link)
+    for r in snap_e2.records:
+        if r.product_links:
+            for link in r.product_links:
+                assert "docs/evaluation/e2" not in link
+            assert "docs/closure/v08_alignment" in " ".join(r.product_links)
+    # No synthesized evaluator_id/checkpoint_id
+    for r in snap_e2.records:
+        assert r.evaluator_id is None
+        assert r.checkpoint_id is None
 
 
 def test_no_arbitrary_filesystem_path_and_reuse_exact_apis() -> None:

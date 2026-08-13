@@ -70,9 +70,8 @@ def _load_e2_package() -> E2ResearchEvidencePackage:
     return E2ResearchEvidencePackage.model_validate(pkg.model_dump(mode="json"))
 
 
-def _limitations_for(study: str, pkg: E2ResearchEvidencePackage) -> list[str]:
-    # Preserve exact limitations verbatim; filter not needed, keep all
-    # Each record carries full limitations to preserve truth
+def _limitations_for(pkg: E2ResearchEvidencePackage) -> list[str]:
+    # Preserve exact limitations verbatim; each record carries full limitations
     return sorted(set(pkg.limitations))
 
 
@@ -80,18 +79,15 @@ def _non_claims_for(pkg: E2ResearchEvidencePackage) -> list[str]:
     return sorted(set(pkg.non_claims))
 
 
-def _product_links_for(study: str) -> list[str]:
-    # Product links are bounded, no absolute paths
+def _product_links_for() -> list[str]:
+    # Truthful locators only: artifacts that resolve at current main.
+    # Per-study docs/evaluation/* manifests do not exist at current main
+    # (only on pinned research ref); omit bare current-tree link to avoid
+    # implying resolvability. Closure alignment files do exist.
     base = [
         "docs/closure/v08_alignment/improved_strategy_results.json",
         "docs/closure/v08_alignment/strategy_matrix.json",
     ]
-    if study == "E2d":
-        base.append("docs/evaluation/e2d/e2d_per_task_placement_report_2026-08-11.md")
-    elif study == "E2c":
-        base.append("docs/evaluation/e2c/e2c_gated_placement_multidraw_manifest_v1.json")
-    else:
-        base.append("docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json")
     return sorted(base)
 
 
@@ -134,16 +130,16 @@ def build_e2b_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         version=E2_VERSION,
         title="E2b: offered-task deadline attainment — one Manchester incident hour (descriptive)",
         question="Does placement and deadline-aware admission change offered-task deadline attainment in one incident hour?",  # noqa: E501
-        hypothesis="Deadline-aware admission improves offered attainment over cap-only in the incident hour",  # noqa: E501
+        hypothesis=None,
         status=StudyStatus.COMPLETED,
         predecessor=None,
         successor=None,
         supersedes=None,
         code_sha=_E2B_HEAD,
         manifest_hash=_E2B_MANIFEST,
-        evaluator_id="evaluator-0",
+        evaluator_id=None,
         actor_id=_ACTOR_SHA,
-        checkpoint_id=_ACTOR_SHA,
+        checkpoint_id=None,
         trace_id=_TRACE_SHA,
         replication_unit="fleet_draw",
         seeds=[0],
@@ -156,9 +152,9 @@ def build_e2b_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         declared_summary=None,
         evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
         admission_status=AdmissionStatus.ADMITTED,
-        limitations=_limitations_for(E2B_STUDY, pkg_v),
+        limitations=_limitations_for(pkg_v),
         non_claims=_non_claims_for(pkg_v),
-        product_links=_product_links_for(E2B_STUDY),
+        product_links=_product_links_for(),
     )
     # Revalidate canonically
     return ResearchStudyRecord.model_validate(rec.model_dump(mode="json"))
@@ -190,13 +186,13 @@ def build_e2c_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         version=E2_VERSION,
         title="E2c: common-target DLA minus ingress DLA over four matched fleet draws",
         question="Does common-target least-busy placement under deadline gate change attainment vs strongest-link ingress?",  # noqa: E501
-        hypothesis="Common-target DLA differs from ingress DLA within bounded four-draw replication",  # noqa: E501
+        hypothesis=None,
         status=StudyStatus.COMPLETED,
         code_sha=_E2C_HEAD,
         manifest_hash=_E2C_MANIFEST,
-        evaluator_id="evaluator-0",
+        evaluator_id=None,
         actor_id=_ACTOR_SHA,
-        checkpoint_id=_ACTOR_SHA,
+        checkpoint_id=None,
         trace_id=_TRACE_SHA,
         replication_unit="fleet_draw",
         seeds=[1, 2, 3, 4],
@@ -215,9 +211,9 @@ def build_e2c_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         ),
         evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
         admission_status=AdmissionStatus.ADMITTED,
-        limitations=_limitations_for(E2C_STUDY, pkg_v),
+        limitations=_limitations_for(pkg_v),
         non_claims=_non_claims_for(pkg_v),
-        product_links=_product_links_for(E2C_STUDY),
+        product_links=_product_links_for(),
     )
     return ResearchStudyRecord.model_validate(rec.model_dump(mode="json"))
 
@@ -264,13 +260,13 @@ def build_e2d_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         version=E2_VERSION,
         title="E2d: per-task DLA minus ingress DLA — bounded construct-validity (4 fleet draws)",
         question="Does per-task sequential least-busy placement reverse the common-target direction under deadline gate?",  # noqa: E501
-        hypothesis="Per-task placement shows bounded directional advantage within four draws, not universal superiority",  # noqa: E501
+        hypothesis=None,
         status=StudyStatus.COMPLETED,
         code_sha=_E2D_HEAD,
         manifest_hash=_E2D_MANIFEST,
-        evaluator_id="evaluator-0",
+        evaluator_id=None,
         actor_id=_ACTOR_SHA,
-        checkpoint_id=_ACTOR_SHA,
+        checkpoint_id=None,
         trace_id=_TRACE_SHA,
         replication_unit="fleet_draw",
         seeds=[1, 2, 3, 4],
@@ -289,9 +285,9 @@ def build_e2d_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         ),
         evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
         admission_status=AdmissionStatus.ADMITTED,
-        limitations=_limitations_for(E2D_STUDY, pkg_v),
+        limitations=_limitations_for(pkg_v),
         non_claims=_non_claims_for(pkg_v),
-        product_links=_product_links_for(E2D_STUDY),
+        product_links=_product_links_for(),
     )
     return ResearchStudyRecord.model_validate(rec.model_dump(mode="json"))
 
@@ -313,21 +309,21 @@ def build_admitted_e2_records() -> list[ResearchStudyRecord]:
 def build_unavailable_index_records() -> list[ResearchStudyRecord]:
     """Truthful UNAVAILABLE index for E0/E1 where authoritative v0.8 closure supports existence.
 
-    E0: conservative historical reference baseline referenced in strategy_matrix
-         (strongest_link_off) but without exact current admitted package at v0.8
-         Lane 07 closure. E1: prospective waiting-room semantic sweep motivated by
-         the 2.5→0.75 fail-fast accounting artefact (S-035), described in
-         docs/closure/v08_alignment/use_case_b_vec_dynamic_service.md §6. Both
-         are UNAVAILABLE with resolved limitations and no SHA/manifest/result.
-         Future E3 is absent and not included.
+    Both E0 and E1 are described as DONE historically in repository evidence
+    (e.g. docs/evaluation/research_directions_fable5_2026-08-11.md lists E0/E1 as DONE)
+    but no exact admitted product package/SHA/manifest/result is available to this
+    registry at v0.8 Lane 07 closure. Represent as completed-but-UNAVAILABLE /
+    NOT_ADMITTED with limitation that repo history references the work but the
+    current registry cannot admit or reproduce it without the exact package
+    identities. No SHA/manifest/result/metrics invented. Future E3 absent.
     """
     records: list[ResearchStudyRecord] = []
     records.append(
         ResearchStudyRecord(
             study="E0",
             version="1.0",
-            title="E0: historical reference baseline (unavailable, not admitted)",
-            question="Historical baseline for TrafficTwin VEC instrumentation referenced in v08 alignment — not an exact current admitted package",  # noqa: E501
+            title="E0: historical reference baseline (completed historically, unavailable, not admitted)",  # noqa: E501
+            question="Historical baseline for TrafficTwin VEC instrumentation referenced in v08 alignment — completed historically but no exact current admitted package",  # noqa: E501
             hypothesis=None,
             status=StudyStatus.UNAVAILABLE,
             code_sha=None,
@@ -348,7 +344,7 @@ def build_unavailable_index_records() -> list[ResearchStudyRecord]:
             evidence_standing=EvidenceStanding.UNAVAILABLE,
             admission_status=AdmissionStatus.NOT_ADMITTED,
             limitations=[
-                "No exact current admitted E0 package at v0.8 Lane 07 closure; historical reference in docs/closure/v08_alignment/strategy_matrix.json (strongest_link_off) only, not admitted evidence",  # noqa: E501
+                "E0 completed historically per repository evidence (research_directions_fable5 lists E0 as DONE) but no exact current admitted E0 package/SHA/manifest/result is available at v0.8 closure; current registry cannot admit or reproduce without exact package identities; historical reference in docs/closure/v08_alignment/strategy_matrix.json (strongest_link_off) only, not admitted evidence",  # noqa: E501
             ],
             non_claims=["No E0 outcome is claimed as current admitted research evidence"],
             product_links=None,
@@ -358,10 +354,10 @@ def build_unavailable_index_records() -> list[ResearchStudyRecord]:
         ResearchStudyRecord(
             study="E1",
             version="1.0",
-            title="E1: prospective waiting-room semantic sweep (planned, unavailable)",
-            question="Does a waiting-room/admission semantic sweep that corrects the 2.5→0.75 fail-fast accounting artefact change deadline attainment and latency interpretation without implying compute-capacity change?",  # noqa: E501
+            title="E1: admission-semantics/waiting-room (completed historically, unavailable, not admitted)",  # noqa: E501
+            question="Admission-semantics/waiting-room work completed historically (2.5→0.75 fail-fast accounting artefact) — completed but unavailable without exact package identities",  # noqa: E501
             hypothesis=None,
-            status=StudyStatus.PLANNED,
+            status=StudyStatus.UNAVAILABLE,
             code_sha=None,
             manifest_hash=None,
             evaluator_id=None,
@@ -380,10 +376,10 @@ def build_unavailable_index_records() -> list[ResearchStudyRecord]:
             evidence_standing=EvidenceStanding.UNAVAILABLE,
             admission_status=AdmissionStatus.NOT_ADMITTED,
             limitations=[
-                "E1 is a prospective waiting-room semantic sweep motivated by the 2.5→0.75 fail-fast accounting artefact (S-035); no admitted E1 package, SHA, manifest, or result exists at v0.8 closure; source docs/closure/v08_alignment/use_case_b_vec_dynamic_service.md §6",  # noqa: E501
+                "E1 admission-semantics/waiting-room work completed historically per repository evidence (research_directions_fable5 lists E1 as DONE) but no exact admitted E1 product package/SHA/manifest/result is available to this registry; current registry cannot admit or reproduce E1 without the exact package identities; repo history references the work (docs/closure/v08_alignment/use_case_b_vec_dynamic_service.md §6, S-035 2.5→0.75 fail-fast accounting artefact) but limitation preserves truthful unavailable standing",  # noqa: E501
             ],
             non_claims=[
-                "No E1 estimate, interval, or causal claim is made; planned investigation only, not evidence"  # noqa: E501
+                "No E1 estimate, interval, or causal claim is made as current admitted evidence; completed-but-unavailable"  # noqa: E501
             ],
             product_links=None,
         )
