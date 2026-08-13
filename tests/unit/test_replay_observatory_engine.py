@@ -1293,3 +1293,254 @@ def test_remediation_advance_repeated_no_ops() -> None:
     for _ in range(3):
         r = engine.advance(0.0)
         assert r.resulting_state.fingerprint() == s_mid
+
+
+# ---------------------------------------------------------------------------
+# BLOCKER remediation: saturating additive advance across 8 shapes
+# ---------------------------------------------------------------------------
+
+
+def _make_stream_from_times(
+    times: Sequence[float], *, prefix: str = "evt-sat"
+) -> ReplayEventStream:
+    src = _source()
+    events = [
+        _sim_event(seq=i, time=t, source=src, event_id=f"{prefix}-{i:03d}")
+        for i, t in enumerate(times)
+    ]
+    present = tuple(sorted({e.event_type for e in events}, key=str)) if events else ()
+    manifest = _manifest(source=src, available=present if events else ())
+    return ReplayEventStream(
+        stream_id=f"stream-{prefix}",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=tuple(events),
+        limitations=("a",),
+    )
+
+
+def _eight_shape_streams() -> list[ReplayEventStream]:
+    streams: list[ReplayEventStream] = []
+    # 1: single event at 1.0
+    streams.append(_make_stream_from_times([1.0], prefix="shape-single"))
+    # 2: uniform dense 0..4
+    streams.append(_make_stream_from_times([0.0, 1.0, 2.0, 3.0, 4.0], prefix="shape-uniform"))
+    # 3: sparse gaps 0,5,10,15
+    streams.append(_make_stream_from_times([0.0, 5.0, 10.0, 15.0], prefix="shape-gap"))
+    # 4: same-timestamp group 3 at 5.0 plus prior 0
+    streams.append(_make_stream_from_times([0.0, 5.0, 5.0, 5.0], prefix="shape-same"))
+    # 5: multiple equal-time groups
+    streams.append(
+        _make_stream_from_times([0.0, 1.0, 1.0, 2.0, 2.0, 2.0, 5.0], prefix="shape-multi")
+    )
+    # 6: single event at large time 100.0
+    streams.append(_make_stream_from_times([100.0], prefix="shape-large"))
+    # 7: sparse large gaps 0,10,20
+    streams.append(_make_stream_from_times([0.0, 10.0, 20.0], prefix="shape-sparse"))
+    # 8: irregular fractional 0,0.5,1.2,3.7,5.0
+    streams.append(_make_stream_from_times([0.0, 0.5, 1.2, 3.7, 5.0], prefix="shape-irreg"))
+    return streams
+
+
+def test_blocker_saturating_exact_end_additive() -> None:
+    """Exact-end totals: single vs partitioned reach same last index and playhead == last."""
+    for stream in _eight_shape_streams():
+        if len(stream.events) == 0:
+            continue
+        last = float(stream.events[-1].simulator_time_s)
+        for speed in (0.5, 1.0, 2.0):
+            # effective total = last; raw delta = last / speed
+            # need to handle speed 0.5 etc where division yields exact.
+            total_raw = last / speed if last != 0 else 0.0
+            # skip if total_raw exceeds bound or non-finite
+            if not (total_raw >= 0 and total_raw <= 86400.0 * 7):
+                continue
+            # single
+            e_single = ReplayEngine(stream, speed_multiplier=speed)
+            e_single.play()
+            e_single.advance(total_raw)
+            s_single = e_single.state()
+            # Partitioned 2 ways
+            e_part = ReplayEngine(stream, speed_multiplier=speed)
+            e_part.play()
+            e_part.advance(total_raw / 2)
+            e_part.advance(total_raw / 2)
+            s_part = e_part.state()
+            assert s_single.cursor.index == s_part.cursor.index
+            assert s_single.playhead_time_s == pytest.approx(s_part.playhead_time_s)
+            assert s_single.fingerprint() == s_part.fingerprint()
+            # Partitioned 4 ways
+            e_frac = ReplayEngine(stream, speed_multiplier=speed)
+            e_frac.play()
+            for _ in range(4):
+                e_frac.advance(total_raw / 4)
+            s_frac = e_frac.state()
+            assert s_frac.fingerprint() == s_single.fingerprint()
+            # Exact end should be at last index, not ENDED; saturating only for > last.
+            if len(stream.events) > 0:
+                # For shape-single at 1.0, exact is index0, not ended; uniform at 4.0 index 4.
+                assert s_single.cursor.index == len(stream.events) - 1
+                assert not s_single.end_of_stream
+                assert s_single.playhead_time_s == pytest.approx(last)
+
+
+def test_blocker_saturating_overshoot_additive_and_clamped() -> None:
+    """Overshoot totals: any partition crossing final time yields same ENDED clamped state."""
+    for stream in _eight_shape_streams():
+        if len(stream.events) == 0:
+            continue
+        last = float(stream.events[-1].simulator_time_s)
+        for speed in (0.5, 1.0, 2.0):
+            # Overshoot by 0.5*speed effective or 1.0 effective
+            for extra_eff in (0.5, 1.0, 2.5):
+                total_eff = last + extra_eff
+                total_raw = total_eff / speed
+                if total_raw > 86400.0 * 7:
+                    continue
+                # single overshoot
+                e_single = ReplayEngine(stream, speed_multiplier=speed)
+                e_single.play()
+                e_single.advance(total_raw)
+                s_single = e_single.state()
+                assert s_single.end_of_stream is True
+                assert s_single.cursor.is_at_end is True
+                assert s_single.playback_state is PlaybackState.ENDED
+                assert s_single.playhead_time_s == pytest.approx(last)
+                assert s_single.cursor.simulator_time_s == pytest.approx(last)
+                # partitioned 2.5 + 0.5 style: split total_raw into two unequal parts
+                e_part = ReplayEngine(stream, speed_multiplier=speed)
+                e_part.play()
+                # choose split that first part already crosses end for some
+                e_part.advance(total_raw * 0.7)
+                e_part.advance(total_raw * 0.3)
+                s_part = e_part.state()
+                assert s_part.fingerprint() == s_single.fingerprint()
+                assert s_part.playhead_time_s == pytest.approx(last)
+                assert s_part.cursor.index == s_single.cursor.index
+                # also test fine-grained partitions 5x
+                e_frac = ReplayEngine(stream, speed_multiplier=speed)
+                e_frac.play()
+                part = total_raw / 5
+                for _ in range(5):
+                    e_frac.advance(part)
+                s_frac = e_frac.state()
+                assert s_frac.fingerprint() == s_single.fingerprint()
+                # immobility after ENDED: further advances remain same
+                before_fp = s_frac.fingerprint()
+                before_ph = s_frac.playhead_time_s
+                e_frac.advance(1.0)
+                e_frac.advance(0.1)
+                assert e_frac.state().fingerprint() == before_fp
+                assert e_frac.state().playhead_time_s == pytest.approx(before_ph)
+                assert e_frac.state().end_of_stream is True
+
+
+def test_blocker_saturating_blocker_example() -> None:
+    """Reproduce the original blocker: 3.0 vs 2.5+0.5 both end clamped at 2.0."""
+    src = _source()
+    # events ending at t=2
+    events = [_sim_event(seq=i, time=float(i), source=src) for i in range(3)]  # 0,1,2
+    stream = _stream_with_events(events)
+    e_single = ReplayEngine(stream)
+    e_single.play()
+    e_single.advance(3.0)
+    s_single = e_single.state()
+    e_part = ReplayEngine(stream)
+    e_part.play()
+    e_part.advance(2.5)
+    mid = e_part.state()
+    # after first 2.5, already ENDED clamped to 2.0, not 2.5
+    assert mid.playhead_time_s == pytest.approx(2.0)
+    assert mid.end_of_stream is True
+    assert mid.cursor.is_at_end is True
+    e_part.advance(0.5)
+    s_part = e_part.state()
+    assert s_part.playhead_time_s == pytest.approx(2.0)
+    assert s_part.cursor.index == s_single.cursor.index
+    assert s_part.playhead_time_s == s_single.playhead_time_s
+    assert s_part.fingerprint() == s_single.fingerprint()
+    assert s_single.playhead_time_s == pytest.approx(2.0)
+    assert s_single.end_of_stream is True
+
+
+def test_blocker_empty_paused_zero_delta_remain_noop() -> None:
+    # empty remains no-op
+    empty = _stream_with_events([])
+    e_empty = ReplayEngine(empty)
+    s_before = e_empty.state().fingerprint()
+    e_empty.advance(1.0)
+    assert e_empty.state().fingerprint() == s_before
+    assert e_empty.state().empty_stream is True
+    # paused remains no-op
+    stream = _stream_with_events([_sim_event(seq=0, time=0.0), _sim_event(seq=1, time=1.0)])
+    e_paused = ReplayEngine(stream)  # PAUSED
+    s_before2 = e_paused.state().fingerprint()
+    e_paused.advance(1.0)
+    assert e_paused.state().fingerprint() == s_before2
+    assert e_paused.state().playback_state is PlaybackState.PAUSED
+    # zero delta remains no-op while PLAYING
+    e_play = ReplayEngine(stream)
+    e_play.play()
+    s_before3 = e_play.state().fingerprint()
+    e_play.advance(0.0)
+    assert e_play.state().fingerprint() == s_before3
+    e_play.advance(1.0)
+    s_mid = e_play.state().fingerprint()
+    e_play.advance(0.0)
+    assert e_play.state().fingerprint() == s_mid
+    # once ENDED remains immobile
+    e_end = ReplayEngine(stream)
+    e_end.play()
+    e_end.advance(10.0)  # overshoot to end clamped
+    s_end = e_end.state().fingerprint()
+    assert e_end.state().end_of_stream is True
+    e_end.advance(1.0)
+    e_end.advance(0.0)
+    assert e_end.state().fingerprint() == s_end
+
+
+def test_blocker_state_preserves_object_identity_and_window_binding() -> None:
+    stream = _make_stream_from_times([0.0, 1.0, 2.0], prefix="ident")
+    # window_duration_s binding
+    engine = ReplayEngine(stream, window_duration_s=10.0, window_start_s=0.0, window_end_s=5.0)
+    state = engine.state()
+    assert state.window_duration_s == pytest.approx(10.0)
+    assert state.window_start_s == pytest.approx(0.0)
+    assert state.window_end_s == pytest.approx(5.0)
+    # live verifier must catch mismatch
+    forged = state.model_copy(update={"window_duration_s": 99.0})
+    with pytest.raises(ReplayEngineError):
+        forged.verify_against_engine(engine)
+    # object identity preservation: state() should not rebind stream
+    sid_before = id(engine.stream)
+    engine.state()
+    engine.state()
+    assert id(engine.stream) == sid_before
+    # _verify_integrity also preserves
+    engine._verify_integrity()
+    assert id(engine.stream) == sid_before
+    # ReplayCursor structural verifier is not live freshness
+    cursor = engine.state().cursor
+    cursor.verify_against_stream(stream)
+    cursor.verify_exact(stream)
+    # stale cursor after step should still pass structural but fail live
+    e2 = ReplayEngine(stream)
+    e2.play()
+    e2.advance(1.0)
+    stale_cursor = engine.state().cursor  # old at index0
+    # structural passes against same stream
+    stale_cursor.verify_against_stream(stream)
+    _ = engine.state()  # keep for coverage, not used
+    # Test same engine progression for stale detection
+    eng = ReplayEngine(stream)
+    s0 = eng.state()
+    eng.play()
+    eng.advance(1.0)
+    s1 = eng.state()
+    assert s0.cursor.index == 0
+    assert s1.cursor.index == 1
+    # s0 is now stale against live engine
+    with pytest.raises(ReplayEngineError):
+        s0.verify_against_engine(eng)
+    # structural still passes
+    s0.cursor.verify_against_stream(stream)

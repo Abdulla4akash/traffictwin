@@ -580,13 +580,13 @@ def _compute_missing_execution_target(
                 has_offer = True
                 try:
                     offered_ids.add(ev.entity.entity_id)
-                except Exception:
+                except (AttributeError, ValueError, TypeError):
                     offered_ids.add(ev.event_id)
             elif ev.event_type is EventType.EXECUTION_TARGET:
                 has_exec = True
                 try:
                     exec_ids.add(ev.entity.entity_id)
-                except Exception:
+                except (AttributeError, ValueError, TypeError):
                     exec_ids.add(ev.event_id)
         if has_offer and not has_exec:
             return True
@@ -640,7 +640,7 @@ class SideBySideReplay:
         )
 
     def _verify_integrity(self) -> None:
-        # Revalidate to catch model_copy tamper
+        # Non-mutating integrity check: preserve object identity on success.
         left = _revalidate_stream(self._left_stream)
         right = _revalidate_stream(self._right_stream)
         agr = _revalidate_agreement(self._agreement)
@@ -650,11 +650,7 @@ class SideBySideReplay:
             raise ComparisonAgreementError("TAMPER_DETECTED", "right stream tampered")
         if agr.fingerprint() != self._agreement.fingerprint():
             raise ComparisonAgreementError("TAMPER_DETECTED", "agreement tampered")
-        # Keep canonical copies
-        self._left_stream = left
-        self._right_stream = right
-        self._agreement = agr
-        # Also verify underlying engines
+        # Also verify underlying engines non-mutatingly
         self._left_engine._verify_integrity()
         self._right_engine._verify_integrity()
 

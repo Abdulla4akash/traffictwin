@@ -4,6 +4,15 @@ This module is a pure, deterministic cursor engine.  It never sleeps,
 never performs wall-clock waiting, never mutates or synthesises events,
 and never fabricates missing telemetry.  All controls are typed,
 frozen, strictly validated, and bounded.
+
+ADVANCE is additive and saturating: playhead accumulates as the monotonic
+sum of ``delta_s * speed_multiplier`` while PLAYING; zero delta, empty
+stream, PAUSED, or already ENDED are pure no-ops; whenever advancement
+would cross the final event time, playhead is clamped exactly to that
+final event time before marking ENDED, after which the engine remains
+immobile. Any single or partitioned total that reaches or crosses the
+final event yields the identical cursor, playhead, state, and
+fingerprint. No wall-clock waiting is involved.
 """
 
 from __future__ import annotations
@@ -227,7 +236,13 @@ class ReplayCursor(ReplayModel):
         return self
 
     def verify_against_stream(self, stream: ReplayEventStream) -> None:
-        """Exact verifier that requires the stream for identity coherence."""
+        """Structural exact verifier; not live freshness.
+
+        Revalidates the stream canonically and checks cursor coherence against
+        the stream's canonical ordering. Does not assert that this cursor is
+        still the engine's current live cursor; use
+        ReplayEngineState.verify_against_engine for exact live binding.
+        """
         canonical = _revalidate_stream(stream)
         total = len(canonical.events)
         if self.total_events != total:
@@ -270,12 +285,15 @@ class ReplayEngineState(ReplayModel):
     stream_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
     window_start_s: float | None = Field(default=None, ge=0)
     window_end_s: float | None = Field(default=None, ge=0)
+    window_duration_s: float | None = Field(default=None, ge=0)
     unavailable_event_types: tuple[EventType, ...] = ()
     end_of_stream: bool
     empty_stream: bool
     playhead_time_s: float = Field(ge=0)
 
-    @field_validator("speed_multiplier", "window_start_s", "window_end_s", "playhead_time_s")
+    @field_validator(
+        "speed_multiplier", "window_start_s", "window_end_s", "window_duration_s", "playhead_time_s"
+    )
     @classmethod
     def validate_finite_fields(cls, value: float | None) -> float | None:
         if value is None:
@@ -298,6 +316,8 @@ class ReplayEngineState(ReplayModel):
             and self.window_end_s - self.window_start_s > MAX_WINDOW_DURATION_S
         ):
             raise ValueError("window duration exceeds bound")
+        if self.window_duration_s is not None and self.window_duration_s > MAX_WINDOW_DURATION_S:
+            raise ValueError("window_duration_s exceeds bound")
         if tuple(sorted(self.unavailable_event_types, key=str)) != self.unavailable_event_types:
             raise ValueError("unavailable_event_types must use canonical lexical order")
         if len(set(self.unavailable_event_types)) != len(self.unavailable_event_types):
@@ -317,8 +337,9 @@ class ReplayEngineState(ReplayModel):
         elif self.end_of_stream:
             if self.playback_state is not PlaybackState.ENDED:
                 raise ValueError("end_of_stream requires playback_state == ended")
-            # At end playhead must be >= last event time; distinction between
-            # requested playhead and selected event is preserved elsewhere.
+            # Saturating end: ADVANCE clamps playhead exactly to final event time;
+            # SEEK beyond end may retain requested time > last, so allow >=.
+            # No silent drift: ADVANCE never leaves playhead > last.
             if self.cursor.total_events > 0 and self.playhead_time_s < self.cursor.simulator_time_s:
                 raise ValueError("at-end playhead must be >= last event time")
         else:
@@ -337,7 +358,7 @@ class ReplayEngineState(ReplayModel):
         return _fingerprint_dict(self.canonical_dict())
 
     def verify_against_engine(self, engine: ReplayEngine) -> None:
-        """Exact verifier requiring the live engine/stream."""
+        """Exact live-state verifier requiring the live engine/stream."""
         # Revalidate self canonically to catch model_copy forgery.
         try:
             ReplayEngineState.model_validate_json(self.model_dump_json())
@@ -351,11 +372,10 @@ class ReplayEngineState(ReplayModel):
         if (
             self.window_start_s != engine._window_start_s
             or self.window_end_s != engine._window_end_s
+            or self.window_duration_s != engine._window_duration_s
         ):
             raise ReplayEngineError("STATE_MISMATCH", "state window mismatch")
-        if self.playback_state != engine.playback_state and not (
-            engine.is_at_end() and self.playback_state is PlaybackState.ENDED
-        ):
+        if self.playback_state != engine.playback_state:
             raise ReplayEngineError("STATE_MISMATCH", "playback_state mismatch")
         self.cursor.verify_against_stream(engine.stream)
         # Exact live cursor binding: index and full cursor must match engine.
@@ -445,7 +465,8 @@ class ReplayEngine:
     The engine holds a reference to the immutable stream and a cursor index.
     All operations are pure with respect to the event sequence: equal-time
     events remain ordered by (simulator_time_s, sequence, event_id) as stored,
-    and no method mutates or synthesises events.
+    and no method mutates or synthesises events. ADVANCE is saturating as
+    documented at module level.
     """
 
     def __init__(
@@ -635,14 +656,13 @@ class ReplayEngine:
     # -- integrity ----------------------------------------------------------
 
     def _verify_integrity(self) -> None:
-        # Revalidate stream to catch model_copy forgery that bypassed init validation.
+        # Non-mutating integrity check: revalidates canonically to catch
+        # model_copy forgery but preserves object identity on success so
+        # observational methods remain non-mutating.
         validated = _revalidate_stream(self._stream)
-        # Use validated's fingerprint; if mismatch, tamper.
         current_fp = validated.fingerprint()
         if current_fp != self._stream_fingerprint:
             raise ReplayEngineError("TAMPER_DETECTED", "stream fingerprint mismatch")
-        # Keep canonical validated copy
-        self._stream = validated
 
     def verify_integrity(self, expected_fingerprint: str | None = None) -> bool:
         fp = self._stream.fingerprint()
@@ -684,7 +704,11 @@ class ReplayEngine:
         )
 
     def state(self) -> ReplayEngineState:
-        """Pure observational snapshot; does not mutate engine state."""
+        """Pure observational snapshot; does not mutate engine state.
+
+        Preserves object identity: does not rebind the underlying stream on
+        success; verifies integrity non-mutatingly.
+        """
         self._verify_integrity()
         cursor = self._cursor_snapshot()
         end_of_stream = cursor.is_at_end
@@ -694,7 +718,8 @@ class ReplayEngine:
         # Observational: playhead is the requested/accumulated time, distinct
         # from selected event time (cursor.simulator_time_s). No silent
         # coercion: gap seeks keep requested playhead (< cursor), advance
-        # may have playhead > cursor when between events.
+        # may have playhead > cursor when between events. ADVANCE saturates
+        # at final event time (see advance() contract).
         playhead = self._playhead_time_s
         if self.is_empty():
             playhead = 0.0
@@ -705,6 +730,7 @@ class ReplayEngine:
             stream_fingerprint=self._stream_fingerprint,
             window_start_s=self._window_start_s,
             window_end_s=self._window_end_s,
+            window_duration_s=self._window_duration_s,
             unavailable_event_types=self._unavailable_event_types,
             end_of_stream=end_of_stream,
             empty_stream=self.is_empty(),
@@ -797,17 +823,23 @@ class ReplayEngine:
 
         elif request.control is ReplayControl.ADVANCE:
             assert request.advance_delta_s is not None
-            # Deterministic additive advancement while PLAYING.
-            # Contract:
-            # - playhead accumulates as monotonic sum of delta*speed; zero delta
-            #   is a pure no-op (no playhead/cursor move).
+            # Deterministic saturating additive advancement while PLAYING.
+            # Contract (saturating end):
+            # - playhead accumulates as monotonic sum of delta*speed; zero delta,
+            #   empty, PAUSED, or already ENDED are pure no-ops with no drift.
             # - cursor advances monotonically and never skips ordered events or
             #   equal-time siblings: it moves forward through every event whose
-            #   time <= new_playhead, consuming entire equal-time groups
-            #   atomically. Final cursor/playhead depends only on total summed
-            #   delta, not on partitioning (additive).
-            # - while PAUSED/ENDED or empty, no movement.
-            if self.is_empty() or self.is_at_end():
+            #   time <= playhead, consuming equal-time groups atomically.
+            # - whenever advancement would cross the final event time, playhead is
+            #   clamped exactly to that final time before marking ENDED; after
+            #   ENDED the engine is immobile and any further total yields the same
+            #   cursor/playhead/state/fingerprint (partition invariance).
+            if self.is_empty():
+                self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
+            elif self.is_at_end():
+                # Already ENDED remains immobile regardless of how it was reached
+                # (SEEK beyond retains its requested playhead; ADVANCE-clamped stays at last).
                 self._playback_state = PlaybackState.ENDED
             elif self._playback_state is not PlaybackState.PLAYING:
                 pass
@@ -821,27 +853,27 @@ class ReplayEngine:
                         raise ReplayEngineError("INVALID_ADVANCE", "playhead must remain finite")
                     if new_playhead < self._playhead_time_s:
                         raise ReplayEngineError("INVALID_ADVANCE", "playhead must be monotonic")
-                    self._playhead_time_s = new_playhead
-                    new_index = self._cursor_index
-                    # Advance through all events up to new_playhead (inclusive).
-                    while (
-                        new_index + 1 < len(self._stream.events)
-                        and float(self._stream.events[new_index + 1].simulator_time_s)
-                        <= new_playhead
-                    ):
-                        new_index += 1
-                    # If beyond last event time, go to end.
-                    if new_index == len(self._stream.events) - 1 and new_playhead > float(
-                        self._stream.events[-1].simulator_time_s
-                    ):
-                        new_index = len(self._stream.events)
-                    # Monotonic only; never rewind.
-                    if new_index > self._cursor_index:
-                        self._cursor_index = new_index
-                    if self.is_at_end():
+                    # Saturating clamp: if crossing final event, clamp to it.
+                    last_time = float(self._stream.events[-1].simulator_time_s)
+                    if new_playhead > last_time:
+                        self._playhead_time_s = last_time
+                        self._cursor_index = len(self._stream.events)
                         self._playback_state = PlaybackState.ENDED
                     else:
-                        self._playback_state = PlaybackState.PLAYING
+                        self._playhead_time_s = new_playhead
+                        new_index = self._cursor_index
+                        while (
+                            new_index + 1 < len(self._stream.events)
+                            and float(self._stream.events[new_index + 1].simulator_time_s)
+                            <= new_playhead
+                        ):
+                            new_index += 1
+                        if new_index > self._cursor_index:
+                            self._cursor_index = new_index
+                        if self.is_at_end():
+                            self._playback_state = PlaybackState.ENDED
+                        else:
+                            self._playback_state = PlaybackState.PLAYING
         else:
             raise ReplayEngineError("INVALID_CONTROL", f"unknown control {request.control}")
 
@@ -924,12 +956,15 @@ class ReplayEngine:
         )
 
     def advance(self, delta_s: float) -> ReplayReceipt:
-        """Deterministic non-real-time advancement while PLAYING.
+        """Deterministic saturating non-real-time advancement while PLAYING.
 
-        Moves simulation target time by ``delta_s * speed_multiplier``,
-        preserves equal-time ordering, never sleeps or consults wall clock,
-        and produces the same typed :class:`ReplayReceipt`.
-        While PAUSED or ENDED the cursor does not move; behavior is explicit.
+        Moves playhead by ``delta_s * speed_multiplier`` (additive). Preserves
+        equal-time ordering and never skips events; zero delta, PAUSED, empty,
+        or already ENDED are pure no-ops. Whenever the target would cross the
+        final event time, playhead is clamped exactly to that final time
+        before marking ENDED, after which the engine remains immobile. Any
+        single total and any partitioned sum reaching/crossing the end yield
+        the identical cursor, playhead, state, and fingerprint.
         """
         if not math.isfinite(delta_s):
             raise ReplayEngineError("INVALID_ADVANCE", "delta_s must be finite")
