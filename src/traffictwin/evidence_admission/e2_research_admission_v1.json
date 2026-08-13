@@ -1,0 +1,90 @@
+{
+  "schema_version": "e2_research_admission_v1",
+  "standing": "OWNER-AUTHORIZED PRODUCT ADMISSION",
+  "standing_not": [
+    "SUPERVISOR APPROVED",
+    "RANDY CONFIRMED"
+  ],
+  "admission_mode": "ADMITTED_RESEARCH",
+  "admission_mode_note": "ADMITTED_RESEARCH is available only on exact match of every pinned identity and value",
+  "expected": {
+    "research_heads": {
+      "e2b": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "e2c": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+      "e2d": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761"
+    },
+    "manifests": {
+      "e2b": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+      "e2c": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+      "e2d": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+    },
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "replication_unit": "fleet_draw",
+    "evaluator_seed": 0,
+    "e2b_offered_attainment": {
+      "off": 0.683619229,
+      "jsq": 0.675681775,
+      "ingress_dla": 0.715773211,
+      "dla": 0.694939919
+    },
+    "e2c_dla_minus_ingress": {
+      "per_seed": [
+        -0.022097034972,
+        -0.020519134179,
+        -0.021447383092,
+        -0.020825491499
+      ],
+      "mean": -0.021222260935,
+      "ci_lower": -0.02233525407,
+      "ci_upper": -0.0201092678
+    },
+    "e2d_per_task_minus_ingress": {
+      "per_seed": [
+        0.004636732564,
+        0.005867285642,
+        0.005071796666,
+        0.005509919752
+      ],
+      "mean": 0.005271433656,
+      "ci_lower": 0.004422143925,
+      "ci_upper": 0.006120723387
+    },
+    "e2d_per_task_minus_common_target": {
+      "mean": 0.026493694591,
+      "ci_lower": 0.026210763951,
+      "ci_upper": 0.026776625232
+    },
+    "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269"
+  },
+  "receipt_binding": {
+    "binds": [
+      "schema_validation",
+      "research_heads",
+      "manifests",
+      "actor_sha256",
+      "trace_sha256",
+      "replication_unit",
+      "evaluator_seed",
+      "package_fingerprint"
+    ],
+    "deterministic": true,
+    "path_free": true,
+    "secret_free": true,
+    "no_scientific_timestamp": true
+  },
+  "limitations_note": "Bounded to one Manchester incident hour (2024-03-15 20:00-21:00), four matched fleet draws (seeds 1-4), evaluator seed 0, fixed 1x service, zero backhaul, inherited deadline gate, frozen actor does not observe load or choose RSU, E2b one-draw descriptive, E2d reuses E2c controls not independent replication, tasks are accounting records not replicates, no ordinary/free-flow control, physical return not independently instrumented",
+  "non_claims": [
+    "actual Kubernetes deployment/cluster orchestration",
+    "autonomous infrastructure control",
+    "learned placement/scheduler",
+    "MAPPO execution-RSU choice/load observation",
+    "Manchester-wide or population-wide performance",
+    "physical deployment/return verification",
+    "universal JSQ or per_task_dla superiority",
+    "free-flow validation",
+    "independent held-out E2d replication",
+    "task-level statistical replication",
+    "zero-backhaul realism"
+  ]
+}
