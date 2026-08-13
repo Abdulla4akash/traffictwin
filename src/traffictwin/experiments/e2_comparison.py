@@ -64,6 +64,7 @@ E2C_METHOD: str = "two-sided Student-t 95% interval over fleet-draw differences"
 E2C_CRITICAL: float = 3.182446305284263
 E2C_LOWER: float = -0.02233525407
 E2C_UPPER: float = -0.0201092678
+E2C_DECISION: str = "evidence_of_directional_difference_within_bounded_four_draw_replication"
 
 # E2d per_task_dla - ingress_dla, fleet seeds 1-4, paired
 E2D_PER_SEED: tuple[float, ...] = (
@@ -80,6 +81,7 @@ E2D_METHOD: str = "two-sided Student-t 95% interval over fleet-draw differences"
 E2D_CRITICAL: float = 3.182446305284263
 E2D_LOWER: float = 0.004422143925
 E2D_UPPER: float = 0.006120723387
+E2D_DECISION: str = "directional_advantage_for_per_task_placement_within_bounded_draws"
 
 # E2d per_task_dla - dla (inherited common-target), fleet seeds 1-4
 E2D_VS_DLA_PER_SEED: tuple[float, ...] = (
@@ -198,7 +200,7 @@ class E2cView(BaseModel):
     lower: float = E2C_LOWER
     upper: float = E2C_UPPER
     includes_zero: bool = False
-    decision: str = "evidence_of_directional_difference_within_bounded_four_draw_replication"
+    decision: str = E2C_DECISION
     manifest_sha256: str = E2C_MANIFEST_SHA256
     code_commit: str = E2C_CODE_COMMIT
     actor_sha256: str = ACTOR_SHA256
@@ -235,7 +237,7 @@ class E2dView(BaseModel):
     lower: float = E2D_LOWER
     upper: float = E2D_UPPER
     includes_zero: bool = False
-    decision: str = "directional_advantage_for_per_task_placement_within_bounded_draws"
+    decision: str = E2D_DECISION
     manifest_sha256: str = E2D_MANIFEST_SHA256
     code_commit: str = E2D_CODE_COMMIT
     actor_sha256: str = ACTOR_SHA256
@@ -408,9 +410,9 @@ def _get_paired_difference(
             f"paired_difference {comparison_id!r} replication_unit must be {REPLICATION_UNIT}, "
             f"got {pd.replication_unit!r}"
         )
-    if sorted(pd.fleet_seeds) != [1, 2, 3, 4]:
+    if list(pd.fleet_seeds) != [1, 2, 3, 4]:
         raise ValueError(
-            f"paired_difference {comparison_id!r} fleet_seeds must be [1,2,3,4], got {pd.fleet_seeds}"  # noqa: E501
+            f"paired_difference {comparison_id!r} fleet_seeds must be [1,2,3,4] in exact order, got {pd.fleet_seeds}"  # noqa: E501
         )
     if len(pd.per_seed_values) != 4:
         raise ValueError(f"paired_difference {comparison_id!r} must have 4 per_seed_values")
@@ -474,6 +476,18 @@ def _get_declared_summary(
         if ds.sample_sd is None or ds.standard_error is None:
             raise ValueError(f"declared_summary {comparison_id!r} missing sd/se")
         # Reconcile sd/se within tolerance against per_seed
+    # Decision must equal exact committed authoritative value — fail closed on
+    # any post-construction mutation injecting universal-superiority, p-value,
+    # or task-N language.
+    expected_decision: str | None = None
+    if comparison_id == E2C_COMPARISON_ID:
+        expected_decision = E2C_DECISION
+    elif comparison_id == E2D_COMPARISON_ID:
+        expected_decision = E2D_DECISION
+    if expected_decision is not None and ds.decision != expected_decision:
+        raise ValueError(
+            f"declared_summary {comparison_id!r} decision must be {expected_decision!r}, got {ds.decision!r}"  # noqa: E501
+        )
     # Return tuple for builder
     decision = ds.decision
     return ds.mean, ds.lower, ds.upper, ds.method, ds.degrees_of_freedom, ds.includes_zero, decision
@@ -651,6 +665,7 @@ __all__ = [
     "E2C_CODE_COMMIT",
     "E2C_CRITICAL",
     "E2C_DF",
+    "E2C_DECISION",
     "E2C_LOWER",
     "E2C_MANIFEST_SHA256",
     "E2C_MEAN",
@@ -662,6 +677,7 @@ __all__ = [
     "E2D_CODE_COMMIT",
     "E2D_CRITICAL",
     "E2D_DF",
+    "E2D_DECISION",
     "E2D_LOWER",
     "E2D_MANIFEST_SHA256",
     "E2D_MEAN",

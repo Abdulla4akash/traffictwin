@@ -824,3 +824,134 @@ def test_kills_e2b_as_multidraw() -> None:
     # Type-independent serialized check avoids Literal comparison-overlap
     dumped2 = view.model_dump()
     assert dumped2["e2b"]["n"] != dumped2["e2c"]["n_fleet_draws"]
+
+
+# ---------------------------------------------------------------------------
+# Gap 1 — decision equality: post-construction mutation must fail closed
+# ---------------------------------------------------------------------------
+
+
+def test_kills_mutated_e2c_decision_universal_superiority() -> None:
+    pkg = _load_valid()
+    pkg.declared_summaries[0].decision = "per_task_dla universally superior p=0.001 N=13076234"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg)
+
+
+def test_kills_mutated_e2d_decision_universal_superiority() -> None:
+    pkg = _load_valid()
+    pkg.declared_summaries[
+        1
+    ].decision = "per_task_dla universally superior p=0.0001 N=10594205 task-level"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg)
+
+
+def test_kills_mutated_e2c_decision_pvalue_language() -> None:
+    pkg = _load_valid()
+    pkg.declared_summaries[0].decision = "significant with p-value 0.03 over fleet draws"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg)
+    # Ensure prohibited text never reaches view output
+    pkg2 = _load_valid()
+    view = build_e2_comparison_view(pkg2)
+    assert "p-value" not in view.e2c.decision
+    assert "p_value" not in view.e2c.decision
+
+
+def test_kills_mutated_e2d_decision_task_n_language() -> None:
+    pkg = _load_valid()
+    pkg.declared_summaries[1].decision = "advantage with task N=13076234 tasks as replicates"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg)
+    pkg2 = _load_valid()
+    view = build_e2_comparison_view(pkg2)
+    assert "13076234" not in view.e2d.decision
+    assert (
+        "task" not in view.e2d.decision.lower()
+        or view.e2d.decision == "directional_advantage_for_per_task_placement_within_bounded_draws"
+    )
+
+
+def test_kills_mutated_e2c_decision_changed_text() -> None:
+    pkg = _load_valid()
+    pkg.declared_summaries[0].decision = "changed decision text"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg)
+
+
+def test_kills_mutated_e2d_decision_changed_text() -> None:
+    pkg = _load_valid()
+    pkg.declared_summaries[1].decision = "another changed decision"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg)
+
+
+def test_decision_fields_equal_committed_constants_and_no_prohibited_language() -> None:
+    from traffictwin.experiments.e2_comparison import E2C_DECISION, E2D_DECISION
+
+    pkg = _load_valid()
+    view = build_e2_comparison_view(pkg)
+    assert view.e2c.decision == E2C_DECISION
+    assert view.e2d.decision == E2D_DECISION
+    # No prohibited universal-superiority / p-value / task-N language in committed decisions
+    for dec in (view.e2c.decision, view.e2d.decision):
+        low = dec.lower()
+        assert "universal" not in low
+        assert "superior" not in low
+        assert "p-value" not in low
+        assert "p_value" not in low
+        assert "pvalue" not in low
+        assert "13076234" not in dec
+        assert "10594205" not in dec
+    # Ensure mutated prohibited text never reaches output
+    pkg_mut = _load_valid()
+    pkg_mut.declared_summaries[0].decision = "universal superiority proven p=0.001"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg_mut)
+    pkg_mut2 = _load_valid()
+    pkg_mut2.declared_summaries[1].decision = "universal superiority p-value 0.01 with N=13076234"
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg_mut2)
+
+
+# ---------------------------------------------------------------------------
+# Gap 2 — permuted fleet_seeds must raise (positional values)
+# ---------------------------------------------------------------------------
+
+
+def test_kills_permuted_fleet_seeds_while_values_fixed() -> None:
+    # Permute seeds for e2c but keep per_seed_values in original order — must raise
+    pkg = _load_valid()
+    pkg.paired_differences[0].fleet_seeds = [2, 1, 3, 4]
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg)
+
+
+def test_kills_permuted_fleet_seeds_all_three_comparisons() -> None:
+    for idx in (0, 1, 2):
+        pkg = _load_valid()
+        # Keep values fixed, permute seeds to reversed order
+        pkg.paired_differences[idx].fleet_seeds = [4, 3, 2, 1]
+        with pytest.raises((ValueError, Exception)):
+            build_e2_comparison_view(pkg)
+        # Also test a single swap
+        pkg2 = _load_valid()
+        pkg2.paired_differences[idx].fleet_seeds = [1, 3, 2, 4]
+        with pytest.raises((ValueError, Exception)):
+            build_e2_comparison_view(pkg2)
+
+
+def test_exact_seed_order_required_not_sorted() -> None:
+    # Verify exact order [1,2,3,4] is required, not just set equality
+    pkg = _load_valid()
+    view = build_e2_comparison_view(pkg)
+    assert view.e2c.per_seed_values == pytest.approx(E2C_PER_SEED, abs=1e-12)
+    assert view.e2d.per_seed_values == pytest.approx(E2D_PER_SEED, abs=1e-12)
+    # Sorted would pass for [2,1,3,4] but exact order must fail
+    pkg_perm = _load_valid()
+    pkg_perm.paired_differences[1].fleet_seeds = [2, 1, 3, 4]
+    # per_seed_values still correspond to original seed order [1,2,3,4]
+    # so positional mismatch must be rejected
+    with pytest.raises((ValueError, Exception)):
+        build_e2_comparison_view(pkg_perm)
