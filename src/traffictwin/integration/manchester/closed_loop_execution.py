@@ -9,20 +9,47 @@ Safety properties (strengthened composition):
 * configured/pinned SUMO detection — an explicit executable path is validated;
   PATH is never searched at execution time;
 * exact version capture — ``sumo --version`` is probed with ``shell=False``
-  and the reported version must start with ``1.27.``;
+  and the reported version must start with ``1.27.``; probe output is bounded
+  in memory/disk via a pipe-draining capped collector;
 * allowlisted executable identity only — base name must be exactly ``sumo``;
 * fixed validated argv generated solely by code — no caller-supplied flags;
 * explicit package root and configuration — relative, safe, non-symlink names
   inside the package root;
-* declared input content fingerprints verified immediately before launch;
+* bounded hardened XML preflight with defusedxml — rejects DTD/entities,
+  malformed/oversized configs, absolute/traversing/URI refs, refs not in
+  exact declared inventory, output/log/state/remote/TraCI/command-like options,
+  and any unreviewed element capable of reading/writing outside staged isolation;
+  ``additional-files`` is explicitly unsupported in this narrow V1 runner and
+  is rejected (see limitations);
+* declared input content fingerprints verified immediately before launch, with
+  per-input and aggregate size bounds enforced before hashing/copying and via
+  streaming copy/hash;
 * isolated explicit output directory — must not exist, must not overlap the
   package root, parent must already exist;
-* explicit working directory — the package root;
-* timeout, exit code, bounded stdout/stderr receipts;
-* deterministic run identity — SHA-256 over canonical request + tool + argv
-  shape;
+* isolated private staging directory under the new run output — verified
+  declared regular non-symlink inputs are streamed there with bounded hashing,
+  staged hashes verified, execution cwd is the staging directory, source package
+  remains unchanged;
+* reject input drift both immediately before staging and after the run;
+* timeout, exit code, bounded stdout/stderr receipts with process-group kill
+  and pipe-draining bounded collectors that continue draining/discarding beyond
+  the receipt cap so the child cannot deadlock or exhaust disk;
+* deterministic run identity — SHA-256 over canonical request fingerprint +
+  exact tool digest/version + fixed portable argv + operator authorisation,
+  distinct from wall-clock receipt fingerprint; the request-level
+  ``deterministic_run_identity`` binds only request fields, while the
+  execution/package ``deterministic_run_identity`` is the canonical run
+  identity that binds tool and argv;
 * sanitized minimal environment — ``PATH`` limited to the executable parent
-  plus ``/usr/bin:/bin``, plus ``LANG``/``LC_ALL``/``HOME`` only;
+  plus ``/usr/bin:/bin``, plus ``LANG``/``LC_ALL``/``HOME`` only; no
+  SUMO_HOME, no secret/private literals passed to child, never inherit hidden
+  variables;
+* output size checked BEFORE hashing, per-file and aggregate bounds, reject
+  symlinks/extra/missing/duplicate/drift;
+* engineering/software vs scientific standing correctly separated;
+* portable receipt integrity bundling request/tool/preflight/argv/times/state/
+  outputs/limitations with fingerprint, aware-UTC time ordering, and
+  deterministic tolerance for measured duration;
 * ``shell=False``; no command strings, uploaded scripts, automatic download,
   PATH guessing, arbitrary executable/argv, or network.
 
@@ -41,10 +68,15 @@ research workloads, and does not touch Dynamic Resource/E3 artifacts.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
+import os
 import re
+import shutil
+import signal
 import subprocess
+import threading
 import time
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
@@ -79,22 +111,38 @@ CLOSED_LOOP_FIXED_ARGV: tuple[str, ...] = (
     "true",
 )
 
-# Bounded receipt text — prevents a warning storm filling memory.
+# Bounded receipt text — prevents a warning storm filling memory/disk.
 MAX_LOG_BYTES = 32_000
 MAX_LOG_LINES = 200
 MAX_LOG_LINE_BYTES = 400
+# Cap for version probe capture (stdout+stderr bounded)
+MAX_VERSION_CAPTURE_BYTES = 16_000
 
 # Execution bounds
 DEFAULT_TIMEOUT_S = 120
 MAX_TIMEOUT_S = 600
 MIN_TIMEOUT_S = 1
 
+# Config/output bounds
+MAX_CONFIG_BYTES = 1_000_000
+MAX_OUTPUT_BYTES = 50_000_000
+MAX_AGGREGATE_OUTPUT_BYTES = 100_000_000
+
+# Input package bounds — per-input and aggregate, checked before hashing/copying
+# where possible and enforced via streaming copy. Compatible with a substantial
+# Manchester network/demand package (multi-MB nets/routes) but finite.
+MAX_INPUT_BYTES = 20_000_000
+MAX_AGGREGATE_INPUT_BYTES = 80_000_000
+
 # Scientific vs engineering standing
 ENGINEERING_SOFTWARE_VALID: Literal["SOFTWARE_VALID"] = "SOFTWARE_VALID"
-SCIENTIFIC_SOFTWARE_VALID: Literal["SOFTWARE_VALID"] = "SOFTWARE_VALID"
+ENGINEERING_NOT_VALID: Literal["ENGINEERING_NOT_VALID"] = "ENGINEERING_NOT_VALID"
+SCIENTIFICALLY_NOT_ACCEPTED: Literal["SCIENTIFICALLY_NOT_ACCEPTED"] = "SCIENTIFICALLY_NOT_ACCEPTED"
 SCIENTIFIC_ACCEPTED_BASELINE: Literal["SCIENTIFICALLY_ACCEPTED_BASELINE"] = (
     "SCIENTIFICALLY_ACCEPTED_BASELINE"
 )
+# Legacy alias for tests that still reference SOFTWARE_VALID as scientific value — now rejected
+SCIENTIFIC_SOFTWARE_VALID: Literal["SOFTWARE_VALID"] = "SOFTWARE_VALID"
 
 # Synthetic-only limitations — always present, never scientific acceptance.
 CLOSED_LOOP_LIMITATIONS: tuple[str, ...] = (
@@ -105,6 +153,9 @@ CLOSED_LOOP_LIMITATIONS: tuple[str, ...] = (
     "outside this execution contract.",
     "Vehicle outputs are never inferred into VEC tasks; no Dynamic Resource/E3 "
     "semantics are created.",
+    "Limited V1 runner scope: additional-files XML is not supported; only "
+    "explicit net-file/route-files references admitted, and the runner refuses "
+    "any additional-files element.",
 )
 
 # Secret / private-path refusal (mirrors Manchester snapshot models)
@@ -116,6 +167,42 @@ _SECRET_TOKEN_RE = re.compile(
 _VERSION_RE = re.compile(r"\b(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)\b")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _SAFE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+# Narrow allowlist suitable for the test package — additional-files excluded
+_ALLOWED_CONFIG_TAGS: set[str] = {
+    "configuration",
+    "sumoConfiguration",
+    "input",
+    "net-file",
+    "route-files",
+    "time",
+    "begin",
+    "end",
+}
+# Tags that represent file references whose values must be in declared inventory
+_FILE_REFERENCE_TAGS: set[str] = {"net-file", "route-files"}
+_FORBIDDEN_TAG_SUBSTRINGS: tuple[str, ...] = (
+    "output",
+    "log",
+    "state",
+    "remote",
+    "traci",
+    "gui",
+    "dump",
+    "fcd",
+    "vehroute",
+    "emission",
+    "battery",
+    "charging",
+    "ssm",
+    "collision",
+    "overhead",
+    "edgeData",
+    "laneData",
+    "queue",
+    "amitran",
+    "full",
+)
 
 
 def _canonical_json(payload: object) -> str:
@@ -183,7 +270,7 @@ class ClosedLoopToolIdentity(ManchesterClosedLoopModel):
 class ClosedLoopInputDeclaration(ManchesterClosedLoopModel):
     path: str = Field(min_length=1, max_length=200)
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    size_bytes: int = Field(ge=0)
+    size_bytes: int = Field(ge=0, le=MAX_INPUT_BYTES)
 
     @field_validator("path")
     @classmethod
@@ -196,7 +283,6 @@ class ClosedLoopInputDeclaration(ManchesterClosedLoopModel):
         if ".." in v or v.startswith("/") or "\\" in v:
             raise ValueError("input path must not escape package root")
         if not _SAFE_NAME_RE.match(pp.name):
-            # allow subdirectories but each segment must be safe
             for seg in pp.parts:
                 if not _SAFE_NAME_RE.match(seg):
                     raise ValueError(f"unsafe path segment: {seg}")
@@ -238,7 +324,11 @@ class ClosedLoopExecutionRequest(ManchesterClosedLoopModel):
     inputs: list[ClosedLoopInputDeclaration] = Field(min_length=1, max_length=32)
     seed: int = Field(ge=0, le=2_147_483_647)
     timeout_seconds: int = Field(ge=MIN_TIMEOUT_S, le=MAX_TIMEOUT_S)
+    # Request-scoped deterministic identity (binds request fields only); the
+    # canonical execution run identity additionally binds tool and argv and
+    # is carried by package/receipt.
     deterministic_run_identity: str = Field(pattern=r"^[0-9a-f]{64}$")
+    confirmed_by_operator: Literal[True] = True
 
     @field_validator("config_file")
     @classmethod
@@ -259,7 +349,13 @@ class ClosedLoopExecutionRequest(ManchesterClosedLoopModel):
             raise ValueError("duplicate input paths")
         if self.config_file not in names:
             raise ValueError("config_file must be among declared inputs")
-        # deterministic identity must match recomputed
+        # Aggregate bound for declared inputs
+        total = sum(i.size_bytes for i in self.inputs)
+        if total > MAX_AGGREGATE_INPUT_BYTES:
+            raise ValueError("aggregate input size exceeds bound")
+        for i in self.inputs:
+            if i.size_bytes > MAX_INPUT_BYTES:
+                raise ValueError("input size exceeds per-file bound")
         payload = {
             "package_fingerprint": self.package_fingerprint,
             "config_file": self.config_file,
@@ -270,6 +366,7 @@ class ClosedLoopExecutionRequest(ManchesterClosedLoopModel):
             "seed": self.seed,
             "timeout_seconds": self.timeout_seconds,
             "run_id": self.run_id,
+            "confirmed_by_operator": self.confirmed_by_operator,
         }
         expected = _sha256_hex(_canonical_json(payload).encode("utf-8"))
         if self.deterministic_run_identity != expected:
@@ -330,6 +427,7 @@ class ClosedLoopExecutionPackage(ManchesterClosedLoopModel):
     working_directory: Literal["{PACKAGE_ROOT}"] = "{PACKAGE_ROOT}"
     output_directory: Literal["{OUTPUT_ROOT}"] = "{OUTPUT_ROOT}"
     timeout_seconds: int = Field(ge=MIN_TIMEOUT_S, le=MAX_TIMEOUT_S)
+    # Canonical run identity binds request_fingerprint + tool digest/version + portable argv
     deterministic_run_identity: str = Field(pattern=r"^[0-9a-f]{64}$")
     environment_keys: list[str] = Field(min_length=1, max_length=16)
     shell_used: Literal[False] = False
@@ -353,6 +451,20 @@ class ClosedLoopExecutionPackage(ManchesterClosedLoopModel):
                     raise ValueError("argv must not contain shell metacharacters")
             elif got != expected:
                 raise ValueError(f"argv token mismatch: {got!r} != {expected!r}")
+        # Canonical run identity must bind request, tool, argv
+        expected_identity = _canonical_run_identity_from_parts(
+            self.request_fingerprint, self.tool, self.argv
+        )
+        if self.deterministic_run_identity != expected_identity:
+            raise ValueError("deterministic_run_identity must match canonical request+tool+argv")
+        # Environment keys must be exactly the documented minimal set (order-insensitive)
+        allowed = {"PATH", "HOME", "LANG", "LC_ALL"}
+        if set(self.environment_keys) != allowed and set(self.environment_keys) != allowed:
+            # Accept only exact minimal set; reject SUMO_HOME etc
+            if "SUMO_HOME" in self.environment_keys:
+                raise ValueError("SUMO_HOME must not be in environment_keys")
+            if set(self.environment_keys) != allowed:
+                raise ValueError("environment_keys must be exactly PATH,HOME,LANG,LC_ALL")
         return self
 
 
@@ -380,8 +492,12 @@ class ClosedLoopExecutionReceipt(ManchesterClosedLoopModel):
     output_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     inputs_verified: bool
     deterministic_run_identity: str = Field(pattern=r"^[0-9a-f]{64}$")
-    engineering_standing: Literal["SOFTWARE_VALID"] = ENGINEERING_SOFTWARE_VALID
-    scientific_standing: Literal["SOFTWARE_VALID"] = SCIENTIFIC_SOFTWARE_VALID
+    engineering_standing: Literal["SOFTWARE_VALID", "ENGINEERING_NOT_VALID"] = Field(
+        default="ENGINEERING_NOT_VALID"
+    )
+    scientific_standing: Literal["SCIENTIFICALLY_NOT_ACCEPTED"] = Field(
+        default="SCIENTIFICALLY_NOT_ACCEPTED"
+    )
     limitations: list[str] = Field(min_length=1, max_length=8)
     shell_used: Literal[False] = False
     caller_supplied_arguments: Literal[False] = False
@@ -390,8 +506,12 @@ class ClosedLoopExecutionReceipt(ManchesterClosedLoopModel):
     @field_validator("started_at_utc", "completed_at_utc")
     @classmethod
     def _validate_time(cls, v: str) -> str:
-        # must be ISO-8601, parseable
-        datetime.fromisoformat(v.replace("Z", "+00:00"))
+        dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            raise ValueError("timestamp must be timezone-aware")
+        off = dt.utcoffset()
+        if off is None or off.total_seconds() != 0:
+            raise ValueError("timestamp must be UTC")
         if _PRIVATE_PATH_RE.search(v):
             raise ValueError("timestamp must not contain private path")
         return v
@@ -409,8 +529,44 @@ class ClosedLoopExecutionReceipt(ManchesterClosedLoopModel):
     def _validate_receipt(self) -> ClosedLoopExecutionReceipt:
         if self.request_fingerprint != self.request.fingerprint():
             raise ValueError("request fingerprint mismatch")
-        if self.deterministic_run_identity != self.request.deterministic_run_identity:
-            raise ValueError("deterministic identity must match request")
+        # Bind preflight identity to exact request + tool
+        expected_preflight = _preflight_fingerprint(self.request, self.tool)
+        if self.preflight_fingerprint != expected_preflight:
+            # Allow blocked preflight synthetic fingerprint only for blocked outcome?
+            # For blocked, execution still uses real preflight binding? We allow only canonical.
+            if self.outcome != "blocked":
+                raise ValueError("preflight_fingerprint must match request+tool")
+            # For blocked, also verify synthetic is not accepted as valid canonical
+            # blocked receipts use blocked: prefix which is intentionally distinct; reject if
+            # they claim canonical preflight while blocked
+            # But we still require that any non-canonical blocked fingerprint is exactly
+            # the synthetic blocked one derived from request
+            synthetic = _sha256_hex(b"blocked:" + self.request.fingerprint().encode())
+            if self.preflight_fingerprint not in {expected_preflight, synthetic}:
+                raise ValueError("preflight_fingerprint mismatch for blocked")
+            if self.preflight_fingerprint == expected_preflight and self.outcome == "blocked":
+                # blocked with canonical preflight also allowed; synthetic used for blocked path
+                pass  # noqa: S110
+        # Canonical run identity must bind request_fingerprint + tool + argv
+        expected_run = _canonical_run_identity(self.request, self.tool, self.argv)
+        if self.deterministic_run_identity != expected_run:
+            raise ValueError("deterministic_run_identity must match canonical request+tool+argv")
+        if self.deterministic_run_identity == self.fingerprint():
+            raise ValueError("deterministic identity must be distinct from receipt fingerprint")
+        # aware UTC and ordering with duration tolerance
+        try:
+            start = datetime.fromisoformat(self.started_at_utc.replace("Z", "+00:00"))
+            end = datetime.fromisoformat(self.completed_at_utc.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError("invalid timestamp") from exc
+        if start.tzinfo is None or end.tzinfo is None:
+            raise ValueError("timestamps must be aware")
+        if end < start:
+            raise ValueError("completed_at must not be before started_at")
+        expected_duration = (end - start).total_seconds()
+        # Allow deterministic tolerance for measured clocks (monotonic vs wall clock)
+        if abs(self.duration_s - expected_duration) > 2.0 + 1e-6:
+            raise ValueError("duration_s must match UTC start/end within tolerance")
         # argv must be fixed shape
         if len(self.argv) != len(CLOSED_LOOP_FIXED_ARGV) + 1:
             raise ValueError("receipt argv must match fixed shape plus executable")
@@ -426,7 +582,7 @@ class ClosedLoopExecutionReceipt(ManchesterClosedLoopModel):
                     raise ValueError("argv must not contain private path")
             elif got != expected:
                 raise ValueError("receipt argv token mismatch")
-        # outcome / exit / timeout consistency
+        # outcome / exit / timeout consistency and standing
         if self.outcome == "completed":
             if self.exit_code != 0:
                 raise ValueError("completed requires exit 0")
@@ -434,7 +590,6 @@ class ClosedLoopExecutionReceipt(ManchesterClosedLoopModel):
                 raise ValueError("completed cannot be timed out")
             if not self.inputs_verified:
                 raise ValueError("completed requires verified inputs")
-            # fail-closed: completed requires both non-symlink required outputs
             required = {"tripinfo.xml", "summary.xml"}
             paths = [o.path for o in self.outputs]
             if len(paths) != len(set(paths)):
@@ -443,26 +598,48 @@ class ClosedLoopExecutionReceipt(ManchesterClosedLoopModel):
                 raise ValueError("completed requires both tripinfo.xml and summary.xml")
             if self.output_fingerprint is None:
                 raise ValueError("completed requires output fingerprint")
-            # each output path was already validated; fingerprints checked below
-        if self.outcome == "timed_out" and not self.timed_out:
-            raise ValueError("timed_out outcome requires timed_out flag")
-        if (  # noqa: SIM102
+            if self.engineering_standing != "SOFTWARE_VALID":
+                raise ValueError("completed requires engineering SOFTWARE_VALID")
+            if self.scientific_standing != "SCIENTIFICALLY_NOT_ACCEPTED":
+                raise ValueError("completed scientific must be SCIENTIFICALLY_NOT_ACCEPTED")
+        else:
+            # blocked/failed/timed_out must NOT claim SOFTWARE_VALID
+            if self.engineering_standing == "SOFTWARE_VALID":
+                raise ValueError("non-completed must not claim SOFTWARE_VALID")
+            if self.scientific_standing != "SCIENTIFICALLY_NOT_ACCEPTED":
+                raise ValueError("scientific must be SCIENTIFICALLY_NOT_ACCEPTED")
+            if self.outcome == "blocked":
+                if self.exit_code is not None:
+                    raise ValueError("blocked must have null exit_code")
+                if self.timed_out:
+                    raise ValueError("blocked cannot be timed_out")
+                if self.inputs_verified:
+                    raise ValueError("blocked must have inputs_verified false")
+                if self.outputs or self.output_fingerprint is not None:
+                    raise ValueError("blocked must have no outputs")
+            if self.outcome == "timed_out" and not self.timed_out:
+                raise ValueError("timed_out outcome requires timed_out flag")
+            if self.outcome == "failed" and self.timed_out:
+                raise ValueError("failed cannot be timed_out")
+        if (
             self.timed_out != (self.outcome == "timed_out")
-            and self.outcome not in {"timed_out", "blocked"}
+            and self.outcome
+            in {
+                "completed",
+                "failed",
+                "blocked",
+            }
             and self.timed_out
         ):
             raise ValueError("timed_out flag mismatch")
         # never upgrade scientific standing
-        if self.scientific_standing != "SOFTWARE_VALID":
-            raise ValueError("scientific standing must remain SOFTWARE_VALID")
-        if self.engineering_standing != "SOFTWARE_VALID":
-            raise ValueError("engineering standing must be SOFTWARE_VALID")
+        if self.scientific_standing != "SCIENTIFICALLY_NOT_ACCEPTED":
+            raise ValueError("scientific standing must be SCIENTIFICALLY_NOT_ACCEPTED")
         # portable: no absolute paths, no secrets
         for ev in self.outputs:
             if _PRIVATE_PATH_RE.search(ev.path):
                 raise ValueError("output path must be portable")
         if self.output_fingerprint is not None:
-            # recompute
             expected = _output_fingerprint(self.outputs)
             if self.output_fingerprint != expected:
                 raise ValueError("output fingerprint mismatch")
@@ -470,12 +647,56 @@ class ClosedLoopExecutionReceipt(ManchesterClosedLoopModel):
             raise ValueError("secrets_exposed must be false")
         if self.shell_used is not False or self.caller_supplied_arguments is not False:
             raise ValueError("shell and caller argument flags must be false")
-        # stdout/stderr already bounded by validator
+        if list(self.limitations) != list(CLOSED_LOOP_LIMITATIONS):
+            raise ValueError("limitations must match fixed set")
+        if not _SHA256_RE.match(self.preflight_fingerprint):
+            raise ValueError("preflight_fingerprint must be sha256")
+        # Ensure request confirmed
+        if self.request.confirmed_by_operator is not True:
+            raise ValueError("request must be operator confirmed")
         return self
 
 
 def _output_fingerprint(outputs: list[ClosedLoopFileEvidence]) -> str:
     payload = [o.model_dump(mode="json") for o in sorted(outputs, key=lambda x: x.path)]
+    return _sha256_hex(_canonical_json(payload).encode("utf-8"))
+
+
+def _preflight_fingerprint(
+    request: ClosedLoopExecutionRequest, tool: ClosedLoopToolIdentity
+) -> str:
+    payload = {
+        "request_fingerprint": request.fingerprint(),
+        "tool_sha": tool.executable_sha256,
+        "tool_version": tool.reported_version,
+    }
+    return _sha256_hex(_canonical_json(payload).encode("utf-8"))
+
+
+def _canonical_run_identity(
+    request: ClosedLoopExecutionRequest, tool: ClosedLoopToolIdentity, argv: list[str]
+) -> str:
+    """Canonical execution run identity binding request + tool + argv."""
+    payload = {
+        "request_fingerprint": request.fingerprint(),
+        "tool_sha": tool.executable_sha256,
+        "tool_version": tool.reported_version,
+        "argv": argv,
+        "confirmed_by_operator": request.confirmed_by_operator,
+    }
+    return _sha256_hex(_canonical_json(payload).encode("utf-8"))
+
+
+def _canonical_run_identity_from_parts(
+    request_fingerprint: str, tool: ClosedLoopToolIdentity, argv: list[str]
+) -> str:
+    payload = {
+        "request_fingerprint": request_fingerprint,
+        "tool_sha": tool.executable_sha256,
+        "tool_version": tool.reported_version,
+        "argv": argv,
+        "confirmed_by_operator": True,
+    }
     return _sha256_hex(_canonical_json(payload).encode("utf-8"))
 
 
@@ -486,11 +707,9 @@ def _output_fingerprint(outputs: list[ClosedLoopFileEvidence]) -> str:
 
 def _sanitize_text(text: str) -> str:
     """Bound and scrub text for receipt portability."""
-    # Truncate to MAX_LOG_BYTES, split lines, truncate lines, scrub private paths/secrets
     if len(text) > MAX_LOG_BYTES:
         text = text[:MAX_LOG_BYTES]
     lines = text.splitlines()
-    # Keep at most MAX_LOG_LINES, each at most MAX_LOG_LINE_BYTES
     kept: list[str] = []
     for raw in lines[:MAX_LOG_LINES]:
         if len(raw) > MAX_LOG_LINE_BYTES:
@@ -498,24 +717,20 @@ def _sanitize_text(text: str) -> str:
         if _PRIVATE_PATH_RE.search(raw):
             continue
         if _SECRET_TOKEN_RE.search(raw):
-            # scrub secret-like lines
             continue
         kept.append(raw)
     return "\n".join(kept)
 
 
 def _controlled_environment(executable: Path, working_dir: Path) -> dict[str, str]:
-    env: dict[str, str] = {
+    # Minimal explicit environment; never inherit hidden variables. No SUMO_HOME.
+    # Values are explicit staging/tool-derived, kept out of portable receipt.
+    return {
         "PATH": f"{executable.parent}:/usr/bin:/bin",
         "HOME": str(working_dir),
         "LANG": "C.UTF-8",
         "LC_ALL": "C.UTF-8",
     }
-    # Only expose SUMO_HOME if it is a safe directory sibling of executable
-    sumo_home = executable.parent.parent / "share" / "sumo"
-    if sumo_home.is_dir() and not sumo_home.is_symlink():
-        env["SUMO_HOME"] = str(sumo_home)
-    return env
 
 
 def _validate_package_root(package_root: Path) -> str | None:
@@ -523,11 +738,6 @@ def _validate_package_root(package_root: Path) -> str | None:
         return "package root must not be a symlink"
     if not package_root.is_dir():
         return "package root must be an existing directory"
-    # package root itself must not contain private path substring? check path string
-    if _PRIVATE_PATH_RE.search(str(package_root)):
-        # This is the real machine path; we do not store it, but we still
-        # validate input existence. For portable receipts we never persist it.
-        pass
     return None
 
 
@@ -539,7 +749,6 @@ def _validate_output_root(output_root: Path, package_root: Path) -> str | None:
     parent = output_root.parent
     if not parent.is_dir() or parent.is_symlink():
         return "output parent must be an existing non-symlink directory"
-    # Must not overlap
     try:
         pkg = package_root.resolve()
         out = output_root.resolve(strict=False)
@@ -553,10 +762,13 @@ def _validate_output_root(output_root: Path, package_root: Path) -> str | None:
 def _verify_declared_inputs(package_root: Path, request: ClosedLoopExecutionRequest) -> list[str]:
     errors: list[str] = []
     pkg_resolved = package_root.resolve()
+    total_bytes = 0
     for decl in request.inputs:
+        # Declared size bound check before filesystem access where possible
+        if decl.size_bytes > MAX_INPUT_BYTES:
+            errors.append(f"INPUT_OVERSIZE: {decl.path} {decl.size_bytes} > {MAX_INPUT_BYTES}")
+            continue
         candidate = package_root / decl.path
-        # Never resolve away evidence of symlink status before checking it.
-        # Check file itself and any directory component for symlink.
         if candidate.is_symlink():
             errors.append(f"input must not be a symlink: {decl.path}")
             continue
@@ -571,7 +783,6 @@ def _verify_declared_inputs(package_root: Path, request: ClosedLoopExecutionRequ
                 break
         if parent_symlink:
             continue
-        # Resolve only after symlink evidence preserved.
         try:
             resolved = candidate.resolve(strict=False)
         except OSError:
@@ -580,29 +791,47 @@ def _verify_declared_inputs(package_root: Path, request: ClosedLoopExecutionRequ
         if not candidate.is_file():
             errors.append(f"input missing or not a regular file: {decl.path}")
             continue
-        # Ensure resolved stays within package root (covers symlink escapes).
         try:
             resolved.relative_to(pkg_resolved)
         except ValueError:
             errors.append(f"input escapes package root: {decl.path}")
             continue
         try:
-            actual_sha = _sha256_file(candidate)
             actual_size = candidate.stat().st_size
+        except OSError:
+            errors.append(f"input cannot be read: {decl.path}")
+            continue
+        if actual_size > MAX_INPUT_BYTES:
+            errors.append(f"INPUT_OVERSIZE: {decl.path} {actual_size} > {MAX_INPUT_BYTES}")
+            continue
+        total_bytes += actual_size
+        if total_bytes > MAX_AGGREGATE_INPUT_BYTES:
+            errors.append(f"INPUT_AGGREGATE_OVERSIZE: {total_bytes} > {MAX_AGGREGATE_INPUT_BYTES}")
+            # continue to collect but avoid hashing huge aggregate
+            continue
+        if actual_size != decl.size_bytes:
+            errors.append(f"input size mismatch: {decl.path}")
+            continue
+        # Hash only after size checks
+        try:
+            actual_sha = _sha256_file(candidate)
         except OSError:
             errors.append(f"input cannot be read: {decl.path}")
             continue
         if actual_sha != decl.sha256:
             errors.append(f"input fingerprint mismatch: {decl.path}")
-        if actual_size != decl.size_bytes:
-            errors.append(f"input size mismatch: {decl.path}")
+    # Final aggregate check on declared sizes
+    declared_total = sum(i.size_bytes for i in request.inputs)
+    if declared_total > MAX_AGGREGATE_INPUT_BYTES:
+        errors.append(
+            f"INPUT_AGGREGATE_OVERSIZE: declared {declared_total} > {MAX_AGGREGATE_INPUT_BYTES}"
+        )
     return errors
 
 
 def _compute_package_fingerprint(
     package_root: Path, inputs: list[ClosedLoopInputDeclaration]
 ) -> str:
-    # Deterministic fingerprint over sorted input identities (path+sha+size)
     payload = sorted([i.model_dump(mode="json") for i in inputs], key=lambda x: x["path"])
     return _sha256_hex(_canonical_json(payload).encode("utf-8"))
 
@@ -614,6 +843,7 @@ def _compute_deterministic_identity(
     seed: int,
     timeout_seconds: int,
     run_id: str,
+    confirmed_by_operator: Literal[True],
 ) -> str:
     payload = {
         "package_fingerprint": package_fingerprint,
@@ -622,8 +852,209 @@ def _compute_deterministic_identity(
         "seed": seed,
         "timeout_seconds": timeout_seconds,
         "run_id": run_id,
+        "confirmed_by_operator": confirmed_by_operator,
     }
     return _sha256_hex(_canonical_json(payload).encode("utf-8"))
+
+
+def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionRequest) -> list[str]:
+    """Hardened XML preflight for the .sumocfg as untrusted execution control."""
+    errors: list[str] = []
+    config_path = package_root / request.config_file
+    # Never resolve symlink before checking
+    if config_path.is_symlink():
+        errors.append("CONFIG_SYMLINK_REJECTED: config must not be a symlink")
+        return errors
+    if not config_path.is_file():
+        errors.append("CONFIG_MISSING: config file is not a regular file")
+        return errors
+    try:
+        size = config_path.stat().st_size
+    except OSError:
+        errors.append("CONFIG_UNREADABLE: cannot stat config")
+        return errors
+    if size > MAX_CONFIG_BYTES:
+        errors.append(f"CONFIG_OVERSIZED: {size} exceeds {MAX_CONFIG_BYTES}")
+        return errors
+    try:
+        data = config_path.read_bytes()
+    except OSError:
+        errors.append("CONFIG_UNREADABLE: cannot read config")
+        return errors
+    if len(data) > MAX_CONFIG_BYTES:
+        errors.append("CONFIG_OVERSIZED: byte length exceeds bound")
+        return errors
+    if b"<!DOCTYPE" in data or b"<!ENTITY" in data:
+        errors.append("CONFIG_DTD_ENTITY_REJECTED: DTD/entities are forbidden")
+        return errors
+    # Use defusedxml for safe parsing
+    try:
+        import defusedxml.ElementTree as defusedxml_et  # noqa: N813 - defused alias
+
+        root = defusedxml_et.fromstring(data)
+    except Exception as exc:  # noqa: BLE001 - need to surface malformed
+        errors.append(f"CONFIG_MALFORMED: {exc}")
+        return errors
+
+    def _strip_ns(tag: str) -> str:
+        return tag.split("}", 1)[-1] if "}" in tag else tag
+
+    admitted = {i.path for i in request.inputs}
+    for elem in root.iter():
+        tag = _strip_ns(elem.tag)
+        # Explicit refusal of additional-files in this narrow V1 runner
+        if tag == "additional-files":
+            errors.append(
+                "CONFIG_ADDITIONAL_FILES_REJECTED: additional-files not supported in V1 runner"
+            )
+            continue
+        if tag not in _ALLOWED_CONFIG_TAGS:
+            low = tag.lower()
+            if any(k in low for k in _FORBIDDEN_TAG_SUBSTRINGS):
+                errors.append(f"CONFIG_FORBIDDEN_OPTION_REJECTED: {tag} is not allowed")
+            else:
+                errors.append(f"CONFIG_UNREVIEWED_ELEMENT_REJECTED: {tag} is not allowlisted")
+            continue
+        # Validate attributes
+        for attr_name, attr_val in list(elem.attrib.items()):
+            # Allow XML namespace declarations on root
+            if tag in {"configuration", "sumoConfiguration"} and (
+                attr_name.startswith("{") or attr_name.startswith("xmlns") or "xsi" in attr_name
+            ):
+                continue
+            if attr_name != "value":
+                errors.append(
+                    f"CONFIG_UNREVIEWED_ATTRIBUTE_REJECTED: {tag} attribute {attr_name} not allowed"
+                )
+                continue
+            val: str = attr_val
+
+            # Redact private/secret values in findings to keep findings portable
+            def _safe_val(v: str) -> str:
+                if _PRIVATE_PATH_RE.search(v) or _SECRET_TOKEN_RE.search(v):
+                    return "{REDACTED}"
+                return v
+
+            safe = _safe_val(val)
+            if _PRIVATE_PATH_RE.search(val):
+                errors.append("CONFIG_PRIVATE_PATH_REJECTED: value contains private path")
+            if _SECRET_TOKEN_RE.search(val):
+                errors.append("CONFIG_SENSITIVE_REJECTED: value contains disallowed pattern")
+            if "://" in val:
+                errors.append(f"CONFIG_URI_REFERENCE_REJECTED: {safe}")
+            if val.startswith("/") or val.startswith("\\"):
+                errors.append(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {safe}")
+            if "\\" in val:
+                errors.append(f"CONFIG_BACKSLASH_REJECTED: {safe}")
+            if "\x00" in val:
+                errors.append("CONFIG_NULL_BYTE_REJECTED: value contains null byte")
+            # Traversal check
+            try:
+                pp = PurePosixPath(val)
+                if ".." in pp.parts:
+                    errors.append(f"CONFIG_TRAVERSAL_REJECTED: {safe}")
+            except Exception:
+                errors.append(f"CONFIG_TRAVERSAL_REJECTED: {safe}")
+            # For file references, check inventory exact match (handle comma-separated)
+            if tag in _FILE_REFERENCE_TAGS:
+                for ref in val.split(","):
+                    ref = ref.strip()
+                    if not ref:
+                        continue
+                    safe_ref = _safe_val(ref)
+                    if ref not in admitted:
+                        errors.append(f"CONFIG_REFERENCE_NOT_IN_INVENTORY: {safe_ref}")
+                    # also check traversal/absolute per reference
+                    if ".." in PurePosixPath(ref).parts:
+                        errors.append(f"CONFIG_TRAVERSAL_REJECTED: {safe_ref}")
+                    if ref.startswith("/") or "\\" in ref:
+                        errors.append(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {safe_ref}")
+                    if "://" in ref:
+                        errors.append(f"CONFIG_URI_REFERENCE_REJECTED: {safe_ref}")
+    return errors
+
+
+def _terminate_process_group(process: subprocess.Popen[bytes]) -> None:
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            with contextlib.suppress(ProcessLookupError, PermissionError):
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                process.wait(timeout=5)
+    except (ProcessLookupError, PermissionError, subprocess.TimeoutExpired, OSError):
+        pass
+    with contextlib.suppress(OSError):
+        process.wait(timeout=1)
+
+
+# ---------------------------------------------------------------------------
+# Bounded process helpers
+# ---------------------------------------------------------------------------
+
+
+def _bounded_drain(pipe: object, buf: bytearray, limit: int) -> None:
+    """Drain pipe into buf up to limit, discarding beyond limit but continuing to drain."""
+    stream = pipe
+    try:
+        while True:
+            chunk = stream.read(8192)  # type: ignore[attr-defined]
+            if not chunk:
+                break
+            if len(buf) < limit:
+                needed = limit - len(buf)
+                buf.extend(chunk[:needed])
+            # discard remainder of chunk beyond limit, continue draining
+    except Exception:  # noqa: S110
+        pass
+
+
+def _bounded_version_probe(executable: Path, timeout: int = 15) -> tuple[str, str]:
+    """Run sumo --version with bounded capture and shell=False."""
+    proc: subprocess.Popen[bytes] | None = None
+    out_buf = bytearray()
+    err_buf = bytearray()
+    try:
+        proc = subprocess.Popen(  # noqa: S603 - fixed allowlisted argv, shell=False
+            [str(executable), "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+            start_new_session=True,
+        )
+        t_out = threading.Thread(
+            target=_bounded_drain,
+            args=(proc.stdout, out_buf, MAX_VERSION_CAPTURE_BYTES),
+            daemon=True,
+        )
+        t_err = threading.Thread(
+            target=_bounded_drain,
+            args=(proc.stderr, err_buf, MAX_VERSION_CAPTURE_BYTES),
+            daemon=True,
+        )
+        t_out.start()
+        t_err.start()
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            _terminate_process_group(proc)
+        t_out.join(timeout=2)
+        t_err.join(timeout=2)
+    except (OSError, subprocess.SubprocessError):
+        if proc is not None:
+            with contextlib.suppress(Exception):
+                _terminate_process_group(proc)
+        raise
+    finally:
+        if proc is not None:
+            with contextlib.suppress(Exception):
+                if proc.stdout:
+                    proc.stdout.close()
+                if proc.stderr:
+                    proc.stderr.close()
+    return out_buf.decode("utf-8", errors="replace"), err_buf.decode("utf-8", errors="replace")
 
 
 # ---------------------------------------------------------------------------
@@ -635,13 +1066,13 @@ def detect_configured_sumo(executable_path: Path) -> ClosedLoopToolIdentity:
     """Validate a configured/pinned SUMO executable and capture exact version.
 
     No PATH guessing: the caller supplies the exact filesystem path.
+    Version probe is bounded in memory/disk via capped pipe draining.
     """
     if executable_path.is_symlink():
         raise ManchesterClosedLoopError(
             "SUMO_EXECUTABLE_SYMLINK",
             "configured SUMO executable must not be a symlink",
         )
-    # Allowlisted name check — only 'sumo' basename is permitted
     if executable_path.name != ALLOWED_EXECUTABLE_NAME:
         raise ManchesterClosedLoopError(
             "SUMO_EXECUTABLE_NOT_ALLOWLISTED",
@@ -652,7 +1083,6 @@ def detect_configured_sumo(executable_path: Path) -> ClosedLoopToolIdentity:
             "SUMO_EXECUTABLE_MISSING",
             "configured SUMO executable is not a regular file",
         )
-    # Hash executable for identity
     try:
         digest = _sha256_file(executable_path)
     except OSError as exc:
@@ -660,22 +1090,14 @@ def detect_configured_sumo(executable_path: Path) -> ClosedLoopToolIdentity:
             "SUMO_EXECUTABLE_UNREADABLE", "SUMO executable could not be hashed"
         ) from exc
 
-    # Probe version with shell=False, fixed argv, bounded timeout
     try:
-        result = subprocess.run(  # noqa: S603 - fixed allowlisted argv, shell=False
-            [str(executable_path), "--version"],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            check=False,
-            shell=False,
-        )
+        out_text, err_text = _bounded_version_probe(executable_path)
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired) as exc:
         raise ManchesterClosedLoopError(
             "SUMO_VERSION_UNREADABLE", "SUMO did not report a usable version"
         ) from exc
 
-    combined = f"{result.stdout}\n{result.stderr}"
+    combined = f"{out_text}\n{err_text}"
     m = _VERSION_RE.search(combined)
     if m is None:
         raise ManchesterClosedLoopError("SUMO_VERSION_UNREADABLE", "SUMO version was not parseable")
@@ -699,12 +1121,19 @@ def create_closed_loop_request(
     seed: int = 42,
     timeout_seconds: int = DEFAULT_TIMEOUT_S,
     run_id: str = "run-01",
+    confirmed_by_operator: Literal[True] = True,
 ) -> ClosedLoopExecutionRequest:
     """Build a frozen deterministic request from an explicit package root.
 
-    The package root is inspected to hash declared inputs; the returned
-    request is portable and contains no absolute paths.
+    The caller must explicitly pass ``confirmed_by_operator=True``; omission
+    or any non-True value fails closed. The flag is bound into the
+    deterministic identity and execution is never a render-side effect.
     """
+    if confirmed_by_operator is not True:
+        raise ManchesterClosedLoopError(
+            "OPERATOR_AUTHORISATION_REQUIRED",
+            "execution requires explicit operator authorisation (confirmed_by_operator=True)",
+        )
     if not _SAFE_NAME_RE.match(run_id) and not re.match(r"^[a-z0-9][a-z0-9_.-]{0,63}$", run_id):
         raise ManchesterClosedLoopError("INVALID_RUN_ID", "run_id does not match required pattern")
 
@@ -713,19 +1142,14 @@ def create_closed_loop_request(
         raise ManchesterClosedLoopError("PACKAGE_ROOT_INVALID", _validate_package_root(pkg) or "")
 
     cfg = PurePosixPath(config_file).as_posix()
-    # Validate config_file shape early
     if PurePosixPath(cfg).is_absolute() or len(PurePosixPath(cfg).parts) != 1:
         raise ManchesterClosedLoopError(
             "CONFIG_FILE_INVALID", "config_file must be a single safe file name"
         )
 
-    # Discover all regular files in package root (non-recursive, bounded)
-    # For deterministic test behavior we treat exactly the files that exist
-    # as the declared inventory. In production the caller must declare them
-    # explicitly; here we auto-declare for convenience but freeze them.
     inputs: list[ClosedLoopInputDeclaration] = []
+    aggregate = 0
     for child in sorted(pkg.iterdir(), key=lambda p: p.name):
-        # Fail closed on symlink inputs — never resolve away evidence.
         if child.is_symlink():
             raise ManchesterClosedLoopError(
                 "INPUT_SYMLINK",
@@ -733,30 +1157,46 @@ def create_closed_loop_request(
             )
         if not child.is_file():
             continue
-        # Only admit safe names
         if not _SAFE_NAME_RE.match(child.name):
             continue
-        # Symlink escape check for top-level entries: resolved must stay within pkg
-        # (defense in depth; is_symlink already checked, but directory symlink parents
-        # are already guarded via package_root validation).
+        # Enforce per-file bound before hashing where possible
+        try:
+            size = child.stat().st_size
+        except OSError as exc:
+            raise ManchesterClosedLoopError(
+                "INPUT_UNREADABLE", f"cannot stat {child.name}"
+            ) from exc
+        if size > MAX_INPUT_BYTES:
+            raise ManchesterClosedLoopError(
+                "INPUT_OVERSIZE", f"{child.name} {size} exceeds per-file bound {MAX_INPUT_BYTES}"
+            )
+        aggregate += size
+        if aggregate > MAX_AGGREGATE_INPUT_BYTES:
+            raise ManchesterClosedLoopError(
+                "INPUT_AGGREGATE_OVERSIZE",
+                f"aggregate {aggregate} exceeds {MAX_AGGREGATE_INPUT_BYTES}",
+            )
         sha = _sha256_file(child)
-        size = child.stat().st_size
+        # Re-verify size after hash to catch race
+        try:
+            size2 = child.stat().st_size
+        except OSError:
+            size2 = size
+        if size2 != size:
+            raise ManchesterClosedLoopError(
+                "INPUT_SIZE_CHANGED", f"size changed during hash: {child.name}"
+            )
         inputs.append(ClosedLoopInputDeclaration(path=child.name, sha256=sha, size_bytes=size))
 
-    # Ensure config_file is among inputs — if the package directory does not
-    # contain it, we still include a declaration that will fail verification
-    # later, preserving blocked standing without leaking paths.
     if cfg not in {i.path for i in inputs}:
-        # Config missing is a provider-required input absence — still create
-        # a request that will be blocked at preflight, but include a synthetic
-        # placeholder with zero hash that will fail verification. This keeps
-        # the request deterministic while allowing typed blocked handling.
         placeholder_hash = _sha256_hex(b"missing:" + cfg.encode())
         inputs.append(ClosedLoopInputDeclaration(path=cfg, sha256=placeholder_hash, size_bytes=0))
         inputs = sorted(inputs, key=lambda x: x.path)
 
     package_fp = _compute_package_fingerprint(pkg, inputs)
-    det_id = _compute_deterministic_identity(package_fp, cfg, inputs, seed, timeout_seconds, run_id)
+    det_id = _compute_deterministic_identity(
+        package_fp, cfg, inputs, seed, timeout_seconds, run_id, confirmed_by_operator
+    )
 
     return ClosedLoopExecutionRequest(
         run_id=run_id,
@@ -766,6 +1206,7 @@ def create_closed_loop_request(
         seed=seed,
         timeout_seconds=timeout_seconds,
         deterministic_run_identity=det_id,
+        confirmed_by_operator=confirmed_by_operator,
     )
 
 
@@ -784,7 +1225,16 @@ def preflight_closed_loop_execution(
     """
     findings: list[str] = []
 
-    # SUMO absent → blocked
+    if request.confirmed_by_operator is not True:
+        findings.append("OPERATOR_AUTHORISATION_MISSING: confirmed_by_operator must be True")
+        return ClosedLoopPreflightReport(
+            status="blocked",
+            tool=tool,
+            request=request,
+            request_fingerprint=request.fingerprint(),
+            findings=findings,
+        )
+
     if tool is None:
         findings.append("SUMO_TOOLCHAIN_UNAVAILABLE: configured SUMO not supplied")
         return ClosedLoopPreflightReport(
@@ -795,7 +1245,6 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    # Package root checks
     err = _validate_package_root(Path(package_root))
     if err is not None:
         findings.append(f"PACKAGE_ROOT_INVALID: {err}")
@@ -807,8 +1256,6 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    # Output isolation checks — provider-required output location must be
-    # explicit and isolated
     err = _validate_output_root(Path(output_root), Path(package_root))
     if err is not None:
         findings.append(f"OUTPUT_ISOLATION_REFUSED: {err}")
@@ -820,7 +1267,6 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    # Input fingerprint verification — provider-required inputs must match
     input_errors = _verify_declared_inputs(Path(package_root), request)
     if input_errors:
         for e in input_errors:
@@ -833,7 +1279,19 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    # All good → accepted (read-only, no mutations)
+    # Hardened config preflight
+    cfg_errors = _preflight_config_xml(Path(package_root), request)
+    if cfg_errors:
+        for e in cfg_errors:
+            findings.append(f"CONFIG_PREFLIGHT_FAILED: {e}")
+        return ClosedLoopPreflightReport(
+            status="blocked",
+            tool=tool,
+            request=request,
+            request_fingerprint=request.fingerprint(),
+            findings=findings,
+        )
+
     findings.append("PREFLIGHT_ACCEPTED: package, inputs, tool, and output isolation verified")
 
     return ClosedLoopPreflightReport(
@@ -853,12 +1311,11 @@ def build_closed_loop_execution_package(
     tool: ClosedLoopToolIdentity,
     executable_path: Path,
 ) -> ClosedLoopExecutionPackage:
-    """Build the execution package with fixed validated argv.
-
-    The argv is generated solely by code; no caller-supplied arguments are
-    accepted. The executable is the explicit pinned path.
-    """
-    # Re-validate allowlist and identity at package-build time (defense in depth)
+    """Build the execution package with fixed validated argv."""
+    if request.confirmed_by_operator is not True:
+        raise ManchesterClosedLoopError(
+            "OPERATOR_AUTHORISATION_REQUIRED", "request not operator-authorised"
+        )
     if executable_path.name != ALLOWED_EXECUTABLE_NAME:
         raise ManchesterClosedLoopError(
             "SUMO_EXECUTABLE_NOT_ALLOWLISTED", "only 'sumo' is allowlisted"
@@ -867,15 +1324,12 @@ def build_closed_loop_execution_package(
         raise ManchesterClosedLoopError(
             "SUMO_EXECUTABLE_INVALID", "executable must be a regular non-symlink file"
         )
-    # Verify digest matches tool identity (exact)
     actual_digest = _sha256_file(executable_path)
     if actual_digest != tool.executable_sha256:
         raise ManchesterClosedLoopError(
             "SUMO_IDENTITY_MISMATCH", "executable digest changed since detection"
         )
 
-    # Fixed argv — values substituted but shape is code-owned
-    # Map placeholders to portable relative names (not absolute paths)
     base_tokens: list[str] = []
     for tok in CLOSED_LOOP_FIXED_ARGV:
         if tok == "<config>":
@@ -891,10 +1345,9 @@ def build_closed_loop_execution_package(
     argv = [ALLOWED_EXECUTABLE_NAME, *base_tokens]
 
     env_keys = ["PATH", "HOME", "LANG", "LC_ALL"]
-    # SUMO_HOME optionally added but not required for package
-    sumo_home = executable_path.parent.parent / "share" / "sumo"
-    if sumo_home.is_dir() and not sumo_home.is_symlink():
-        env_keys.append("SUMO_HOME")
+
+    # Canonical run identity binds request fingerprint + tool + argv
+    canonical_identity = _canonical_run_identity(request, tool, argv)
 
     return ClosedLoopExecutionPackage(
         run_id=request.run_id,
@@ -905,7 +1358,7 @@ def build_closed_loop_execution_package(
         working_directory="{PACKAGE_ROOT}",
         output_directory="{OUTPUT_ROOT}",
         timeout_seconds=request.timeout_seconds,
-        deterministic_run_identity=request.deterministic_run_identity,
+        deterministic_run_identity=canonical_identity,
         environment_keys=env_keys,
         shell_used=False,
         caller_supplied_arguments=False,
@@ -920,20 +1373,18 @@ def run_closed_loop_execution(
     tool: ClosedLoopToolIdentity,
     executable_path: Path,
 ) -> ClosedLoopExecutionReceipt:
-    """Execute the fixed argv locally with isolated output and bounded receipts.
-
-    Verifies declared input fingerprints immediately before launch, uses a
-    sanitized minimal environment, ``shell=False``, explicit working directory,
-    timeout, and exit-code capture. Never searches PATH, never accepts
-    caller-supplied argv, never downloads, never opens network.
-    """
+    """Execute the fixed argv locally with isolated staging and bounded receipts."""
 
     started = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
     pkg = Path(package_root)
     out = Path(output_root)
 
-    # Re-audit executable identity at execution time (exact match, defense in depth).
+    if request.confirmed_by_operator is not True:
+        raise ManchesterClosedLoopError(
+            "OPERATOR_AUTHORISATION_REQUIRED", "request not operator-authorised"
+        )
+
     if executable_path.name != ALLOWED_EXECUTABLE_NAME:
         raise ManchesterClosedLoopError(
             "SUMO_EXECUTABLE_NOT_ALLOWLISTED",
@@ -959,7 +1410,6 @@ def run_closed_loop_execution(
             f"SUMO {tool.reported_version} not in reviewed {SUPPORTED_SUMO_VERSION_PREFIX}x",
         )
 
-    # Portable argv — exactly the same fixed validated shape as successful path / model contract.
     def _portable_argv_for_request() -> list[str]:
         tokens: list[str] = []
         for tok in CLOSED_LOOP_FIXED_ARGV:
@@ -976,12 +1426,25 @@ def run_closed_loop_execution(
         return [ALLOWED_EXECUTABLE_NAME, *tokens]
 
     portable_blocked_argv = _portable_argv_for_request()
+    canonical_blocked_identity = _canonical_run_identity(request, tool, portable_blocked_argv)
 
-    # Pre-launch input verification — fail closed if changed since request
-    errors = _verify_declared_inputs(pkg, request)
-    if errors:
-        # Produce a blocked receipt, not an accepted run — fail closed
+    def _blocked_receipt(reason: str, inputs_verified: bool = False) -> ClosedLoopExecutionReceipt:
         completed = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        # Ensure ordering not reversed: if completed < started, set completed = started
+        try:
+            if datetime.fromisoformat(completed.replace("Z", "+00:00")) < datetime.fromisoformat(
+                started.replace("Z", "+00:00")
+            ):
+                completed = started
+        except Exception:
+            completed = started
+        # Compute duration that matches UTC timestamps within tolerance
+        try:
+            s_dt = datetime.fromisoformat(started.replace("Z", "+00:00"))
+            c_dt = datetime.fromisoformat(completed.replace("Z", "+00:00"))
+            duration = max(0.0, (c_dt - s_dt).total_seconds())
+        except Exception:
+            duration = 0.0
         return ClosedLoopExecutionReceipt(
             run_id=request.run_id,
             request=request,
@@ -993,70 +1456,141 @@ def run_closed_loop_execution(
             output_directory="{OUTPUT_ROOT}",
             started_at_utc=started,
             completed_at_utc=completed,
-            duration_s=0.0,
+            duration_s=duration,
             exit_code=None,
             timed_out=False,
             outcome="blocked",
             stdout_excerpt="",
-            stderr_excerpt="; ".join(errors)[:MAX_LOG_BYTES],
+            stderr_excerpt=_sanitize_text(reason)[:MAX_LOG_BYTES],
             outputs=[],
             output_fingerprint=None,
-            inputs_verified=False,
-            deterministic_run_identity=request.deterministic_run_identity,
-            engineering_standing=ENGINEERING_SOFTWARE_VALID,
-            scientific_standing=SCIENTIFIC_SOFTWARE_VALID,
+            inputs_verified=inputs_verified,
+            deterministic_run_identity=canonical_blocked_identity,
+            engineering_standing=ENGINEERING_NOT_VALID,
+            scientific_standing=SCIENTIFICALLY_NOT_ACCEPTED,
             limitations=list(CLOSED_LOOP_LIMITATIONS),
             shell_used=False,
             caller_supplied_arguments=False,
             secrets_exposed=False,
         )
 
-    # Output isolation — must not exist (second execution returns typed blocked receipt, not raise)
+    # Pre-launch input verification (includes size bounds)
+    errors = _verify_declared_inputs(pkg, request)
+    if errors:
+        return _blocked_receipt("; ".join(errors))
+
+    # Config preflight — untrusted execution control
+    cfg_errors = _preflight_config_xml(pkg, request)
+    if cfg_errors:
+        return _blocked_receipt("; ".join(cfg_errors))
+
+    # Output isolation
     iso_err = _validate_output_root(out, pkg)
     if iso_err is not None:
-        completed = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-        return ClosedLoopExecutionReceipt(
-            run_id=request.run_id,
-            request=request,
-            request_fingerprint=request.fingerprint(),
-            preflight_fingerprint=_sha256_hex(b"blocked-output:" + request.fingerprint().encode()),
-            tool=tool,
-            argv=portable_blocked_argv,
-            working_directory="{PACKAGE_ROOT}",
-            output_directory="{OUTPUT_ROOT}",
-            started_at_utc=started,
-            completed_at_utc=completed,
-            duration_s=0.0,
-            exit_code=None,
-            timed_out=False,
-            outcome="blocked",
-            stdout_excerpt="",
-            stderr_excerpt=iso_err[:MAX_LOG_BYTES],
-            outputs=[],
-            output_fingerprint=None,
-            inputs_verified=False,
-            deterministic_run_identity=request.deterministic_run_identity,
-            engineering_standing=ENGINEERING_SOFTWARE_VALID,
-            scientific_standing=SCIENTIFIC_SOFTWARE_VALID,
-            limitations=list(CLOSED_LOOP_LIMITATIONS),
-            shell_used=False,
-            caller_supplied_arguments=False,
-            secrets_exposed=False,
-        )
+        return _blocked_receipt(iso_err)
 
-    # Build fixed argv with absolute paths for launch, but receipt stores only
-    # portable relative/allowlisted forms.
-    pkg_resolved = pkg.resolve()
-
-    # Prepare isolated output directory
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.mkdir(mode=0o700)
+    try:
+        out.mkdir(mode=0o700)
+    except FileExistsError:
+        return _blocked_receipt("output directory must not already exist")
+    staging = out / "_staging"
+    staging.mkdir(mode=0o700)
 
-    # Real argv for subprocess: executable absolute path + fixed tokens resolved
+    # Aggregate check on declared inputs before streaming copy
+    declared_total = sum(d.size_bytes for d in request.inputs)
+    if declared_total > MAX_AGGREGATE_INPUT_BYTES:
+        with contextlib.suppress(Exception):
+            shutil.rmtree(out, ignore_errors=True)
+        return _blocked_receipt(f"INPUT_AGGREGATE_OVERSIZE: {declared_total} exceeds bound")
+    for decl in request.inputs:
+        if decl.size_bytes > MAX_INPUT_BYTES:
+            with contextlib.suppress(Exception):
+                shutil.rmtree(out, ignore_errors=True)
+            return _blocked_receipt(f"INPUT_OVERSIZE: {decl.path} exceeds per-file bound")
+
+    # Copy only verified declared regular non-symlink inputs into staging via streaming
+    try:
+        for decl in request.inputs:
+            src = pkg / decl.path
+            if src.is_symlink():
+                raise ManchesterClosedLoopError(
+                    "INPUT_SYMLINK", f"staged input symlink: {decl.path}"
+                )
+            if not src.is_file():
+                raise ManchesterClosedLoopError(
+                    "INPUT_MISSING", f"staged input missing: {decl.path}"
+                )
+            # Size check before streaming where possible
+            try:
+                actual_size = src.stat().st_size
+            except OSError as exc:
+                raise ManchesterClosedLoopError(
+                    "INPUT_UNREADABLE", f"cannot stat {decl.path}"
+                ) from exc
+            if actual_size > MAX_INPUT_BYTES:
+                raise ManchesterClosedLoopError(
+                    "INPUT_OVERSIZE", f"{decl.path} {actual_size} exceeds bound"
+                )
+            if actual_size != decl.size_bytes:
+                raise ManchesterClosedLoopError(
+                    "STAGED_SIZE_MISMATCH",
+                    f"staged mismatch: {decl.path} {decl.size_bytes} vs {actual_size}",
+                )
+            dst = staging / decl.path
+            # Ensure parent exists (for subdirs, though request currently flat)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            # Stream copy + hash, verify staged hash after write without read_bytes
+            h = hashlib.sha256()
+            total = 0
+            with src.open("rb") as s_fh, dst.open("wb") as d_fh:
+                while True:
+                    chunk = s_fh.read(1 << 20)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > MAX_INPUT_BYTES:
+                        raise ManchesterClosedLoopError(
+                            "INPUT_OVERSIZE_DURING_COPY", f"{decl.path} exceeds bound"
+                        )
+                    h.update(chunk)
+                    d_fh.write(chunk)
+            if total != decl.size_bytes:
+                raise ManchesterClosedLoopError(
+                    "STAGED_SIZE_MISMATCH", f"staged size mismatch after copy: {decl.path}"
+                )
+            if h.hexdigest() != decl.sha256:
+                raise ManchesterClosedLoopError(
+                    "STAGED_HASH_MISMATCH", f"staged hash mismatch: {decl.path}"
+                )
+            # Reject symlink in staging
+            if dst.is_symlink():
+                raise ManchesterClosedLoopError(
+                    "STAGED_SYMLINK", f"staged became symlink: {decl.path}"
+                )
+            # Verify staged file hash after write via streaming (already verified)
+            if dst.stat().st_size != decl.size_bytes:
+                raise ManchesterClosedLoopError(
+                    "STAGED_SIZE_VERIFY_FAILED", f"staged size verify: {decl.path}"
+                )
+    except ManchesterClosedLoopError as exc:
+        # Cleanup and return blocked
+        with contextlib.suppress(Exception):
+            shutil.rmtree(out, ignore_errors=True)
+        return _blocked_receipt(str(exc))
+
+    # Re-verify source package not changed after copy (drift before staging)
+    post_copy_errors = _verify_declared_inputs(pkg, request)
+    if post_copy_errors:
+        with contextlib.suppress(Exception):
+            shutil.rmtree(out, ignore_errors=True)
+        return _blocked_receipt("; ".join(post_copy_errors))
+
+    # Build real argv with isolated paths
     real_argv: list[str] = [str(executable_path)]
     for item in CLOSED_LOOP_FIXED_ARGV:
         if item == "<config>":
-            real_argv.append(str(pkg_resolved / request.config_file))
+            real_argv.append(str(staging / request.config_file))
         elif item == "<seed>":
             real_argv.append(str(request.seed))
         elif item == "<tripinfo>":
@@ -1065,27 +1599,13 @@ def run_closed_loop_execution(
             real_argv.append(str(out / "summary.xml"))
         else:
             real_argv.append(item)
-    # Prepend -c handling: CLOSED_LOOP_FIXED_ARGV starts with "-c"
-    # Real argv already has "-c" as first token after executable, correct.
 
-    env = _controlled_environment(executable_path, pkg_resolved)
-    # Scrub any secret-like env values that might have leaked via inheritance
-    for k, v in list(env.items()):
-        if _SECRET_TOKEN_RE.search(k) or _SECRET_TOKEN_RE.search(v):
-            env.pop(k, None)
-        if _PRIVATE_PATH_RE.search(v):
-            # keep only minimal safe entries; PATH is already controlled
-            if k == "PATH":
-                continue
-            env[k] = "{REDACTED}"
+    env = _controlled_environment(executable_path, staging)
 
     started_monotonic = time.monotonic()
     timed_out = False
     exit_code: int | None = None
-    stdout_text = ""
-    stderr_text = ""
 
-    # Receipt argv is portable (base name only, relative config names)
     portable_tokens: list[str] = []
     for tok in CLOSED_LOOP_FIXED_ARGV:
         if tok == "<config>":
@@ -1099,103 +1619,266 @@ def run_closed_loop_execution(
         else:
             portable_tokens.append(tok)
     receipt_argv = [ALLOWED_EXECUTABLE_NAME, *portable_tokens]
+    canonical_run_identity = _canonical_run_identity(request, tool, receipt_argv)
 
+    # Bounded execution with pipe-draining collectors (no unbounded file sinks)
+    stdout_buf = bytearray()
+    stderr_buf = bytearray()
+    proc: subprocess.Popen[bytes] | None = None
     try:
-        result = subprocess.run(  # noqa: S603 - fixed validated argv, shell=False
+        proc = subprocess.Popen(  # noqa: S603 - fixed validated argv, shell=False
             real_argv,
-            cwd=str(pkg_resolved),
+            cwd=str(staging),
             env=env,
-            capture_output=True,
-            text=True,
-            timeout=request.timeout_seconds,
-            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             shell=False,
+            start_new_session=True,
         )
-        exit_code = result.returncode
-        stdout_text = _sanitize_text(result.stdout or "")
-        stderr_text = _sanitize_text(result.stderr or "")
-    except subprocess.TimeoutExpired as exc:
-        timed_out = True
-        # Capture partial output if available
-        stdout_text = _sanitize_text(
-            exc.stdout.decode() if isinstance(exc.stdout, bytes) else str(exc.stdout or "")
+        t_out = threading.Thread(
+            target=_bounded_drain, args=(proc.stdout, stdout_buf, MAX_LOG_BYTES), daemon=True
         )
-        stderr_text = _sanitize_text(
-            exc.stderr.decode() if isinstance(exc.stderr, bytes) else str(exc.stderr or "")
+        t_err = threading.Thread(
+            target=_bounded_drain, args=(proc.stderr, stderr_buf, MAX_LOG_BYTES), daemon=True
         )
-        # Ensure child is terminated; subprocess.run already kills on timeout via internal logic
-        exit_code = None
+        t_out.start()
+        t_err.start()
+        deadline = started_monotonic + request.timeout_seconds
+        while True:
+            try:
+                exit_code = proc.wait(timeout=0.2)
+                break
+            except subprocess.TimeoutExpired:
+                if time.monotonic() > deadline:
+                    timed_out = True
+                    _terminate_process_group(proc)
+                    break
+        if exit_code is None:
+            try:
+                exit_code = proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                _terminate_process_group(proc)
+                try:
+                    exit_code = proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    exit_code = None
+        # Ensure drain threads finish (bounded)
+        t_out.join(timeout=2)
+        t_err.join(timeout=2)
+        # Optionally write bounded excerpts to staging files for debugging, but capped
+        try:
+            (staging / "stdout.txt").write_bytes(bytes(stdout_buf[:MAX_LOG_BYTES]))
+            (staging / "stderr.txt").write_bytes(bytes(stderr_buf[:MAX_LOG_BYTES]))
+        except OSError:
+            pass
+        stdout_text = _sanitize_text(stdout_buf.decode("utf-8", errors="replace"))
+        stderr_text = _sanitize_text(stderr_buf.decode("utf-8", errors="replace"))
     except (OSError, subprocess.SubprocessError) as exc:
-        # Fail closed — produce failed receipt
-        stdout_text = ""
+        if proc is not None:
+            with contextlib.suppress(Exception):
+                _terminate_process_group(proc)
+        stdout_text = _sanitize_text(
+            stdout_buf.decode("utf-8", errors="replace") if stdout_buf else ""
+        )
         stderr_text = _sanitize_text(str(exc))
         exit_code = None
+        timed_out = False
+        completed = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        duration = max(0.0, time.monotonic() - started_monotonic)
+        # Align duration with wall-clock for validation tolerance
+        try:
+            s_dt = datetime.fromisoformat(started.replace("Z", "+00:00"))
+            c_dt = datetime.fromisoformat(completed.replace("Z", "+00:00"))
+            duration = max(duration, 0.0)
+            # Ensure duration matches timestamps within tolerance
+            expected = (c_dt - s_dt).total_seconds()
+            if abs(duration - expected) > 2.0:
+                duration = expected
+        except Exception:  # noqa: S110
+            pass
+        preflight_fp = _preflight_fingerprint(request, tool)
+        return ClosedLoopExecutionReceipt(
+            run_id=request.run_id,
+            request=request,
+            request_fingerprint=request.fingerprint(),
+            preflight_fingerprint=preflight_fp,
+            tool=tool,
+            argv=receipt_argv,
+            working_directory="{PACKAGE_ROOT}",
+            output_directory="{OUTPUT_ROOT}",
+            started_at_utc=started,
+            completed_at_utc=completed,
+            duration_s=duration,
+            exit_code=exit_code,
+            timed_out=timed_out,
+            outcome="failed",
+            stdout_excerpt=stdout_text,
+            stderr_excerpt=stderr_text,
+            outputs=[],
+            output_fingerprint=None,
+            inputs_verified=False,
+            deterministic_run_identity=canonical_run_identity,
+            engineering_standing=ENGINEERING_NOT_VALID,
+            scientific_standing=SCIENTIFICALLY_NOT_ACCEPTED,
+            limitations=list(CLOSED_LOOP_LIMITATIONS),
+            shell_used=False,
+            caller_supplied_arguments=False,
+            secrets_exposed=False,
+        )
+    finally:
+        if proc is not None:
+            with contextlib.suppress(Exception):
+                if proc.stdout:
+                    proc.stdout.close()
+                if proc.stderr:
+                    proc.stderr.close()
 
     completed = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     duration = max(0.0, time.monotonic() - started_monotonic)
+    # Ensure time ordering not reversed and duration matches wall-clock within tolerance
+    try:
+        s_dt = datetime.fromisoformat(started.replace("Z", "+00:00"))
+        c_dt = datetime.fromisoformat(completed.replace("Z", "+00:00"))
+        if c_dt < s_dt:
+            completed = started
+            duration = 0.0
+        else:
+            expected = (c_dt - s_dt).total_seconds()
+            # If monotonic duration diverges beyond tolerance, align to wall-clock
+            if abs(duration - expected) > 2.0:
+                duration = expected
+    except Exception:
+        completed = started
+        duration = 0.0
 
-    # Collect outputs for receipt — portable evidence with no absolute paths
+    # Verify source package unchanged after run (input drift)
+    after_errors = _verify_declared_inputs(pkg, request)
+    inputs_verified = len(after_errors) == 0 and len(errors) == 0
+    # Also verify staging still matches (prevent drift)
+    if inputs_verified:
+        for decl in request.inputs:
+            staged = staging / decl.path
+            try:
+                if staged.is_symlink() or not staged.is_file():
+                    inputs_verified = False
+                    break
+                if _sha256_file(staged) != decl.sha256 or staged.stat().st_size != decl.size_bytes:
+                    inputs_verified = False
+                    break
+            except OSError:
+                inputs_verified = False
+                break
+
+    # Collect outputs — size before hashing, aggregate, symlinks, extra, missing/duplicate/drift
     outputs: list[ClosedLoopFileEvidence] = []
+    output_errors: list[str] = []
+    total_bytes = 0
+    expected_names = {"tripinfo.xml", "summary.xml"}
+    # Extra artifacts in output_root (excluding _staging)
+    try:
+        for child in out.iterdir():
+            if child.name == "_staging":
+                continue
+            # Only expected outputs should be present; any other file is extra
+            if child.name not in expected_names:
+                # Allow no other files; staging logs are inside _staging
+                if child.is_symlink():
+                    output_errors.append(f"OUTPUT_SYMLINK_REJECTED: {child.name}")
+                elif child.is_file():
+                    output_errors.append(f"OUTPUT_EXTRA_REJECTED: {child.name}")
+                elif child.is_dir():
+                    output_errors.append(f"OUTPUT_EXTRA_DIR_REJECTED: {child.name}")
+                else:
+                    output_errors.append(f"OUTPUT_EXTRA_REJECTED: {child.name}")
+    except OSError as exc:
+        output_errors.append(f"OUTPUT_ENUM_FAILED: {exc}")
+
     for name in ("tripinfo.xml", "summary.xml"):
         p = out / name
-        if p.is_file() and not p.is_symlink():
-            try:
-                sha = _sha256_file(p)
-                size = p.stat().st_size
-                # Only include if bounded
-                if size <= 50_000_000:
-                    outputs.append(ClosedLoopFileEvidence(path=name, sha256=sha, size_bytes=size))
-            except OSError:
-                continue
+        if p.is_symlink():
+            output_errors.append(f"OUTPUT_SYMLINK_REJECTED: {name}")
+            continue
+        if not p.is_file():
+            # Will be handled as missing later, but record
+            continue
+        try:
+            size = p.stat().st_size
+        except OSError:
+            output_errors.append(f"OUTPUT_UNREADABLE: {name}")
+            continue
+        # Check size BEFORE hashing
+        if size > MAX_OUTPUT_BYTES:
+            output_errors.append(f"OUTPUT_OVERSIZE: {name} {size} > {MAX_OUTPUT_BYTES}")
+            continue
+        total_bytes += size
+        if total_bytes > MAX_AGGREGATE_OUTPUT_BYTES:
+            output_errors.append(
+                f"OUTPUT_AGGREGATE_OVERSIZE: {total_bytes} > {MAX_AGGREGATE_OUTPUT_BYTES}"
+            )
+            # Do not break, continue to collect errors
+        try:
+            sha = _sha256_file(p)
+            outputs.append(ClosedLoopFileEvidence(path=name, sha256=sha, size_bytes=size))
+        except OSError:
+            output_errors.append(f"OUTPUT_HASH_FAILED: {name}")
+            continue
 
     output_fp = _output_fingerprint(outputs) if outputs else None
 
     outcome: Literal["completed", "failed", "timed_out", "blocked"]
+    stderr_combined = stderr_text
     if timed_out:
         outcome = "timed_out"
     elif exit_code == 0:
-        # Even exit 0 is not scientific acceptance — engineering valid only
-        # Missing required outputs makes the run failed (fail-closed).
         required = {"tripinfo.xml", "summary.xml"}
         present = {o.path for o in outputs}
         missing = sorted(required - present)
         has_duplicates = len(present) != len(outputs)
         has_wrong_set = present != required or len(outputs) != 2
-        if missing or has_duplicates or has_wrong_set:
+        if output_errors:
             outcome = "failed"
-            diag = (
-                f"REQUIRED_OUTPUT_MISSING: {', '.join(missing)}"
-                if missing
-                else "REQUIRED_OUTPUT_MISSING: incomplete or duplicate required outputs"
-            )
-            # truthful portable diagnostic — never leaks absolute paths/secrets
+            diag = "; ".join(output_errors[:3])
             combined = f"{stderr_text}\n{diag}" if stderr_text else diag
-            stderr_text = _sanitize_text(combined)[:MAX_LOG_BYTES] if combined else diag
-            if len(stderr_text) > MAX_LOG_BYTES:
-                stderr_text = stderr_text[:MAX_LOG_BYTES]
+            stderr_combined = _sanitize_text(combined)[:MAX_LOG_BYTES]
+        elif missing or has_duplicates or has_wrong_set or not inputs_verified:
+            outcome = "failed"
+            if not inputs_verified:
+                diag = "INPUT_DRIFT_DETECTED: source or staged inputs changed"
+            elif missing:
+                diag = f"REQUIRED_OUTPUT_MISSING: {', '.join(missing)}"
+            else:
+                diag = "REQUIRED_OUTPUT_MISSING: incomplete or duplicate required outputs"
+            combined = f"{stderr_text}\n{diag}" if stderr_text else diag
+            stderr_combined = _sanitize_text(combined)[:MAX_LOG_BYTES]
         else:
             outcome = "completed"
     elif exit_code is not None and exit_code != 0:
         outcome = "failed"
+        if output_errors:
+            diag = "; ".join(output_errors[:3])
+            combined = f"{stderr_text}\n{diag}" if stderr_text else diag
+            stderr_combined = _sanitize_text(combined)[:MAX_LOG_BYTES]
     else:
         outcome = "failed"
 
-    # Preflight fingerprint for receipt is deterministic over request + tool
-    preflight_fp = _sha256_hex(
-        _canonical_json(
-            {
-                "request_fingerprint": request.fingerprint(),
-                "tool_sha": tool.executable_sha256,
-                "tool_version": tool.reported_version,
-            }
-        ).encode("utf-8")
-    )
+    # If inputs not verified, outcome cannot be completed
+    if not inputs_verified and outcome == "completed":
+        outcome = "failed"
 
-    inputs_verified = len(errors) == 0
-
-    # Scrub stdout/stderr one more time for portability (no absolute paths/secrets)
+    preflight_fp = _preflight_fingerprint(request, tool)
     stdout_text = _sanitize_text(stdout_text)
-    stderr_text = _sanitize_text(stderr_text)
+    stderr_text = _sanitize_text(stderr_combined)
+
+    eng: Literal["SOFTWARE_VALID", "ENGINEERING_NOT_VALID"] = (
+        ENGINEERING_SOFTWARE_VALID if outcome == "completed" else ENGINEERING_NOT_VALID
+    )
+    sci: Literal["SCIENTIFICALLY_NOT_ACCEPTED"] = SCIENTIFICALLY_NOT_ACCEPTED
+
+    # Ensure bounded excerpts
+    if len(stdout_text) > MAX_LOG_BYTES:
+        stdout_text = stdout_text[:MAX_LOG_BYTES]
+    if len(stderr_text) > MAX_LOG_BYTES:
+        stderr_text = stderr_text[:MAX_LOG_BYTES]
 
     return ClosedLoopExecutionReceipt(
         run_id=request.run_id,
@@ -1217,9 +1900,9 @@ def run_closed_loop_execution(
         outputs=outputs,
         output_fingerprint=output_fp,
         inputs_verified=inputs_verified,
-        deterministic_run_identity=request.deterministic_run_identity,
-        engineering_standing=ENGINEERING_SOFTWARE_VALID,
-        scientific_standing=SCIENTIFIC_SOFTWARE_VALID,
+        deterministic_run_identity=canonical_run_identity,
+        engineering_standing=eng,
+        scientific_standing=sci,
         limitations=list(CLOSED_LOOP_LIMITATIONS),
         shell_used=False,
         caller_supplied_arguments=False,
@@ -1243,9 +1926,18 @@ __all__ = [
     "ALLOWED_EXECUTABLE_NAME",
     "DEFAULT_TIMEOUT_S",
     "ENGINEERING_SOFTWARE_VALID",
+    "ENGINEERING_NOT_VALID",
+    "SCIENTIFICALLY_NOT_ACCEPTED",
     "SCIENTIFIC_ACCEPTED_BASELINE",
     "SCIENTIFIC_SOFTWARE_VALID",
     "SUPPORTED_SUMO_VERSION_PREFIX",
+    "MAX_CONFIG_BYTES",
+    "MAX_OUTPUT_BYTES",
+    "MAX_AGGREGATE_OUTPUT_BYTES",
+    "MAX_INPUT_BYTES",
+    "MAX_AGGREGATE_INPUT_BYTES",
+    "MAX_LOG_BYTES",
+    "MAX_VERSION_CAPTURE_BYTES",
     "ClosedLoopExecutionPackage",
     "ClosedLoopExecutionReceipt",
     "ClosedLoopExecutionRequest",
