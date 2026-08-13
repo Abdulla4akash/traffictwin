@@ -374,13 +374,15 @@ class ManchesterCalibrationBaselineDecision(ManchesterCalibrationWorkflowModel):
                     "(label, binding fingerprint, run fingerprint)"
                 )
         else:
-            # REJECTED / PROVIDER_DATA_REQUIRED: normally none, allow candidate-specific if coherent
+            # REJECTED / PROVIDER_DATA_REQUIRED: candidate-specific rejection is
+            # allowed only when all three identity fields are present; partial
+            # identity is not attributable and is refused.
             if any(present) and not all(present):
                 raise ValueError(
-                    "selected candidate fields must be either all present or all absent"
+                    "REJECTED/PROVIDER_DATA_REQUIRED decision must carry either "
+                    "all selected-candidate identity fields or none — partial "
+                    "identity is contradictory and is refused"
                 )
-            # For PROVIDER_DATA_REQUIRED with provider block, normally none is expected;
-            # if candidate-specific rejection is used, it is allowed but must be coherent.
 
         expected = _decision_fingerprint(self)
         if self.decision_fingerprint != expected:
@@ -557,52 +559,14 @@ def _revalidate_request(
 def _revalidate_result(
     result: ManchesterCalibrationWorkflowResult,
 ) -> ManchesterCalibrationWorkflowResult:
-    # The report's contract_admitted/contract_admission is derived from the
-    # global APPROVED_PRODUCTION_CALIBRATION_CONTRACT_FINGERPRINTS set.
-    # Legitimate admitted production results were created inside an admitted
-    # context that is no longer active at verification time. To allow canonical
-    # revalidation to succeed for legitimate results while still catching
-    # model_copy bypasses (which also change the report fingerprint), we
-    # temporarily consider the result's contract fingerprint as approved when
-    # the result claims approved production evidence.
-    from traffictwin.integration.manchester import calibration as calib
-
-    original = calib.APPROVED_PRODUCTION_CALIBRATION_CONTRACT_FINGERPRINTS
-    needs_temporary = False
     try:
-        # Try direct validation first (covers synthetic and not_admitted cases)
         return ManchesterCalibrationWorkflowResult.model_validate(result.model_dump())
     except ValidationError as exc:
-        # If validation failed, check if it was due to admission mismatch for a
-        # result that claims approved production. In that case retry with
-        # temporary approval.
-        report = result.evaluation_report
-        if (
-            report.contract_admission == "approved_production_contract"
-            and report.contract_admitted
-            and not report.synthetic
-            and report.contract.fingerprint() not in original
-        ):
-            needs_temporary = True
-        if needs_temporary:
-            try:
-                calib.APPROVED_PRODUCTION_CALIBRATION_CONTRACT_FINGERPRINTS = original | {
-                    report.contract.fingerprint()
-                }
-                return ManchesterCalibrationWorkflowResult.model_validate(result.model_dump())
-            except ValidationError as exc2:
-                raise ManchesterCalibrationWorkflowError("INVALID_RESULT", str(exc2)) from exc2
-            finally:
-                calib.APPROVED_PRODUCTION_CALIBRATION_CONTRACT_FINGERPRINTS = original
         raise ManchesterCalibrationWorkflowError("INVALID_RESULT", str(exc)) from exc
     except ManchesterCalibrationWorkflowError:
         raise
     except Exception as exc:  # pragma: no cover
         raise ManchesterCalibrationWorkflowError("INVALID_RESULT", str(exc)) from exc
-    finally:
-        if needs_temporary:
-            # Ensure restoration even when first try succeeded (no-op)
-            calib.APPROVED_PRODUCTION_CALIBRATION_CONTRACT_FINGERPRINTS = original
 
 
 def _revalidate_decision(
@@ -1135,12 +1099,12 @@ def build_acceptance_receipt(
             "CANDIDATE_DRIFT",
             "selected candidate not found in current report — fingerprint drift",
         )
-    if ev.candidate_binding_fingerprint != decision.selected_candidate_binding_fingerprint:
+    if ev.candidate_binding_fingerprint != canon_decision.selected_candidate_binding_fingerprint:
         raise ManchesterCalibrationWorkflowError(
             "CANDIDATE_FINGERPRINT_DRIFT",
             "selected candidate binding fingerprint drift",
         )
-    if ev.sumo_run_fingerprint != decision.selected_sumo_run_fingerprint:
+    if ev.sumo_run_fingerprint != canon_decision.selected_sumo_run_fingerprint:
         raise ManchesterCalibrationWorkflowError(
             "CANDIDATE_RUN_DRIFT",
             "selected candidate SUMO run fingerprint drift",
@@ -1158,7 +1122,7 @@ def build_acceptance_receipt(
         "contract_fingerprint": canon_result.contract_fingerprint,
         "method_version": MANCHESTER_CALIBRATION_WORKFLOW_METHOD_VERSION,
         "capability_id": MANCHESTER_CALIBRATION_WORKFLOW_CAPABILITY_ID,
-        "evidence_boundary": EVIDENCE_BOUNDARY[:120],
+        "evidence_boundary": EVIDENCE_BOUNDARY,
         "selected_candidate_label": canon_decision.selected_candidate_label,
         "selected_candidate_binding_fingerprint": (  # noqa: E501
             canon_decision.selected_candidate_binding_fingerprint
