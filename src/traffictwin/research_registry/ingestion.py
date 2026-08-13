@@ -27,6 +27,10 @@ SUPPORTED_SCHEMA_VERSIONS: frozenset[str] = frozenset({SCHEMA_VERSION})
 ADAPTER_VERSION: Literal["research_ingestion_adapter_v1"] = "research_ingestion_adapter_v1"
 SUPPORTED_ADAPTER_VERSIONS: frozenset[str] = frozenset({ADAPTER_VERSION})
 
+RECEIPT_NOTE: Literal[
+    "Digest is binding, not cryptographic authenticity; verify policy distribution separately."
+] = "Digest is binding, not cryptographic authenticity; verify policy distribution separately."
+
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 
@@ -292,31 +296,15 @@ class ResearchStudyPackage(BaseModel):
         return self
 
     def canonical_payload(self) -> dict[str, Any]:
-        """Payload without fingerprint for hashing."""
         return {
-            "schema_version": self.schema_version,
-            "adapter_version": self.adapter_version,
-            "records": [json.loads(r.canonical_json()) for r in self.records],
-            "lineage_edges": [
-                json.loads(_canonical_json(e.canonical_payload())) for e in self.lineage_edges
-            ],
-        }
-
-    def computed_fingerprint(self) -> str:
-        # Canonical JSON of payload without fingerprint, sorted keys
-        payload: dict[str, Any] = {
             "schema_version": self.schema_version,
             "adapter_version": self.adapter_version,
             "records": [json.loads(r.canonical_json()) for r in self.records],
             "lineage_edges": [e.model_dump(mode="json") for e in self.lineage_edges],
         }
-        # Need to remove fingerprint from edge dumps for hashing? Edges include fingerprint;
-        # but canonical_payload for package should include edge fingerprints? The fingerprint
-        # of edge is binding, so include full edge including fingerprint deterministically.
-        # However to avoid circular, we hash the package's records+edges as stored.
-        # We already validated fingerprint of edges; now package fingerprint includes edge fingerprints.  # noqa: E501
-        # Simplify: hash canonical of payload dict without package_fingerprint field.
-        return _sha256_hex(_canonical_json(payload).encode("utf-8"))
+
+    def computed_fingerprint(self) -> str:
+        return _sha256_hex(_canonical_json(self.canonical_payload()).encode("utf-8"))
 
     @classmethod
     def build(
@@ -395,10 +383,7 @@ class ResearchStudyPackage(BaseModel):
 class ImportReceipt(BaseModel):
     """Deterministic import receipt binding package/policy/records/lineage.
 
-    Note: digest is binding, not cryptographic authenticity. It proves
-    deterministic binding of the imported package to the admission policy
-    and its records/lineage, but does not by itself prove external
-    authenticity without a trusted policy distribution channel.
+    Note: digest is binding, not cryptographic authenticity.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
@@ -409,9 +394,10 @@ class ImportReceipt(BaseModel):
     record_fingerprints: list[str] = Field(description="Sorted record fingerprints")
     lineage_fingerprint: str | None = Field(default=None, min_length=64, max_length=64)
     receipt_fingerprint: str = Field(min_length=64, max_length=64)
-    note: str = Field(
+    note: Literal[
+        "Digest is binding, not cryptographic authenticity; verify policy distribution separately."
+    ] = Field(
         default="Digest is binding, not cryptographic authenticity; verify policy distribution separately.",  # noqa: E501
-        min_length=1,
     )
 
     @field_validator("package_fingerprint", "policy_fingerprint", "receipt_fingerprint")
@@ -443,6 +429,17 @@ class ImportReceipt(BaseModel):
             raise ValueError(f"lineage fingerprint must be 64-hex {v!r}")
         return v.lower()
 
+    @field_validator("note")
+    @classmethod
+    def _note_literal(cls, v: str) -> str:
+        if v != RECEIPT_NOTE:
+            raise ValueError("note must be exact pinned literal")
+        if _PRIVATE_PATH_RE.search(v):
+            raise ValueError("note contains private path")
+        if _SECRET_RE.search(v):
+            raise ValueError("note contains secret")
+        return v
+
     @model_validator(mode="after")
     def _receipt_binding(self) -> ImportReceipt:
         expected = self.computed_fingerprint()
@@ -472,27 +469,23 @@ class ImportReceipt(BaseModel):
         package: ResearchStudyPackage,
         policy: AdmissionPolicy,
     ) -> ImportReceipt:
-        # Canonically revalidate at boundary
         pkg2 = ResearchStudyPackage.model_validate(package.model_dump(mode="json"))
         pol2 = AdmissionPolicy.model_validate(policy.model_dump(mode="json"))
         rec_fps = sorted([r.fingerprint() for r in pkg2.records])
-        # Lineage fingerprint: hash of sorted edge fingerprints or graph fingerprint if edges present  # noqa: E501
         lineage_fp: str | None = None
         if pkg2.lineage_edges:
-            # Build temporary graph nodes from records
             nodes = [StudyVersionIdentity(study=r.study, version=r.version) for r in pkg2.records]
             graph = LineageGraph.build(nodes, pkg2.lineage_edges)
             lineage_fp = graph.fingerprint()
         pkg_fp = pkg2.package_fingerprint
         pol_fp = pol2.fingerprint()
-        note = "Digest is binding, not cryptographic authenticity; verify policy distribution separately."  # noqa: E501
         tmp: dict[str, Any] = {
             "schema_version": "research_import_receipt_v1",
             "package_fingerprint": pkg_fp,
             "policy_fingerprint": pol_fp,
             "record_fingerprints": rec_fps,
             "lineage_fingerprint": lineage_fp,
-            "note": note,
+            "note": RECEIPT_NOTE,
         }
         receipt_fp = _sha256_hex(_canonical_json(tmp).encode("utf-8"))
         return cls(
@@ -502,7 +495,7 @@ class ImportReceipt(BaseModel):
             record_fingerprints=rec_fps,
             lineage_fingerprint=lineage_fp,
             receipt_fingerprint=receipt_fp,
-            note=note,
+            note=RECEIPT_NOTE,
         )
 
 

@@ -80,8 +80,8 @@ def test_exact_e2_values_through_existing_loaders() -> None:
     e2d = by_study["E2d"]
     assert e2d.code_sha == "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761"
     assert e2d.manifest_hash == "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
-    # Primary vs secondary preserved
-    assert e2d.primary_metrics == ["offered_attainment_per_task_minus_ingress"]
+    # Primary vs secondary preserved — authoritative identities include _dla qualifier
+    assert e2d.primary_metrics == ["offered_attainment_per_task_dla_minus_ingress_dla"]
     assert e2d.secondary_metrics == ["offered_attainment_per_task_minus_dla"]
     assert e2d.declared_summary is not None
     assert e2d.declared_summary.ci_lower == 0.004422143925
@@ -180,7 +180,6 @@ def test_unavailable_index_truthful_no_fabricated() -> None:
     assert "E1" in by_study
     for study in ("E0", "E1"):
         rec = by_study[study]
-        assert rec.status == StudyStatus.UNAVAILABLE
         assert rec.evidence_standing == EvidenceStanding.UNAVAILABLE
         assert rec.admission_status == AdmissionStatus.NOT_ADMITTED
         assert rec.code_sha is None
@@ -189,6 +188,19 @@ def test_unavailable_index_truthful_no_fabricated() -> None:
         assert rec.declared_summary is None
         assert rec.limitations is not None
         assert len(rec.limitations[0]) > 10
+        assert rec.product_links is None
+    e0 = by_study["E0"]
+    assert e0.status == StudyStatus.UNAVAILABLE
+    e1 = by_study["E1"]
+    assert e1.status == StudyStatus.PLANNED
+    assert e1.limitations is not None and (
+        "waiting-room" in e1.limitations[0].lower() or "waiting" in e1.limitations[0].lower()
+    )
+    assert e1.limitations is not None and "accounting artefact" in e1.limitations[0].lower()
+    assert e1.limitations is not None and "use_case_b_vec_dynamic_service" in e1.limitations[0]
+    assert e1.question is not None and "2.5" in e1.question
+    assert e1.non_claims is not None and "no e1" in e1.non_claims[0].lower()
+    assert e1.limitations is not None and "if authoritative" not in e1.limitations[0].lower()
 
 
 def test_future_e3_absent_by_default_and_discriminating() -> None:
@@ -245,22 +257,17 @@ def test_service_snapshot_deterministic_and_conflict() -> None:
     svc = RegistryService(pol)
     r1 = svc.ingest(pkg.to_json())
     snap1 = svc.snapshot()
-    # Exact reimport idempotent
     r2 = svc.ingest(pkg.to_json())
     assert r1.receipt_fingerprint == r2.receipt_fingerprint
     snap2 = svc.snapshot()
     assert snap1.snapshot_fingerprint == snap2.snapshot_fingerprint
-    # Conflict on same identity different content
     recs = build_admitted_e2_records()
     mutated = recs[0].model_copy(
         update={"title": "Different title for conflict test with sufficient length"}
-    )  # noqa: E501
-    # Build package with same study/version but different content
+    )
     bad_pkg = ResearchStudyPackage.build(
         records=[mutated] + recs[1:], lineage_edges=build_current_lineage_edges(recs)
-    )  # noqa: E501
-    # Admission policy for bad_pkg would be different fingerprint, so we need to allow it via new policy? But service should detect conflict before policy  # noqa: E501
-    # Create policy that would allow bad_pkg to test conflict detection
+    )
     bad_pol_entries = [
         AdmissionPolicyEntry(
             study=r.study,
@@ -273,22 +280,19 @@ def test_service_snapshot_deterministic_and_conflict() -> None:
         if r.code_sha and r.manifest_hash
     ]
     bad_pol = AdmissionPolicy(entries=bad_pol_entries)
-    # Use a service that trusts both? Merge policies
     combined_entries = list(pol.entries) + list(bad_pol.entries)
-    # Deduplicate and sort
     combined_entries = sorted(
         {
             (e.study, e.version, e.code_sha, e.manifest_hash, e.package_fingerprint): e
             for e in combined_entries
-        }.values(),  # noqa: E501
-        key=lambda e: (e.study, e.version, e.code_sha, e.manifest_hash, e.package_fingerprint),  # noqa: E501
+        }.values(),
+        key=lambda e: (e.study, e.version, e.code_sha, e.manifest_hash, e.package_fingerprint),
     )
     combined_pol = AdmissionPolicy(entries=combined_entries)
     svc2 = RegistryService(combined_pol)
     svc2.ingest(pkg.to_json())
     with pytest.raises(Exception, match="conflict"):
         svc2.ingest(bad_pkg.to_json())
-    # Retrieval by identity/status/product links
     snap = svc.snapshot()
     assert snap.get_by_identity("E2b", "1.0") is not None
     assert snap.get_by_identity("E3", "1.0") is None
@@ -296,23 +300,26 @@ def test_service_snapshot_deterministic_and_conflict() -> None:
     assert len(snap.get_by_admission(AdmissionStatus.ADMITTED)) == 3
     assert len(snap.product_links()) > 0
     assert len(snap.limitations()) > 0
-    # Unavailable present
-    assert snap.get_by_identity("E0", "1.0") is not None
-    assert snap.get_by_identity("E0", "1.0").evidence_standing == EvidenceStanding.UNAVAILABLE  # type: ignore[union-attr]  # noqa: E501
-    # Source/admission distinction preserved
+    assert snap.get_by_identity("E0", "1.0") is None
+    assert len(snap.unavailable_records) == 0
     for r in snap.records:
         assert r.admission_status == AdmissionStatus.ADMITTED
         assert r.evidence_standing == EvidenceStanding.RESEARCH_EVIDENCE_FACT
-    for r in snap.unavailable_records:
-        assert r.admission_status == AdmissionStatus.NOT_ADMITTED
+    assert len(snap.lineage.edges) == 3
+    snap_e2 = RegistryService.with_default_e2().snapshot()
+    assert snap_e2.get_by_identity("E0", "1.0") is not None
+    assert snap_e2.get_by_identity("E1", "1.0") is not None
+    assert snap_e2.get_by_identity("E1", "1.0").status == StudyStatus.PLANNED  # type: ignore[union-attr]
+    assert len(snap_e2.unavailable_records) == 2
+    assert len(snap_e2.lineage.edges) == 3
 
 
 def test_no_arbitrary_filesystem_path_and_reuse_exact_apis() -> None:
-    # Ensure adapters use exact current loaders and do not read arbitrary paths
     import ast
     import pathlib
 
-    src = pathlib.Path("src/traffictwin/research_registry/adapters.py").read_text()
+    root = pathlib.Path(__file__).resolve().parents[2]
+    src = (root / "src" / "traffictwin" / "research_registry" / "adapters.py").read_text()
     tree = ast.parse(src)
     # Must import load_admitted_builtin_e2_research
     assert "load_admitted_builtin_e2_research" in src
@@ -334,16 +341,251 @@ def test_no_arbitrary_filesystem_path_and_reuse_exact_apis() -> None:
 def test_zero_research_workload_and_no_external_retrieval() -> None:
     import pathlib
 
+    root = pathlib.Path(__file__).resolve().parents[2]
     for fname in [
         "src/traffictwin/research_registry/adapters.py",
         "src/traffictwin/research_registry/ingestion.py",
         "src/traffictwin/research_registry/service.py",
         "src/traffictwin/research_registry/lineage.py",
     ]:
-        src = pathlib.Path(fname).read_text()
+        src = (root / fname).read_text()
         assert "run_e2" not in src
         assert "eval_sumo" not in src
         assert "httpx" not in src or "import httpx" not in src
         assert "requests" not in src or "import requests" not in src
-        # Ensure no network retrieval
         assert "urllib" not in src
+
+
+def test_generic_zero_edge_stays_zero_and_unrelated_gains_nothing() -> None:
+    from traffictwin.research_registry.models import PerDrawValue
+
+    rec = ResearchStudyRecord(
+        study="E2b",
+        version="1.0",
+        title="E2b-like zero edge study",
+        question="Does custom question with sufficient length pass validation?",
+        status=StudyStatus.COMPLETED,
+        evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+        admission_status=AdmissionStatus.ADMITTED,
+        code_sha="a" * 40,
+        manifest_hash="c" * 64,
+        replication_unit="fleet_draw",
+        seeds=[0],
+        draws=[0],
+        primary_metrics=["offered_task_deadline_attainment"],
+        per_draw_values=[
+            PerDrawValue(draw=0, value=0.5, metric="offered_task_deadline_attainment")
+        ],
+    )
+    pkg = ResearchStudyPackage.build(records=[rec], lineage_edges=[])
+    pol = AdmissionPolicy(
+        entries=[
+            AdmissionPolicyEntry(
+                study="E2b",
+                version="1.0",
+                code_sha="a" * 40,
+                manifest_hash="c" * 64,
+                package_fingerprint=pkg.package_fingerprint,
+            )
+        ]
+    )
+    svc = RegistryService(pol)
+    svc.ingest(pkg.to_json())
+    snap = svc.snapshot()
+    assert len(snap.lineage.edges) == 0
+    assert len(snap.lineage.nodes) == 1
+    assert len(snap.unavailable_records) == 0
+    assert svc.get("E2c", "1.0") is None
+    assert svc.get("E0", "1.0") is None
+
+
+def test_explicit_default_e2_lineage_only() -> None:
+    svc = RegistryService.with_default_e2()
+    snap = svc.snapshot()
+    assert len(snap.lineage.edges) == 3
+    assert len(snap.records) == 3
+    assert {e.relationship.value for e in snap.lineage.edges} == {
+        "EXTENDS",
+        "CONSTRUCT_VALIDITY",
+        "ROBUSTNESS_CHECK",
+    }
+
+
+def test_generic_get_no_injection_for_unavailable_and_e2() -> None:
+    from traffictwin.research_registry.models import PerDrawValue
+
+    rec = ResearchStudyRecord(
+        study="S-generic",
+        version="1.0",
+        title="Generic study",
+        question="Generic question with sufficient length to be valid for testing purposes?",
+        status=StudyStatus.COMPLETED,
+        evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+        admission_status=AdmissionStatus.ADMITTED,
+        code_sha="b" * 40,
+        manifest_hash="d" * 64,
+        replication_unit="fleet_draw",
+        seeds=[1],
+        draws=[1],
+        primary_metrics=["m"],
+        per_draw_values=[PerDrawValue(draw=1, value=0.2, metric="m")],
+    )
+    pkg = ResearchStudyPackage.build(records=[rec], lineage_edges=[])
+    pol = AdmissionPolicy(
+        entries=[
+            AdmissionPolicyEntry(
+                study="S-generic",
+                version="1.0",
+                code_sha="b" * 40,
+                manifest_hash="d" * 64,
+                package_fingerprint=pkg.package_fingerprint,
+            )
+        ]
+    )
+    svc = RegistryService(pol)
+    svc.ingest(pkg.to_json())
+    assert svc.get("E0", "1.0") is None
+    assert svc.get("E1", "1.0") is None
+    assert svc.get("E2b", "1.0") is None
+    snap = svc.snapshot()
+    assert snap.get_by_identity("E0", "1.0") is None
+
+
+def test_path_secret_model_copy_note_node_refusal() -> None:
+    from traffictwin.research_registry.ingestion import ImportReceipt
+    from traffictwin.research_registry.lineage import (
+        LineageGraph,
+        StudyVersionIdentity,
+    )
+
+    with pytest.raises((ValidationError, ValueError), match="private"):
+        ResearchStudyRecord(
+            study="S-001",
+            version="1.0",
+            title="see /Users/alice/data",
+            question="Valid question with sufficient length for testing purposes?",
+            status=StudyStatus.PLANNED,
+            evidence_standing=EvidenceStanding.UNAVAILABLE,
+            admission_status=AdmissionStatus.NOT_APPLICABLE,
+        )
+    with pytest.raises((ValidationError, ValueError), match="secret"):
+        ResearchStudyRecord(
+            study="S-002",
+            version="1.0",
+            title="api_key leak test",
+            question="Valid question with sufficient length for testing purposes?",
+            status=StudyStatus.PLANNED,
+            evidence_standing=EvidenceStanding.UNAVAILABLE,
+            admission_status=AdmissionStatus.NOT_APPLICABLE,
+        )
+    pkg = build_e2_study_package()
+    pol = build_default_e2_admission_policy(pkg)
+    _, receipt = pkg.to_json(), None
+    _, receipt = __import__(
+        "traffictwin.research_registry.ingestion", fromlist=["ingest_package"]
+    ).ingest_package(pkg.to_json(), pol)
+    mutated = receipt.model_copy(update={"note": "wrong note"})
+    with pytest.raises(ValidationError):
+        ImportReceipt.model_validate(mutated.model_dump(mode="json"))
+    object.__setattr__(mutated, "note", "wrong note")
+    with pytest.raises(ValidationError):
+        ImportReceipt.model_validate(mutated.model_dump(mode="json"))
+    n = StudyVersionIdentity(study="E2b", version="1.0")
+    n2 = n.model_copy(deep=True)
+    object.__setattr__(n2, "study", "/tmp/bad")  # noqa: S108
+    with pytest.raises(ValidationError):
+        LineageGraph.build([n2, StudyVersionIdentity(study="E2c", version="1.0")], [])
+
+
+def test_exact_metric_names_preserved() -> None:
+    recs = build_admitted_e2_records()
+    by_study = {r.study: r for r in recs}
+    assert by_study["E2b"].primary_metrics == ["offered_task_deadline_attainment"]
+    assert by_study["E2c"].primary_metrics == ["offered_attainment_dla_minus_ingress_dla"]
+    e2d = by_study["E2d"]
+    assert e2d.primary_metrics == ["offered_attainment_per_task_dla_minus_ingress_dla"]
+    assert e2d.secondary_metrics == ["offered_attainment_per_task_minus_dla"]
+    assert len(e2d.per_draw_values or []) == 8
+    metrics_in_draws = {pd.metric for pd in (e2d.per_draw_values or [])}
+    assert "offered_attainment_per_task_dla_minus_ingress_dla" in metrics_in_draws
+    assert "offered_attainment_per_task_minus_dla" in metrics_in_draws
+    assert e2d.declared_summary is not None
+    assert e2d.declared_summary.metric == "offered_attainment_per_task_dla_minus_ingress_dla"
+
+
+def test_authoritative_metric_identities_refuse_relabel_drift() -> None:
+    """Discriminating test: derive metric names from exact E2 observations.
+
+    Source of truth:
+    ``src/traffictwin/resources/research/e2_resource_strategy_v1.json``
+    observations[].metric for ``e2c_multidraw_comparison`` and
+    ``e2d_robustness_comparison``, also reproduced via
+    ``load_admitted_builtin_e2_research()`` observations
+    (metric == ``offered_attainment_dla_minus_ingress_dla`` for E2c,
+    metric == ``offered_attainment_per_task_dla_minus_ingress_dla``
+    for E2d).
+    Secondary metric ``offered_attainment_per_task_minus_dla`` is only
+    valid when explicitly sourced from ``e2d_per_task_minus_dla``
+    paired-difference; it must not be renamed to a truncated form.
+    """
+
+    pkg, _receipt = load_admitted_builtin_e2_research()
+    # Derive authoritative metric identities from exact loaded observations
+    e2c_metrics = {
+        obs.metric for obs in pkg.observations if obs.evidence_id == "e2c_multidraw_comparison"
+    }
+    e2d_primary_metrics = {
+        obs.metric for obs in pkg.observations if obs.evidence_id == "e2d_robustness_comparison"
+    }
+    # Pin to exact authoritative identities — source citation above
+    assert e2c_metrics == {"offered_attainment_dla_minus_ingress_dla"}, (
+        f"E2c observation metric drift; expected exact "
+        f"{{'offered_attainment_dla_minus_ingress_dla'}}, got {e2c_metrics!r} "
+        f"[src/traffictwin/resources/research/e2_resource_strategy_v1.json:observations/e2c_multidraw_comparison]"
+    )
+    assert e2d_primary_metrics == {"offered_attainment_per_task_dla_minus_ingress_dla"}, (
+        f"E2d observation metric drift; expected exact "
+        f"{{'offered_attainment_per_task_dla_minus_ingress_dla'}}, got {e2d_primary_metrics!r} "
+        f"[src/traffictwin/resources/research/e2_resource_strategy_v1.json:observations/e2d_robustness_comparison]"
+    )
+    # Secondary is sourced from paired-difference id e2d_per_task_minus_dla, not an observation metric  # noqa: E501
+    pd_ids = {pd.comparison_id for pd in pkg.paired_differences}
+    assert "e2d_per_task_minus_dla" in pd_ids
+    # Verify adapter emits exactly those authoritative identities (no truncated relabel)
+    recs = build_admitted_e2_records()
+    by_study = {r.study: r for r in recs}
+    e2c = by_study["E2c"]
+    e2d = by_study["E2d"]
+    # E2c exact identities
+    assert e2c.primary_metrics == ["offered_attainment_dla_minus_ingress_dla"]
+    assert e2c.declared_summary is not None
+    assert e2c.declared_summary.metric == "offered_attainment_dla_minus_ingress_dla"
+    assert all(
+        pd.metric == "offered_attainment_dla_minus_ingress_dla"
+        for pd in (e2c.per_draw_values or [])
+    )
+    # E2d primary exact
+    assert e2d.primary_metrics == ["offered_attainment_per_task_dla_minus_ingress_dla"]
+    assert e2d.declared_summary is not None
+    assert e2d.declared_summary.metric == "offered_attainment_per_task_dla_minus_ingress_dla"
+    assert {  # noqa: E501
+        pd.metric
+        for pd in (e2d.per_draw_values or [])
+        if pd.metric != "offered_attainment_per_task_minus_dla"  # noqa: E501
+    } == {"offered_attainment_per_task_dla_minus_ingress_dla"}
+    # Secondary stays exactly as sourced from e2d_per_task_minus_dla
+    assert e2d.secondary_metrics == ["offered_attainment_per_task_minus_dla"]
+    # Forbid truncated relabels ever reappearing
+    truncated = {  # noqa: E501
+        "offered_attainment_dla_minus_ingress",  # noqa: E501
+        "offered_attainment_per_task_minus_ingress",  # noqa: E501
+    }
+    assert e2c.primary_metrics[0] not in truncated
+    assert e2d.primary_metrics[0] not in truncated
+    assert e2c.declared_summary.metric not in truncated
+    assert e2d.declared_summary.metric not in truncated
+    for pd in (e2c.per_draw_values or []) + (e2d.per_draw_values or []):
+        assert pd.metric not in truncated, f"relabel drift detected: {pd.metric!r}"
+        assert pd.metric not in {"offered_attainment_per_task_minus_dla_renamed"}, (
+            "invented renamed secondary forbidden"
+        )

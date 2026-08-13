@@ -59,15 +59,14 @@ _TRACE_SHA: Final[str] = "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b
 
 def _load_e2_package() -> E2ResearchEvidencePackage:
     pkg, receipt = load_admitted_builtin_e2_research()
-    # Verify receipt deterministically (reuse exact API)
     receipt.verify()
-    # Ensure comparison view matches pinned values (reuse exact API)
     view = build_e2_comparison_view(pkg)
-    # Touch view to ensure exact values are exercised; fail if drift
-    assert view.e2b.off == 0.683619229
-    assert view.e2c.mean == -0.021222260935
-    assert view.e2d.mean == 0.005271433656
-    # Revalidate package at boundary
+    if view.e2b.off != 0.683619229:
+        raise ValueError(f"E2b off drift: expected 0.683619229, got {view.e2b.off!r}")
+    if view.e2c.mean != -0.021222260935:
+        raise ValueError(f"E2c mean drift: expected -0.021222260935, got {view.e2c.mean!r}")
+    if view.e2d.mean != 0.005271433656:
+        raise ValueError(f"E2d mean drift: expected 0.005271433656, got {view.e2d.mean!r}")
     return E2ResearchEvidencePackage.model_validate(pkg.model_dump(mode="json"))
 
 
@@ -183,7 +182,7 @@ def build_e2c_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
     if abs(float(e2c_ds.mean) - (-0.021222260935)) > 1e-12:
         raise ValueError("E2c mean drift")
     per_draw = [
-        PerDrawValue(draw=seed, value=val, metric="offered_attainment_dla_minus_ingress")
+        PerDrawValue(draw=seed, value=val, metric="offered_attainment_dla_minus_ingress_dla")
         for seed, val in zip([1, 2, 3, 4], expected_per_seed, strict=True)
     ]
     rec = ResearchStudyRecord(
@@ -204,7 +203,7 @@ def build_e2c_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         draws=[1, 2, 3, 4],
         arms=None,
         estimand="dla_minus_ingress_dla offered_task_deadline_attainment (paired fleet_draw differences)",  # noqa: E501
-        primary_metrics=["offered_attainment_dla_minus_ingress"],
+        primary_metrics=["offered_attainment_dla_minus_ingress_dla"],
         secondary_metrics=None,
         per_draw_values=per_draw,
         declared_summary=DeclaredSummary(
@@ -212,7 +211,7 @@ def build_e2c_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
             ci_lower=-0.02233525407,
             ci_upper=-0.0201092678,
             method="two-sided Student-t 95% interval over fleet-draw differences",
-            metric="offered_attainment_dla_minus_ingress",
+            metric="offered_attainment_dla_minus_ingress_dla",
         ),
         evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
         admission_status=AdmissionStatus.ADMITTED,
@@ -250,18 +249,15 @@ def build_e2d_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
     if e2d_vs_ds is None:
         raise ValueError("missing e2d_vs summary")
     per_draw = [
-        PerDrawValue(draw=s, value=v, metric="offered_attainment_per_task_minus_ingress")
+        PerDrawValue(draw=s, value=v, metric="offered_attainment_per_task_dla_minus_ingress_dla")
         for s, v in zip([1, 2, 3, 4], expected_per_seed, strict=True)
     ]
-    # Add secondary per_task_minus_dla as secondary metric with separate per_draw? Our single per_draw_values can only carry one metric per draw.  # noqa: E501
-    # So we keep primary per_task_minus_ingress as primary metric, and secondary vs as secondary metric but we cannot encode both in same per_draw table without duplication.  # noqa: E501
-    # Instead, we encode secondary as declared summary secondary interval, and per_draw secondary values are implied but not duplicated as tasks.  # noqa: E501
-    # To preserve both, we add secondary per_draw values as additional entries with secondary metric, but need combined metric set.  # noqa: E501
-    # That would make per_draw_values contain 8 entries (4 primary + 4 secondary) with distinct metrics.  # noqa: E501
     per_draw_vs = [
         PerDrawValue(draw=s, value=v, metric="offered_attainment_per_task_minus_dla")
         for s, v in zip([1, 2, 3, 4], expected_vs, strict=True)
     ]
+    # Preserve secondary per-draw values (8 entries: 4 primary + 4 secondary) with distinct authoritative metric identities including _dla qualifier.  # noqa: E501
+    # Current single DeclaredSummary encodes only the primary interval (per_task_minus_ingress); secondary interval [0.02621, 0.02677] is not a second DeclaredSummary field in this model — limitation stated via per_draw values only.  # noqa: E501
     combined_per_draw = sorted(per_draw + per_draw_vs, key=lambda x: (x.draw, x.metric or ""))
     rec = ResearchStudyRecord(
         study=E2D_STUDY,
@@ -281,7 +277,7 @@ def build_e2d_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
         draws=[1, 2, 3, 4],
         arms=None,
         estimand="per_task_dla_minus_ingress_dla offered_task_deadline_attainment (paired fleet_draw differences); secondary per_task_minus_dla",  # noqa: E501
-        primary_metrics=["offered_attainment_per_task_minus_ingress"],
+        primary_metrics=["offered_attainment_per_task_dla_minus_ingress_dla"],
         secondary_metrics=["offered_attainment_per_task_minus_dla"],
         per_draw_values=combined_per_draw,
         declared_summary=DeclaredSummary(
@@ -289,7 +285,7 @@ def build_e2d_record(pkg: E2ResearchEvidencePackage) -> ResearchStudyRecord:
             ci_lower=0.004422143925,
             ci_upper=0.006120723387,
             method="two-sided Student-t 95% interval over fleet-draw differences",
-            metric="offered_attainment_per_task_minus_ingress",
+            metric="offered_attainment_per_task_dla_minus_ingress_dla",
         ),
         evidence_standing=EvidenceStanding.RESEARCH_EVIDENCE_FACT,
         admission_status=AdmissionStatus.ADMITTED,
@@ -315,21 +311,23 @@ def build_admitted_e2_records() -> list[ResearchStudyRecord]:
 
 
 def build_unavailable_index_records() -> list[ResearchStudyRecord]:
-    """Truthful UNAVAILABLE/NOT_ADMITTED index entries for known historical labels.
+    """Truthful UNAVAILABLE index for E0/E1 where authoritative v0.8 closure supports existence.
 
-    Only where authoritative text supports existence, no fabricated SHA/manifest/draw/outcome.
-    E0/E1 are known historical placeholders referenced in v0.8 alignment but lacking
-    exact admitted packages; we represent them as unavailable with exact limitation.
-    Future E3 is absent/unavailable by default and not included.
+    E0: conservative historical reference baseline referenced in strategy_matrix
+         (strongest_link_off) but without exact current admitted package at v0.8
+         Lane 07 closure. E1: prospective waiting-room semantic sweep motivated by
+         the 2.5→0.75 fail-fast accounting artefact (S-035), described in
+         docs/closure/v08_alignment/use_case_b_vec_dynamic_service.md §6. Both
+         are UNAVAILABLE with resolved limitations and no SHA/manifest/result.
+         Future E3 is absent and not included.
     """
     records: list[ResearchStudyRecord] = []
-    # E0 - historical reference, unavailable
     records.append(
         ResearchStudyRecord(
             study="E0",
             version="1.0",
-            title="E0: historical reference baseline (unavailable)",
-            question="Historical baseline for TrafficTwin VEC instrumentation — not an admitted current study package",  # noqa: E501
+            title="E0: historical reference baseline (unavailable, not admitted)",
+            question="Historical baseline for TrafficTwin VEC instrumentation referenced in v08 alignment — not an exact current admitted package",  # noqa: E501
             hypothesis=None,
             status=StudyStatus.UNAVAILABLE,
             code_sha=None,
@@ -350,9 +348,9 @@ def build_unavailable_index_records() -> list[ResearchStudyRecord]:
             evidence_standing=EvidenceStanding.UNAVAILABLE,
             admission_status=AdmissionStatus.NOT_ADMITTED,
             limitations=[
-                "No exact current admitted E0 package in v0.8 lane 07 closure; historical reference only, not admitted research",  # noqa: E501
+                "No exact current admitted E0 package at v0.8 Lane 07 closure; historical reference in docs/closure/v08_alignment/strategy_matrix.json (strongest_link_off) only, not admitted evidence",  # noqa: E501
             ],
-            non_claims=["No E0 outcome is claimed as current admitted evidence"],
+            non_claims=["No E0 outcome is claimed as current admitted research evidence"],
             product_links=None,
         )
     )
@@ -360,16 +358,33 @@ def build_unavailable_index_records() -> list[ResearchStudyRecord]:
         ResearchStudyRecord(
             study="E1",
             version="1.0",
-            title="E1: historical placeholder (unavailable)",
-            question="Historical placeholder referenced in early design — not an admitted study",
+            title="E1: prospective waiting-room semantic sweep (planned, unavailable)",
+            question="Does a waiting-room/admission semantic sweep that corrects the 2.5→0.75 fail-fast accounting artefact change deadline attainment and latency interpretation without implying compute-capacity change?",  # noqa: E501
             hypothesis=None,
-            status=StudyStatus.UNAVAILABLE,
+            status=StudyStatus.PLANNED,
+            code_sha=None,
+            manifest_hash=None,
+            evaluator_id=None,
+            actor_id=None,
+            checkpoint_id=None,
+            trace_id=None,
+            replication_unit=None,
+            seeds=None,
+            draws=None,
+            arms=None,
+            estimand=None,
+            primary_metrics=None,
+            secondary_metrics=None,
+            per_draw_values=None,
+            declared_summary=None,
             evidence_standing=EvidenceStanding.UNAVAILABLE,
             admission_status=AdmissionStatus.NOT_ADMITTED,
             limitations=[
-                "No exact current admitted E1 package; index entry is truthful UNAVAILABLE only if authoritative text supports existence",  # noqa: E501
+                "E1 is a prospective waiting-room semantic sweep motivated by the 2.5→0.75 fail-fast accounting artefact (S-035); no admitted E1 package, SHA, manifest, or result exists at v0.8 closure; source docs/closure/v08_alignment/use_case_b_vec_dynamic_service.md §6",  # noqa: E501
             ],
-            non_claims=["No E1 outcome is claimed"],
+            non_claims=[
+                "No E1 estimate, interval, or causal claim is made; planned investigation only, not evidence"  # noqa: E501
+            ],
             product_links=None,
         )
     )
@@ -428,14 +443,6 @@ def build_current_lineage_edges(
                 rationale="E2d robustness check over E2b baseline, bounded to Manchester incident hour, fixed 1x service, zero backhaul, four draws only; not universal superiority.",  # noqa: E501
             )
         )
-    # Product admission edges (optional) – mark each E2 record as product-admitted via owner-authorized admission  # noqa: E501
-    for study in (E2B_STUDY, E2C_STUDY, E2D_STUDY):
-        if (study, E2_VERSION) in present:
-            # Need a product node? But product admission relationship currently binds study->study?
-            # Instead we represent product admission as edge from study to itself with PRODUCT_ADMISSION?  # noqa: E501
-            # No, self-edge forbidden. So we skip product admission edges and rely on admission_status field  # noqa: E501
-            # plus separate receipt. The lineage graph captures research relationships only.
-            pass
     return sorted(
         edges,
         key=lambda e: (

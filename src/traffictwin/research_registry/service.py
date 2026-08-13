@@ -13,7 +13,6 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from traffictwin.research_registry.adapters import (
-    build_current_lineage_edges,
     build_e2_study_package,
     build_unavailable_index_records,
 )
@@ -79,7 +78,6 @@ class RegistrySnapshot(BaseModel):
 
     @model_validator(mode="after")
     def _fingerprint_check(self) -> RegistrySnapshot:
-        # Ensure no overlap between admitted and unavailable identities
         admitted_keys = {(r.study, r.version) for r in self.records}
         unavailable_keys = {(r.study, r.version) for r in self.unavailable_records}
         if admitted_keys & unavailable_keys:
@@ -104,18 +102,7 @@ class RegistrySnapshot(BaseModel):
         }
 
     def computed_fingerprint(self) -> str:
-        payload: dict[str, Any] = {
-            "records": [json.loads(r.canonical_json()) for r in self.records],
-            "unavailable_records": [
-                json.loads(r.canonical_json()) for r in self.unavailable_records
-            ],
-            "lineage": json.loads(self.lineage.canonical_json()),
-            "receipts": [
-                r.model_dump(mode="json")
-                for r in sorted(self.receipts, key=lambda x: x.receipt_fingerprint)
-            ],
-        }
-        return _sha256_hex(_canonical_json(payload).encode("utf-8"))
+        return _sha256_hex(_canonical_json(self.canonical_payload()).encode("utf-8"))
 
     # ---- Retrieval helpers -------------------------------------------------
 
@@ -178,16 +165,24 @@ class RegistrySnapshot(BaseModel):
 
 
 class RegistryService:
-    """Deterministically combines admitted packages and unavailable index."""
+    """Deterministically combines admitted packages; generic snapshot never injects.
+
+    The generic service only snapshots records and exact lineage edges explicitly
+    imported/constructed into that instance. It never infers edges or injects
+    unavailable index records from study-letter names. The built-in E2 convenience
+    explicitly opts into the supported unavailable index and carries its declared
+    E2 lineage via the ingested package; that opt-in is visible at construction
+    (with_default_e2) and not a fallback in generic snapshot/get.
+    """
 
     def __init__(self, admission_policy: AdmissionPolicy) -> None:
-        # Revalidate policy at boundary
         self._policy = AdmissionPolicy.model_validate(admission_policy.model_dump(mode="json"))
         self._records: dict[tuple[str, str], ResearchStudyRecord] = {}
         self._fingerprints: dict[tuple[str, str], str] = {}
         self._receipts: list[ImportReceipt] = []
         self._lineage_edges: list[LineageEdge] = []
         self._seen_package_fps: set[str] = set()
+        self._unavailable_records: list[ResearchStudyRecord] = []
 
     @property
     def policy(self) -> AdmissionPolicy:
@@ -265,44 +260,35 @@ class RegistryService:
         """Ingest already-built package object."""
         return self.ingest(pkg.to_json())
 
-    def snapshot(self) -> RegistrySnapshot:
-        """Build deterministic snapshot including unavailable index."""
-        records = sorted(self._records.values(), key=lambda r: (r.study, r.version))
-        unavailable = build_unavailable_index_records()
-        # Filter unavailable that overlap with admitted (should not)
-        admitted_keys = {(r.study, r.version) for r in records}
-        unavailable_filtered = [r for r in unavailable if (r.study, r.version) not in admitted_keys]
-        # Build lineage graph from all nodes + edges
-        nodes: list[StudyVersionIdentity] = []
+    def include_unavailable(self, records: list[ResearchStudyRecord] | None = None) -> None:
+        """Explicitly opt into supported unavailable index records."""
+        if records is None:
+            records = build_unavailable_index_records()
+        revalidated: list[ResearchStudyRecord] = []
         for r in records:
-            nodes.append(StudyVersionIdentity(study=r.study, version=r.version))
-        for r in unavailable_filtered:
-            nodes.append(StudyVersionIdentity(study=r.study, version=r.version))
+            revalidated.append(ResearchStudyRecord.model_validate(r.model_dump(mode="json")))
+            if r.evidence_standing.value != "unavailable":
+                raise ValueError("unavailable record must have UNAVAILABLE standing")
+        admitted_keys = {(rec.study, rec.version) for rec in self._records.values()}
+        filtered = [r for r in revalidated if (r.study, r.version) not in admitted_keys]
+        self._unavailable_records = sorted(filtered, key=lambda x: (x.study, x.version))
+
+    def snapshot(self) -> RegistrySnapshot:
+        """Build deterministic snapshot of only explicitly ingested records and edges."""
+        records = sorted(self._records.values(), key=lambda r: (r.study, r.version))
+        unavailable_filtered = sorted(self._unavailable_records, key=lambda r: (r.study, r.version))
+        admitted_keys = {(r.study, r.version) for r in records}
+        unavailable_filtered = [
+            r for r in unavailable_filtered if (r.study, r.version) not in admitted_keys
+        ]
+        nodes: list[StudyVersionIdentity] = [
+            StudyVersionIdentity(study=r.study, version=r.version) for r in records
+        ]
         nodes = sorted(nodes, key=lambda n: (n.study, n.version))
-        # Edges are only among admitted records (unavailable have no edges)
-        # Revalidate lineage
         if self._lineage_edges:
-            # Ensure all edge endpoints exist in nodes (admitted)
-            lineage = LineageGraph.build(
-                nodes=[n for n in nodes if (n.study, n.version) in admitted_keys],
-                edges=self._lineage_edges,
-            )
-            # But snapshot lineage should include only admitted nodes? We include full nodes but edges only for admitted.  # noqa: E501
-            # For fingerprint determinism, include lineage with admitted nodes only plus edges
-            # We'll build graph with admitted nodes for validation then snapshot includes that graph
-            # Unavailable nodes are not part of lineage graph per spec (no inferred edges)
-            # So keep lineage as admitted-only graph
+            lineage = LineageGraph.build(nodes=nodes, edges=self._lineage_edges)
         else:
-            # Build from current edges if any, else use adapter's current lineage for admitted
-            if records:
-                edges = build_current_lineage_edges(records)
-                admitted_nodes = [
-                    StudyVersionIdentity(study=r.study, version=r.version) for r in records
-                ]
-                lineage = LineageGraph.build(admitted_nodes, edges)
-            else:
-                lineage = LineageGraph(nodes=[], edges=[])
-        # Snapshot fingerprint includes receipts
+            lineage = LineageGraph(nodes=nodes, edges=[])
         snapshot = RegistrySnapshot.build(
             records=records,
             unavailable_records=unavailable_filtered,
@@ -315,20 +301,19 @@ class RegistryService:
         key = (study, version)
         if key in self._records:
             return self._records[key]
-        # Check unavailable
-        for r in build_unavailable_index_records():
+        for r in self._unavailable_records:
             if r.study == study and r.version == version:
                 return r
         return None
 
     @classmethod
     def with_default_e2(cls) -> RegistryService:
-        """Convenience: service preloaded with default E2 package and policy."""
+        """Convenience: service preloaded with exact E2 package and explicit unavailable index."""
         pkg = build_e2_study_package()
-        # Use policy that matches pkg
         from traffictwin.research_registry.adapters import build_default_e2_admission_policy
 
         policy = build_default_e2_admission_policy(pkg)
         svc = cls(policy)
         svc.ingest_package(pkg)
+        svc.include_unavailable(build_unavailable_index_records())
         return svc

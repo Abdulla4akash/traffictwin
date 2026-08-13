@@ -31,6 +31,8 @@ _SECRET_RE = re.compile(
 
 MAX_RATIONALE_LEN = 1000
 MAX_SOURCE_LEN = 200
+MAX_NODES = 64
+MAX_EDGES = 128
 
 _DAG_REQUIRED = frozenset(
     {
@@ -248,31 +250,33 @@ class LineageGraph(BaseModel):
     ) -> list[StudyVersionIdentity]:
         if len(v) == 0:
             return v
-        # Check duplicates
-        keys = [(n.study, n.version) for n in v]
+        revalidated = [StudyVersionIdentity.model_validate(n.model_dump(mode="json")) for n in v]
+        if len(revalidated) > MAX_NODES:
+            raise ValueError(f"nodes exceeds bound {MAX_NODES}")
+        keys = [(n.study, n.version) for n in revalidated]
         if len(keys) != len(set(keys)):
             raise ValueError("nodes must not contain duplicate identities")
-        # Enforce sorted
         sorted_keys = sorted(keys)
         if keys != sorted_keys:
             raise ValueError("nodes must be sorted by (study, version)")
-        return v
+        sorted_nodes = sorted(revalidated, key=lambda n: (n.study, n.version))
+        if revalidated != sorted_nodes:
+            raise ValueError("nodes must be sorted canonical")
+        return revalidated
 
     @field_validator("edges")
     @classmethod
     def _edges_sorted_unique(cls, v: list[LineageEdge]) -> list[LineageEdge]:
         if len(v) == 0:
             return v
-        # Canonical revalidate each edge at boundary to defeat model_copy bypass
         revalidated: list[LineageEdge] = []
         for e in v:
-            # Force revalidation via model_validate of dumped data
             revalidated.append(LineageEdge.model_validate(e.model_dump(mode="json")))
-        # Check duplicate edges (fingerprint unique)
+        if len(revalidated) > MAX_EDGES:
+            raise ValueError(f"edges exceeds bound {MAX_EDGES}")
         fps = [e.fingerprint for e in revalidated]
         if len(fps) != len(set(fps)):
             raise ValueError("edges must not contain duplicate fingerprints")
-        # Also check duplicate (source,target,relationship) tuple
         keys = [
             (
                 e.source_study,
@@ -285,7 +289,6 @@ class LineageGraph(BaseModel):
         ]
         if len(keys) != len(set(keys)):
             raise ValueError("edges must not contain duplicate (source,target,relationship)")
-        # Sorted order by that tuple
         sorted_edges = sorted(
             revalidated,
             key=lambda e: (
