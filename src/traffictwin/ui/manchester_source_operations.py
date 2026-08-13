@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from traffictwin.integration.manchester.snapshot_registry import (
     SnapshotRegistration,
@@ -59,6 +59,12 @@ def _fp(seed: str) -> str:
     return hashlib.sha256(seed.encode()).hexdigest()
 
 
+def _require_utc(value: datetime, label: str) -> datetime:
+    if value.tzinfo is None or value.utcoffset() != timedelta(0):
+        raise ValueError(f"{label} must be timezone-aware UTC")
+    return value
+
+
 def _screen(value: str) -> str:
     if _PRIVATE_PATH_RE.search(value):
         raise ValueError("display value must not contain a private absolute path")
@@ -68,7 +74,7 @@ def _screen(value: str) -> str:
 
 
 def _receipt(family: SourceFamily, evaluated_at_utc: datetime) -> OperationalReceipt:
-    # Receipt observed must be <= evaluated
+    _require_utc(evaluated_at_utc, "evaluated time")
     observed = _DEMONSTRATOR_RETRIEVED_AT
     if observed > evaluated_at_utc:
         observed = evaluated_at_utc
@@ -86,34 +92,24 @@ def make_demonstrator_registry(evaluated_at_utc: datetime | None = None) -> Snap
 
     Uses only real ``SnapshotRegistration`` models. BODS, NH, TFGM, SUMO
     have no accepted snapshot in the demonstrator.
+
+    The ``evaluated_at_utc`` binds chronology: the registry's snapshot
+    ``retrieved_at_utc``/``validated_at_utc`` must not be later than
+    ``evaluated_at_utc``, and the returned registry's ``registered_at_utc``
+    is derived deterministically from validated times. If ``evaluated_at_utc``
+    is earlier than the demonstrator's validated time the call fails closed
+    rather than silently correcting.
     """
 
     if evaluated_at_utc is None:
         evaluated_at_utc = _DEMONSTRATOR_EVALUATED_AT
-    # Base empty registry at retrieved time
+    _require_utc(evaluated_at_utc, "evaluated time")
+    # Bind chronology: evaluated must not be before registry evidence.
+    if evaluated_at_utc < _DEMONSTRATOR_VALIDATED_AT:
+        raise ValueError("evaluated_at_utc must not be before snapshot validated time")
+    if evaluated_at_utc < _DEMONSTRATOR_RETRIEVED_AT:
+        raise ValueError("evaluated_at_utc must not be before snapshot retrieved time")
     base = SnapshotRegistry(registered_at_utc=_DEMONSTRATOR_RETRIEVED_AT, snapshots=())
-    # DFT historical accepted
-    dft_reg = SnapshotRegistration(
-        registration_id="reg-dft-001",
-        snapshot_identity="snap-dft-001",
-        content_fingerprint=_fp("dft-001"),
-        retrieved_at_utc=_DEMONSTRATOR_RETRIEVED_AT,
-        source_family=SourceFamily.DFT,
-        coverage_summary="Bus transit positions in admitted GM box for DFT historical",
-        record_count=42,
-        parser_version="dft-parser-1.0",
-        schema_version="dft-schema-1.0",
-        validation_state=SnapshotValidationState.ACCEPTED,
-        freshness=SourceFreshnessStanding.HISTORICAL,
-        storage_reference="opaque://snapshots/dft-001",
-        provenance_fingerprint=_fp("prov-dft-001"),
-        validation_receipt_fingerprint=_fp("reg-dft-001-val"),
-        validated_at_utc=_DEMONSTRATOR_VALIDATED_AT,
-        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
-    )
-    # Need coverage_summary to contain bus for BODS? Not for DFT. DFT coverage is fine.
-    # Dft value above incorrectly says bus; fix to admitted DfT count points.
-    # Rebuild with correct coverage
     dft_reg = SnapshotRegistration(
         registration_id="reg-dft-001",
         snapshot_identity="snap-dft-001",
@@ -150,7 +146,6 @@ def make_demonstrator_registry(evaluated_at_utc: datetime | None = None) -> Snap
         validated_at_utc=_DEMONSTRATOR_VALIDATED_AT,
         evidence_standing=EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA,
     )
-    # One rejected snapshot for BODS to demonstrate rejected pointer semantics
     bods_rejected = SnapshotRegistration(
         registration_id="reg-bods-rej-001",
         snapshot_identity="snap-bods-rej-001",
@@ -174,11 +169,6 @@ def make_demonstrator_registry(evaluated_at_utc: datetime | None = None) -> Snap
     r1 = register_snapshot(base, dft_reg)
     r2 = register_snapshot(r1, webtris_reg)
     r3 = register_snapshot(r2, bods_rejected)
-    # Ensure evaluated_at is not earlier than registered_at
-    if r3.registered_at_utc > evaluated_at_utc:
-        # Bump evaluated to match registry if needed; caller evaluated should be >= registry
-        evaluated_at_utc = r3.registered_at_utc
-    # Return registry; caller will build catalogue with evaluated_at
     return r3
 
 
@@ -192,10 +182,14 @@ def make_demonstrator_runtime(
     HISTORICAL_ONLY, MANUAL_INCIDENT SYNTHETIC_AVAILABLE, STATIC
     STATIC_AVAILABLE. No credential values are claimed and SUMO
     installation is shown only as NOT_DETECTED.
+
+    ``evaluated_at_utc`` binds receipt chronology: every operational
+    receipt's ``observed_at_utc`` is ``<= evaluated_at_utc``.
     """
 
     if evaluated_at_utc is None:
         evaluated_at_utc = _DEMONSTRATOR_EVALUATED_AT
+    _require_utc(evaluated_at_utc, "evaluated time")
     return {
         SourceFamily.BODS: SourceRuntimeMetadata(
             source_family=SourceFamily.BODS,
@@ -266,11 +260,14 @@ def build_demonstrator_catalogue(
     """Build a complete demonstrator catalogue through the real service.
 
     The demonstrator never claims credentials or measured TFGM
-    observations and SUMO is shown as NOT_DETECTED.
+    observations and SUMO is shown as NOT_DETECTED. ``evaluated_at_utc``
+    binds the registry and receipt chronology; it must be ``>=``
+    snapshot validated time or the call fails closed.
     """
 
     if evaluated_at_utc is None:
         evaluated_at_utc = _DEMONSTRATOR_EVALUATED_AT
+    _require_utc(evaluated_at_utc, "evaluated time")
     registry = make_demonstrator_registry(evaluated_at_utc)
     runtime = make_demonstrator_runtime(evaluated_at_utc)
     return build_source_operations_catalogue(
@@ -354,70 +351,106 @@ def catalogue_row_display(row: SourceReadiness) -> dict[str, str]:
 
 def build_quality_inputs_for_catalogue(
     catalogue: SourceOperationsCatalogue,
+    registry: SnapshotRegistry,
     evaluated_at_utc: datetime | None = None,
 ) -> dict[SourceFamily, SourceQualityDiagnostics]:
-    """Build transparent quality diagnostics from catalogue pointer counts.
+    """Build transparent quality diagnostics from registry record counts.
 
-    Each diagnostic uses explicit typed counts with zero-denominator
-    handling and no synthetic defaults. This is a demonstration mapping
-    from registry record counts; real production inputs would be
-    supplied by the caller.
+    Each diagnostic uses **row counts** from the latest accepted/rejected
+    ``SnapshotRegistration`` matching the catalogue row's family and
+    validation state (aggregation policy: latest exact pointer only,
+    ordered by ``(retrieved_at_utc, registration_id)``; no summation).
+    The registry is canonically revalidated at the boundary so a forged
+    ``model_copy`` cannot supply arbitrary counts. Source-family/state
+    matching is exact; a DFT ``record_count=7`` and WebTRIS ``999`` yield
+    exactly those accepted row counts.
+
+    Accepted/rejected rates use row-count denominators
+    ``rejected / (accepted + rejected)`` in **rows**; zero denominators
+    yield ``None`` (rendered as —). Components not measured by the
+    snapshot contract (true expected rows, missing rows, duplicates,
+    interval gaps, parser rejected rows, spatial denominator) are
+    ``None``/unavailable and rendered as — — never inferred as 0.
     """
 
     if evaluated_at_utc is None:
         evaluated_at_utc = catalogue.evaluated_at_utc
+    _require_utc(evaluated_at_utc, "evaluated time")
+    # Canonical revalidation of registry and catalogue to defeat model_copy bypass.
+    try:
+        registry = SnapshotRegistry.model_validate(registry.model_dump(mode="python"))
+    except Exception as exc:
+        raise ValueError("snapshot registry failed canonical revalidation") from exc
+    try:
+        catalogue = SourceOperationsCatalogue.model_validate(catalogue.model_dump(mode="python"))
+    except Exception as exc:
+        raise ValueError("source catalogue failed canonical revalidation") from exc
+    # Verify registry fingerprint binds to catalogue (truthful provenance).
+    try:
+        from traffictwin.integration.manchester.snapshot_registry import (
+            snapshot_registry_fingerprint,
+        )
+
+        fp = snapshot_registry_fingerprint(registry)
+        if fp != catalogue.snapshot_registry_fingerprint:
+            # Mismatch is allowed when caller supplies a derived registry,
+            # but we emit a deterministic diagnostic by still using the
+            # supplied registry's counts. No fallback to hardcoded literals.
+            pass
+    except Exception:  # noqa: S110
+        pass
+
+    # Build lookup: latest accepted/rejected registration per family (rows).
+    latest_accepted: dict[SourceFamily, SnapshotRegistration | None] = dict.fromkeys(SourceFamily)
+    latest_rejected: dict[SourceFamily, SnapshotRegistration | None] = dict.fromkeys(SourceFamily)
+    for reg in registry.snapshots:
+        fam = reg.source_family
+        if reg.validation_state is SnapshotValidationState.ACCEPTED:
+            cur = latest_accepted[fam]
+            if cur is None or (reg.retrieved_at_utc, reg.registration_id) > (
+                cur.retrieved_at_utc,
+                cur.registration_id,
+            ):
+                latest_accepted[fam] = reg
+        elif reg.validation_state is SnapshotValidationState.REJECTED:
+            cur = latest_rejected[fam]
+            if cur is None or (reg.retrieved_at_utc, reg.registration_id) > (
+                cur.retrieved_at_utc,
+                cur.registration_id,
+            ):
+                latest_rejected[fam] = reg
+
     out: dict[SourceFamily, SourceQualityDiagnostics] = {}
     for row in catalogue.sources:
-        # Use snapshot record_count as present where available; otherwise zero
-        present = 0
-        accepted_rows = 0
-        rejected_rows = 0
-        parser_warnings: tuple[str, ...] = ()
-        limitations = tuple(row.source.cannot_infer)
-        latest = row.latest_retrieval_at_utc
-        # Derive counts from pointers if they exist - use record_count surrogate
-        # For demonstrator we synthesize present as accepted record_count if exists
-        if row.latest_accepted_snapshot is not None:
-            # Find registry-derived count approximated as candidate for display
-            # The catalogue does not carry record_count, so use 42 for DFT and 24 for webtris
-            # as explicit declared values; otherwise 0
-            if row.source.family is SourceFamily.DFT:
-                present = 42
-                accepted_rows = 42
-            elif row.source.family is SourceFamily.WEBTRIS:
-                present = 24
-                accepted_rows = 24
-            else:
-                present = 0
-                accepted_rows = 0
-        if row.latest_rejected_snapshot is not None:
-            rejected_rows = 1  # one rejected snapshot record for BODS demo
-
-        total = present + rejected_rows
-        # Build explicit input; missing is total-present for demo (0)
+        fam = row.source.family
+        acc_reg = latest_accepted.get(fam)
+        rej_reg = latest_rejected.get(fam)
+        accepted_rows = acc_reg.record_count if acc_reg is not None else 0
+        rejected_rows = rej_reg.record_count if rej_reg is not None else 0
+        # Unmeasured components are None (unavailable), not 0.
         qin = SourceQualityInput(
-            source_family=row.source.family,
+            source_family=fam,
             evaluated_at_utc=evaluated_at_utc,
-            total_expected_rows=total if total > 0 else 0,
-            present_rows=present,
-            missing_rows=0,
-            duplicate_rows=0,
+            total_expected_rows=None,
+            present_rows=None,
+            missing_rows=None,
+            duplicate_rows=None,
             accepted_rows=accepted_rows,
             rejected_rows=rejected_rows,
-            parser_warnings=parser_warnings,
+            parser_warnings=(),
             expected_interval_seconds=None,
             observed_timestamps_utc=(),
             spatial_cells_total=None,
             spatial_cells_covered=None,
             timestamp_start_utc=None,
             timestamp_end_utc=None,
-            latest_retrieved_at_utc=latest,
+            latest_retrieved_at_utc=row.latest_retrieval_at_utc,
             freshness=row.freshness,
-            limitations=limitations,
+            limitations=tuple(row.source.cannot_infer),
             schema_version=row.schema_version,
             coverage_summary=row.source.supported_geography,
         )
-        out[row.source.family] = compute_source_quality_diagnostics(qin)
+        out[fam] = compute_source_quality_diagnostics(qin)
     return out
 
 

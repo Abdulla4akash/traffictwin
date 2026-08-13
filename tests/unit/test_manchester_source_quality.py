@@ -63,9 +63,12 @@ def _input(**overrides: object) -> SourceQualityInput:
 def test_missingness_precise_math() -> None:
     diag = compute_source_quality_diagnostics(_input(total_expected_rows=100, missing_rows=20))
     assert diag.missingness == pytest.approx(0.2)
-    # zero denominator returns None
     diag2 = compute_source_quality_diagnostics(_input(total_expected_rows=0, missing_rows=0))
     assert diag2.missingness is None
+    diag3 = compute_source_quality_diagnostics(_input(total_expected_rows=None, missing_rows=None))
+    assert diag3.missingness is None
+    diag4 = compute_source_quality_diagnostics(_input(total_expected_rows=100, missing_rows=None))
+    assert diag4.missingness is None
 
 
 def test_duplicate_rate_precise() -> None:
@@ -73,6 +76,10 @@ def test_duplicate_rate_precise() -> None:
     assert diag.duplicate_rate == pytest.approx(0.0625)
     diag2 = compute_source_quality_diagnostics(_input(present_rows=0, duplicate_rows=0))
     assert diag2.duplicate_rate is None
+    diag3 = compute_source_quality_diagnostics(_input(present_rows=None, duplicate_rows=None))
+    assert diag3.duplicate_rate is None
+    diag4 = compute_source_quality_diagnostics(_input(present_rows=80, duplicate_rows=None))
+    assert diag4.duplicate_rate is None
 
 
 def test_rejected_rate_precise() -> None:
@@ -80,6 +87,49 @@ def test_rejected_rate_precise() -> None:
     assert diag.rejected_rate == pytest.approx(0.125)
     diag2 = compute_source_quality_diagnostics(_input(accepted_rows=0, rejected_rows=0))
     assert diag2.rejected_rate is None
+
+
+def test_unavailable_not_zero() -> None:
+    diag = compute_source_quality_diagnostics(
+        _input(
+            total_expected_rows=None,
+            present_rows=None,
+            missing_rows=None,
+            duplicate_rows=None,
+            accepted_rows=7,
+            rejected_rows=3,
+            spatial_cells_total=None,
+            spatial_cells_covered=None,
+            expected_interval_seconds=None,
+            observed_timestamps_utc=(),
+            latest_retrieved_at_utc=None,
+        )
+    )
+    assert diag.total_expected_rows is None
+    assert diag.present_rows is None
+    assert diag.missing_rows is None
+    assert diag.duplicate_rows is None
+    assert diag.missingness is None
+    assert diag.duplicate_rate is None
+    assert diag.spatial_coverage_rate is None
+    assert diag.timestamp_range_seconds is None
+    assert diag.freshness_delay_seconds is None
+    assert diag.interval_gap_count == 0
+    assert diag.accepted_rows == 7
+    assert diag.rejected_rows == 3
+    assert diag.rejected_rate == pytest.approx(0.3)
+
+
+def test_rejected_rate_row_unit_not_snapshot_mix() -> None:
+    # accepted/rejected are row counts, not snapshot counts. 7+999 rows.
+    diag = compute_source_quality_diagnostics(
+        _input(accepted_rows=7, rejected_rows=999, total_expected_rows=None, missing_rows=None)
+    )
+    assert diag.rejected_rate == pytest.approx(999 / 1006)
+    diag2 = compute_source_quality_diagnostics(
+        _input(accepted_rows=999, rejected_rows=7, total_expected_rows=None, missing_rows=None)
+    )
+    assert diag2.rejected_rate == pytest.approx(7 / 1006)
 
 
 def test_spatial_coverage_precise() -> None:
@@ -129,7 +179,6 @@ def test_timestamp_range_and_freshness() -> None:
 
 
 def test_interval_gaps_detected() -> None:
-    # expected 60s, observed at 0s, 60s, 180s -> gap of 120s between 60 and 180
     diag = compute_source_quality_diagnostics(
         _input(
             expected_interval_seconds=60,
@@ -142,9 +191,7 @@ def test_interval_gaps_detected() -> None:
             duplicate_rows=0,
         )
     )
-    # UTC_A->UTC_B is 60s (no gap), UTC_B->UTC_C is 60s (no gap) -> 0 gaps
     assert diag.interval_gap_count == 0
-    # Create gap: 10:00 and 10:02 with 60s expectation -> 120s gap
     diag2 = compute_source_quality_diagnostics(
         _input(
             expected_interval_seconds=60,
@@ -199,7 +246,6 @@ def test_no_quality_score_field() -> None:
     assert not hasattr(diag, "quality_score")
     assert not hasattr(diag, "composite_score")
     assert not hasattr(diag, "score")
-    # extra fields forbidden
     with pytest.raises(ValidationError):
         SourceQualityDiagnostics.model_validate(
             {**diag.model_dump(mode="python"), "quality_score": 0.9}
@@ -210,7 +256,7 @@ def test_secret_value_refusal() -> None:
     with pytest.raises((ValidationError, ValueError)):
         _input(parser_warnings=("api_key= secret12345",))
     with pytest.raises((ValidationError, ValueError)):
-        _input(limitations=("token: Bearer abcdefgh12345678",))
+        _input(limitations=("token: Bearer [REDACTED]",))
     with pytest.raises((ValidationError, ValueError)):
         SourceQualityInput(
             source_family=SourceFamily.BODS,
@@ -251,7 +297,6 @@ def test_private_path_refusal() -> None:
 
 
 def test_bods_relabel_refusal_via_snapshot() -> None:
-    # BODS must reference bus; general road traffic relabel rejected
     with pytest.raises((ValidationError, ValueError)):
         SnapshotRegistration(
             registration_id="reg-bods-bad",
@@ -277,50 +322,58 @@ def test_model_copy_mutation_fails_closed() -> None:
     valid = _input(total_expected_rows=100, missing_rows=20)
     diag = compute_source_quality_diagnostics(valid)
     assert diag.missingness == pytest.approx(0.2)
-    # Mutate via model_copy to inflate missing beyond total
     mutated = valid.model_copy(update={"missing_rows": 999})
     with pytest.raises((ValidationError, ValueError)):
         compute_source_quality_diagnostics(mutated)
-    # Mutate timestamps to be unsorted
     mutated2 = valid.model_copy(update={"observed_timestamps_utc": (UTC_C, UTC_A)})
     with pytest.raises((ValidationError, ValueError)):
         compute_source_quality_diagnostics(mutated2)
-    # Mutate to inject secret
     mutated3 = valid.model_copy(update={"parser_warnings": ("api_key=secret12345",)})
     with pytest.raises((ValidationError, ValueError)):
         compute_source_quality_diagnostics(mutated3)
 
 
+def test_model_copy_malformed_none_bypass() -> None:
+    valid = _input(total_expected_rows=100, missing_rows=20, present_rows=80, duplicate_rows=5)
+    mutated = valid.model_copy(update={"missing_rows": None})
+    # None should be accepted as unavailable and yield missingness None, not 0
+    diag = compute_source_quality_diagnostics(mutated)
+    assert diag.missingness is None
+    mutated2 = valid.model_copy(update={"total_expected_rows": None})
+    diag2 = compute_source_quality_diagnostics(mutated2)
+    assert diag2.missingness is None
+
+
 def test_accepted_rejected_chronology() -> None:
-    # latest after evaluated should fail
     with pytest.raises((ValidationError, ValueError)):
         _input(latest_retrieved_at_utc=datetime(2026, 7, 22, 14, 0, tzinfo=UTC))
-    # timestamp start after end should fail
     with pytest.raises((ValidationError, ValueError)):
         _input(timestamp_start_utc=UTC_C, timestamp_end_utc=UTC_A)
 
 
 def test_credential_absence_not_displayed_as_value() -> None:
-    # Input has no credential value field; ensure model has no such field
     fields = set(SourceQualityInput.model_fields.keys())
     assert "credential_value" not in fields
     assert "api_key" not in fields
     assert "secret" not in fields
     assert "password" not in fields
-    # Diagnostics also must not have credential values
     diag_fields = set(SourceQualityDiagnostics.model_fields.keys())
     assert "credential_value" not in diag_fields
 
 
 def test_rights_freshness_snapshot_semantics_preserved() -> None:
-    # DfT historical only, WebTRIS external, etc. are enforced at snapshot level
-    # Verify source_quality respects freshness enum but does not inflate
     diag = compute_source_quality_diagnostics(
         _input(source_family=SourceFamily.DFT, freshness=SourceFreshnessStanding.HISTORICAL)
     )
     assert diag.freshness is SourceFreshnessStanding.HISTORICAL
-    # TFGM diagnostic with unavailable freshness
     diag2 = compute_source_quality_diagnostics(
         _input(source_family=SourceFamily.TFGM, freshness=SourceFreshnessStanding.UNAVAILABLE)
     )
     assert diag2.freshness is SourceFreshnessStanding.UNAVAILABLE
+
+
+def test_malformed_model_copy_spatial_bypass() -> None:
+    valid = _input(spatial_cells_total=10, spatial_cells_covered=7)
+    mutated = valid.model_copy(update={"spatial_cells_covered": 999})
+    with pytest.raises((ValidationError, ValueError)):
+        compute_source_quality_diagnostics(mutated)

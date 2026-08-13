@@ -35,7 +35,6 @@ def test_manchester_source_operations_page_renders() -> None:
     all_text = " ".join(
         captions + [str(x.value) for x in at.markdown] + [str(x.value) for x in at.subheader]
     )
-    # Must show bus semantics and truthful states
     assert "BODS" in all_text or "bus" in all_text.lower()
     subheaders = [str(s.value) for s in at.subheader]
     assert any("Source operations" in s for s in subheaders)
@@ -52,9 +51,7 @@ def test_manchester_source_operations_app_page_renders() -> None:
 def test_manchester_source_operations_shows_all_families_and_contracts() -> None:
     at = _run_pages_render()
     assert not at.exception
-    # Dataframes contain the per-family rows
     assert len(at.dataframe) >= 2, f"expected at least 2 dataframes, got {len(at.dataframe)}"
-    # Check expanders for each family contain CAN/CANNOT
     expander_labels = [str(e.label) for e in at.expander]
     assert len(expander_labels) >= 8
     all_markdown = " ".join(
@@ -64,7 +61,6 @@ def test_manchester_source_operations_shows_all_families_and_contracts() -> None
         "CAN infer" in all_markdown or "can_infer" in all_markdown.lower() or "Bus" in all_markdown
     )
     assert "CANNOT" in all_markdown or "cannot_infer" in all_markdown.lower()
-    # Ensure no secret or private path in rendered text
     all_values = " ".join(
         [str(t.value) for t in at.title]
         + [str(c.value) for c in at.caption]
@@ -79,14 +75,12 @@ def test_manchester_source_operations_shows_all_families_and_contracts() -> None
         "api_key" not in all_values.lower()
         or "api_key" in all_values.lower()
         and "api_key" not in all_values
-    )  # trivial
-    # Check that TfGM provider-required is visible
+    )
     assert (
         "PROVIDER_DATA_REQUIRED" in all_values
         or "provider-data-required" in all_values.lower()
         or "TfGM" in all_values
     )
-    # Check that BODS bus-only warning is visible
     assert "bus" in all_values.lower()
 
 
@@ -99,16 +93,12 @@ def test_manchester_source_operations_no_composite_score() -> None:
         + [str(c.value) for c in at.caption]
         + [str(m.value) for m in at.markdown]
     ).lower()
-    # No composite quality score should be invented - page explicitly states
-    # not combined, but no hidden numeric score should exist
     assert "quality_score" not in all_text
     assert "composite_score" not in all_text
-    # If the phrase appears it must be in a negative statement
     if "quality score" in all_text:
         assert "not combined" in all_text
     if "composite" in all_text:
         assert "not combined" in all_text or "no composite" in all_text
-    # But transparent rates are shown
     assert "missingness" in all_text or "duplicate" in all_text
 
 
@@ -120,9 +110,66 @@ def test_manchester_source_operations_demonstrator_never_claims_credentials() ->
         + [str(m.value) for m in at.markdown]
         + [str(t.value) for t in at.title]
     )
-    # Demonstrator must label credential-required correctly
-    # Check that credential presence is shown as ABSENT or CREDENTIAL_REQUIRED blocker
     assert "CREDENTIAL_REQUIRED" in all_text or "credential-required" in all_text.lower()
-    # Ensure no secret value pattern leaked
     assert "sk-" not in all_text
     assert "Bearer " not in all_text
+
+
+def test_manchester_source_operations_unavailable_markers_and_exact_denominators() -> None:
+    at = _run_pages_render()
+    assert not at.exception
+    all_text = " ".join(
+        [str(c.value) for c in at.caption]
+        + [str(m.value) for m in at.markdown]
+        + [str(s.value) for s in at.subheader]
+    )
+    # Unavailable marker must be rendered as — with explicit unavailable text
+    assert "—" in all_text
+    assert "unavailable" in all_text.lower() or "not measured" in all_text.lower()
+    # Denominator semantics must be explicit (rows unit) and no snapshot/row mix
+    low = all_text.lower()
+    assert "rejected_rate" in low or "rejected" in low
+    assert "rows" in low
+    assert "latest exact pointer" in low or "aggregation" in low.lower()
+    # Dataframe must show — for total_expected/present/missing etc.
+    # Check that at least one dataframe contains — in its values
+    found_dash = False
+    for df in at.dataframe:
+        # AppTest Dataframe.value is pandas.DataFrame; to_string() always returns str
+        val_str = df.value.to_string()
+        if "—" in val_str:
+            found_dash = True
+    assert found_dash, "quality dataframe should contain unavailable marker —"
+    # Ensure screened error not leaking exception payload: trigger no
+    # exception, but check message code
+    # The page should show lane-local reachability text
+    assert (
+        "not registered in shared navigation" in all_text.lower()
+        or "lane-local" in all_text.lower()
+    )
+
+
+def test_manchester_source_operations_no_default_zero_for_unmeasured() -> None:
+    """Unmeasured components must be — not 0 in dataframe."""
+
+    at = _run_pages_render()
+    assert not at.exception
+    # Find quality dataframe (second one)
+    assert len(at.dataframe) >= 2
+    # The quality dataframe is the second; check its columns for unavailable
+    # At least total_expected, missingness, duplicate should be —
+    for df in at.dataframe:
+        # AppTest Dataframe.value is pandas.DataFrame; to_dict() always returns dict
+        s = str(df.value.to_dict())
+        if "total_expected" in s or "missingness" in s:
+            assert "—" in s, f"expected unavailable marker in {s[:500]}"
+
+
+def test_manchester_source_operations_navigation_not_registered() -> None:
+    at = _run_pages_render()
+    assert not at.exception
+    all_text = " ".join([str(c.value) for c in at.caption] + [str(m.value) for m in at.markdown])
+    assert (
+        "parent reconciliation deferred" in all_text.lower()
+        or "reconciliation deferred" in all_text.lower()
+    )

@@ -9,6 +9,7 @@ from traffictwin.ui.manchester_source_operations import (
     build_demonstrator_catalogue,
     build_quality_inputs_for_catalogue,
     catalogue_row_display,
+    make_demonstrator_registry,
 )
 from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
@@ -33,12 +34,15 @@ def render() -> None:
         "models and receipts."
     )
 
-    # Build demonstrator catalogue via real service (no directory inference)
     try:
         catalogue = build_demonstrator_catalogue()
-        diagnostics = build_quality_inputs_for_catalogue(catalogue)
-    except Exception as exc:  # pragma: no cover
-        st.error(f"Unable to build demonstrator catalogue: {exc}")
+        registry = make_demonstrator_registry(catalogue.evaluated_at_utc)
+        diagnostics = build_quality_inputs_for_catalogue(catalogue, registry)
+    except Exception:  # pragma: no cover
+        st.error(
+            "Unable to build demonstrator catalogue (MANCHESTER_SOURCE_OPS_BUILD_FAILED). "
+            "Check operational inputs and retry."
+        )
         return
 
     st.caption(
@@ -47,13 +51,16 @@ def render() -> None:
         f"method {catalogue.method_version} · schema {catalogue.schema_version}"
     )
     st.caption(
+        "Lane-local page: not registered in shared navigation (parent reconciliation deferred); "
+        "reachable via direct import `traffictwin.ui.pages.manchester_source_operations:render`."
+    )
+    st.caption(
         "Demonstrator states: BODS credential-required, DFT/WebTRIS historical-only, "
         "National Highways credential-required, TfGM provider-data-required, "
         "SUMO not-detected, Manual synthetic-available, Static static-available. "
         "No credentials or measured TfGM traffic are claimed."
     )
 
-    # 1. Summary metrics — per-source, never combined into a composite score
     st.subheader("Catalogue summary")
     cols = st.columns(4)
     cols[0].metric("Source families", len(catalogue.sources))
@@ -74,7 +81,6 @@ def render() -> None:
         "Directory used as acceptance: never"
     )
 
-    # 2. Source operations table — all required columns
     st.subheader("Source operations")
     rows = [catalogue_row_display(r) for r in catalogue.sources]
     st.dataframe(
@@ -116,7 +122,6 @@ def render() -> None:
     st.caption("TfGM measured traffic requires provider data — static geography is context only.")
     st.caption("SUMO is simulation tooling/engineering output, never observation.")
 
-    # 3. Per-family detail expanders with CAN/CANNOT and snapshot details
     st.subheader("Source detail — CAN/CANNOT and snapshot receipts")
     for row in catalogue.sources:
         display = catalogue_row_display(row)
@@ -143,7 +148,6 @@ def render() -> None:
                 st.markdown(f"**Tool version:** {display['tool_version']}")
             st.markdown(f"**CAN infer:** {display['can_infer']}")
             st.markdown(f"**CANNOT infer:** {display['cannot_infer']}")
-            # Family-specific semantic guardrails
             if row.source.family.value == "bods":
                 st.warning(
                     "BODS is bus public-transport operations — CANNOT infer general or "
@@ -176,27 +180,35 @@ def render() -> None:
                     f"{row.latest_rejected_snapshot.rejection_reason}"
                 )
 
-    # 4. Quality / coverage diagnostics — transparent math, no composite score
     st.subheader("Quality and coverage diagnostics")
     st.caption(
-        "Each diagnostic is computed from explicit typed inputs only; "
-        "rates return None on zero denominators and no composite quality score is invented."
+        "Each diagnostic is computed from explicit typed inputs only; rates return "
+        "None on zero denominators or unavailable inputs and no composite quality "
+        "score is invented. Accepted/rejected row counts are in **rows** from the "
+        "latest accepted/rejected snapshot record_count only (aggregation: latest "
+        "exact pointer per family/state ordered by retrieved_at, no summation). "
+        "Components not measured by the snapshot contract (total_expected, missing, "
+        "duplicates, interval gaps, parser rejected rows, spatial denominator) are "
+        "unavailable and shown as —."
     )
     quality_rows = []
     for family, diag in diagnostics.items():
         quality_rows.append(
             {
                 "family": family.value,
-                "total_expected": diag.total_expected_rows,
-                "present": diag.present_rows,
-                "missing": diag.missing_rows,
+                "accepted_rows": diag.accepted_rows,
+                "rejected_rows": diag.rejected_rows,
+                "rejected_rate": f"{diag.rejected_rate:.3f}"
+                if diag.rejected_rate is not None
+                else "—",
+                "total_expected": "—"
+                if diag.total_expected_rows is None
+                else str(diag.total_expected_rows),
+                "present": "—" if diag.present_rows is None else str(diag.present_rows),
+                "missing": "—" if diag.missing_rows is None else str(diag.missing_rows),
                 "missingness": f"{diag.missingness:.3f}" if diag.missingness is not None else "—",
                 "duplicate_rate": f"{diag.duplicate_rate:.3f}"
                 if diag.duplicate_rate is not None
-                else "—",
-                "rejected": diag.rejected_rows,
-                "rejected_rate": f"{diag.rejected_rate:.3f}"
-                if diag.rejected_rate is not None
                 else "—",
                 "spatial_coverage": f"{diag.spatial_coverage_rate:.3f}"
                 if diag.spatial_coverage_rate is not None
@@ -222,15 +234,20 @@ def render() -> None:
                 "family": ColumnDisplay(key="family", label="Family"),
                 "missingness": ColumnDisplay(key="missingness", label="Missingness"),
                 "duplicate_rate": ColumnDisplay(key="duplicate_rate", label="Duplicate rate"),
-                "rejected_rate": ColumnDisplay(key="rejected_rate", label="Rejected rate"),
+                "rejected_rate": ColumnDisplay(key="rejected_rate", label="Rejected rate (rows)"),
                 "spatial_coverage": ColumnDisplay(key="spatial_coverage", label="Spatial coverage"),
             },
         ),
     )
     st.caption(
-        "Missingness = missing / total_expected; duplicate_rate = duplicate / present; "
-        "rejected_rate = rejected / (accepted+rejected); spatial_coverage = covered / total; "
-        "all None on zero denominators; interval gaps where gap > expected interval."
+        "Denominators (exact units): missingness = missing_rows (rows) / "
+        "total_expected_rows (rows); duplicate_rate = duplicate_rows (rows) / "
+        "present_rows (rows); rejected_rate = rejected_rows (rows) / "
+        "(accepted_rows (rows) + rejected_rows (rows)); spatial_coverage = "
+        "covered_cells / total_cells; "
+        "all None on zero/absent denominators; interval gaps where gap > expected interval. "
+        "Unavailable (—) means not measured by the snapshot contract — never inferred as 0. "
+        "Rejected rate denominator is rows from latest snapshots only, never snapshot counts."
     )
     with st.expander("Advanced: catalogue JSON (secret-free)"):
         st.download_button(

@@ -7,6 +7,50 @@ freshness delay, rejected-row counts, parser warnings, row counts and
 explicit limitations. No composite or scientific quality score is
 computed or implied.
 
+Denominator semantics (exact units — rows unless stated):
+
+* ``missingness = missing_rows / total_expected_rows`` — both in **rows**.
+  ``total_expected_rows`` is the true expected row count; when not
+  measured by the snapshot contract (which never measures it) the input
+  is ``None`` and ``missingness`` is ``None`` (rendered as —).
+* ``duplicate_rate = duplicate_rows / present_rows`` — both in **rows**.
+  ``duplicate_rows``/``present_rows`` are not measured by the snapshot
+  contract unless explicitly supplied; absent is ``None`` → ``None``.
+* ``rejected_rate = rejected_rows / (accepted_rows + rejected_rows)`` —
+  denominator is **row counts** summed from the latest accepted and
+  latest rejected snapshot registrations (see aggregation policy). Never
+  mixes snapshot counts with row counts; when denominator is 0 the rate
+  is ``None``.
+* ``spatial_coverage_rate = spatial_cells_covered / spatial_cells_total``
+  — denominator is spatial cells; ``None`` when either input is absent
+  or total is 0.
+* ``interval_gaps`` are derived from ``observed_timestamps_utc`` and
+  ``expected_interval_seconds``; both must be present else gaps are
+  empty/``None``. The snapshot contract does not provide timestamps, so
+  production inputs leave these ``None``.
+* ``parser_warning_count`` counts parser warnings supplied by the
+  caller; the snapshot contract does not expose parser-rejected row
+  counts, so those remain ``None``/unavailable unless explicitly
+  provided.
+
+Aggregation policy (deterministic, bounded):
+
+When multiple accepted or rejected registrations exist for one family,
+the quality view uses **latest exact pointer only** — the single
+registration with the greatest ``(retrieved_at_utc, registration_id)``
+matching the family and the required validation state. No summation or
+double-counting across historical registrations occurs. This is declared
+and tested explicitly. An empty registry yields ``0`` accepted/rejected
+rows and ``None`` for all unmeasured inputs.
+
+Unavailable semantics:
+
+Any component not measured by the snapshot contract (true expected rows,
+missing rows, duplicates, interval gaps, parser rejected rows, spatial
+denominator, timestamp bounds unless explicitly supplied) is
+``None``/unavailable and rendered as ``—`` with explicit unavailable
+text — never inferred as ``0``.
+
 No network access, filesystem discovery, credential probing, or private
 persistence is performed. All free-text values are screened for secret
 values and private absolute paths.
@@ -98,14 +142,23 @@ class SourceQualityInput(SourceQualityModel):
 
     All counts are caller-supplied; no filesystem or network is consulted.
     Timestamp values are timezone-aware UTC and ordered where applicable.
+
+    Unmeasured components (true expected rows, missing rows, duplicate_rows,
+    interval gaps, spatial denominator, parser-rejected rows) are ``None``
+    when not measured by the snapshot contract — never inferred as 0.
+    Accepted/rejected rows are measured in **rows** from snapshot
+    registrations (latest exact pointer only per aggregation policy);
+    see module docstring for denominator semantics.
     """
 
     source_family: SourceFamily
     evaluated_at_utc: datetime
-    total_expected_rows: int = Field(ge=0)
-    present_rows: int = Field(ge=0)
-    missing_rows: int = Field(ge=0)
-    duplicate_rows: int = Field(ge=0)
+    # Unmeasured by snapshot contract → None when absent; rows unit.
+    total_expected_rows: int | None = Field(default=None, ge=0)
+    present_rows: int | None = Field(default=None, ge=0)
+    missing_rows: int | None = Field(default=None, ge=0)
+    duplicate_rows: int | None = Field(default=None, ge=0)
+    # Measured from registry latest pointers — rows unit.
     accepted_rows: int = Field(ge=0)
     rejected_rows: int = Field(ge=0)
     parser_warnings: tuple[str, ...] = ()
@@ -135,21 +188,31 @@ class SourceQualityInput(SourceQualityModel):
 
     @model_validator(mode="after")
     def _validate_counts(self) -> Self:
-        if self.missing_rows > self.total_expected_rows:
+        if (
+            self.total_expected_rows is not None
+            and self.missing_rows is not None
+            and self.missing_rows > self.total_expected_rows
+        ):
             raise ValueError("missing rows must not exceed total expected rows")
         if (
-            self.present_rows > self.total_expected_rows
+            self.total_expected_rows is not None
+            and self.present_rows is not None
             and self.total_expected_rows != 0
             and self.present_rows != 0
+            and self.present_rows > self.total_expected_rows
         ):
             raise ValueError("present rows must not exceed total expected when total known")
-        if self.duplicate_rows > self.present_rows:
+        if (
+            self.present_rows is not None
+            and self.duplicate_rows is not None
+            and self.duplicate_rows > self.present_rows
+        ):
             raise ValueError("duplicate rows must not exceed present rows")
         if (
-            self.accepted_rows + self.rejected_rows > self.total_expected_rows
+            self.total_expected_rows is not None
             and self.total_expected_rows != 0
+            and self.accepted_rows + self.rejected_rows > self.total_expected_rows
         ):
-            # accepted+rejected is a subset of ingestion; allow but not exceed total
             raise ValueError("accepted+rejected must not exceed total expected")
         if (
             self.spatial_cells_total is not None
@@ -170,7 +233,6 @@ class SourceQualityInput(SourceQualityModel):
             and self.latest_retrieved_at_utc > self.evaluated_at_utc
         ):
             raise ValueError("latest retrieval must not be after evaluated time")
-        # observed timestamps must be UTC, sorted ascending, unique
         for ts in self.observed_timestamps_utc:
             _require_utc(ts, "observed timestamp")
         if self.observed_timestamps_utc != tuple(sorted(self.observed_timestamps_utc)):
@@ -178,9 +240,7 @@ class SourceQualityInput(SourceQualityModel):
         if len(self.observed_timestamps_utc) != len(set(self.observed_timestamps_utc)):
             raise ValueError("observed timestamps must be unique")
         if self.observed_timestamps_utc and self.expected_interval_seconds is None:
-            # gaps cannot be computed without expectation; keep but gap calc will be empty
             pass
-        # coverage summary must not contain private paths/secrets (handled by base)
         return self
 
 
@@ -188,16 +248,22 @@ class SourceQualityDiagnostics(SourceQualityModel):
     """Transparent, typed quality diagnostics with precisely defined math.
 
     No composite or scientific quality score is present. Every rate uses an
-    explicit denominator and returns ``None`` when that denominator is zero
-    or the prerequisite input is absent, never a synthetic default.
+    explicit denominator and returns ``None`` when that denominator is zero,
+    absent, or the prerequisite input is ``None``, never a synthetic default.
+    See module docstring for exact denominator semantics and aggregation
+    policy (latest exact pointer only, rows unit).
+
+    Fields with ``None`` mean unavailable/not measured by the snapshot
+    contract and must be rendered as ``—`` / explicit unavailable — never
+    inferred as ``0``.
     """
 
     source_family: SourceFamily
     evaluated_at_utc: datetime
-    total_expected_rows: int = Field(ge=0)
-    present_rows: int = Field(ge=0)
-    missing_rows: int = Field(ge=0)
-    duplicate_rows: int = Field(ge=0)
+    total_expected_rows: int | None = Field(default=None, ge=0)
+    present_rows: int | None = Field(default=None, ge=0)
+    missing_rows: int | None = Field(default=None, ge=0)
+    duplicate_rows: int | None = Field(default=None, ge=0)
     accepted_rows: int = Field(ge=0)
     rejected_rows: int = Field(ge=0)
     missingness: float | None = Field(default=None, ge=0.0, le=1.0)
@@ -222,7 +288,6 @@ class SourceQualityDiagnostics(SourceQualityModel):
 
     @model_validator(mode="after")
     def _validate_diagnostics(self) -> Self:
-        # Canonical revalidation of nested gaps
         for gap in self.interval_gaps:
             try:
                 IntervalGap.model_validate(gap.model_dump(mode="python"))
@@ -230,18 +295,20 @@ class SourceQualityDiagnostics(SourceQualityModel):
                 raise ValueError("interval gap failed canonical revalidation") from exc
         if self.interval_gap_count != len(self.interval_gaps):
             raise ValueError("gap count must equal gaps length")
-        # No quality score field may exist (structural guarantee via extra=forbid)
-        # Rates already range-checked
         return self
 
 
-def _compute_missingness(total: int, missing: int) -> float | None:
+def _compute_missingness(total: int | None, missing: int | None) -> float | None:
+    if total is None or missing is None:
+        return None
     if total == 0:
         return None
     return missing / total
 
 
-def _compute_duplicate_rate(present: int, duplicate: int) -> float | None:
+def _compute_duplicate_rate(present: int | None, duplicate: int | None) -> float | None:
+    if present is None or duplicate is None:
+        return None
     if present == 0:
         return None
     return duplicate / present
@@ -302,10 +369,11 @@ def compute_source_quality_diagnostics(
 
     The input is canonically revalidated from its dump to close
     ``model_copy`` mutation bypass. All rates return ``None`` on zero
-    denominators rather than raising or defaulting.
+    denominators or ``None`` inputs rather than raising or defaulting.
+    Aggregation and denominator semantics are as documented in the module
+    docstring.
     """
 
-    # Canonical revalidation at the persistence boundary to defeat model_copy bypass
     try:
         quality_input = SourceQualityInput.model_validate(quality_input.model_dump(mode="python"))
     except Exception as exc:
@@ -355,7 +423,6 @@ def compute_source_quality_diagnostics(
         schema_version=quality_input.schema_version,
         coverage_summary=quality_input.coverage_summary,
     )
-    # Final canonical revalidation
     try:
         diagnostics = SourceQualityDiagnostics.model_validate(diagnostics.model_dump(mode="python"))
     except Exception as exc:
