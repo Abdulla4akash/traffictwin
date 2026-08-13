@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timedelta
-from enum import StrEnum
 from typing import Self
 
 from pydantic import Field, field_validator, model_validator
@@ -23,6 +22,7 @@ from pydantic import Field, field_validator, model_validator
 from traffictwin.integration.manchester.models import ManchesterSnapshotModel
 from traffictwin.integration.manchester.source_operations_models import (
     EvidenceStanding,
+    SnapshotValidationState,
     SourceFamily,
     SourceFreshnessStanding,
     source_definition,
@@ -32,13 +32,17 @@ SNAPSHOT_REGISTRY_SCHEMA_VERSION = "1.0"
 SNAPSHOT_REGISTRY_METHOD_VERSION = "manchester-snapshot-registry-1.0"
 
 _SAFE_LABEL_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
-_PRIVATE_PATH_RE = re.compile(r"(/Users/|/home/|/private/|/var/|/tmp/|~/|[A-Za-z]:\\)")
+_PRIVATE_PATH_RE = re.compile(r"(/Users/|/home/|/private/|/var/|/tmp/|/etc/|~/|[A-Za-z]:\\)")
 _SECRET_VALUE_RE = re.compile(
     r"(?i)(?:bearer\s+[A-Za-z0-9._~+/=-]{8,}|sk-[A-Za-z0-9_-]{8,}|"
     r"(?:api[_-]?key|password|secret|token)\s*[:=]\s*[^\s,;]{4,})"
 )
 _OPAQUE_REF_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$"
-_BODS_BUS_TOKEN_RE = re.compile(r"(?i)general.*road.*traffic|private.*vehicle.*traffic")
+_BODS_BUS_REQUIRED_RE = re.compile(r"(?i)\bbus\b")
+_BODS_FORBIDDEN_RE = re.compile(
+    r"(?i)(general.*road.*traffic|private.*vehicle.*traffic|"
+    r"traffic volume|city-wide|city wide|complete.*manchester|congestion)"
+)
 
 
 def _screen_portable_text(value: str, label: str) -> str:
@@ -53,13 +57,6 @@ def _require_utc(value: datetime, label: str) -> datetime:
     if value.tzinfo is None or value.utcoffset() != timedelta(0):
         raise ValueError(f"{label} must be timezone-aware UTC")
     return value
-
-
-class SnapshotValidationState(StrEnum):
-    """Validation outcome for one immutable snapshot."""
-
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
 
 
 class SnapshotRegistryError(RuntimeError):
@@ -131,20 +128,24 @@ class SnapshotRegistration(SnapshotRegistryModel):
             and self.validation_state is SnapshotValidationState.ACCEPTED
         ):
             raise ValueError("TfGM measured traffic has no accepted snapshot")
-        if self.source_family is SourceFamily.BODS and _BODS_BUS_TOKEN_RE.search(
-            self.coverage_summary
-        ):
-            raise ValueError("BODS is bus-only; general road traffic relabel rejected")
+        if self.source_family is SourceFamily.BODS:
+            if not _BODS_BUS_REQUIRED_RE.search(self.coverage_summary):
+                raise ValueError("BODS is bus-only; coverage must reference bus")
+            if _BODS_FORBIDDEN_RE.search(self.coverage_summary):
+                raise ValueError("BODS is bus-only; general road traffic relabel rejected")
         if self.source_family in {
             SourceFamily.WEBTRIS,
             SourceFamily.NATIONAL_HIGHWAYS,
         }:
-            # Strategic-road sources must not claim Manchester city-road coverage
             lowered = self.coverage_summary.lower()
+            if "city-wide" in lowered or "city wide" in lowered:
+                raise ValueError("strategic-road source cannot claim city-wide coverage")
+            if "complete manchester" in lowered or "full manchester" in lowered:
+                raise ValueError("strategic-road source cannot claim complete Manchester coverage")
             if (
-                "manchester city-road" in lowered
-                and "strategic" not in lowered
-                and "city-road" in lowered
+                "manchester" in lowered
+                and ("city-road" in lowered or "city road" in lowered)
+                and "external to" not in lowered
             ):
                 raise ValueError("strategic-road source cannot claim Manchester city-road")
         return self
@@ -170,8 +171,6 @@ class SnapshotRegistry(SnapshotRegistryModel):
             raise ValueError("registration ids must be unique")
         if ids != sorted(ids):
             raise ValueError("snapshots must be sorted by registration_id")
-        # Fingerprint uniqueness (distinct content should have distinct registration,
-        # but same fingerprint with different registration is allowed as distinct retrieval)
         return self
 
 
@@ -184,7 +183,8 @@ def register_snapshot(
     If ``registration_id`` already exists with identical canonical JSON the original
     registry is returned unchanged (idempotent). If the id exists with different
     content the operation fails with a conflict error. The resulting snapshots
-    remain sorted by registration_id.
+    remain sorted by registration_id. Identical snapshot identity and content
+    fingerprint must retain a single canonical terminal state.
     """
 
     for existing in registry.snapshots:
@@ -198,8 +198,29 @@ def register_snapshot(
                 f"registration {registration.registration_id!r} already exists "
                 "with different content",
             )
-    # Also detect duplicate content fingerprint + retrieved time + source as potential
-    # duplicate retrieval with different id; allow but keep deterministic ordering.
+    # Canonical terminal state: same immutable identity/content cannot have
+    # conflicting accepted/rejected states under distinct registration ids.
+    for existing in registry.snapshots:
+        if (
+            existing.snapshot_identity == registration.snapshot_identity
+            and existing.content_fingerprint == registration.content_fingerprint
+            and existing.validation_state != registration.validation_state
+        ):
+            raise SnapshotRegistryError(
+                "CONFLICT",
+                f"canonical terminal state conflict for identical snapshot "
+                f"identity {registration.snapshot_identity!r} and content",
+            )
+        if (
+            existing.content_fingerprint == registration.content_fingerprint
+            and existing.validation_state != registration.validation_state
+        ):
+            raise SnapshotRegistryError(
+                "CONFLICT",
+                f"canonical terminal state conflict for identical content fingerprint "
+                f"{registration.content_fingerprint[:12]!r}",
+            )
+
     new_snapshots = tuple(
         sorted((*registry.snapshots, registration), key=lambda s: s.registration_id)
     )
@@ -230,7 +251,6 @@ def latest_snapshot_for_family(
     candidates = [s for s in registry.snapshots if s.source_family is family]
     if not candidates:
         return None
-    # Latest is max by retrieved_at_utc, then lexicographically by registration_id for determinism
     return max(candidates, key=lambda s: (s.retrieved_at_utc, s.registration_id))
 
 

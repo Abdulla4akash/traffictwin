@@ -21,7 +21,7 @@ SOURCE_OPERATIONS_SCHEMA_VERSION = "1.0"
 SOURCE_OPERATIONS_METHOD_VERSION = "manchester-source-operations-1.0"
 
 _SAFE_LABEL_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
-_PRIVATE_PATH_RE = re.compile(r"(/Users/|/home/|/private/|/var/|/tmp/|~/|[A-Za-z]:\\)")
+_PRIVATE_PATH_RE = re.compile(r"(/Users/|/home/|/private/|/var/|/tmp/|/etc/|~/|[A-Za-z]:\\)")
 _SECRET_VALUE_RE = re.compile(
     r"(?i)(?:bearer\s+[A-Za-z0-9._~+/=-]{8,}|sk-[A-Za-z0-9_-]{8,}|"
     r"(?:api[_-]?key|password|secret|token)\s*[:=]\s*[^\s,;]{4,})"
@@ -75,6 +75,13 @@ class EvidenceStanding(StrEnum):
     SYNTHETIC_DATA = "SYNTHETIC DATA"
     SIMULATION_OUTPUT = "SIMULATION OUTPUT"
     DESIGN_ONLY_CAPABILITY = "DESIGN-ONLY CAPABILITY"
+
+
+class SnapshotValidationState(StrEnum):
+    """Validation outcome for one immutable snapshot."""
+
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
 
 
 class SourceCurrentStanding(StrEnum):
@@ -255,6 +262,8 @@ class SourceRuntimeMetadata(SourceOperationsModel):
 class SnapshotPointer(SourceOperationsModel):
     """Minimal portable reference to one immutable registry record."""
 
+    source_family: SourceFamily
+    validation_state: SnapshotValidationState
     registration_id: str = Field(pattern=_SAFE_LABEL_PATTERN)
     snapshot_identity: str = Field(pattern=_SAFE_LABEL_PATTERN)
     content_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -305,6 +314,95 @@ class SourceReadiness(SourceOperationsModel):
             self.latest_accepted_snapshot is not None or self.latest_rejected_snapshot is not None
         ):
             raise ValueError("snapshot pointers require a latest retrieval time")
+
+        # Cross-field runtime rules re-enforced at persistence boundary
+        blocked = self.current_standing in {
+            SourceCurrentStanding.CREDENTIAL_REQUIRED,
+            SourceCurrentStanding.PROVIDER_DATA_REQUIRED,
+            SourceCurrentStanding.NOT_DETECTED,
+            SourceCurrentStanding.UNAVAILABLE,
+        }
+        if blocked != (self.blocker is not None and self.owner_action is not None):
+            raise ValueError("blocked standing requires both blocker and owner action")
+        if (
+            self.current_standing is SourceCurrentStanding.CREDENTIAL_REQUIRED
+            and self.credential_presence is not CredentialPresence.ABSENT
+        ):
+            raise ValueError("credential-required standing requires absent credential")
+        if self.source.family is SourceFamily.TFGM:
+            if self.current_standing is not SourceCurrentStanding.PROVIDER_DATA_REQUIRED:
+                raise ValueError("TfGM measured traffic remains provider-data-required")
+            if self.credential_presence is not CredentialPresence.UNKNOWN:
+                raise ValueError("TfGM measured traffic remains provider-data-required")
+        if self.source.family in {SourceFamily.DFT, SourceFamily.WEBTRIS} and (
+            self.credential_presence is not CredentialPresence.NOT_REQUIRED
+        ):
+            raise ValueError("the frozen public historical source does not take credentials")
+        if (
+            self.source.family
+            in {
+                SourceFamily.SUMO,
+                SourceFamily.MANUAL_INCIDENT,
+                SourceFamily.STATIC_MANCHESTER_GEOGRAPHY,
+            }
+            and self.credential_presence is not CredentialPresence.NOT_REQUIRED
+        ):
+            raise ValueError("this source family does not take provider credentials")
+
+        if self.current_standing is SourceCurrentStanding.INSTALLATION_DETECTED:
+            if self.tool_version is None or self.receipt is None:
+                raise ValueError("detected SUMO requires version and verified receipt")
+        elif self.tool_version is not None:
+            raise ValueError("tool version is valid only for a detected SUMO installation")
+        if self.source.family is not SourceFamily.SUMO and self.current_standing in {
+            SourceCurrentStanding.INSTALLATION_DETECTED,
+            SourceCurrentStanding.NOT_DETECTED,
+        }:
+            raise ValueError("installation standing is reserved for SUMO")
+
+        # Pointer family and validation_state binding
+        if self.latest_accepted_snapshot is not None:
+            if self.latest_accepted_snapshot.source_family is not self.source.family:
+                raise ValueError("accepted pointer family must match row family")
+            if (
+                self.latest_accepted_snapshot.validation_state
+                is not SnapshotValidationState.ACCEPTED
+            ):
+                raise ValueError("accepted pointer must carry accepted validation state")
+        if self.latest_rejected_snapshot is not None:
+            if self.latest_rejected_snapshot.source_family is not self.source.family:
+                raise ValueError("rejected pointer family must match row family")
+            if (
+                self.latest_rejected_snapshot.validation_state
+                is not SnapshotValidationState.REJECTED
+            ):
+                raise ValueError("rejected pointer must carry rejected validation state")
+
+        # latest_retrieval_at must equal max pointer time when pointers exist
+        candidates: list[datetime] = []
+        if self.latest_accepted_snapshot is not None:
+            candidates.append(self.latest_accepted_snapshot.retrieved_at_utc)
+        if self.latest_rejected_snapshot is not None:
+            candidates.append(self.latest_rejected_snapshot.retrieved_at_utc)
+        if candidates:
+            if self.latest_retrieval_at_utc is None:
+                raise ValueError("latest retrieval must equal max pointer time")
+            expected = max(candidates)
+            if self.latest_retrieval_at_utc != expected:
+                raise ValueError("latest retrieval must equal maximum pointer time")
+        else:
+            if self.latest_retrieval_at_utc is not None:
+                raise ValueError("latest retrieval must be None when no pointers exist")
+
+        # BODS unavailable with credentials present and no blocker must fail
+        if (
+            self.source.family is SourceFamily.BODS
+            and self.current_standing is SourceCurrentStanding.UNAVAILABLE
+            and self.credential_presence is CredentialPresence.PRESENT
+            and self.blocker is None
+        ):
+            raise ValueError("BODS unavailable with credentials present requires blocker")
+
         return self
 
 
@@ -336,6 +434,25 @@ class SourceOperationsCatalogue(SourceOperationsModel):
             or self.directory_presence_used_as_acceptance
         ):
             raise ValueError("source operations catalogue must remain metadata-only")
+        # Future-evidence guard: no pointer/receipt/latest after evaluated_at
+        for row in self.sources:
+            if (
+                row.latest_retrieval_at_utc is not None
+                and row.latest_retrieval_at_utc > self.evaluated_at_utc
+            ):
+                raise ValueError("latest retrieval must not be later than evaluated_at")
+            if (
+                row.latest_accepted_snapshot is not None
+                and row.latest_accepted_snapshot.retrieved_at_utc > self.evaluated_at_utc
+            ):
+                raise ValueError("pointer time must not be later than evaluated_at")
+            if (
+                row.latest_rejected_snapshot is not None
+                and row.latest_rejected_snapshot.retrieved_at_utc > self.evaluated_at_utc
+            ):
+                raise ValueError("pointer time must not be later than evaluated_at")
+            if row.receipt is not None and row.receipt.observed_at_utc > self.evaluated_at_utc:
+                raise ValueError("receipt time must not be later than evaluated_at")
         return self
 
 
@@ -574,6 +691,7 @@ __all__ = [
     "SOURCE_OPERATIONS_METHOD_VERSION",
     "SOURCE_OPERATIONS_SCHEMA_VERSION",
     "SnapshotPointer",
+    "SnapshotValidationState",
     "SourceCurrentStanding",
     "SourceDefinition",
     "SourceFamily",

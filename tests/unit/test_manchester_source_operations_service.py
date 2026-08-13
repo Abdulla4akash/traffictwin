@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 from datetime import UTC, datetime
 
 import pytest
@@ -19,12 +20,14 @@ from traffictwin.integration.manchester.source_operations_models import (
     EvidenceStanding,
     OperationalReceipt,
     RightsStanding,
-    SnapshotPointer,
     SourceCurrentStanding,
     SourceFamily,
     SourceFreshnessStanding,
     SourceOperationsCatalogue,
     SourceRuntimeMetadata,
+)
+from traffictwin.integration.manchester.source_operations_models import (
+    SnapshotValidationState as OpsValidationState,
 )
 from traffictwin.integration.manchester.source_operations_service import (
     SourceOperationsServiceError,
@@ -35,6 +38,7 @@ from traffictwin.integration.manchester.source_operations_service import (
 UTC_NOW = datetime(2026, 7, 22, 13, 0, 0, tzinfo=UTC)
 UTC_A = datetime(2026, 7, 22, 10, 0, 0, tzinfo=UTC)
 UTC_B = datetime(2026, 7, 22, 11, 0, 0, tzinfo=UTC)
+UTC_FUTURE = datetime(2026, 7, 22, 14, 0, 0, tzinfo=UTC)
 
 
 def _fp(seed: str) -> str:
@@ -106,44 +110,22 @@ def _valid_runtime() -> dict[SourceFamily, SourceRuntimeMetadata]:
     }
 
 
-def _empty_pointers() -> dict[SourceFamily, SnapshotPointer | None]:
-    return dict.fromkeys(SourceFamily, None)  # type: ignore[arg-type]  # noqa: C420
-
-
-def _empty_latest() -> dict[SourceFamily, datetime | None]:
-    return dict.fromkeys(SourceFamily, None)  # type: ignore[arg-type]  # noqa: C420
+def _empty_registry() -> SnapshotRegistry:
+    return SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
 
 
 def test_build_complete_catalogue_from_verified_metadata() -> None:
     runtime = _valid_runtime()
-    accepted = _empty_pointers()
-    rejected = _empty_pointers()
-    latest = _empty_latest()
-    # Add one accepted BODS pointer
-    fp = _fp("bods-content")
-    bods_pointer = SnapshotPointer(
-        registration_id="reg-bods-001",
-        snapshot_identity="snap-bods-001",
-        content_fingerprint=fp,
-        retrieved_at_utc=UTC_A,
-        validation_receipt_fingerprint=_fp("receipt-bods"),
-    )
-    accepted[SourceFamily.BODS] = bods_pointer
-    latest[SourceFamily.BODS] = UTC_A
-
+    empty = _empty_registry()
+    # Build with empty registry (no snapshots) via registry-only path
     catalogue = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry_fingerprint_value=_fp("registry"),
+        snapshot_registry=empty,
         runtime_by_family=runtime,
-        accepted_pointers=accepted,
-        rejected_pointers=rejected,
-        latest_retrieval_by_family=latest,
     )
     assert isinstance(catalogue, SourceOperationsCatalogue)
     assert len(catalogue.sources) == 8
-    assert tuple(s.source.family for s in catalogue.sources) == tuple(
-        SourceFamily.__members__.values()
-    ) or tuple(s.source.family for s in catalogue.sources) == (
+    assert tuple(s.source.family for s in catalogue.sources) == (
         SourceFamily.BODS,
         SourceFamily.DFT,
         SourceFamily.WEBTRIS,
@@ -153,29 +135,53 @@ def test_build_complete_catalogue_from_verified_metadata() -> None:
         SourceFamily.MANUAL_INCIDENT,
         SourceFamily.STATIC_MANCHESTER_GEOGRAPHY,
     )
-    # Network-free and credential-value-free
     assert catalogue.network_access_performed is False
     assert catalogue.credential_values_present is False
     assert catalogue.directory_presence_used_as_acceptance is False
-    # BODS remains bus-only
     bods_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.BODS)
     assert any("General or private-vehicle road traffic" in s for s in bods_row.source.cannot_infer)
     assert bods_row.source.evidence_standing == EvidenceStanding.REAL_MANCHESTER_DATA
     assert bods_row.source.semantic_role == "bus_vehicle_positions"
-    # WebTRIS/NH are external strategic-road
     wt_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.WEBTRIS)
     assert wt_row.source.evidence_standing == EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA
     nh_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.NATIONAL_HIGHWAYS)
     assert nh_row.source.evidence_standing == EvidenceStanding.REAL_EXTERNAL_NON_MANCHESTER_DATA
-    # TfGM is design-only unavailable
     tfgm_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.TFGM)
     assert tfgm_row.source.evidence_standing == EvidenceStanding.DESIGN_ONLY_CAPABILITY
     assert tfgm_row.current_standing == SourceCurrentStanding.PROVIDER_DATA_REQUIRED
     assert tfgm_row.latest_accepted_snapshot is None
+    # Now with one BODS accepted snapshot via registry
+    bods_reg = SnapshotRegistration(
+        registration_id="reg-bods-001",
+        snapshot_identity="snap-bods-001",
+        content_fingerprint=_fp("bods-001"),
+        retrieved_at_utc=UTC_A,
+        source_family=SourceFamily.BODS,
+        coverage_summary="Bus transit positions in admitted GM box",
+        record_count=1565,
+        parser_version="bods-parser-1.0",
+        schema_version="bods-schema-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.LIVE_VEHICLE,
+        storage_reference="opaque://snapshots/bods-001",
+        provenance_fingerprint=_fp("prov-bods"),
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+    )
+    reg1 = register_snapshot(empty, bods_reg)
+    cat2 = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_NOW,
+        snapshot_registry=reg1,
+        runtime_by_family=runtime,
+    )
+    bods_row2 = next(s for s in cat2.sources if s.source.family is SourceFamily.BODS)
+    assert bods_row2.latest_accepted_snapshot is not None
+    assert bods_row2.latest_accepted_snapshot.registration_id == "reg-bods-001"
+    assert bods_row2.latest_accepted_snapshot.source_family is SourceFamily.BODS
+    assert bods_row2.latest_accepted_snapshot.validation_state is OpsValidationState.ACCEPTED
+    assert bods_row2.latest_retrieval_at_utc == UTC_A
 
 
 def test_bods_relabel_via_tampered_definition_rejected() -> None:
-    # Directly constructing a SourceReadiness with tampered BODS definition should fail frozen check
     from traffictwin.integration.manchester.source_operations_models import (
         SourceDefinition,
         SourceReadiness,
@@ -195,8 +201,6 @@ def test_bods_relabel_via_tampered_definition_rejected() -> None:
         allowed_current_standings=(SourceCurrentStanding.AVAILABLE,),
         allowed_freshness=(SourceFreshnessStanding.LIVE_VEHICLE,),
     )
-    # The service builds from frozen definitions, so tampered definition never enters via service.
-    # But direct readiness creation with tampered source must be rejected by frozen equality check.
     with pytest.raises((ValidationError, ValueError)):
         SourceReadiness(
             source=tampered,
@@ -213,15 +217,13 @@ def test_bods_relabel_via_tampered_definition_rejected() -> None:
 
 
 def test_unavailable_inflation_rejected() -> None:
-    # Try to inflate TfGM to AVAILABLE
     with pytest.raises((ValidationError, ValueError)):
         SourceRuntimeMetadata(
             source_family=SourceFamily.TFGM,
-            current_standing=SourceCurrentStanding.AVAILABLE,  # not allowed
+            current_standing=SourceCurrentStanding.AVAILABLE,
             credential_presence=CredentialPresence.UNKNOWN,
             freshness=SourceFreshnessStanding.UNAVAILABLE,
         )
-    # Try to inflate DfT to AVAILABLE (only HISTORICAL_ONLY/UNAVAILABLE allowed)
     with pytest.raises((ValidationError, ValueError)):
         SourceRuntimeMetadata(
             source_family=SourceFamily.DFT,
@@ -229,8 +231,6 @@ def test_unavailable_inflation_rejected() -> None:
             credential_presence=CredentialPresence.NOT_REQUIRED,
             freshness=SourceFreshnessStanding.HISTORICAL,
         )
-    # Service should also reject if runtime tries to inflate
-    # We already validated metadata creation fails; also verify SUMO rejects AVAILABLE.
     with pytest.raises((ValidationError, ValueError)):
         SourceRuntimeMetadata(
             source_family=SourceFamily.SUMO,
@@ -241,7 +241,6 @@ def test_unavailable_inflation_rejected() -> None:
 
 
 def test_secret_and_path_leakage_rejected() -> None:
-    # Runtime metadata must reject secret-like owner_action
     with pytest.raises((ValidationError, ValueError)):
         SourceRuntimeMetadata(
             source_family=SourceFamily.BODS,
@@ -249,7 +248,7 @@ def test_secret_and_path_leakage_rejected() -> None:
             credential_presence=CredentialPresence.ABSENT,
             freshness=SourceFreshnessStanding.UNAVAILABLE,
             blocker="CREDENTIAL_REQUIRED",
-            owner_action="Set api_key=sk-1234567890abcdef",
+            owner_action="Set api_key=[REDACTED]",
         )
     with pytest.raises((ValidationError, ValueError)):
         SourceRuntimeMetadata(
@@ -258,11 +257,9 @@ def test_secret_and_path_leakage_rejected() -> None:
             credential_presence=CredentialPresence.PRESENT,
             freshness=SourceFreshnessStanding.NEAR_LIVE,
             blocker=None,
-            owner_action="token: secret1234",  # secret pattern in free text screening
+            owner_action="token: secret1234",
         )
-    # Service should reject runtime containing secret in dump
     with pytest.raises((ValidationError, ValueError, SourceOperationsServiceError)):
-        # owner_action containing private path
         bad = SourceRuntimeMetadata(
             source_family=SourceFamily.BODS,
             current_standing=SourceCurrentStanding.CREDENTIAL_REQUIRED,
@@ -273,125 +270,162 @@ def test_secret_and_path_leakage_rejected() -> None:
         )
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry_fingerprint_value=_fp("reg"),
+            snapshot_registry=_empty_registry(),
             runtime_by_family={**_valid_runtime(), SourceFamily.BODS: bad},
-            accepted_pointers=_empty_pointers(),
-            rejected_pointers=_empty_pointers(),
-            latest_retrieval_by_family=_empty_latest(),
+        )
+    # /etc must also be rejected
+    with pytest.raises((ValidationError, ValueError)):
+        SourceRuntimeMetadata(
+            source_family=SourceFamily.BODS,
+            current_standing=SourceCurrentStanding.CREDENTIAL_REQUIRED,
+            credential_presence=CredentialPresence.ABSENT,
+            freshness=SourceFreshnessStanding.UNAVAILABLE,
+            blocker="CREDENTIAL_REQUIRED",
+            owner_action="Check /etc/passwd",
         )
 
 
 def test_accepted_rejected_latest_ordering_and_service_validation() -> None:
     runtime = _valid_runtime()
-    # Create pointers with ordering: accepted at A, rejected at B (later)
-    fp_a = _fp("acc-a")
-    fp_r = _fp("rej-b")
-    acc = SnapshotPointer(
+    empty = _empty_registry()
+    # Create registry with accepted at A and rejected at B (later) for DFT
+    reg_acc = SnapshotRegistration(
         registration_id="reg-dft-acc",
         snapshot_identity="snap-dft-acc",
-        content_fingerprint=fp_a,
+        content_fingerprint=_fp("acc-a"),
         retrieved_at_utc=UTC_A,
-        validation_receipt_fingerprint=_fp("receipt-acc"),
+        source_family=SourceFamily.DFT,
+        coverage_summary="Admitted DfT count points",
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.ACCEPTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/dft-acc",
+        provenance_fingerprint=_fp("prov-acc"),
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
     )
-    rej = SnapshotPointer(
+    reg_rej = SnapshotRegistration(
         registration_id="reg-dft-rej",
         snapshot_identity="snap-dft-rej",
-        content_fingerprint=fp_r,
+        content_fingerprint=_fp("rej-b"),
         retrieved_at_utc=UTC_B,
-        validation_receipt_fingerprint=_fp("receipt-rej"),
+        source_family=SourceFamily.DFT,
+        coverage_summary="Admitted DfT count points rejected",
+        record_count=10,
+        parser_version="p-1.0",
+        schema_version="s-1.0",
+        validation_state=SnapshotValidationState.REJECTED,
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        storage_reference="opaque://x/dft-rej",
+        provenance_fingerprint=_fp("prov-rej"),
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
     )
-    accepted = _empty_pointers()
-    rejected = _empty_pointers()
-    latest = _empty_latest()
-    accepted[SourceFamily.DFT] = acc
-    rejected[SourceFamily.DFT] = rej
-    latest[SourceFamily.DFT] = UTC_B  # latest is max of both
+    r1 = register_snapshot(empty, reg_acc)
+    r2 = register_snapshot(r1, reg_rej)
 
     catalogue = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry_fingerprint_value=_fp("registry"),
+        snapshot_registry=r2,
         runtime_by_family=runtime,
-        accepted_pointers=accepted,
-        rejected_pointers=rejected,
-        latest_retrieval_by_family=latest,
     )
     dft_row = next(s for s in catalogue.sources if s.source.family is SourceFamily.DFT)
-    assert dft_row.latest_accepted_snapshot == acc
-    assert dft_row.latest_rejected_snapshot == rej
+    assert dft_row.latest_accepted_snapshot is not None
+    assert dft_row.latest_accepted_snapshot.registration_id == "reg-dft-acc"
+    assert dft_row.latest_rejected_snapshot is not None
+    assert dft_row.latest_rejected_snapshot.registration_id == "reg-dft-rej"
     assert dft_row.latest_retrieval_at_utc == UTC_B
+    assert dft_row.latest_accepted_snapshot.source_family is SourceFamily.DFT
+    assert dft_row.latest_rejected_snapshot.source_family is SourceFamily.DFT
 
-    # Latest must be >= max pointer time; supplying earlier latest should fail
-    bad_latest = dict(latest)
-    bad_latest[SourceFamily.DFT] = UTC_A
-    with pytest.raises(SourceOperationsServiceError, match="LATEST_ORDERING"):
-        build_source_operations_catalogue(
-            evaluated_at_utc=UTC_NOW,
-            snapshot_registry_fingerprint_value=_fp("registry2"),
-            runtime_by_family=runtime,
-            accepted_pointers=accepted,
-            rejected_pointers=rejected,
-            latest_retrieval_by_family=bad_latest,
-        )
-    # Latest required when pointers exist, but missing should fail
-    missing_latest = dict(latest)
-    missing_latest[SourceFamily.DFT] = None
-    with pytest.raises(SourceOperationsServiceError, match="LATEST_ORDERING"):
-        build_source_operations_catalogue(
-            evaluated_at_utc=UTC_NOW,
-            snapshot_registry_fingerprint_value=_fp("registry3"),
-            runtime_by_family=runtime,
-            accepted_pointers=accepted,
-            rejected_pointers=rejected,
-            latest_retrieval_by_family=missing_latest,
+    # latest must equal max pointer time – construction with wrong latest must fail
+    from traffictwin.integration.manchester.source_operations_models import (
+        source_definition,
+    )
+
+    acc_ptr = dft_row.latest_accepted_snapshot
+    rej_ptr = dft_row.latest_rejected_snapshot
+    with pytest.raises((ValidationError, ValueError)):
+        from traffictwin.integration.manchester.source_operations_models import SourceReadiness
+
+        SourceReadiness(
+            source=source_definition(SourceFamily.DFT),
+            current_standing=SourceCurrentStanding.HISTORICAL_ONLY,
+            credential_presence=CredentialPresence.NOT_REQUIRED,
+            freshness=SourceFreshnessStanding.HISTORICAL,
+            latest_retrieval_at_utc=UTC_A,
+            latest_accepted_snapshot=acc_ptr,
+            latest_rejected_snapshot=rej_ptr,
+            receipt=None,
+            blocker=None,
+            owner_action=None,
         )
 
 
 def test_tfgm_has_no_accepted_snapshot_via_service() -> None:
-    runtime = _valid_runtime()
-    accepted = _empty_pointers()
-    # Try to give TfGM an accepted pointer
-    fp = _fp("tfgm-acc")
+    # Registry creation itself must reject TfGM accepted at model validation
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistration(
+            registration_id="reg-tfgm-acc",
+            snapshot_identity="snap-tfgm-acc",
+            content_fingerprint=_fp("tfgm-acc"),
+            retrieved_at_utc=UTC_A,
+            source_family=SourceFamily.TFGM,
+            coverage_summary="TfGM rejected coverage",
+            record_count=10,
+            parser_version="p-1.0",
+            schema_version="s-1.0",
+            validation_state=SnapshotValidationState.ACCEPTED,
+            freshness=SourceFreshnessStanding.UNAVAILABLE,
+            storage_reference="opaque://x/tfgm-acc",
+            provenance_fingerprint=_fp("prov-tfgm"),
+            evidence_standing=EvidenceStanding.DESIGN_ONLY_CAPABILITY,
+        )
+    # Also service must reject if somehow accepted exists – test via direct readiness
+    from traffictwin.integration.manchester.source_operations_models import SnapshotPointer
+
     bad_acc = SnapshotPointer(
+        source_family=SourceFamily.TFGM,
+        validation_state=OpsValidationState.ACCEPTED,
         registration_id="reg-tfgm-acc",
         snapshot_identity="snap-tfgm-acc",
-        content_fingerprint=fp,
+        content_fingerprint=_fp("tfgm-acc"),
         retrieved_at_utc=UTC_A,
         validation_receipt_fingerprint=_fp("receipt"),
     )
-    accepted[SourceFamily.TFGM] = bad_acc
-    latest = _empty_latest()
-    latest[SourceFamily.TFGM] = UTC_A
-    with pytest.raises(SourceOperationsServiceError, match="TFGM"):
-        build_source_operations_catalogue(
-            evaluated_at_utc=UTC_NOW,
-            snapshot_registry_fingerprint_value=_fp("reg"),
-            runtime_by_family=runtime,
-            accepted_pointers=accepted,
-            rejected_pointers=_empty_pointers(),
-            latest_retrieval_by_family=latest,
+    # Direct readiness with TfGM accepted must fail
+    with pytest.raises((ValidationError, ValueError)):
+        from traffictwin.integration.manchester.source_operations_models import (
+            SourceReadiness,
+            source_definition,
+        )
+
+        SourceReadiness(
+            source=source_definition(SourceFamily.TFGM),
+            current_standing=SourceCurrentStanding.PROVIDER_DATA_REQUIRED,
+            credential_presence=CredentialPresence.UNKNOWN,
+            freshness=SourceFreshnessStanding.UNAVAILABLE,
+            latest_retrieval_at_utc=UTC_A,
+            latest_accepted_snapshot=bad_acc,
+            latest_rejected_snapshot=None,
+            receipt=None,
+            blocker="PROVIDER_DATA_REQUIRED",
+            owner_action="Await provider",
         )
 
 
 def test_idempotence_and_catalogue_fingerprint_stable() -> None:
     runtime = _valid_runtime()
-    accepted = _empty_pointers()
-    rejected = _empty_pointers()
-    latest = _empty_latest()
+    empty = _empty_registry()
     c1 = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry_fingerprint_value=_fp("stable-reg"),
+        snapshot_registry=empty,
         runtime_by_family=runtime,
-        accepted_pointers=accepted,
-        rejected_pointers=rejected,
-        latest_retrieval_by_family=latest,
     )
     c2 = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry_fingerprint_value=_fp("stable-reg"),
+        snapshot_registry=empty,
         runtime_by_family=runtime,
-        accepted_pointers=accepted,
-        rejected_pointers=rejected,
-        latest_retrieval_by_family=latest,
     )
     assert c1.canonical_json() == c2.canonical_json()
     assert c1.fingerprint() == c2.fingerprint()
@@ -399,7 +433,6 @@ def test_idempotence_and_catalogue_fingerprint_stable() -> None:
 
 
 def test_catalogue_from_registry_derives_pointers() -> None:
-    # Build a registry with BODS accepted and DfT rejected
     empty = SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
     bods_reg = SnapshotRegistration(
         registration_id="reg-bods-001",
@@ -445,7 +478,6 @@ def test_catalogue_from_registry_derives_pointers() -> None:
     assert dft_row.latest_rejected_snapshot is not None
     assert dft_row.latest_rejected_snapshot.registration_id == "reg-dft-001"
     assert dft_row.latest_retrieval_at_utc == UTC_B
-    # Rejected DfT, accepted is None
     assert dft_row.latest_accepted_snapshot is None
 
 
@@ -455,68 +487,106 @@ def test_incomplete_runtime_rejected() -> None:
     with pytest.raises(SourceOperationsServiceError, match="INCOMPLETE_RUNTIME"):
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry_fingerprint_value=_fp("reg"),
+            snapshot_registry=_empty_registry(),
             runtime_by_family=incomplete,  # type: ignore[arg-type]
-            accepted_pointers=_empty_pointers(),
-            rejected_pointers=_empty_pointers(),
-            latest_retrieval_by_family=_empty_latest(),
         )
 
 
 def test_never_uses_directory_existence_and_no_credential_values() -> None:
-    # Service signature has no directory/path param and no credential value field
-    import inspect
-
     sig = inspect.signature(build_source_operations_catalogue)
     params = set(sig.parameters.keys())
     assert "workspace_root" not in params
     assert "directory" not in params
     assert "credential_value" not in params
     assert "api_key" not in params
-    # Runtime model must not have credential value field
+    assert "accepted_pointers" not in params
+    assert "rejected_pointers" not in params
+    assert "latest_retrieval_by_family" not in params
+    assert "snapshot_registry_fingerprint_value" not in params
     assert "credential_value" not in SourceRuntimeMetadata.model_fields
     assert "api_key" not in SourceRuntimeMetadata.model_fields
-    # Catalogue must not contain credential values
     runtime = _valid_runtime()
     cat = build_source_operations_catalogue(
         evaluated_at_utc=UTC_NOW,
-        snapshot_registry_fingerprint_value=_fp("reg2"),
+        snapshot_registry=_empty_registry(),
         runtime_by_family=runtime,
-        accepted_pointers=_empty_pointers(),
-        rejected_pointers=_empty_pointers(),
-        latest_retrieval_by_family=_empty_latest(),
     )
-    # No secret in JSON
     j = cat.model_dump_json()
     assert "api_key" not in j.lower()
     assert "bearer" not in j.lower()
 
 
-def test_fingerprint_mismatch_rejected_when_using_registry() -> None:
-    empty = SnapshotRegistry(registered_at_utc=UTC_A, snapshots=())
-    bods_reg = SnapshotRegistration(
-        registration_id="reg-bods-001",
-        snapshot_identity="snap-bods-001",
-        content_fingerprint=_fp("bods-001"),
-        retrieved_at_utc=UTC_A,
+def test_fabricated_pointer_fails_closed() -> None:
+    # Service no longer accepts explicit pointers; only registry-derived pointers exist
+    # Fabricated pointer cannot be injected – verify signature has no explicit pointer params
+    import inspect
+
+    sig = inspect.signature(build_source_operations_catalogue)
+    assert "accepted_pointers" not in sig.parameters
+    # Attempting to pass fabricated fingerprint via old kwarg must fail
+    with pytest.raises(TypeError):
+        build_source_operations_catalogue(  # type: ignore[call-arg]
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=_empty_registry(),
+            runtime_by_family=_valid_runtime(),
+            accepted_pointers={},
+        )
+
+
+def test_future_evidence_fails_closed() -> None:
+    runtime = _valid_runtime()
+    empty = _empty_registry()
+    future_reg = SnapshotRegistration(
+        registration_id="reg-bods-future",
+        snapshot_identity="snap-bods-future",
+        content_fingerprint=_fp("future"),
+        retrieved_at_utc=UTC_FUTURE,
         source_family=SourceFamily.BODS,
-        coverage_summary="Bus transit positions",
+        coverage_summary="Bus transit positions in admitted GM box",
         record_count=10,
         parser_version="p-1.0",
         schema_version="s-1.0",
         validation_state=SnapshotValidationState.ACCEPTED,
         freshness=SourceFreshnessStanding.LIVE_VEHICLE,
-        storage_reference="opaque://x/bods",
-        provenance_fingerprint=_fp("prov"),
+        storage_reference="opaque://x/future",
+        provenance_fingerprint=_fp("prov-future"),
         evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
     )
-    reg = register_snapshot(empty, bods_reg)
-    runtime = _valid_runtime()
-    # Supply wrong fingerprint
-    with pytest.raises(SourceOperationsServiceError, match="FINGERPRINT_MISMATCH"):
+    reg_future = register_snapshot(empty, future_reg)
+    # Pointer time later than evaluated_at must fail
+    with pytest.raises(SourceOperationsServiceError, match="FUTURE_EVIDENCE"):
         build_source_operations_catalogue(
             evaluated_at_utc=UTC_NOW,
-            snapshot_registry_fingerprint_value=_fp("wrong"),
+            snapshot_registry=reg_future,
             runtime_by_family=runtime,
-            snapshot_registry=reg,
+        )
+    # Receipt future also fails
+    bad_runtime = dict(_valid_runtime())
+    bad_runtime[SourceFamily.SUMO] = SourceRuntimeMetadata(
+        source_family=SourceFamily.SUMO,
+        current_standing=SourceCurrentStanding.INSTALLATION_DETECTED,
+        credential_presence=CredentialPresence.NOT_REQUIRED,
+        freshness=SourceFreshnessStanding.SIMULATION_TIME,
+        tool_version="sumo-1.27.0",
+        operational_receipt=OperationalReceipt(
+            receipt_id="sumo-future-001",
+            receipt_fingerprint=_fp("sumo-future"),
+            observed_at_utc=UTC_FUTURE,
+        ),
+    )
+    with pytest.raises(SourceOperationsServiceError, match="FUTURE_EVIDENCE"):
+        build_source_operations_catalogue(
+            evaluated_at_utc=UTC_NOW,
+            snapshot_registry=_empty_registry(),
+            runtime_by_family=bad_runtime,
+        )
+
+
+def test_pointer_timestamp_must_be_exact_utc_via_service() -> None:
+    # Service must reject naive datetime in receipt (via model validation)
+    with pytest.raises((ValidationError, ValueError)):
+        OperationalReceipt(
+            receipt_id="naive-receipt",
+            receipt_fingerprint=_fp("naive"),
+            observed_at_utc=datetime(2026, 7, 22, 10, 0, 0),  # naive
         )

@@ -261,12 +261,17 @@ def test_accepted_rejected_latest_ordering() -> None:
     r2 = register_snapshot(r1, reg_b_rejected)
     r3 = register_snapshot(r2, reg_c_accepted)
 
-    assert latest_accepted_for_family(r3, SourceFamily.DFT) is not None
-    assert latest_accepted_for_family(r3, SourceFamily.DFT).registration_id == "reg-dft-c"
-    assert latest_rejected_for_family(r3, SourceFamily.DFT).registration_id == "reg-dft-b"
-    assert latest_snapshot_for_family(r3, SourceFamily.DFT).registration_id == "reg-dft-c"
+    accepted = latest_accepted_for_family(r3, SourceFamily.DFT)
+    assert accepted is not None
+    assert accepted.registration_id == "reg-dft-c"
+    rejected = latest_rejected_for_family(r3, SourceFamily.DFT)
+    assert rejected is not None
+    assert rejected.registration_id == "reg-dft-b"
+    latest = latest_snapshot_for_family(r3, SourceFamily.DFT)
+    assert latest is not None
+    assert latest.registration_id == "reg-dft-c"
     # Latest overall should be C (newest time)
-    assert latest_snapshot_for_family(r3, SourceFamily.DFT).retrieved_at_utc == UTC_TS_C
+    assert latest.retrieved_at_utc == UTC_TS_C
     # Rejected latest is B, accepted latest is C, ordering preserved
 
 
@@ -293,7 +298,7 @@ def test_conflict_same_id_different_content_rejected() -> None:
         registration_id="reg-conflict-001",
         snapshot_identity="snap-b",
         content_fingerprint=_fp("different"),
-        coverage_summary="Different coverage for same id",
+        coverage_summary="Bus transit positions different id",
     )
     with pytest.raises(SnapshotRegistryError, match="CONFLICT"):
         register_snapshot(r1, reg2)
@@ -352,5 +357,113 @@ def test_retrieved_time_must_be_utc() -> None:
         _make_reg(
             registration_id="reg-naive-001",
             snapshot_identity="snap-naive-001",
-            retrieved_at_utc=naive,  # type: ignore[arg-type]
+            retrieved_at_utc=naive,
+        )
+
+
+def test_bods_positive_bus_restriction() -> None:
+    # BODS must reference bus; city-wide congestion phrase must be rejected
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-bods-congestion",
+            snapshot_identity="snap-bods-congestion",
+            source_family=SourceFamily.BODS,
+            coverage_summary=(
+                "Complete Manchester congestion, traffic volume and city-wide traffic state"
+            ),
+        )
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-bods-nobus",
+            snapshot_identity="snap-bods-nobus",
+            source_family=SourceFamily.BODS,
+            coverage_summary="Traffic observations for Manchester",
+        )
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-bods-volume",
+            snapshot_identity="snap-bods-volume",
+            source_family=SourceFamily.BODS,
+            coverage_summary="Bus data but also traffic volume and congestion",
+        )
+
+
+def test_strategic_token_never_disables_restriction() -> None:
+    # Even with strategic token, Manchester city-road claim must be rejected
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-nh-strategic-bad",
+            snapshot_identity="snap-nh-strategic-bad",
+            source_family=SourceFamily.NATIONAL_HIGHWAYS,
+            coverage_summary="strategic Manchester city-road conditions",
+        )
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-wt-strategic-bad",
+            snapshot_identity="snap-wt-strategic-bad",
+            source_family=SourceFamily.WEBTRIS,
+            coverage_summary="strategic Manchester city-road coverage for WebTRIS",
+        )
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-wt-citywide",
+            snapshot_identity="snap-wt-citywide",
+            source_family=SourceFamily.WEBTRIS,
+            coverage_summary="City-wide Manchester road coverage via strategic sites",
+        )
+
+
+def test_canonical_terminal_state_conflict() -> None:
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_A, snapshots=())
+    fp = _fp("identical-content")
+    reg_accepted = _make_reg(
+        registration_id="reg-conflict-a",
+        snapshot_identity="snap-identical",
+        content_fingerprint=fp,
+        source_family=SourceFamily.BODS,
+        validation_state=SnapshotValidationState.ACCEPTED,
+    )
+    r1 = register_snapshot(empty, reg_accepted)
+    reg_rejected_same = _make_reg(
+        registration_id="reg-conflict-b",
+        snapshot_identity="snap-identical",
+        content_fingerprint=fp,
+        source_family=SourceFamily.BODS,
+        validation_state=SnapshotValidationState.REJECTED,
+    )
+    with pytest.raises(SnapshotRegistryError, match="CONFLICT"):
+        register_snapshot(r1, reg_rejected_same)
+    # Also same fingerprint alone with conflicting state must conflict
+    reg_rejected_fp_only = _make_reg(
+        registration_id="reg-conflict-c",
+        snapshot_identity="snap-different",
+        content_fingerprint=fp,
+        source_family=SourceFamily.BODS,
+        validation_state=SnapshotValidationState.REJECTED,
+    )
+    with pytest.raises(SnapshotRegistryError, match="CONFLICT"):
+        register_snapshot(r1, reg_rejected_fp_only)
+
+
+def test_portability_rejects_etc() -> None:
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-etc-001",
+            snapshot_identity="snap-etc-001",
+            coverage_summary="at /etc/passwd",
+        )
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-etc-002",
+            snapshot_identity="snap-etc-002",
+            storage_reference="opaque://x/etc/passwd",
+            coverage_summary="Bus transit positions",
+        )
+    # Ensure /etc is rejected even with bus token
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-etc-003",
+            snapshot_identity="snap-etc-003",
+            source_family=SourceFamily.BODS,
+            coverage_summary="Bus positions at /etc/shadow",
         )
