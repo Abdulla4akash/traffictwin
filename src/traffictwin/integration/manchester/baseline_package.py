@@ -45,9 +45,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from datetime import UTC, datetime, timedelta
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -132,6 +133,8 @@ RejectionReason: TypeAlias = Literal[
     "TEMPORAL_VIOLATION",
     "SOFTWARE_NOT_VALID",
     "EXPLICIT_NON_ACCEPTANCE",
+    "MISSING_PREREQUISITES",
+    "TIMESTAMP_NOT_UTC",
 ]
 
 # Bounded collection limits
@@ -143,8 +146,8 @@ MAX_PROVENANCE_HOPS = 8
 MAX_STRING_LENGTH = 300
 MAX_IDENTIFIER_LENGTH = 200
 # Bounded streaming caps for package_root verification (finite defensible)
-MAX_PACKAGE_ROOT_FILE_SIZE = 500_000_000  # 500 MiB per file
-MAX_PACKAGE_ROOT_TOTAL_SIZE = 2_000_000_000  # 2 GiB total
+MAX_PACKAGE_ROOT_FILE_SIZE = 524_288_000  # 500 MiB per file
+MAX_PACKAGE_ROOT_TOTAL_SIZE = 2_147_483_648  # 2 GiB total
 PACKAGE_ROOT_HASH_CHUNK_SIZE = 1_048_576  # 1 MiB chunks
 
 # Secret / private-path refusal patterns — mirrors ``models.py``.
@@ -915,7 +918,7 @@ def validate_candidate_software(
     candidate: ManchesterBaselineCandidatePackage,
     *,
     validated_at_utc: datetime | None = None,
-    package_root: object | None = None,
+    package_root: str | os.PathLike[str] | Path | None = None,
 ) -> ManchesterBaselineSoftwareValidation:
     """Validate portable file/package structure only.
 
@@ -953,10 +956,12 @@ def validate_candidate_software(
         )
 
     # Canonical revalidation: close model_copy(update=...) bypass before
-    # asserting any check or emitting SOFTWARE_VALID. Use the same
-    # model_validate(model_dump(mode="json")) pattern as the acceptance
-    # boundary and map failures to bounded honest rejection semantics without
-    # echoing private/secret payloads.
+    # asserting any check or emitting SOFTWARE_VALID. Uses Python-mode
+    # model_dump plus strict=True canonical reconstruction so declared-field
+    # type coercion (e.g. edge_count="999999", provider_data_required=1)
+    # is rejected. Unknown extra object attributes remain irrelevant but
+    # declared fields cannot coerce. Clean tuples pass as verified by
+    # reviewer.
     _base_checks: tuple[str, ...] = tuple(
         sorted(
             [
@@ -970,15 +975,38 @@ def validate_candidate_software(
             ]
         )
     )
+    _root_check = "package_root_file_integrity"
 
-    def _checks_with_optional_root() -> tuple[str, ...]:
-        if package_root is not None:
-            return tuple(sorted(set(_base_checks) | {"package_root_file_integrity"}))
-        return _base_checks
+    def _safe_identifiers() -> tuple[str, str, str]:
+        """Return bounded identifiers without leaking payload on malformed candidate."""
+        try:
+            fp = candidate.fingerprint()
+            if not isinstance(fp, str) or not _SHA256_RE.fullmatch(fp):
+                fp = "0" * 64
+        except Exception:
+            fp = "0" * 64
+        try:
+            pid = candidate.package_id
+            if not isinstance(pid, str):
+                pid = "invalid-candidate"
+            else:
+                pid = pid if 1 <= len(pid) <= 80 else "invalid-candidate"
+        except Exception:
+            pid = "invalid-candidate"
+        try:
+            net_sha = candidate.network_identity.network_identity_sha256
+            if not isinstance(net_sha, str) or not _SHA256_RE.fullmatch(net_sha):
+                net_sha = "0" * 64
+        except Exception:
+            net_sha = "0" * 64
+        return fp, pid, net_sha
 
+    # Build checks incrementally; on canonical failure do not claim
+    # root or downstream checks. Root integrity is added only after
+    # every bounded file was actually stat'ed/stream-hashed/verified.
     try:
         ManchesterBaselineCandidatePackage.model_validate(
-            candidate.model_dump(mode="json"), strict=False
+            candidate.model_dump(mode="python"), strict=True
         )
     except Exception as exc:
         lower = str(exc).lower()
@@ -1008,19 +1036,27 @@ def validate_candidate_software(
             reason = "BOUNDARY_MISMATCH"
         else:
             reason = "CANDIDATE_TAMPERED"
+        fp, pid, net_sha = _safe_identifiers()
+        # On canonical validation failure do not include
+        # package_root_file_integrity or downstream checks.
+        # Keep only base checks attempted before failure.
         return ManchesterBaselineSoftwareValidation(
-            candidate_fingerprint=candidate.fingerprint(),
-            candidate_package_id=candidate.package_id,
-            network_identity_sha256=candidate.network_identity.network_identity_sha256,
+            candidate_fingerprint=fp,
+            candidate_package_id=pid,
+            network_identity_sha256=net_sha,
             software_standing="SOFTWARE_INVALID",
             scientific_standing="SCIENTIFICALLY_NOT_ACCEPTED",
             scientifically_accepted=False,
-            checks_performed=_checks_with_optional_root(),
+            checks_performed=_base_checks,
             rejection_reasons=(reason,),
             validated_at_utc=validated_at_utc,
             is_scientific_evidence=False,
         )
 
+    # Build checks incrementally as each stage succeeds; add root integrity only after every
+    # bounded file was actually stat'ed/stream-hashed/verified. Never use a fixed set that
+    # overclaims early failure.
+    checks_performed: tuple[str, ...] = _base_checks
     if package_root is not None:
         # Narrow explicit-root verification without leaking paths.
         # Caller must supply a concrete filesystem root (path-like) when
@@ -1029,10 +1065,9 @@ def validate_candidate_software(
         # fail-closed on traversal/secret leakage rather than inventing
         # observations. Uses bounded streaming hash/size verification with
         # finite defensible caps to avoid unbounded memory use.
-        from pathlib import Path
-
+        # Strongly typed package_root as PathLike/path input.
         try:
-            root = Path(str(package_root))
+            root = Path(package_root)
         except Exception:
             raise ManchesterBaselinePackageError(
                 "SECRET_OR_PATH_LEAKAGE", "package_root invalid"
@@ -1126,6 +1161,9 @@ def validate_candidate_software(
                     "NETWORK_HASH_MISMATCH",
                     "declared network file not verifiable at package_root",
                 ) from None
+        # All bounded files were actually stat'ed/stream-hashed/verified;
+        # now root integrity check is completed.
+        checks_performed = tuple(sorted(set(_base_checks) | {_root_check}))
 
     # Perform deterministic checks without reading filesystem/network beyond
     # the optional explicit package_root above. At this point candidate has
@@ -1152,14 +1190,42 @@ def validate_candidate_software(
     # Keep rejection reasons sorted and deduped
     reasons_sorted = tuple(sorted(set(reasons)))
 
-    # Derive checks_performed from checks truly performed (canonical revalidation + above)
-    checks_performed = _checks_with_optional_root()
-
+    # checks_performed already reflects only checks truly performed incrementally;
+    # canonical revalidation + deterministic checks above, plus root only if fully verified.
     # Ensure scientific_standing never upgraded.
+    # Use safe identifiers for return in case of later AttributeError
+    # (e.g. nested None after bypass) — but canonical success means these
+    # accesses are safe; wrap anyway to avoid payload echo.
+    try:
+        _fp = candidate.fingerprint()
+        _pid = candidate.package_id
+        _net = candidate.network_identity.network_identity_sha256
+        if not isinstance(_fp, str) or not _SHA256_RE.fullmatch(_fp):
+            raise ValueError("invalid fingerprint")
+        if not isinstance(_pid, str):
+            raise ValueError("invalid package_id")
+        if not isinstance(_net, str) or not _SHA256_RE.fullmatch(_net):
+            raise ValueError("invalid network hash")
+    except Exception:  # noqa: BLE001
+        # Any unexpected type tampering after canonical success should not leak payload or
+        # produce raw TypeError/AttributeError; treat as candidate tampered.
+        _fp2, _pid2, _net2 = _safe_identifiers()
+        return ManchesterBaselineSoftwareValidation(
+            candidate_fingerprint=_fp2,
+            candidate_package_id=_pid2,
+            network_identity_sha256=_net2,
+            software_standing="SOFTWARE_INVALID",
+            scientific_standing="SCIENTIFICALLY_NOT_ACCEPTED",
+            scientifically_accepted=False,
+            checks_performed=_base_checks,
+            rejection_reasons=("CANDIDATE_TAMPERED",),
+            validated_at_utc=validated_at_utc,
+            is_scientific_evidence=False,
+        )
     return ManchesterBaselineSoftwareValidation(
-        candidate_fingerprint=candidate.fingerprint(),
-        candidate_package_id=candidate.package_id,
-        network_identity_sha256=candidate.network_identity.network_identity_sha256,
+        candidate_fingerprint=_fp,
+        candidate_package_id=_pid,
+        network_identity_sha256=_net,
         software_standing=standing,
         scientific_standing="SCIENTIFICALLY_NOT_ACCEPTED",
         scientifically_accepted=False,
@@ -1206,11 +1272,13 @@ def _check_scientific_acceptance_preconditions(
     by the candidate's external build receipt.
     """
     # Canonical revalidation: close model_copy/update bypass.
-    # Reuse same canonical model_validate(model_dump(mode="json")) pattern as
-    # the software validation boundary to avoid drift.
+    # Uses Python-mode model_dump plus strict=True canonical reconstruction so
+    # declared-field type coercion (edge_count="999999", provider_data_required=1)
+    # is rejected. Clean tuples pass. Unknown extra object attributes remain irrelevant
+    # but declared fields cannot coerce.
     try:
         ManchesterBaselineCandidatePackage.model_validate(
-            candidate.model_dump(mode="json"), strict=False
+            candidate.model_dump(mode="python"), strict=True
         )
     except Exception as exc:
         raise ManchesterBaselinePackageError(
@@ -1219,7 +1287,7 @@ def _check_scientific_acceptance_preconditions(
         ) from exc
     try:
         ManchesterBaselineSoftwareValidation.model_validate(
-            software_validation.model_dump(mode="json"), strict=False
+            software_validation.model_dump(mode="python"), strict=True
         )
     except Exception as exc:
         raise ManchesterBaselinePackageError(
@@ -1264,9 +1332,37 @@ def _check_scientific_acceptance_preconditions(
             "TEMPORAL_VIOLATION",
             "decision is before software validation",
         )
-    # Canonical receipt: supplied validation must equal the validator's
-    # deterministic output for the same candidate and explicit timestamp.
-    # No filesystem I/O or current time is used; package_root remains None.
+    # Canonical receipt: supplied validation must be the exact receipt that
+    # validate_candidate_software would produce for the same candidate and
+    # explicit validated_at_utc, **or** the stronger receipt that adds the
+    # truthful optional package_root_file_integrity check after successful
+    # bounded file verification. Exactly the recognized base-check set plus
+    # the optional completed root check is permitted; arbitrary claimed checks
+    # or self-assertion is rejected. No filesystem I/O or current time is used;
+    # package-root byte verification remains represented by the candidate's
+    # external build receipt for the base case, while a stronger receipt is
+    # still verifiable without re-reading files.
+    _base_checks_allowed: tuple[str, ...] = tuple(
+        sorted(
+            [
+                "boundary_fingerprint",
+                "demand_source_ids_sorted",
+                "limitations_bounded",
+                "network_file_identities",
+                "no_private_paths",
+                "rights_sanitized",
+                "provenance_utc",
+            ]
+        )
+    )
+    _root_check_allowed = "package_root_file_integrity"
+    _allowed_with_root = tuple(sorted(set(_base_checks_allowed) | {_root_check_allowed}))
+    # Checks must be exactly the truthful recognized base set or base+root; no arbitrary set.
+    if software_validation.checks_performed not in (_base_checks_allowed, _allowed_with_root):
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            "software validation checks_performed is not the canonical recognized set",
+        )
     try:
         _expected_validation = validate_candidate_software(
             candidate, validated_at_utc=software_validation.validated_at_utc
@@ -1278,11 +1374,25 @@ def _check_scientific_acceptance_preconditions(
             "CANDIDATE_TAMPERED",
             f"software validation canonical check failed: {exc}",
         ) from exc
-    if software_validation != _expected_validation:
-        raise ManchesterBaselinePackageError(
-            "CANDIDATE_TAMPERED",
-            "software validation is not the canonical receipt for the exact candidate and validated_at_utc",  # noqa: E501
+    # Permit exactly base set or base+root; compare other semantic
+    # fields without allowing arbitrary checks.
+    if software_validation.checks_performed == _base_checks_allowed:
+        if software_validation != _expected_validation:
+            raise ManchesterBaselinePackageError(
+                "CANDIDATE_TAMPERED",
+                "software validation is not the canonical receipt for the exact candidate and validated_at_utc",  # noqa: E501
+            )
+    else:  # _allowed_with_root
+        # Stronger receipt: must match canonical base receipt in all fields
+        # except the added root check.
+        _expected_with_root = _expected_validation.model_copy(
+            update={"checks_performed": _allowed_with_root}
         )
+        if software_validation != _expected_with_root:
+            raise ManchesterBaselinePackageError(
+                "CANDIDATE_TAMPERED",
+                "software validation is not the canonical stronger receipt for the exact candidate and validated_at_utc",  # noqa: E501
+            )
     # Prerequisites exactness
     declared = set(candidate.prerequisites)
     verified = set(prerequisites_verified)
@@ -1427,14 +1537,51 @@ def decide_baseline_acceptance(
     _reject_private_path(rationale, "rationale")
     if not _is_utc(decided_at_utc):
         raise ManchesterBaselinePackageError("TIMESTAMP_NOT_UTC", "decision timestamp must be UTC")
+    # Canonical revalidation at verification boundary: Python-mode
+    # strict=True so string/bool tampering (edge_count="999999",
+    # provider_data_required=1, etc.) is rejected. Do this before
+    # accessing tamperable fields like provenance.created_at_utc or
+    # provider_data_required to avoid TypeError/AttributeError and
+    # payload echo on malformed inputs (created_at string, nested None,
+    # package_id None).
+    try:
+        ManchesterBaselineCandidatePackage.model_validate(
+            candidate.model_dump(mode="python"), strict=True
+        )
+    except Exception as exc:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED", "candidate revalidation failed"
+        ) from exc
+    if software_validation is not None:
+        try:
+            ManchesterBaselineSoftwareValidation.model_validate(
+                software_validation.model_dump(mode="python"), strict=True
+            )
+        except Exception as exc:
+            raise ManchesterBaselinePackageError(
+                "CANDIDATE_TAMPERED", "software validation revalidation failed"
+            ) from exc
     # Deterministic temporal coherence: provenance <= decision always;
     # software validation ordering checked below for ACCEPTED path.
     # No internal datetime.now is used — decided_at_utc is the explicit evaluation time.
-    if candidate.provenance.created_at_utc > decided_at_utc:
+    # Wrap temporal access to handle string/None mutation without raw TypeError.
+    try:
+        _prov_time = candidate.provenance.created_at_utc
+        if not isinstance(_prov_time, datetime):
+            raise ManchesterBaselinePackageError(
+                "CANDIDATE_TAMPERED", "candidate revalidation failed"
+            )
+        if _prov_time > decided_at_utc:
+            raise ManchesterBaselinePackageError(
+                "TEMPORAL_VIOLATION",
+                "decision is before provenance creation",
+            )
+    except ManchesterBaselinePackageError:
+        raise
+    except Exception as exc:
         raise ManchesterBaselinePackageError(
-            "TEMPORAL_VIOLATION",
-            "decision is before provenance creation",
-        )
+            "CANDIDATE_TAMPERED", "candidate revalidation failed"
+        ) from exc
 
     # Build truthful rejection reasons for non-acceptance paths up-front
     # (never invent CANDIDATE_TAMPERED for an explicit non-acceptance).
@@ -1610,23 +1757,54 @@ def verify_baseline_acceptance(
     # 1. Canonical revalidation: fingerprint must still bind the decision's
     #    own fields (catches model_copy mutation where fingerprint was not
     #    updated, or where new binding fields were altered).
+    #    Uses Python-mode strict=True to reject declared-field type coercion
+    #    (string/bool tampering) while allowing unknown extra attributes to remain irrelevant.
     try:
         ManchesterBaselineAcceptanceDecision.model_validate(
-            decision.model_dump(mode="json"), strict=False
+            decision.model_dump(mode="python"), strict=True
         )
     except Exception as exc:
         raise ManchesterBaselinePackageError(
             "CANDIDATE_TAMPERED",
             "decision revalidation failed",
         ) from exc
+    # Also revalidate candidate and software at this boundary before accessing
+    # tamperable fields, to handle nested None/string mutation without raw TypeError.
+    try:
+        ManchesterBaselineCandidatePackage.model_validate(
+            candidate.model_dump(mode="python"), strict=True
+        )
+    except Exception as exc:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            "candidate revalidation failed",
+        ) from exc
+    if software_validation is not None:
+        try:
+            ManchesterBaselineSoftwareValidation.model_validate(
+                software_validation.model_dump(mode="python"), strict=True
+            )
+        except Exception as exc:
+            raise ManchesterBaselinePackageError(
+                "CANDIDATE_TAMPERED",
+                "software validation revalidation failed",
+            ) from exc
 
-    # 2. Exact candidate binding
-    if decision.candidate_fingerprint != candidate.fingerprint():
+    # 2. Exact candidate binding — wrap fingerprint access to avoid raw AttributeError on malformed.
+    try:
+        _cand_fp = candidate.fingerprint()
+        _cand_pid = candidate.package_id
+    except Exception as exc:
+        raise ManchesterBaselinePackageError(
+            "CANDIDATE_TAMPERED",
+            "candidate revalidation failed",
+        ) from exc
+    if decision.candidate_fingerprint != _cand_fp:
         raise ManchesterBaselinePackageError(
             "MISMATCHED_CANDIDATE_FINGERPRINT",
             "decision candidate_fingerprint does not match exact candidate",
         )
-    if decision.candidate_package_id != candidate.package_id:
+    if decision.candidate_package_id != _cand_pid:
         raise ManchesterBaselinePackageError(
             "MISMATCHED_CANDIDATE_FINGERPRINT",
             "decision candidate_package_id does not match exact candidate",
