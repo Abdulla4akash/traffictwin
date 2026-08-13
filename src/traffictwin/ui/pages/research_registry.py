@@ -182,28 +182,6 @@ def _render_question_hypothesis(record: ResearchStudyRecord) -> None:
         "Mechanism description is taken only from typed record fields where available; "
         "no mechanism is inferred or fabricated for unavailable studies."
     )
-    # Derive mechanism framing from typed fields, not hardcoded study ID
-    typed_text = " ".join(
-        part
-        for part in [
-            record.question,
-            record.hypothesis or "",
-            record.estimand or "",
-            record.declared_summary.method if record.declared_summary else "",
-        ]
-        if part
-    )
-    low = typed_text.lower()
-    lineage_text = " ".join(
-        r.lower()
-        for r in (record.limitations or []) + (record.non_claims or [])  # noqa: UP034
-    )
-    combined = f"{low} {lineage_text}"
-    if "placement" in combined or "rsu" in combined or "deadline" in combined:
-        st.caption(
-            "Placement is deterministic infrastructure-side RSU management; not learned, "
-            "not Kubernetes deployment."
-        )
 
 
 def _render_identities(record: ResearchStudyRecord) -> None:

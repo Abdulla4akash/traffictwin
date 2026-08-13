@@ -336,12 +336,22 @@ def test_declared_interval_generic_label_and_method_separate() -> None:
 
 
 def test_mechanism_derived_from_typed_fields_not_hardcoded() -> None:
-    # E2c has placement in question/estimand so mechanism should appear
+    # Truthful: no fabricated placement/RSU/Kubernetes caption is ever rendered,
+    # even when typed fields contain placement terms. Declared fields are verbatim.
+    fabricated = (
+        "Placement is deterministic infrastructure-side RSU management; not learned, "
+        "not Kubernetes deployment."
+    )
     at = _run_app_page()
     _select_raw(at, "E2c:1.0")
     body = _body(at)
-    assert "Placement is deterministic" in body
-    # Foreign without placement should not show placement framing
+    assert fabricated not in body
+    assert "Placement is deterministic" not in body
+    # declared fields still rendered verbatim
+    recs = {r.study: r for r in build_admitted_e2_records()}
+    e2c = recs[E2C_STUDY]
+    assert e2c.question[:20] in body
+    # Foreign without placement also must not show fabricated framing
     foreign = ResearchStudyRecord(
         study="F7",
         version="1.0",
@@ -385,6 +395,7 @@ def test_mechanism_derived_from_typed_fields_not_hardcoded() -> None:
         at2 = _run_app_page()
         _select_raw(at2, "F7:1.0")
         body2 = _body(at2)
+        assert fabricated not in body2
         assert "Placement is deterministic" not in body2
         assert "F7" in body2
 
@@ -550,13 +561,156 @@ def test_default_has_no_e3_and_future_e3_renders_generic() -> None:
         assert "future method" in body
         # must not invent Dynamic/scaling semantics
         assert "Dynamic" not in body
-        assert "dynamic resource" not in body.lower() or "No dynamic-resource" in body.lower()
+        assert "dynamic resource" not in body.lower()
+        assert "No dynamic-resource semantics" in body
+        # fabricated placement/RSU/Kubernetes caption must be absent (generic UI contract)
+        fabricated = (
+            "Placement is deterministic infrastructure-side RSU management; not learned, "
+            "not Kubernetes deployment."
+        )
+        assert fabricated not in body
+        assert "Placement is deterministic" not in body
         # generic interval label
         assert "Declared interval:" in body
         assert "Declared 95% interval" not in body
         # must show declared fields exactly
         assert "0.11" in body and "0.22" in body
         assert "future limit" in body
+
+
+def test_fabricated_caption_absent_for_substring_triggers() -> None:
+    """Discriminating: substring triggers must not render fabricated RSU/Kubernetes caption.
+
+    Covers `versus` (contains rsu), `persuade` (contains rsu), `deadline`,
+    a question containing `placement`, and a non-claim that explicitly
+    disclaims RSU placement. No substring scanning should trigger the
+    hardcoded caption.
+    """
+    fabricated = (
+        "Placement is deterministic infrastructure-side RSU management; not learned, "
+        "not Kubernetes deployment."
+    )
+
+    def _check(record: ResearchStudyRecord, trigger_snippet: str) -> None:
+        snap = RegistrySnapshot.build(
+            records=[record],
+            unavailable_records=[],
+            lineage=LineageGraph(
+                nodes=[StudyVersionIdentity(study=record.study, version=record.version)],
+                edges=[],
+            ),
+            receipts=[],
+        )
+        mock_svc = Mock(spec=RegistryService)
+        mock_svc.snapshot.return_value = snap
+        with patch(
+            "traffictwin.ui.pages.research_registry.RegistryService.with_default_e2",
+            return_value=mock_svc,
+        ):
+            at = _run_app_page()
+            assert not at.exception, at.exception
+            _select_raw(at, f"{record.study}:{record.version}")
+            body = _body(at)
+            assert trigger_snippet in body, (
+                f"declared field not rendered verbatim: {trigger_snippet!r}"
+            )
+            assert fabricated not in body
+            assert "Placement is deterministic" not in body
+
+    base_kwargs: dict[str, object] = {
+        "version": "1.0",
+        "title": "Discriminating trigger test",
+        "status": StudyStatus.COMPLETED,
+        "code_sha": "a" * 40,
+        "manifest_hash": "b" * 64,
+        "evaluator_id": None,
+        "actor_id": "c" * 64,
+        "checkpoint_id": None,
+        "trace_id": "d" * 64,
+        "replication_unit": "site_draw",
+        "seeds": [1],
+        "draws": [1],
+        "arms": None,
+        "secondary_metrics": None,
+        "per_draw_values": [PerDrawValue(draw=1, value=1.0, metric="m1")],
+        "evidence_standing": EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+        "admission_status": AdmissionStatus.ADMITTED,
+        "product_links": None,
+    }
+
+    # versus contains rsu as substring — previously triggered caption incorrectly
+    rec_versus = ResearchStudyRecord(
+        study="FX1",
+        question="Does A versus B change outcome?",
+        hypothesis="We compare A versus B on attainment.",
+        estimand="difference in attainment versus baseline",
+        primary_metrics=["m1"],
+        declared_summary=DeclaredSummary(estimate=1.0, metric="m1"),
+        limitations=None,
+        non_claims=None,
+        **base_kwargs,
+    )
+    _check(rec_versus, "versus")
+
+    # persuade contains rsu as substring
+    rec_persuade = ResearchStudyRecord(
+        study="FX2",
+        question="Can we persuade drivers to change route?",
+        hypothesis=None,
+        estimand="effect of persuade intervention",
+        primary_metrics=["m1"],
+        declared_summary=None,
+        limitations=None,
+        non_claims=None,
+        **base_kwargs,
+    )
+    _check(rec_persuade, "persuade")
+
+    # deadline substring in method/question
+    rec_deadline = ResearchStudyRecord(
+        study="FX3",
+        question="Does intervention change attainment under deadline?",
+        hypothesis=None,
+        estimand="deadline attainment",
+        primary_metrics=["m1"],
+        declared_summary=DeclaredSummary(
+            estimate=0.5, ci_lower=0.1, ci_upper=0.9, method="deadline-aware estimator", metric="m1"
+        ),
+        limitations=["deadline handling noted"],
+        non_claims=None,
+        **base_kwargs,
+    )
+    _check(rec_deadline, "deadline")
+
+    # question containing placement explicitly
+    rec_placement = ResearchStudyRecord(
+        study="FX4",
+        question="Does RSU placement strategy affect task assignment?",
+        hypothesis=None,
+        estimand="placement effect",
+        primary_metrics=["m1"],
+        declared_summary=None,
+        limitations=None,
+        non_claims=None,
+        **base_kwargs,
+    )
+    _check(rec_placement, "placement")
+
+    # non-claim that explicitly disclaims RSU placement — must not be inverted
+    rec_disclaim = ResearchStudyRecord(
+        study="FX5",
+        question="Foreign question without placement cue",
+        hypothesis=None,
+        estimand="generic estimand",
+        primary_metrics=["m1"],
+        declared_summary=None,
+        limitations=None,
+        non_claims=[
+            "This study makes no claim about RSU placement and does not evaluate Kubernetes deployment."  # noqa: E501
+        ],
+        **base_kwargs,
+    )
+    _check(rec_disclaim, "makes no claim about RSU placement")
 
 
 def test_unknown_unadmitted_cannot_enter_snapshot_service() -> None:

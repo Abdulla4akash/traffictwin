@@ -142,15 +142,20 @@ def test_study_list_and_selection_mutation() -> None:
 
 
 def test_research_question_hypothesis_mechanism_derived() -> None:
+    fabricated = (
+        "Placement is deterministic infrastructure-side RSU management; not learned, "
+        "not Kubernetes deployment."
+    )
     recs = {r.study: r for r in build_admitted_e2_records()}
     at = _run_page()
     body = _text_of(at)
     assert "Research question" in body
     e2b = recs[E2B_STUDY]
     assert e2b.question[:20] in body
-    # mechanism derived for E2b (question contains placement)
-    assert "Placement is deterministic" in body
-    # foreign without placement must not show it
+    # Truthful: no fabricated caption, even though E2b/E2c legitimately contain placement.
+    assert fabricated not in body
+    assert "Placement is deterministic" not in body
+    # foreign without placement also must not show fabricated caption, but declared verbatim remains
     foreign = ResearchStudyRecord(
         study="F5",
         version="1.0",
@@ -197,6 +202,7 @@ def test_research_question_hypothesis_mechanism_derived() -> None:
         at2.run()
         _select_raw(at2, "F5:1.0")
         body2 = _text_of(at2)
+        assert fabricated not in body2
         assert "Placement is deterministic" not in body2
 
 
@@ -373,6 +379,136 @@ def test_default_has_no_e3_and_future_e3_generic_contract() -> None:
         assert "Declared 95% interval" not in body
         assert "Dynamic" not in body
         assert "fleet_draw" not in body
+        # fabricated placement/RSU/Kubernetes caption must be absent even for future generic E3
+        fabricated = (
+            "Placement is deterministic infrastructure-side RSU management; not learned, "
+            "not Kubernetes deployment."
+        )
+        assert fabricated not in body
+        assert "Placement is deterministic" not in body
+
+
+def test_fabricated_caption_absent_for_substring_triggers() -> None:
+    """No fabricated RSU/Kubernetes caption for substring triggers."""
+    fabricated = (
+        "Placement is deterministic infrastructure-side RSU management; not learned, "
+        "not Kubernetes deployment."
+    )
+
+    def _check(record: ResearchStudyRecord, snippet: str) -> None:
+        snap = RegistrySnapshot.build(
+            records=[record],
+            unavailable_records=[],
+            lineage=LineageGraph(
+                nodes=[StudyVersionIdentity(study=record.study, version=record.version)], edges=[]
+            ),
+            receipts=[],
+        )
+        mock_svc = Mock(spec=RegistryService)
+        mock_svc.snapshot.return_value = snap
+        with patch(
+            "traffictwin.ui.pages.research_registry.RegistryService.with_default_e2",
+            return_value=mock_svc,
+        ):
+            at = AppTest.from_file(
+                "src/traffictwin/ui/app_pages/research_registry.py", default_timeout=30
+            )
+            at.run()
+            _select_raw(at, f"{record.study}:{record.version}")
+            body = _text_of(at)
+            assert snippet in body, f"verbatim field missing: {snippet!r}"
+            assert fabricated not in body
+            assert "Placement is deterministic" not in body
+
+    base: dict[str, object] = {
+        "version": "1.0",
+        "title": "Trigger test",
+        "status": StudyStatus.COMPLETED,
+        "code_sha": "a" * 40,
+        "manifest_hash": "b" * 64,
+        "evaluator_id": None,
+        "actor_id": "c" * 64,
+        "checkpoint_id": None,
+        "trace_id": "d" * 64,
+        "replication_unit": "site_draw",
+        "seeds": [1],
+        "draws": [1],
+        "arms": None,
+        "secondary_metrics": None,
+        "per_draw_values": [PerDrawValue(draw=1, value=1.0, metric="m1")],
+        "evidence_standing": EvidenceStanding.RESEARCH_EVIDENCE_FACT,
+        "admission_status": AdmissionStatus.ADMITTED,
+        "product_links": None,
+    }
+
+    rec_versus = ResearchStudyRecord(
+        study="FY1",
+        question="Does A versus B differ?",
+        hypothesis="A versus B comparison",
+        estimand="versus estimand",
+        primary_metrics=["m1"],
+        declared_summary=DeclaredSummary(estimate=1.0, metric="m1"),
+        limitations=None,
+        non_claims=None,
+        **base,
+    )
+    _check(rec_versus, "versus")
+
+    rec_persuade = ResearchStudyRecord(
+        study="FY2",
+        question="Can we persuade operators?",
+        hypothesis=None,
+        estimand="persuade effect",
+        primary_metrics=["m1"],
+        declared_summary=None,
+        limitations=None,
+        non_claims=None,
+        **base,
+    )
+    _check(rec_persuade, "persuade")
+
+    rec_deadline = ResearchStudyRecord(
+        study="FY3",
+        question="Effect under deadline?",
+        hypothesis=None,
+        estimand="deadline attainment",
+        primary_metrics=["m1"],
+        declared_summary=DeclaredSummary(
+            estimate=0.5, ci_lower=0.1, ci_upper=0.9, method="deadline method", metric="m1"
+        ),
+        limitations=["deadline noted"],
+        non_claims=None,
+        **base,
+    )
+    _check(rec_deadline, "deadline")
+
+    rec_placement = ResearchStudyRecord(
+        study="FY4",
+        question="Does RSU placement matter?",
+        hypothesis=None,
+        estimand="placement",
+        primary_metrics=["m1"],
+        declared_summary=None,
+        limitations=None,
+        non_claims=None,
+        **base,
+    )
+    _check(rec_placement, "placement")
+
+    rec_disclaim = ResearchStudyRecord(
+        study="FY5",
+        question="Generic foreign question",
+        hypothesis=None,
+        estimand="generic",
+        primary_metrics=["m1"],
+        declared_summary=None,
+        limitations=None,
+        non_claims=[
+            "This study makes no claim about RSU placement and does not evaluate Kubernetes deployment."  # noqa: E501
+        ],
+        **base,
+    )
+    _check(rec_disclaim, "makes no claim about RSU placement")
 
 
 def test_unknown_unadmitted_cannot_enter_snapshot() -> None:
