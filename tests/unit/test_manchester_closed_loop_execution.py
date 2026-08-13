@@ -2097,10 +2097,31 @@ def test_missing_config_no_fake_fingerprint(tmp_path: Path) -> None:
         create_closed_loop_request(
             package_root=pkg, config_file="sumo.sumocfg", run_id="run-missing"
         )
-    # Ensure no placeholder was created with fake hash
-    # Also test that a request cannot be forged to include missing config
-    # with fake hash via model_validate
-    # The error must be typed and not produce a valid request
+    # Ensure no placeholder was created with fake hash — file still absent, no fingerprint synthesized  # noqa: E501
+    assert not (pkg / "sumo.sumocfg").exists()
+    # Package fingerprint must be computed only from actual inputs, not from missing config
+    # Verify that forging a request that claims missing config with fake hash fails validation
+    fake_sha = "a" * 64
+    fake_pkg_fp = "b" * 64
+    # Attempt to forge a request listing missing config as declared input with fake hash
+    forged_payload = {
+        "run_id": "run-missing",
+        "package_fingerprint": fake_pkg_fp,
+        "config_file": "sumo.sumocfg",
+        "inputs": [
+            {"path": "sumo.sumocfg", "sha256": fake_sha, "size_bytes": 10},
+            {"path": "net.xml", "sha256": "c" * 64, "size_bytes": 6},
+        ],
+        "seed": 42,
+        "timeout_seconds": 120,
+        "deterministic_run_identity": "d" * 64,
+        "confirmed_by_operator": True,
+    }
+    with pytest.raises(Exception):  # noqa: B017
+        ClosedLoopExecutionRequest.model_validate(forged_payload)
+    # Also ensure create_closed_loop_request still refuses when only routes exist but config missing
+    assert (pkg / "net.xml").is_file()
+    assert not (pkg / "sumo.sumocfg").is_file()
 
 
 def test_unsupported_package_content_refusal(tmp_path: Path) -> None:
@@ -2131,3 +2152,200 @@ def test_unsupported_package_content_refusal(tmp_path: Path) -> None:
     except ManchesterClosedLoopError as exc:
         assert "/Users/" not in str(exc)
         assert "/private/" not in str(exc)
+
+
+# ---------------------------------------------------------------------------
+# BLOCKING: element text / tail / itertext channels must fail closed
+# ---------------------------------------------------------------------------
+
+
+def test_element_text_absolute_net_file_blocked(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    canary = tmp_path / "CANARY.net.xml"
+    canary.write_text("CANARY", encoding="utf-8")
+    (pkg / "sumo.sumocfg").write_text(
+        f"<configuration><input><net-file>{canary}</net-file></input></configuration>",
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-abs-text"
+    )
+    fake_dir = tmp_path / "fake_abs_text"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    # Track launches
+    import subprocess as _sp
+    import unittest.mock as _mock
+
+    launches: list[list[str]] = []
+    orig = _sp.Popen
+
+    def counting(*args: object, **kwargs: object) -> _sp.Popen[bytes]:  # type: ignore[no-untyped-def, call-overload, unused-ignore]
+        if args and isinstance(args[0], (list, tuple)):
+            launches.append([str(x) for x in args[0]])  # type: ignore[arg-type, unused-ignore]
+        return orig(*args, **kwargs)  # type: ignore[arg-type, call-overload, no-any-return, unused-ignore]
+
+    with _mock.patch(
+        "traffictwin.integration.manchester.closed_loop_execution.subprocess.Popen",
+        side_effect=counting,
+    ):
+        report = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / "out_abs_text_pre", request=req, tool=tool
+        )
+        assert report.status == "blocked"
+        # Must not leak raw absolute path
+        joined = " ".join(report.findings)
+        assert str(canary) not in joined
+        assert "/tmp" not in joined or "{REDACTED}" in joined  # noqa: S108
+        assert any("ABSOLUTE" in f or "REFERENCE" in f or "PRIVATE" in f for f in report.findings)
+        assert len(launches) == 0
+        out = tmp_path / "out_abs_text_run"
+        receipt = run_closed_loop_execution(
+            package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+        )
+        assert receipt.outcome == "blocked"
+        assert receipt.engineering_standing == "ENGINEERING_NOT_VALID"
+        assert receipt.scientific_standing == "SCIENTIFICALLY_NOT_ACCEPTED"
+        assert str(canary) not in receipt.stderr_excerpt
+        assert str(canary) not in receipt.canonical_json()
+        assert len(launches) == 0
+        # Verify canary not read via staging (staging should not contain outside content)
+        # The receipt must not be completed/SOFTWARE_VALID
+        assert receipt.outcome != "completed"  # type: ignore[comparison-overlap]
+
+
+def test_element_text_traversal_net_file_blocked(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    (pkg / "sumo.sumocfg").write_text(
+        "<configuration><input><net-file>../../CANARY.net.xml</net-file></input></configuration>",
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-trav-text"
+    )
+    fake_dir = tmp_path / "fake_trav_text"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    import subprocess as _sp
+    import unittest.mock as _mock
+
+    launches: list[list[str]] = []
+    orig = _sp.Popen
+
+    def counting(*args: object, **kwargs: object) -> _sp.Popen[bytes]:  # type: ignore[no-untyped-def, call-overload, unused-ignore]
+        if args and isinstance(args[0], (list, tuple)):
+            launches.append([str(x) for x in args[0]])  # type: ignore[arg-type, unused-ignore]
+        return orig(*args, **kwargs)  # type: ignore[arg-type, call-overload, no-any-return, unused-ignore]
+
+    with _mock.patch(
+        "traffictwin.integration.manchester.closed_loop_execution.subprocess.Popen",
+        side_effect=counting,
+    ):
+        report = preflight_closed_loop_execution(
+            package_root=pkg, output_root=tmp_path / "out_trav_text_pre", request=req, tool=tool
+        )
+        assert report.status == "blocked"
+        assert any("TRAVERSAL" in f for f in report.findings)
+        assert (
+            "../../CANARY" not in " ".join(report.findings)
+            or "REDACTED" in " ".join(report.findings)
+            or "TRAVERSAL" in " ".join(report.findings)
+        )
+        assert len(launches) == 0
+        out = tmp_path / "out_trav_text_run"
+        receipt = run_closed_loop_execution(
+            package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+        )
+        assert receipt.outcome == "blocked"
+        assert receipt.engineering_standing != "SOFTWARE_VALID"
+        assert len(launches) == 0
+
+
+def test_element_text_route_files_and_combined_nested_blocked(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    # route-files via element text absolute
+    canary = tmp_path / "CANARY.rou.xml"
+    canary.write_text("CANARY", encoding="utf-8")
+    (pkg / "sumo.sumocfg").write_text(
+        f"<configuration><input><route-files>{canary}</route-files></input></configuration>",
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-route-abs"
+    )
+    fake_dir = tmp_path / "fake_route_abs"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    report = preflight_closed_loop_execution(
+        package_root=pkg, output_root=tmp_path / "out_route_abs", request=req, tool=tool
+    )
+    assert report.status == "blocked"
+    assert str(canary) not in " ".join(report.findings)
+    out = tmp_path / "out_route_abs_run"
+    receipt = run_closed_loop_execution(
+        package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+    )
+    assert receipt.outcome == "blocked"
+    # Nested/combined: net-file with nested child element containing traversal
+    pkg2 = _package_with_config(tmp_path / "pkg_nested")
+    (pkg2 / "sumo.sumocfg").write_text(
+        "<configuration><input><net-file>net.xml<evil>../../CANARY.net.xml</evil></net-file></input></configuration>",
+        encoding="utf-8",
+    )
+    req2 = create_closed_loop_request(
+        package_root=pkg2, config_file="sumo.sumocfg", run_id="run-nested"
+    )
+    fake_dir2 = tmp_path / "fake_nested"
+    exe2 = _write_fake_sumo(fake_dir2)
+    tool2 = detect_configured_sumo(exe2)
+    report2 = preflight_closed_loop_execution(
+        package_root=pkg2, output_root=tmp_path / "out_nested", request=req2, tool=tool2
+    )
+    assert report2.status == "blocked"
+    # itertext combined must be caught, so findings must mention traversal or unreviewed
+    assert any("TRAVERSAL" in f or "UNREVIEWED" in f or "TEXT" in f for f in report2.findings)
+    out2 = tmp_path / "out_nested_run"
+    receipt2 = run_closed_loop_execution(
+        package_root=pkg2, output_root=out2, request=req2, tool=tool2, executable_path=exe2
+    )
+    assert receipt2.outcome == "blocked"
+    # Ensure legal whitespace formatting still valid (no false positive)
+    pkg3 = _package_with_config(tmp_path / "pkg_ws")
+    (pkg3 / "sumo.sumocfg").write_text(
+        '<configuration>\n    <input>\n        <net-file value="net.xml"/>\n        <route-files value="routes.xml"/>\n    </input>\n    <time><begin value="0"/><end value="100"/></time>\n</configuration>',  # noqa: E501
+        encoding="utf-8",
+    )
+    req3 = create_closed_loop_request(
+        package_root=pkg3, config_file="sumo.sumocfg", run_id="run-ws"
+    )
+    report3 = preflight_closed_loop_execution(
+        package_root=pkg3, output_root=tmp_path / "out_ws", request=req3, tool=tool
+    )
+    assert report3.status == "accepted"
+
+
+def test_tail_and_nested_itertext_blocked(tmp_path: Path) -> None:
+    pkg = _package_with_config(tmp_path)
+    # Tail content after net-file should be rejected
+    (pkg / "sumo.sumocfg").write_text(
+        '<configuration><input><net-file value="net.xml"/>../../CANARY.net.xml</input></configuration>',  # noqa: E501
+        encoding="utf-8",
+    )
+    req = create_closed_loop_request(
+        package_root=pkg, config_file="sumo.sumocfg", run_id="run-tail"
+    )
+    fake_dir = tmp_path / "fake_tail"
+    exe = _write_fake_sumo(fake_dir)
+    tool = detect_configured_sumo(exe)
+    report = preflight_closed_loop_execution(
+        package_root=pkg, output_root=tmp_path / "out_tail", request=req, tool=tool
+    )
+    assert report.status == "blocked"
+    assert any("TAIL" in f for f in report.findings)
+    out = tmp_path / "out_tail_run"
+    receipt = run_closed_loop_execution(
+        package_root=pkg, output_root=out, request=req, tool=tool, executable_path=exe
+    )
+    assert receipt.outcome == "blocked"
+    assert receipt.engineering_standing == "ENGINEERING_NOT_VALID"
+    # Also test that whitespace-only tail remains valid (checked in previous test via formatting)

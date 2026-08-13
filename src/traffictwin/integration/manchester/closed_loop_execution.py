@@ -148,8 +148,6 @@ SCIENTIFICALLY_NOT_ACCEPTED: Literal["SCIENTIFICALLY_NOT_ACCEPTED"] = "SCIENTIFI
 SCIENTIFIC_ACCEPTED_BASELINE: Literal["SCIENTIFICALLY_ACCEPTED_BASELINE"] = (
     "SCIENTIFICALLY_ACCEPTED_BASELINE"
 )
-# Legacy alias for tests that still reference SOFTWARE_VALID as scientific value — now rejected
-SCIENTIFIC_SOFTWARE_VALID: Literal["SOFTWARE_VALID"] = "SOFTWARE_VALID"
 
 # Synthetic-only limitations — always present, never scientific acceptance.
 CLOSED_LOOP_LIMITATIONS: tuple[str, ...] = (
@@ -251,22 +249,43 @@ def _sanitize_finding_text(raw: str) -> str:
 
 
 def _finalize_findings(findings: list[str]) -> list[str]:
-    """Sanitize each finding and deterministically cap to contract bound (32)."""
+    """Sanitize each finding and deterministically cap to contract bound (32) without holding unbounded strings."""  # noqa: E501
     sanitized: list[str] = []
+    suppressed = 0
     for f in findings:
+        # If already at cap, count suppressed without holding string
+        if len(sanitized) >= 31:
+            # Still sanitize to count but do not store; need to account for this finding as suppressed  # noqa: E501
+            suppressed += 1
+            continue
         s = _sanitize_finding_text(f)
-        # Ensure validator constraints (1..1000, no secret/private)
         if not 1 <= len(s) <= 1000:
             s = s[:1000] if len(s) > 1000 else "BLOCKED: truncated"
         if _SECRET_TOKEN_RE.search(s) or _PRIVATE_PATH_RE.search(s):
             s = "CONFIG_SANITIZED_REJECTED: redacted"
+        # Ensure sanitized never empty
+        if not s.strip():
+            s = "BLOCKED: sanitized"
         sanitized.append(s)
-    # Filter empty (should not occur) and ensure non-empty if originally non-empty? Keep as is
-    if len(sanitized) > 32:
-        truncated_n = len(sanitized) - 31
-        capped = sanitized[:31]
-        capped.append(f"FINDINGS_TRUNCATED: {truncated_n} further findings suppressed")
-        return capped
+        # If we just filled to 31 and there are remaining raw findings, they will be counted as suppressed in next iterations  # noqa: E501
+    if suppressed > 0 or len(sanitized) > 32:
+        # This path also handles when caller passed >32 raw findings and we capped at 31
+        total_raw = len(findings)
+        if suppressed == 0 and total_raw > 32:
+            suppressed = total_raw - 31
+        # Ensure we have at most 31 before marker
+        if len(sanitized) > 31:
+            suppressed += len(sanitized) - 31
+            sanitized = sanitized[:31]
+        sanitized.append(f"FINDINGS_TRUNCATED: {suppressed} further findings suppressed")
+        # Guarantee bounded
+        if len(sanitized) > 32:
+            sanitized = sanitized[:31] + [
+                f"FINDINGS_TRUNCATED: {suppressed} further findings suppressed"
+            ]
+    # Final empty guard
+    if not sanitized and findings:
+        return ["BLOCKED: sanitized"]
     return sanitized
 
 
@@ -771,7 +790,7 @@ def _canonical_run_identity_from_parts(
 
 
 def _sanitize_text(text: str) -> str:
-    """Bound and scrub text for receipt portability."""
+    """Bound and scrub text for receipt portability; never returns empty when input non-empty."""
     if len(text) > MAX_LOG_BYTES:
         text = text[:MAX_LOG_BYTES]
     lines = text.splitlines()
@@ -784,7 +803,10 @@ def _sanitize_text(text: str) -> str:
         if _SECRET_TOKEN_RE.search(raw):
             continue
         kept.append(raw)
-    return "\n".join(kept)
+    result = "\n".join(kept)
+    if not result.strip() and text.strip():
+        return "BLOCKED: sanitized"
+    return result
 
 
 def _controlled_environment(executable: Path, working_dir: Path) -> dict[str, str]:
@@ -925,62 +947,120 @@ def _compute_deterministic_identity(
 def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionRequest) -> list[str]:
     """Hardened XML preflight for the .sumocfg as untrusted execution control."""
     errors: list[str] = []
+    suppressed = 0
+
+    def _emit(msg: str) -> None:
+        nonlocal suppressed
+        if len(errors) < 31:
+            errors.append(msg)
+        else:
+            suppressed += 1
+
     config_path = package_root / request.config_file
     # Never resolve symlink before checking
     if config_path.is_symlink():
-        errors.append("CONFIG_SYMLINK_REJECTED: config must not be a symlink")
-        return errors
+        _emit("CONFIG_SYMLINK_REJECTED: config must not be a symlink")
+        return _finalize_preflight_errors(errors, suppressed)
     if not config_path.is_file():
-        errors.append("CONFIG_MISSING: config file is not a regular file")
-        return errors
+        _emit("CONFIG_MISSING: config file is not a regular file")
+        return _finalize_preflight_errors(errors, suppressed)
     try:
         size = config_path.stat().st_size
     except OSError:
-        errors.append("CONFIG_UNREADABLE: cannot stat config")
-        return errors
+        _emit("CONFIG_UNREADABLE: cannot stat config")
+        return _finalize_preflight_errors(errors, suppressed)
     if size > MAX_CONFIG_BYTES:
-        errors.append(f"CONFIG_OVERSIZED: {size} exceeds {MAX_CONFIG_BYTES}")
-        return errors
+        _emit(f"CONFIG_OVERSIZED: {size} exceeds {MAX_CONFIG_BYTES}")
+        return _finalize_preflight_errors(errors, suppressed)
     try:
         data = config_path.read_bytes()
     except OSError:
-        errors.append("CONFIG_UNREADABLE: cannot read config")
-        return errors
+        _emit("CONFIG_UNREADABLE: cannot read config")
+        return _finalize_preflight_errors(errors, suppressed)
     if len(data) > MAX_CONFIG_BYTES:
-        errors.append("CONFIG_OVERSIZED: byte length exceeds bound")
-        return errors
+        _emit("CONFIG_OVERSIZED: byte length exceeds bound")
+        return _finalize_preflight_errors(errors, suppressed)
     if b"<!DOCTYPE" in data or b"<!ENTITY" in data:
-        errors.append("CONFIG_DTD_ENTITY_REJECTED: DTD/entities are forbidden")
-        return errors
+        _emit("CONFIG_DTD_ENTITY_REJECTED: DTD/entities are forbidden")
+        return _finalize_preflight_errors(errors, suppressed)
     # Use defusedxml for safe parsing
     try:
         import defusedxml.ElementTree as defusedxml_et  # noqa: N813 - defused alias
 
         root = defusedxml_et.fromstring(data)
     except Exception as exc:  # noqa: BLE001 - need to surface malformed
-        errors.append(f"CONFIG_MALFORMED: {exc}")
-        return errors
+        _emit(f"CONFIG_MALFORMED: {exc}")
+        return _finalize_preflight_errors(errors, suppressed)
 
     def _strip_ns(tag: str) -> str:
         return tag.split("}", 1)[-1] if "}" in tag else tag
 
+    def _safe_val(v: str) -> str:
+        if _PRIVATE_PATH_RE.search(v) or _SECRET_TOKEN_RE.search(v):
+            return "{REDACTED}"
+        return v
+
+    def _validate_file_reference_text(raw_val: str, safe_label: str) -> None:
+        """Validate a file-reference string (comma-separated) fail-closed, bounded."""
+        # Apply same checks as attribute value
+        if _PRIVATE_PATH_RE.search(raw_val):
+            _emit("CONFIG_PRIVATE_PATH_REJECTED: value contains private path")
+        if _SECRET_TOKEN_RE.search(raw_val):
+            _emit("CONFIG_SENSITIVE_REJECTED: value contains disallowed pattern")
+        if "://" in raw_val:
+            _emit(f"CONFIG_URI_REFERENCE_REJECTED: {_safe_val(raw_val)}")
+        if raw_val.startswith("/") or raw_val.startswith("\\"):
+            _emit(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {_safe_val(raw_val)}")
+        if "\\" in raw_val:
+            _emit(f"CONFIG_BACKSLASH_REJECTED: {_safe_val(raw_val)}")
+        if "\x00" in raw_val:
+            _emit("CONFIG_NULL_BYTE_REJECTED: value contains null byte")
+        try:
+            pp = PurePosixPath(raw_val)
+            if ".." in pp.parts:
+                _emit(f"CONFIG_TRAVERSAL_REJECTED: {_safe_val(raw_val)}")
+        except Exception:
+            _emit(f"CONFIG_TRAVERSAL_REJECTED: {_safe_val(raw_val)}")
+        if tag in _FILE_REFERENCE_TAGS:
+            for ref in raw_val.split(","):
+                ref = ref.strip()
+                if not ref:
+                    continue
+                safe_ref = _safe_val(ref)
+                if ref not in admitted:
+                    _emit(f"CONFIG_REFERENCE_NOT_IN_INVENTORY: {safe_ref}")
+                if ".." in PurePosixPath(ref).parts:
+                    _emit(f"CONFIG_TRAVERSAL_REJECTED: {safe_ref}")
+                if ref.startswith("/") or "\\" in ref:
+                    _emit(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {safe_ref}")
+                if "://" in ref:
+                    _emit(f"CONFIG_URI_REFERENCE_REJECTED: {safe_ref}")
+                if _PRIVATE_PATH_RE.search(ref):
+                    _emit("CONFIG_PRIVATE_PATH_REJECTED: value contains private path")
+                if _SECRET_TOKEN_RE.search(ref):
+                    _emit("CONFIG_SENSITIVE_REJECTED: value contains disallowed pattern")
+
     admitted = {i.path for i in request.inputs}
     for elem in root.iter():
+        # Bounded early stop: still need to count tail/text errors but without unbounded storage;
+        # _emit already bounds. We continue iterating but may stop producing detailed tail errors if suppressed huge.  # noqa: E501
+        # To avoid unbounded iteration cost, we keep iterating but each iteration only does cheap checks.  # noqa: E501
         tag = _strip_ns(elem.tag)
         safe_tag = _sanitize_xml_name(tag)
         # Explicit refusal of additional-files in this narrow V1 runner
         if tag == "additional-files":
-            errors.append(
-                "CONFIG_ADDITIONAL_FILES_REJECTED: additional-files not supported in V1 runner"
-            )
+            _emit("CONFIG_ADDITIONAL_FILES_REJECTED: additional-files not supported in V1 runner")
             continue
         if tag not in _ALLOWED_CONFIG_TAGS:
             low = tag.lower()
             if any(k in low for k in _FORBIDDEN_TAG_SUBSTRINGS):
-                errors.append(f"CONFIG_FORBIDDEN_OPTION_REJECTED: {safe_tag} is not allowed")
+                _emit(f"CONFIG_FORBIDDEN_OPTION_REJECTED: {safe_tag} is not allowed")
             else:
-                errors.append(f"CONFIG_UNREVIEWED_ELEMENT_REJECTED: {safe_tag} is not allowlisted")
-            continue
+                _emit(f"CONFIG_UNREVIEWED_ELEMENT_REJECTED: {safe_tag} is not allowlisted")
+            # Even for unreviewed tags, still check text/tail channels fail-closed to prevent hidden file refs inside them  # noqa: E501
+            # Check any non-whitespace text/tail inside unreviewed element as additional blocker (but already blocked)  # noqa: E501
+            # We still scan text/tail to ensure no raw path leaks via earlier _safe_val, but element already blocked.  # noqa: E501
+            # Fall through to text checks below to ensure redacted handling, but avoid double inventory checks.  # noqa: E501
         # Validate attributes
         for attr_name, attr_val in list(elem.attrib.items()):
             # Allow XML namespace declarations on root
@@ -990,39 +1070,30 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
                 continue
             if attr_name != "value":
                 safe_attr = _sanitize_xml_name(attr_name)
-                errors.append(
+                _emit(
                     f"CONFIG_UNREVIEWED_ATTRIBUTE_REJECTED: {safe_tag} attribute {safe_attr} not allowed"  # noqa: E501
                 )
                 continue
             val: str = attr_val
-
-            # Redact private/secret values in findings to keep findings portable
-            def _safe_val(v: str) -> str:
-                if _PRIVATE_PATH_RE.search(v) or _SECRET_TOKEN_RE.search(v):
-                    return "{REDACTED}"
-                return v
-
             safe = _safe_val(val)
             if _PRIVATE_PATH_RE.search(val):
-                errors.append("CONFIG_PRIVATE_PATH_REJECTED: value contains private path")
+                _emit("CONFIG_PRIVATE_PATH_REJECTED: value contains private path")
             if _SECRET_TOKEN_RE.search(val):
-                errors.append("CONFIG_SENSITIVE_REJECTED: value contains disallowed pattern")
+                _emit("CONFIG_SENSITIVE_REJECTED: value contains disallowed pattern")
             if "://" in val:
-                errors.append(f"CONFIG_URI_REFERENCE_REJECTED: {safe}")
+                _emit(f"CONFIG_URI_REFERENCE_REJECTED: {safe}")
             if val.startswith("/") or val.startswith("\\"):
-                errors.append(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {safe}")
+                _emit(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {safe}")
             if "\\" in val:
-                errors.append(f"CONFIG_BACKSLASH_REJECTED: {safe}")
+                _emit(f"CONFIG_BACKSLASH_REJECTED: {safe}")
             if "\x00" in val:
-                errors.append("CONFIG_NULL_BYTE_REJECTED: value contains null byte")
-            # Traversal check
+                _emit("CONFIG_NULL_BYTE_REJECTED: value contains null byte")
             try:
                 pp = PurePosixPath(val)
                 if ".." in pp.parts:
-                    errors.append(f"CONFIG_TRAVERSAL_REJECTED: {safe}")
+                    _emit(f"CONFIG_TRAVERSAL_REJECTED: {safe}")
             except Exception:
-                errors.append(f"CONFIG_TRAVERSAL_REJECTED: {safe}")
-            # For file references, check inventory exact match (handle comma-separated)
+                _emit(f"CONFIG_TRAVERSAL_REJECTED: {safe}")
             if tag in _FILE_REFERENCE_TAGS:
                 for ref in val.split(","):
                     ref = ref.strip()
@@ -1030,14 +1101,72 @@ def _preflight_config_xml(package_root: Path, request: ClosedLoopExecutionReques
                         continue
                     safe_ref = _safe_val(ref)
                     if ref not in admitted:
-                        errors.append(f"CONFIG_REFERENCE_NOT_IN_INVENTORY: {safe_ref}")
-                    # also check traversal/absolute per reference
+                        _emit(f"CONFIG_REFERENCE_NOT_IN_INVENTORY: {safe_ref}")
                     if ".." in PurePosixPath(ref).parts:
-                        errors.append(f"CONFIG_TRAVERSAL_REJECTED: {safe_ref}")
+                        _emit(f"CONFIG_TRAVERSAL_REJECTED: {safe_ref}")
                     if ref.startswith("/") or "\\" in ref:
-                        errors.append(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {safe_ref}")
+                        _emit(f"CONFIG_ABSOLUTE_REFERENCE_REJECTED: {safe_ref}")
                     if "://" in ref:
-                        errors.append(f"CONFIG_URI_REFERENCE_REJECTED: {safe_ref}")
+                        _emit(f"CONFIG_URI_REFERENCE_REJECTED: {safe_ref}")
+        # --- Text / tail / itertext channels fail-closed ---
+        # For file-reference tags, any non-whitespace character data (including nested via itertext) is a file reference.  # noqa: E501
+        if tag in _FILE_REFERENCE_TAGS:
+            # Use itertext to capture nested/combined text (ElementTree exposes combined via itertext)  # noqa: E501
+            try:
+                combined = "".join(elem.itertext())
+            except Exception:
+                combined = elem.text or ""
+            if combined is not None and combined.strip() != "":
+                # Validate the combined non-whitespace text as file reference(s)
+                stripped = combined.strip()
+                # Split respect comma-separated inventory form; but combined may contain whitespace-only separators?  # noqa: E501
+                # Validate each logical reference; we also validate whole stripped for absolute/traversal as above  # noqa: E501
+                _validate_file_reference_text(stripped, safe_tag)
+        else:
+            # Non-file tags must not contain non-whitespace character data
+            # Check direct .text
+            if elem.text is not None and elem.text.strip() != "":
+                _emit(f"CONFIG_TEXT_CONTENT_REJECTED: {safe_tag} must not contain character data")
+            # Also check combined nested text that isn't inside a file-reference child?
+            # For non-file tags, any descendant non-whitespace itertext that isn't inside a file tag child should be blocked.  # noqa: E501
+            # Since file tags are children, their text is already validated above; but stray text directly under non-file tag between children is captured via tail checks below and via elem.text.  # noqa: E501
+            # To cover nested text not directly in elem.text, we check if any descendant file-tag text would have been validated, otherwise treat as unexpected.  # noqa: E501
+            # Simplified: if elem is not file tag and combined stripped is not empty and tag is not file tag, but combined includes file-tag children's text, we shouldn't double-reject.  # noqa: E501
+            # So we only reject if the element has no file-tag descendant with text, or we check that no file-tag descendant exists.  # noqa: E501
+            # For simplicity, we already handle file tag itertext above; for non-file tags we rely on per-element text/tail checks, not combined.  # noqa: E501
+            pass
+        # Tail channel — always fail-closed for any non-whitespace tail
+        if elem.tail is not None and elem.tail.strip() != "":
+            safe_tail = _safe_val(elem.tail.strip())
+            # Tail is text after this element's closing tag, inside parent; any non-whitespace tail indicates undeclared character data  # noqa: E501
+            _emit(f"CONFIG_TAIL_CONTENT_REJECTED: {safe_tail}")
+    return _finalize_preflight_errors(errors, suppressed)
+
+
+def _finalize_preflight_errors(errors: list[str], suppressed: int) -> list[str]:
+    """Cap preflight errors without holding unbounded strings; produce deterministic truncation marker."""  # noqa: E501
+    if suppressed > 0:
+        # Ensure list capped at 31 before marker
+        if len(errors) > 31:
+            # Already bounded, but suppressed indicates overflow
+            errors = errors[:31]
+        elif len(errors) == 31:
+            pass
+        else:
+            # errors <31 but suppressed>0 means we emitted via bounded path
+            pass
+        # Total further findings = suppressed (additional beyond 31) plus any overflow beyond 31 already counted?  # noqa: E501
+        # errors length is at most 31, suppressed is count of dropped
+        errors.append(f"FINDINGS_TRUNCATED: {suppressed} further findings suppressed")
+        # Guarantee not empty and bounded
+        if len(errors) > 32:
+            errors = errors[:31] + [f"FINDINGS_TRUNCATED: {suppressed} further findings suppressed"]
+        # Ensure non-empty after sanitizing truncation marker not needed; marker is safe
+        return errors
+    # No suppression, but still need to ensure bounded via normal finalize if caller passed many
+    if len(errors) > 32:
+        truncated_n = len(errors) - 31
+        return errors[:31] + [f"FINDINGS_TRUNCATED: {truncated_n} further findings suppressed"]
     return errors
 
 
@@ -1201,7 +1330,7 @@ def create_closed_loop_request(
             "OPERATOR_AUTHORISATION_REQUIRED",
             "execution requires explicit operator authorisation (confirmed_by_operator=True)",
         )
-    if not _SAFE_NAME_RE.match(run_id) and not re.match(r"^[a-z0-9][a-z0-9_.-]{0,63}$", run_id):
+    if not re.match(r"^[a-z0-9][a-z0-9_.-]{0,63}$", run_id):
         raise ManchesterClosedLoopError("INVALID_RUN_ID", "run_id does not match required pattern")
 
     pkg = Path(package_root)
@@ -1416,12 +1545,26 @@ def preflight_closed_loop_execution(
             findings=findings,
         )
 
-    # Hardened config preflight
+    # Hardened config preflight — handle bounded truncation marker without double counting
     cfg_errors = _preflight_config_xml(Path(package_root), request)
     if cfg_errors:
+        # Separate truncation marker from real errors to avoid double capping
+        truncated = None
+        real_cfg = []
         for e in cfg_errors:
+            if e.startswith("FINDINGS_TRUNCATED:"):
+                truncated = e
+            else:
+                real_cfg.append(e)
+        for e in real_cfg:
             findings.append(f"CONFIG_PREFLIGHT_FAILED: {_sanitize_finding_text(e)}")
-        findings = _finalize_findings(findings)
+        if truncated is not None:
+            # Preserve the preflight's deterministic truncation count
+            findings.append(truncated)
+        else:
+            findings = _finalize_findings(findings)
+            # If finalize added a marker, keep it; otherwise no truncation
+            # Ensure marker not double wrapped
         if not findings:
             findings = ["CONFIG_PREFLIGHT_FAILED: blocked"]
         return ClosedLoopPreflightReport(
@@ -1727,6 +1870,9 @@ def run_closed_loop_execution(
             duration = max(0.0, (c_dt - s_dt).total_seconds())
         except Exception:
             duration = 0.0
+        sanitized_reason = _sanitize_text(reason)[:MAX_LOG_BYTES]
+        if not sanitized_reason.strip():
+            sanitized_reason = "BLOCKED: sanitized"
         return ClosedLoopExecutionReceipt(
             run_id=request.run_id,
             request=request,
@@ -1743,7 +1889,7 @@ def run_closed_loop_execution(
             timed_out=False,
             outcome="blocked",
             stdout_excerpt="",
-            stderr_excerpt=_sanitize_text(reason)[:MAX_LOG_BYTES],
+            stderr_excerpt=sanitized_reason,
             outputs=[],
             output_fingerprint=None,
             inputs_verified=inputs_verified,
@@ -2059,9 +2205,84 @@ def run_closed_loop_execution(
                 inputs_verified = False
                 break
 
+    output_errors: list[str] = []
+    # Bind/verify _staging to close blind spot: staging must contain only declared inputs + bounded logs  # noqa: E501
+    try:
+        expected_staging = {PurePosixPath(d.path).name for d in request.inputs} | {
+            "stdout.txt",
+            "stderr.txt",
+        }
+        # Also account for declared paths that may include subdirectories — check full relative POSIX path  # noqa: E501
+        expected_staging_full = {d.path for d in request.inputs} | {"stdout.txt", "stderr.txt"}
+        # Second pass: actually detect extra (single iteration; previous placeholder loop removed)
+        for child in staging.iterdir():
+            # Allow benign macOS system artifacts that may be auto-created when HOME=staging (e.g., Library)  # noqa: E501
+            if child.name in {"Library", ".DS_Store", "__pycache__"}:
+                continue
+            if child.name in expected_staging_full or child.name in expected_staging:
+                # For file entries, verify not symlink and expected; subdir handling: if declared inputs have subdirs, the immediate child dir would be expected  # noqa: E501
+                # Check if any declared input path starts with child.name + "/"
+                is_expected_dir = any(d.path.startswith(child.name + "/") for d in request.inputs)
+                if child.is_dir() and is_expected_dir:
+                    # Need to recurse? For V1 flat inputs, no subdirs expected; for safety, walk expected subdirs  # noqa: E501
+                    # Verify no extra files inside expected subdir beyond declared inputs
+                    try:
+                        for sub in child.rglob("*"):
+                            rel_sub = sub.relative_to(staging).as_posix()
+                            if rel_sub in expected_staging_full:
+                                if sub.is_symlink():
+                                    output_errors.append(f"STAGING_SYMLINK_REJECTED: {rel_sub}")
+                                continue
+                            if sub.is_symlink():
+                                output_errors.append(f"STAGING_SYMLINK_REJECTED: {rel_sub}")
+                            elif sub.is_file() or sub.is_dir():
+                                output_errors.append(f"STAGING_EXTRA_REJECTED: {rel_sub}")
+                    except OSError as exc2:
+                        output_errors.append(f"OUTPUT_ENUM_FAILED: staging walk {exc2}")
+                    continue
+                if child.is_symlink():
+                    output_errors.append(f"STAGING_SYMLINK_REJECTED: {child.name}")
+                elif child.is_file():
+                    # Already expected (stdout/stderr or declared file) — but verify not symlink already handled; keep  # noqa: E501
+                    continue
+                elif child.is_dir():
+                    output_errors.append(f"STAGING_EXTRA_DIR_REJECTED: {child.name}")
+                continue
+            # Not in expected set => extra blind-spot file/dir/symlink
+            if child.name in {"Library", ".DS_Store", "__pycache__"}:
+                continue
+            if child.is_symlink():
+                output_errors.append(f"STAGING_SYMLINK_REJECTED: {child.name}")
+            elif child.is_file():
+                output_errors.append(f"STAGING_EXTRA_REJECTED: {child.name}")
+            elif child.is_dir():
+                # Check if dir is prefix of declared input path (allowed)
+                is_expected_dir2 = any(d.path.startswith(child.name + "/") for d in request.inputs)
+                if is_expected_dir2:
+                    # Walk inside
+                    try:
+                        for sub in child.rglob("*"):
+                            rel_sub = sub.relative_to(staging).as_posix()
+                            if rel_sub in expected_staging_full:
+                                if sub.is_symlink():
+                                    output_errors.append(f"STAGING_SYMLINK_REJECTED: {rel_sub}")
+                                continue
+                            if sub.is_symlink():
+                                output_errors.append(f"STAGING_SYMLINK_REJECTED: {rel_sub}")
+                            elif sub.is_file() or sub.is_dir():
+                                output_errors.append(f"STAGING_EXTRA_REJECTED: {rel_sub}")
+                    except OSError as exc3:
+                        output_errors.append(f"OUTPUT_ENUM_FAILED: staging walk {exc3}")
+                    continue
+                output_errors.append(f"STAGING_EXTRA_DIR_REJECTED: {child.name}")
+            else:
+                output_errors.append(f"STAGING_EXTRA_REJECTED: {child.name}")
+    except OSError as exc_staging:
+        output_errors.append(f"OUTPUT_ENUM_FAILED: staging {exc_staging}")
+
     # Collect outputs — size before hashing, aggregate, symlinks, extra, missing/duplicate/drift
     outputs: list[ClosedLoopFileEvidence] = []
-    output_errors: list[str] = []
+    # output_errors already may contain staging blind-spot errors
     total_bytes = 0
     expected_names = {"tripinfo.xml", "summary.xml"}
     # Extra artifacts in output_root (excluding _staging)
@@ -2158,6 +2379,12 @@ def run_closed_loop_execution(
     preflight_fp = _preflight_fingerprint(request, tool)
     stdout_text = _sanitize_text(stdout_text)
     stderr_text = _sanitize_text(stderr_combined)
+    outcome_str: str = outcome
+    if not stderr_text.strip() and (outcome_str != "completed" or stderr_combined.strip()):
+        stderr_text = "BLOCKED: sanitized" if outcome_str == "blocked" else "FAILED: sanitized"
+    if not stdout_text.strip() and stdout_text == "":
+        # stdout may legitimately be empty on success; keep empty
+        pass
 
     eng: Literal["SOFTWARE_VALID", "ENGINEERING_NOT_VALID"] = (
         ENGINEERING_SOFTWARE_VALID if outcome == "completed" else ENGINEERING_NOT_VALID
@@ -2200,13 +2427,6 @@ def run_closed_loop_execution(
     )
 
 
-# Also export helper for deterministic identity (used in tests)
-def deterministic_run_identity_for_request(
-    request: ClosedLoopExecutionRequest,
-) -> str:
-    return request.deterministic_run_identity
-
-
 __all__ = [
     "CLOSED_LOOP_CAPABILITY_ID",
     "CLOSED_LOOP_FIXED_ARGV",
@@ -2219,7 +2439,6 @@ __all__ = [
     "ENGINEERING_NOT_VALID",
     "SCIENTIFICALLY_NOT_ACCEPTED",
     "SCIENTIFIC_ACCEPTED_BASELINE",
-    "SCIENTIFIC_SOFTWARE_VALID",
     "SUPPORTED_SUMO_VERSION_PREFIX",
     "MAX_CONFIG_BYTES",
     "MAX_OUTPUT_BYTES",
@@ -2240,7 +2459,6 @@ __all__ = [
     "build_closed_loop_execution_package",
     "create_closed_loop_request",
     "detect_configured_sumo",
-    "deterministic_run_identity_for_request",
     "preflight_closed_loop_execution",
     "run_closed_loop_execution",
 ]
