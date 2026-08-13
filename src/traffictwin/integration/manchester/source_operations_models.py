@@ -175,10 +175,17 @@ class SourceDefinition(SourceOperationsModel):
 
 
 class OperationalReceipt(SourceOperationsModel):
-    """Portable identity of a verified operational check, never its private path."""
+    """Portable identity of a verified operational check, never its private path.
+
+    Bound to an exact ``source_family`` and a bounded ``check_id`` (method or
+    standing checked) so a receipt cannot be reused to claim readiness for
+    another provider. Carries no credential or path value.
+    """
 
     receipt_id: str = Field(pattern=_SAFE_LABEL_PATTERN)
     receipt_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_family: SourceFamily
+    check_id: str = Field(pattern=_SAFE_LABEL_PATTERN)
     observed_at_utc: datetime
 
     @field_validator("observed_at_utc")
@@ -192,6 +199,23 @@ class SourceRuntimeMetadata(SourceOperationsModel):
 
     Deliberately absent: a path, credential value, environment-variable value,
     or arbitrary provider payload.
+
+    Truthful minimal operational evidence (documented exact rules):
+
+    * ``AVAILABLE`` for credentialed ``BODS`` / ``NATIONAL_HIGHWAYS`` requires
+      ``credential_presence == PRESENT`` and an exact ``operational_receipt``
+      bound to the same ``source_family`` and a bounded ``check_id``.
+    * ``CREDENTIAL_REQUIRED`` requires ``ABSENT`` plus blocker/action and no
+      live claim.
+    * ``SUMO`` ``INSTALLATION_DETECTED`` requires ``tool_version`` plus an
+      exact receipt; ``NOT_DETECTED`` is blocked.
+    * ``STATIC_AVAILABLE`` / ``SYNTHETIC_AVAILABLE`` require an exact receipt
+      bound to the same family (operational availability needs evidence).
+    * Historical ``DFT`` / ``WebTRIS`` ``HISTORICAL_ONLY`` is supported by an
+      accepted immutable snapshot *validation receipt* (``validation_receipt_
+      fingerprint`` / ``validated_at_utc`` in the registry); no separate
+      operational receipt is required. Do not invent live availability.
+    * ``TFGM`` remains ``PROVIDER_DATA_REQUIRED`` with no accepted snapshot.
     """
 
     source_family: SourceFamily
@@ -206,6 +230,16 @@ class SourceRuntimeMetadata(SourceOperationsModel):
 
     @model_validator(mode="after")
     def validate_against_frozen_source(self) -> Self:
+        # Canonical revalidation of nested receipt to defeat model_copy bypass
+        if self.operational_receipt is not None:
+            try:
+                OperationalReceipt.model_validate(
+                    self.operational_receipt.model_dump(mode="python")
+                )
+            except Exception as exc:
+                raise ValueError("operational receipt failed canonical revalidation") from exc
+            if self.operational_receipt.source_family is not self.source_family:
+                raise ValueError("operational receipt family must match runtime family")
         definition = source_definition(self.source_family)
         if self.current_standing not in definition.allowed_current_standings:
             raise ValueError("current standing exceeds the frozen source policy")
@@ -249,6 +283,11 @@ class SourceRuntimeMetadata(SourceOperationsModel):
         if self.current_standing is SourceCurrentStanding.INSTALLATION_DETECTED:
             if self.tool_version is None or self.operational_receipt is None:
                 raise ValueError("detected SUMO requires version and verified receipt")
+            if (
+                self.operational_receipt is not None
+                and self.operational_receipt.source_family is not SourceFamily.SUMO
+            ):
+                raise ValueError("SUMO receipt family must be SUMO")
         elif self.tool_version is not None:
             raise ValueError("tool version is valid only for a detected SUMO installation")
         if self.source_family is not SourceFamily.SUMO and self.current_standing in {
@@ -256,11 +295,38 @@ class SourceRuntimeMetadata(SourceOperationsModel):
             SourceCurrentStanding.NOT_DETECTED,
         }:
             raise ValueError("installation standing is reserved for SUMO")
+        # Truthful minimal operational evidence
+        if self.current_standing is SourceCurrentStanding.AVAILABLE:
+            if self.source_family in {SourceFamily.BODS, SourceFamily.NATIONAL_HIGHWAYS}:
+                if self.credential_presence is not CredentialPresence.PRESENT:
+                    raise ValueError("credentialed AVAILABLE requires credential presence PRESENT")
+                if self.operational_receipt is None:
+                    raise ValueError("credentialed AVAILABLE requires an operational receipt")
+            else:
+                raise ValueError("AVAILABLE standing is only valid for credentialed families")
+        if self.current_standing is SourceCurrentStanding.STATIC_AVAILABLE:
+            if self.operational_receipt is None:
+                raise ValueError("STATIC_AVAILABLE requires an operational receipt")
+            if self.operational_receipt.source_family is not self.source_family:
+                raise ValueError("STATIC_AVAILABLE receipt family must match")
+        if self.current_standing is SourceCurrentStanding.SYNTHETIC_AVAILABLE:
+            if self.operational_receipt is None:
+                raise ValueError("SYNTHETIC_AVAILABLE requires an operational receipt")
+            if self.operational_receipt.source_family is not self.source_family:
+                raise ValueError("SYNTHETIC_AVAILABLE receipt family must match")
+        # DFT/WebTRIS HISTORICAL_ONLY is evidenced by accepted snapshot validation receipt,
+        # not by operational receipt; no receipt required here. UNAVAILABLE etc remain blocked.
         return self
 
 
 class SnapshotPointer(SourceOperationsModel):
-    """Minimal portable reference to one immutable registry record."""
+    """Minimal portable reference to one immutable registry record.
+
+    Exact projection of canonical registry receipt: carries the true
+    ``validation_receipt_fingerprint`` (not provenance), ``validated_at_utc``,
+    and bounded rejection summary. Chronology ``retrieved <= validated`` and
+    accepted/rejected coherence mirror the registration.
+    """
 
     source_family: SourceFamily
     validation_state: SnapshotValidationState
@@ -268,12 +334,34 @@ class SnapshotPointer(SourceOperationsModel):
     snapshot_identity: str = Field(pattern=_SAFE_LABEL_PATTERN)
     content_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
     retrieved_at_utc: datetime
+    validated_at_utc: datetime
     validation_receipt_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    rejection_code: str | None = Field(default=None, pattern=r"^[A-Z][A-Z0-9_]{2,95}$")
+    rejection_reason: str | None = Field(default=None, min_length=1, max_length=300)
 
     @field_validator("retrieved_at_utc")
     @classmethod
     def validate_retrieved_at(cls, value: datetime) -> datetime:
         return _require_utc(value, "snapshot retrieval time")
+
+    @field_validator("validated_at_utc")
+    @classmethod
+    def validate_validated_at(cls, value: datetime) -> datetime:
+        return _require_utc(value, "snapshot validation time")
+
+    @model_validator(mode="after")
+    def validate_pointer_coherence(self) -> Self:
+        if self.retrieved_at_utc > self.validated_at_utc:
+            raise ValueError("retrieved time must not be later than validation time")
+        if self.validation_state is SnapshotValidationState.ACCEPTED:
+            if self.rejection_code is not None or self.rejection_reason is not None:
+                raise ValueError("accepted pointer must not carry rejection code or reason")
+        elif self.validation_state is SnapshotValidationState.REJECTED:
+            if self.rejection_code is None or self.rejection_reason is None:
+                raise ValueError("rejected pointer requires rejection code and reason")
+            if not self.rejection_reason.strip():
+                raise ValueError("rejection reason must be a truthful nonempty summary")
+        return self
 
 
 class SourceReadiness(SourceOperationsModel):
@@ -301,6 +389,22 @@ class SourceReadiness(SourceOperationsModel):
 
     @model_validator(mode="after")
     def preserve_source_ceiling(self) -> Self:
+        # Canonical revalidation of nested instances to defeat model_copy bypass
+        for pointer in (self.latest_accepted_snapshot, self.latest_rejected_snapshot):
+            if pointer is not None:
+                try:
+                    SnapshotPointer.model_validate(pointer.model_dump(mode="python"))
+                except Exception as exc:
+                    raise ValueError("snapshot pointer failed canonical revalidation") from exc
+        if self.receipt is not None:
+            try:
+                OperationalReceipt.model_validate(self.receipt.model_dump(mode="python"))
+            except Exception as exc:
+                raise ValueError("operational receipt failed canonical revalidation") from exc
+        try:
+            SourceDefinition.model_validate(self.source.model_dump(mode="python"))
+        except Exception as exc:
+            raise ValueError("source definition failed canonical revalidation") from exc
         frozen = source_definition(self.source.family)
         if self.source != frozen:
             raise ValueError("source definition must match frozen contract")
@@ -352,6 +456,8 @@ class SourceReadiness(SourceOperationsModel):
         if self.current_standing is SourceCurrentStanding.INSTALLATION_DETECTED:
             if self.tool_version is None or self.receipt is None:
                 raise ValueError("detected SUMO requires version and verified receipt")
+            if self.receipt is not None and self.receipt.source_family is not self.source.family:
+                raise ValueError("SUMO receipt family must match row family")
         elif self.tool_version is not None:
             raise ValueError("tool version is valid only for a detected SUMO installation")
         if self.source.family is not SourceFamily.SUMO and self.current_standing in {
@@ -359,6 +465,27 @@ class SourceReadiness(SourceOperationsModel):
             SourceCurrentStanding.NOT_DETECTED,
         }:
             raise ValueError("installation standing is reserved for SUMO")
+        # Operational receipt must be bound to row family if present
+        if self.receipt is not None and self.receipt.source_family is not self.source.family:
+            raise ValueError("operational receipt family must match row family")
+        # Truthful minimal operational evidence (mirrors runtime)
+        if self.current_standing is SourceCurrentStanding.AVAILABLE:
+            if self.source.family in {SourceFamily.BODS, SourceFamily.NATIONAL_HIGHWAYS}:
+                if self.credential_presence is not CredentialPresence.PRESENT:
+                    raise ValueError("credentialed AVAILABLE requires credential presence PRESENT")
+                if self.receipt is None:
+                    raise ValueError("credentialed AVAILABLE requires an operational receipt")
+            else:
+                raise ValueError("AVAILABLE standing is only valid for credentialed families")
+        if self.current_standing is SourceCurrentStanding.STATIC_AVAILABLE and self.receipt is None:
+            raise ValueError("STATIC_AVAILABLE requires an operational receipt")
+        if (
+            self.current_standing is SourceCurrentStanding.SYNTHETIC_AVAILABLE
+            and self.receipt is None
+        ):
+            raise ValueError("SYNTHETIC_AVAILABLE requires an operational receipt")
+        # DFT/WebTRIS HISTORICAL_ONLY is evidenced by an accepted
+        # snapshot validation receipt, not by an operational receipt
 
         # Pointer family and validation_state binding
         if self.latest_accepted_snapshot is not None:
@@ -425,6 +552,12 @@ class SourceOperationsCatalogue(SourceOperationsModel):
 
     @model_validator(mode="after")
     def validate_complete_catalogue(self) -> Self:
+        # Canonical revalidation of nested readiness rows to defeat model_copy bypass
+        for row in self.sources:
+            try:
+                SourceReadiness.model_validate(row.model_dump(mode="python"))
+            except Exception as exc:
+                raise ValueError("source readiness failed canonical revalidation") from exc
         observed = tuple(item.source.family for item in self.sources)
         if observed != SOURCE_FAMILY_ORDER:
             raise ValueError("catalogue must contain all source families in frozen order")
@@ -435,24 +568,38 @@ class SourceOperationsCatalogue(SourceOperationsModel):
         ):
             raise ValueError("source operations catalogue must remain metadata-only")
         # Future-evidence guard: no pointer/receipt/latest after evaluated_at
+        # Truthful chronology: retrieved <= validated <= evaluated
         for row in self.sources:
             if (
                 row.latest_retrieval_at_utc is not None
                 and row.latest_retrieval_at_utc > self.evaluated_at_utc
             ):
                 raise ValueError("latest retrieval must not be later than evaluated_at")
-            if (
-                row.latest_accepted_snapshot is not None
-                and row.latest_accepted_snapshot.retrieved_at_utc > self.evaluated_at_utc
-            ):
-                raise ValueError("pointer time must not be later than evaluated_at")
-            if (
-                row.latest_rejected_snapshot is not None
-                and row.latest_rejected_snapshot.retrieved_at_utc > self.evaluated_at_utc
-            ):
-                raise ValueError("pointer time must not be later than evaluated_at")
-            if row.receipt is not None and row.receipt.observed_at_utc > self.evaluated_at_utc:
-                raise ValueError("receipt time must not be later than evaluated_at")
+            if row.latest_accepted_snapshot is not None:
+                if row.latest_accepted_snapshot.retrieved_at_utc > self.evaluated_at_utc:
+                    raise ValueError("pointer retrieved time must not be later than evaluated_at")
+                if row.latest_accepted_snapshot.validated_at_utc > self.evaluated_at_utc:
+                    raise ValueError("pointer validation time must not be later than evaluated_at")
+                if (
+                    row.latest_accepted_snapshot.retrieved_at_utc
+                    > row.latest_accepted_snapshot.validated_at_utc
+                ):
+                    raise ValueError("pointer retrieved must not be later than validated")
+            if row.latest_rejected_snapshot is not None:
+                if row.latest_rejected_snapshot.retrieved_at_utc > self.evaluated_at_utc:
+                    raise ValueError("pointer retrieved time must not be later than evaluated_at")
+                if row.latest_rejected_snapshot.validated_at_utc > self.evaluated_at_utc:
+                    raise ValueError("pointer validation time must not be later than evaluated_at")
+                if (
+                    row.latest_rejected_snapshot.retrieved_at_utc
+                    > row.latest_rejected_snapshot.validated_at_utc
+                ):
+                    raise ValueError("pointer retrieved must not be later than validated")
+            if row.receipt is not None:
+                if row.receipt.observed_at_utc > self.evaluated_at_utc:
+                    raise ValueError("receipt time must not be later than evaluated_at")
+                if row.receipt.source_family is not row.source.family:
+                    raise ValueError("catalogue receipt family must match row family")
         return self
 
 

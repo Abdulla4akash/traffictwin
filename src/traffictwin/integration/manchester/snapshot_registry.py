@@ -92,8 +92,23 @@ class SnapshotRegistration(SnapshotRegistryModel):
 
     The record is metadata-only: content fingerprint, retrieved time, source
     family, coverage and counts, parser and schema, validation state,
-    freshness, opaque storage reference, and provenance. It carries no bytes
-    and no credential value.
+    freshness, opaque storage reference, provenance and exact validation
+    receipt identity, validated time, and bounded rejection summary. It carries
+    no bytes and no credential value.
+
+    Chronology invariant (truthful ordering):
+
+    ``retrieved_at_utc`` <= ``validated_at_utc`` <= registry
+    ``registered_at_utc`` / catalogue ``evaluated_at_utc``.
+
+    Accepted/rejected coherence:
+
+    * ``ACCEPTED`` carries no rejection code/reason.
+    * ``REJECTED`` requires a truthful nonempty ``rejection_code`` and
+      ``rejection_reason`` (bounded, portable, and screened).
+
+    Provenance (origin) and validation receipt (evaluation outcome) are two
+    distinct 64-hex identities and must not be conflated.
     """
 
     registration_id: str = Field(pattern=_SAFE_LABEL_PATTERN)
@@ -109,12 +124,21 @@ class SnapshotRegistration(SnapshotRegistryModel):
     freshness: SourceFreshnessStanding
     storage_reference: str = Field(min_length=1, max_length=300, pattern=_OPAQUE_REF_PATTERN)
     provenance_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    validation_receipt_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    validated_at_utc: datetime
+    rejection_code: str | None = Field(default=None, pattern=r"^[A-Z][A-Z0-9_]{2,95}$")
+    rejection_reason: str | None = Field(default=None, min_length=1, max_length=300)
     evidence_standing: EvidenceStanding
 
     @field_validator("retrieved_at_utc")
     @classmethod
     def _validate_retrieved(cls, value: datetime) -> datetime:
         return _require_utc(value, "retrieved time")
+
+    @field_validator("validated_at_utc")
+    @classmethod
+    def _validate_validated(cls, value: datetime) -> datetime:
+        return _require_utc(value, "validation time")
 
     @model_validator(mode="after")
     def _validate_against_frozen_source(self) -> Self:
@@ -148,11 +172,31 @@ class SnapshotRegistration(SnapshotRegistryModel):
                 and "external to" not in lowered
             ):
                 raise ValueError("strategic-road source cannot claim Manchester city-road")
+        # Truthful chronology: retrieval <= validation
+        if self.retrieved_at_utc > self.validated_at_utc:
+            raise ValueError("retrieved time must not be later than validation time")
+        # Accepted/rejected coherence
+        if self.validation_state is SnapshotValidationState.ACCEPTED:
+            if self.rejection_code is not None or self.rejection_reason is not None:
+                raise ValueError("accepted snapshot must not carry rejection code or reason")
+        elif self.validation_state is SnapshotValidationState.REJECTED:
+            if self.rejection_code is None or self.rejection_reason is None:
+                raise ValueError("rejected snapshot requires rejection code and reason")
+            # rejection_reason already length-checked; portability screened by base
+            if not self.rejection_reason or not self.rejection_reason.strip():
+                raise ValueError("rejection reason must be a truthful nonempty summary")
+            if not self.rejection_code or not self.rejection_code.strip():
+                raise ValueError("rejection code must be a truthful nonempty code")
         return self
 
 
 class SnapshotRegistry(SnapshotRegistryModel):
-    """Immutable ordered collection of snapshot registrations."""
+    """Immutable ordered collection of snapshot registrations.
+
+    ``registered_at_utc`` is the deterministic admission/evaluation time for
+    the registry. All ``retrieved_at_utc`` values must not be later than this
+    timestamp so the registry never contains future-relative evidence.
+    """
 
     schema_version: str = SNAPSHOT_REGISTRY_SCHEMA_VERSION
     method_version: str = SNAPSHOT_REGISTRY_METHOD_VERSION
@@ -162,16 +206,94 @@ class SnapshotRegistry(SnapshotRegistryModel):
     @field_validator("registered_at_utc")
     @classmethod
     def _validate_registered(cls, value: datetime) -> datetime:
-        return _require_utc(value, "registry time")
+        return _require_utc(value, "registry admission time")
+
+    @property
+    def admitted_at_utc(self) -> datetime:
+        """Deterministic admission/evaluation time (alias for registered_at)."""
+
+        return self.registered_at_utc
+
+    @property
+    def evaluated_at_utc(self) -> datetime:
+        """Deterministic evaluation time (alias for registered_at)."""
+
+        return self.registered_at_utc
 
     @model_validator(mode="after")
     def _validate_registry(self) -> Self:
+        # Canonical revalidation of nested registrations to close model_copy bypass
+        for snap in self.snapshots:
+            try:
+                SnapshotRegistration.model_validate(snap.model_dump(mode="python"))
+            except Exception as exc:
+                raise ValueError("snapshot registration failed canonical revalidation") from exc
         ids = [s.registration_id for s in self.snapshots]
         if len(ids) != len(set(ids)):
             raise ValueError("registration ids must be unique")
         if ids != sorted(ids):
             raise ValueError("snapshots must be sorted by registration_id")
+        # One canonical record per snapshot_identity (immutable identity)
+        identities = [s.snapshot_identity for s in self.snapshots]
+        if len(identities) != len(set(identities)):
+            raise ValueError("snapshot identities must be unique")
+        # Chronology: no snapshot in the future relative to registry admission
+        # Truthful ordering: retrieved <= validated <= admission
+        for snap in self.snapshots:
+            if snap.retrieved_at_utc > self.registered_at_utc:
+                raise ValueError(
+                    "snapshot retrieved time must not be later than registry admission time"
+                )
+            if snap.validated_at_utc > self.registered_at_utc:
+                raise ValueError(
+                    "snapshot validation time must not be later than registry admission time"
+                )
+            if snap.retrieved_at_utc > snap.validated_at_utc:
+                raise ValueError("snapshot retrieved time must not be later than validation time")
+        # Canonical terminal state: identical content fingerprint must not have conflicting states
+        for idx, first in enumerate(self.snapshots):
+            for second in self.snapshots[idx + 1 :]:
+                if (
+                    first.content_fingerprint == second.content_fingerprint
+                    and first.validation_state != second.validation_state
+                ):
+                    raise ValueError(
+                        "canonical terminal state conflict for identical content fingerprint"
+                    )
+                if (
+                    first.snapshot_identity == second.snapshot_identity
+                    and first.content_fingerprint == second.content_fingerprint
+                    and first.validation_state != second.validation_state
+                ):
+                    raise ValueError(
+                        "canonical terminal state conflict for identical snapshot "
+                        "identity and content"
+                    )
         return self
+
+
+def _canonical_registration(registration: SnapshotRegistration) -> SnapshotRegistration:
+    """Canonically revalidate a registration from its dump to close model_copy bypass."""
+
+    try:
+        return SnapshotRegistration.model_validate(registration.model_dump(mode="python"))
+    except Exception as exc:
+        raise SnapshotRegistryError(
+            "INVALID_REGISTRATION", "snapshot registration failed canonical revalidation"
+        ) from exc
+
+
+def _canonical_registry(registry: SnapshotRegistry) -> SnapshotRegistry:
+    """Canonically revalidate a registry to close nested bypass."""
+
+    try:
+        return SnapshotRegistry.model_validate(registry.model_dump(mode="python"))
+    except SnapshotRegistryError:
+        raise
+    except Exception as exc:
+        raise SnapshotRegistryError(
+            "INVALID_REGISTRY", "snapshot registry failed canonical revalidation"
+        ) from exc
 
 
 def register_snapshot(
@@ -183,9 +305,24 @@ def register_snapshot(
     If ``registration_id`` already exists with identical canonical JSON the original
     registry is returned unchanged (idempotent). If the id exists with different
     content the operation fails with a conflict error. The resulting snapshots
-    remain sorted by registration_id. Identical snapshot identity and content
-    fingerprint must retain a single canonical terminal state.
+    remain sorted by registration_id. One canonical record per snapshot_identity
+    is enforced: exact canonical re-registration is idempotent; any different
+    content/terminal/source/metadata conflicts. Identical content fingerprint must
+    retain a single canonical terminal state. ``registered_at_utc`` is the
+    deterministic admission time: no snapshot may be later than it.
     """
+
+    # Canonical revalidation at the persistence boundary to defeat model_copy bypass
+    registration = _canonical_registration(registration)
+    registry = _canonical_registry(registry)
+
+    # Chronology: registry admission is deterministic max of snapshot times
+    # Truthful ordering: retrieved <= validated <= admission
+    new_registered_at = registry.registered_at_utc
+    if registration.validated_at_utc > new_registered_at:
+        new_registered_at = registration.validated_at_utc
+    if registration.retrieved_at_utc > new_registered_at:
+        new_registered_at = registration.retrieved_at_utc
 
     for existing in registry.snapshots:
         if existing.registration_id == registration.registration_id:
@@ -198,8 +335,18 @@ def register_snapshot(
                 f"registration {registration.registration_id!r} already exists "
                 "with different content",
             )
-    # Canonical terminal state: same immutable identity/content cannot have
-    # conflicting accepted/rejected states under distinct registration ids.
+    # One canonical record per snapshot_identity: any duplicate identity conflicts
+    for existing in registry.snapshots:
+        if existing.snapshot_identity == registration.snapshot_identity:
+            # Exact canonical match would have been caught by registration_id equality;
+            # any other duplicate identity is a conflict (including identical snapshot
+            # under a different registration_id).
+            raise SnapshotRegistryError(
+                "CONFLICT",
+                f"snapshot identity {registration.snapshot_identity!r} already registered "
+                f"under {existing.registration_id!r}",
+            )
+    # Canonical terminal state: same content fingerprint cannot have conflicting states
     for existing in registry.snapshots:
         if (
             existing.snapshot_identity == registration.snapshot_identity
@@ -225,9 +372,21 @@ def register_snapshot(
         sorted((*registry.snapshots, registration), key=lambda s: s.registration_id)
     )
     return SnapshotRegistry(
-        registered_at_utc=registry.registered_at_utc,
+        registered_at_utc=new_registered_at,
         snapshots=new_snapshots,
     )
+
+
+def _require_canonical_registry(registry: SnapshotRegistry) -> SnapshotRegistry:
+    """Centralized trust-boundary revalidation.
+
+    All public read/fingerprint helpers route through here so a forged
+    ``model_copy`` registry cannot be queried or fingerprinted as valid.
+    Emits a stable ``SnapshotRegistryError`` without leaking secret or path
+    content.
+    """
+
+    return _canonical_registry(registry)
 
 
 def get_snapshot(
@@ -236,7 +395,8 @@ def get_snapshot(
 ) -> SnapshotRegistration | None:
     """Return the registration for ``registration_id`` or ``None``."""
 
-    for snap in registry.snapshots:
+    canonical = _require_canonical_registry(registry)
+    for snap in canonical.snapshots:
         if snap.registration_id == registration_id:
             return snap
     return None
@@ -248,7 +408,8 @@ def latest_snapshot_for_family(
 ) -> SnapshotRegistration | None:
     """Return the latest snapshot for ``family`` ordered by retrieved time."""
 
-    candidates = [s for s in registry.snapshots if s.source_family is family]
+    canonical = _require_canonical_registry(registry)
+    candidates = [s for s in canonical.snapshots if s.source_family is family]
     if not candidates:
         return None
     return max(candidates, key=lambda s: (s.retrieved_at_utc, s.registration_id))
@@ -260,9 +421,10 @@ def latest_accepted_for_family(
 ) -> SnapshotRegistration | None:
     """Return the latest accepted snapshot for ``family``."""
 
+    canonical = _require_canonical_registry(registry)
     candidates = [
         s
-        for s in registry.snapshots
+        for s in canonical.snapshots
         if s.source_family is family and s.validation_state is SnapshotValidationState.ACCEPTED
     ]
     if not candidates:
@@ -276,9 +438,10 @@ def latest_rejected_for_family(
 ) -> SnapshotRegistration | None:
     """Return the latest rejected snapshot for ``family``."""
 
+    canonical = _require_canonical_registry(registry)
     candidates = [
         s
-        for s in registry.snapshots
+        for s in canonical.snapshots
         if s.source_family is family and s.validation_state is SnapshotValidationState.REJECTED
     ]
     if not candidates:
@@ -289,7 +452,8 @@ def latest_rejected_for_family(
 def snapshot_registry_fingerprint(registry: SnapshotRegistry) -> str:
     """Return the canonical fingerprint of the registry."""
 
-    return registry.fingerprint()
+    canonical = _require_canonical_registry(registry)
+    return canonical.fingerprint()
 
 
 __all__ = [

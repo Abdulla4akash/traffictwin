@@ -50,12 +50,30 @@ def _make_reg(
     freshness: SourceFreshnessStanding | None = None,
     storage_reference: str = "opaque://snapshots/bods-001",
     provenance_fingerprint: str | None = None,
+    validation_receipt_fingerprint: str | None = None,
+    validated_at_utc: datetime | None = None,
+    rejection_code: str | None = None,
+    rejection_reason: str | None = None,
     evidence_standing: EvidenceStanding | None = None,
 ) -> SnapshotRegistration:
     if content_fingerprint is None:
         content_fingerprint = _fp(registration_id)
     if provenance_fingerprint is None:
         provenance_fingerprint = _fp(snapshot_identity)
+    if validation_receipt_fingerprint is None:
+        validation_receipt_fingerprint = _fp(registration_id + "-val-receipt")
+    if validated_at_utc is None:
+        validated_at_utc = retrieved_at_utc
+    # Default rejection handling: REJECTED requires code/reason, ACCEPTED must have None
+    if validation_state is SnapshotValidationState.REJECTED:
+        if rejection_code is None:
+            rejection_code = "VALIDATION_FAILED"
+        if rejection_reason is None:
+            rejection_reason = "Sample rejection reason for testing."
+    else:
+        # For ACCEPTED keep None unless caller explicitly injected (to test failure)
+        # If caller passed a rejection value for ACCEPTED, preserve it for negative test
+        pass
     if evidence_standing is None:
         # infer from family
         if source_family is SourceFamily.BODS or source_family is SourceFamily.DFT:
@@ -99,6 +117,10 @@ def _make_reg(
         freshness=freshness,
         storage_reference=storage_reference,
         provenance_fingerprint=provenance_fingerprint,
+        validation_receipt_fingerprint=validation_receipt_fingerprint,
+        validated_at_utc=validated_at_utc,
+        rejection_code=rejection_code,
+        rejection_reason=rejection_reason,
         evidence_standing=evidence_standing,
     )
 
@@ -467,3 +489,561 @@ def test_portability_rejects_etc() -> None:
             source_family=SourceFamily.BODS,
             coverage_summary="Bus positions at /etc/shadow",
         )
+
+
+# ---- Additional discriminating tests for adversarial review ----
+
+
+def test_same_identity_different_content_conflicts() -> None:
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    base = _make_reg(
+        registration_id="reg-same-id-a",
+        snapshot_identity="snap-dupe-001",
+        content_fingerprint=_fp("content-a"),
+        retrieved_at_utc=UTC_TS_A,
+    )
+    r1 = register_snapshot(empty, base)
+    # Same identity, different content fingerprint must conflict
+    variant = _make_reg(
+        registration_id="reg-same-id-b",
+        snapshot_identity="snap-dupe-001",
+        content_fingerprint=_fp("content-b"),
+        retrieved_at_utc=UTC_TS_B,
+    )
+    with pytest.raises(SnapshotRegistryError, match="CONFLICT"):
+        register_snapshot(r1, variant)
+
+
+def test_same_identity_different_family_or_terminal_conflicts() -> None:
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    base = _make_reg(
+        registration_id="reg-same-id-family-a",
+        snapshot_identity="snap-family-001",
+        source_family=SourceFamily.BODS,
+        validation_state=SnapshotValidationState.ACCEPTED,
+    )
+    r1 = register_snapshot(empty, base)
+    # Different family same identity must conflict
+    fam_variant = _make_reg(
+        registration_id="reg-same-id-family-b",
+        snapshot_identity="snap-family-001",
+        source_family=SourceFamily.DFT,
+        coverage_summary="Admitted DfT count points",
+        freshness=SourceFreshnessStanding.HISTORICAL,
+        evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+    )
+    with pytest.raises(SnapshotRegistryError, match="CONFLICT"):
+        register_snapshot(r1, fam_variant)
+    # Different metadata (coverage) same identity must also conflict
+    meta_variant = _make_reg(
+        registration_id="reg-same-id-meta-b",
+        snapshot_identity="snap-family-001",
+        coverage_summary="Bus transit positions in different GM box",
+        content_fingerprint=_fp("different-meta"),
+    )
+    with pytest.raises(SnapshotRegistryError, match="CONFLICT"):
+        register_snapshot(r1, meta_variant)
+
+
+def test_duplicate_identity_under_different_registration_id_rejected() -> None:
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    reg_a = _make_reg(
+        registration_id="reg-dupe-a",
+        snapshot_identity="snap-identical-001",
+        content_fingerprint=_fp("identical"),
+        retrieved_at_utc=UTC_TS_A,
+    )
+    r1 = register_snapshot(empty, reg_a)
+    # Identical canonical snapshot but different registration_id must still conflict
+    reg_b = _make_reg(
+        registration_id="reg-dupe-b",
+        snapshot_identity="snap-identical-001",
+        content_fingerprint=_fp("identical"),
+        retrieved_at_utc=UTC_TS_A,
+    )
+    with pytest.raises(SnapshotRegistryError, match="CONFLICT"):
+        register_snapshot(r1, reg_b)
+    # Also idempotent re-registration with same registration_id and canonical JSON succeeds
+    dup_same_id = _make_reg(
+        registration_id="reg-dupe-a",
+        snapshot_identity="snap-identical-001",
+        content_fingerprint=_fp("identical"),
+        retrieved_at_utc=UTC_TS_A,
+    )
+    r2 = register_snapshot(r1, dup_same_id)
+    assert len(r2.snapshots) == 1
+
+
+def test_direct_forged_registry_tuple_rejected() -> None:
+    reg_a = _make_reg(registration_id="reg-forge-a", snapshot_identity="snap-forge-001")
+    reg_b = _make_reg(
+        registration_id="reg-forge-b",
+        snapshot_identity="snap-forge-001",  # duplicate identity
+        content_fingerprint=_fp("forge-different"),
+    )
+    # Direct construction bypassing register_snapshot must fail on identity uniqueness
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=(reg_a, reg_b))
+    # Also duplicate registration_id bypass must fail
+    reg_c = _make_reg(registration_id="reg-forge-a", snapshot_identity="snap-forge-002")
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=(reg_a, reg_c))
+
+
+def test_model_copy_inflation_of_bods_coverage_rejected() -> None:
+    base = _make_reg(
+        registration_id="reg-bods-inflated",
+        snapshot_identity="snap-bods-inflated",
+        source_family=SourceFamily.BODS,
+    )
+    inflated = base.model_copy(update={"coverage_summary": "General road traffic in Manchester"})
+    # Direct registry construction must revalidate and reject
+    with pytest.raises((ValidationError, ValueError, SnapshotRegistryError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=(inflated,))
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    with pytest.raises((ValidationError, SnapshotRegistryError)):
+        register_snapshot(empty, inflated)
+
+
+def test_model_copy_inflation_of_source_family_rejected() -> None:
+    base = _make_reg(
+        registration_id="reg-family-inflated",
+        snapshot_identity="snap-family-inflated",
+        source_family=SourceFamily.BODS,
+    )
+    # BODS bus-only but if family is switched to WEBTRIS via copy, evidence standing mismatched
+    inflated = base.model_copy(
+        update={
+            "source_family": SourceFamily.WEBTRIS,
+            "evidence_standing": EvidenceStanding.REAL_MANCHESTER_DATA,
+        }
+    )
+    with pytest.raises((ValidationError, ValueError, SnapshotRegistryError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=(inflated,))
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    with pytest.raises((ValidationError, SnapshotRegistryError)):
+        register_snapshot(empty, inflated)
+
+
+def test_model_copy_inflation_of_tfgm_accepted_state_rejected() -> None:
+    # TfGM accepted is forbidden; model_copy can bypass validator
+    base = _make_reg(
+        registration_id="reg-tfgm-inflated",
+        snapshot_identity="snap-tfgm-inflated",
+        source_family=SourceFamily.TFGM,
+        validation_state=SnapshotValidationState.REJECTED,
+    )
+    inflated = base.model_copy(update={"validation_state": SnapshotValidationState.ACCEPTED})
+    with pytest.raises((ValidationError, ValueError, SnapshotRegistryError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=(inflated,))
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    with pytest.raises((ValidationError, SnapshotRegistryError)):
+        register_snapshot(empty, inflated)
+
+
+def test_model_copy_inflates_future_time_rejected() -> None:
+    # Snapshot retrieved time in future relative to registry admission
+    future = datetime(2026, 7, 23, 10, 0, 0, tzinfo=UTC)
+    past_registry_time = UTC_TS_A
+    base = _make_reg(
+        registration_id="reg-future-inflated",
+        snapshot_identity="snap-future-inflated",
+        retrieved_at_utc=UTC_TS_A,
+    )
+    inflated = base.model_copy(update={"retrieved_at_utc": future, "validated_at_utc": future})
+    # Direct construction must reject future relative to admission
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistry(registered_at_utc=past_registry_time, snapshots=(inflated,))
+    # Via register_snapshot the admission time advances deterministically (not rejected)
+    empty = SnapshotRegistry(registered_at_utc=past_registry_time, snapshots=())
+    advanced = register_snapshot(empty, inflated)
+    assert advanced.registered_at_utc == future
+    assert advanced.admitted_at_utc == future
+    assert advanced.snapshots[0].retrieved_at_utc == future
+    # Catalogue evaluation before this admission must be rejected by service, not registry
+    from traffictwin.integration.manchester.source_operations_models import (
+        CredentialPresence,
+        OperationalReceipt,
+        SourceCurrentStanding,
+        SourceFamily,
+        SourceFreshnessStanding,
+        SourceRuntimeMetadata,
+    )
+    from traffictwin.integration.manchester.source_operations_service import (
+        SourceOperationsServiceError,
+        build_source_operations_catalogue,
+    )
+
+    def _rt() -> dict[SourceFamily, SourceRuntimeMetadata]:
+        def _rcpt(fam: SourceFamily) -> OperationalReceipt:
+            return OperationalReceipt(
+                receipt_id=f"receipt-{fam.value}-001",
+                receipt_fingerprint=_fp(f"receipt-{fam.value}"),
+                source_family=fam,
+                check_id=f"{fam.value}-check-001",
+                observed_at_utc=UTC_TS_A,
+            )
+
+        return {
+            SourceFamily.BODS: SourceRuntimeMetadata(
+                source_family=SourceFamily.BODS,
+                current_standing=SourceCurrentStanding.AVAILABLE,
+                credential_presence=CredentialPresence.PRESENT,
+                freshness=SourceFreshnessStanding.LIVE_VEHICLE,
+                operational_receipt=_rcpt(SourceFamily.BODS),
+            ),
+            SourceFamily.DFT: SourceRuntimeMetadata(
+                source_family=SourceFamily.DFT,
+                current_standing=SourceCurrentStanding.HISTORICAL_ONLY,
+                credential_presence=CredentialPresence.NOT_REQUIRED,
+                freshness=SourceFreshnessStanding.HISTORICAL,
+            ),
+            SourceFamily.WEBTRIS: SourceRuntimeMetadata(
+                source_family=SourceFamily.WEBTRIS,
+                current_standing=SourceCurrentStanding.HISTORICAL_ONLY,
+                credential_presence=CredentialPresence.NOT_REQUIRED,
+                freshness=SourceFreshnessStanding.HISTORICAL,
+            ),
+            SourceFamily.NATIONAL_HIGHWAYS: SourceRuntimeMetadata(
+                source_family=SourceFamily.NATIONAL_HIGHWAYS,
+                current_standing=SourceCurrentStanding.AVAILABLE,
+                credential_presence=CredentialPresence.PRESENT,
+                freshness=SourceFreshnessStanding.NEAR_LIVE,
+                operational_receipt=_rcpt(SourceFamily.NATIONAL_HIGHWAYS),
+            ),
+            SourceFamily.TFGM: SourceRuntimeMetadata(
+                source_family=SourceFamily.TFGM,
+                current_standing=SourceCurrentStanding.PROVIDER_DATA_REQUIRED,
+                credential_presence=CredentialPresence.UNKNOWN,
+                freshness=SourceFreshnessStanding.UNAVAILABLE,
+                blocker="PROVIDER_DATA_REQUIRED",
+                owner_action="Await provider",
+            ),
+            SourceFamily.SUMO: SourceRuntimeMetadata(
+                source_family=SourceFamily.SUMO,
+                current_standing=SourceCurrentStanding.NOT_DETECTED,
+                credential_presence=CredentialPresence.NOT_REQUIRED,
+                freshness=SourceFreshnessStanding.UNAVAILABLE,
+                blocker="SUMO_NOT_DETECTED",
+                owner_action="Install SUMO",
+            ),
+            SourceFamily.MANUAL_INCIDENT: SourceRuntimeMetadata(
+                source_family=SourceFamily.MANUAL_INCIDENT,
+                current_standing=SourceCurrentStanding.SYNTHETIC_AVAILABLE,
+                credential_presence=CredentialPresence.NOT_REQUIRED,
+                freshness=SourceFreshnessStanding.SYNTHETIC,
+                operational_receipt=_rcpt(SourceFamily.MANUAL_INCIDENT),
+            ),
+            SourceFamily.STATIC_MANCHESTER_GEOGRAPHY: SourceRuntimeMetadata(
+                source_family=SourceFamily.STATIC_MANCHESTER_GEOGRAPHY,
+                current_standing=SourceCurrentStanding.STATIC_AVAILABLE,
+                credential_presence=CredentialPresence.NOT_REQUIRED,
+                freshness=SourceFreshnessStanding.STATIC,
+                operational_receipt=_rcpt(SourceFamily.STATIC_MANCHESTER_GEOGRAPHY),
+            ),
+        }
+
+    with pytest.raises(SourceOperationsServiceError, match="FUTURE_EVIDENCE"):
+        build_source_operations_catalogue(
+            evaluated_at_utc=past_registry_time,
+            snapshot_registry=advanced,
+            runtime_by_family=_rt(),
+        )
+
+
+def test_registry_must_not_contain_future_relative_to_receipt_state() -> None:
+    # Registry admission is 10:00, snapshot at 11:00 must fail even if registry later
+    reg_future = _make_reg(
+        registration_id="reg-future-002",
+        snapshot_identity="snap-future-002",
+        retrieved_at_utc=UTC_TS_B,
+    )
+    # Registry at A with snapshot at B is future and must fail
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_A, snapshots=(reg_future,))
+    # Valid: snapshot at A with registry at B succeeds
+    ok = SnapshotRegistry(registered_at_utc=UTC_TS_B, snapshots=(reg_future,))
+    assert ok.snapshots[0].retrieved_at_utc == UTC_TS_B
+    # Admission alias properties must equal registered_at
+    assert ok.admitted_at_utc == ok.registered_at_utc
+    assert ok.evaluated_at_utc == ok.registered_at_utc
+
+
+def test_register_snapshot_future_advances_admission_deterministically() -> None:
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_A, snapshots=())
+    future_reg = _make_reg(
+        registration_id="reg-future-snap",
+        snapshot_identity="snap-future-snap",
+        retrieved_at_utc=UTC_TS_C,  # 12:00 > admission 10:00
+    )
+    advanced = register_snapshot(empty, future_reg)
+    # Admission advances to max(snapshot times) deterministically; no future-relative registry
+    assert advanced.registered_at_utc == UTC_TS_C
+    assert advanced.admitted_at_utc == UTC_TS_C
+    assert advanced.snapshots[0].retrieved_at_utc == UTC_TS_C
+    # Direct construction with inconsistent times still fails
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_A, snapshots=(future_reg,))
+
+
+# ---- Lane 13 receipt/readiness boundary mutation tests ----
+
+
+def test_provenance_not_relabelled_as_validation_receipt() -> None:
+    """Provenance and validation receipt are distinct; pointer must carry validation receipt."""
+    prov = _fp("prov-distinct")
+    val = _fp("val-distinct")
+    assert prov != val
+    reg = _make_reg(
+        registration_id="reg-prov-val-001",
+        snapshot_identity="snap-prov-val-001",
+        provenance_fingerprint=prov,
+        validation_receipt_fingerprint=val,
+        retrieved_at_utc=UTC_TS_A,
+        validated_at_utc=UTC_TS_A,
+        validation_state=SnapshotValidationState.ACCEPTED,
+    )
+    # Registration preserves both identities separately
+    assert reg.provenance_fingerprint == prov
+    assert reg.validation_receipt_fingerprint == val
+    # Pointer must project the actual validation receipt, not provenance
+
+    # Import via service internal; if not accessible, test via catalogue path
+    # Instead, directly check that service would use validation receipt:
+    # Build registry and catalogue and assert pointer fingerprint equals val
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_A, snapshots=())
+    reg2 = register_snapshot(empty, reg)
+    # Use service to derive pointer
+    from traffictwin.integration.manchester.source_operations_models import (  # noqa: I001, N817
+        CredentialPresence as CP,  # noqa: N817
+        OperationalReceipt,
+        SourceCurrentStanding as SCS,  # noqa: N817
+        SourceFamily as SF,  # noqa: N817
+        SourceFreshnessStanding as SFS,  # noqa: N817
+        SourceRuntimeMetadata,
+    )
+    from traffictwin.integration.manchester.source_operations_service import (  # noqa: I001
+        build_source_operations_catalogue,
+    )
+
+    def _rcpt(fam: SF) -> OperationalReceipt:
+        return OperationalReceipt(
+            receipt_id=f"receipt-{fam.value}-001",
+            receipt_fingerprint=_fp(f"receipt-{fam.value}"),
+            source_family=fam,
+            check_id=f"{fam.value}-check-001",
+            observed_at_utc=UTC_TS_A,
+        )
+
+    runtime = {
+        SF.BODS: SourceRuntimeMetadata(
+            source_family=SF.BODS,
+            current_standing=SCS.AVAILABLE,
+            credential_presence=CP.PRESENT,
+            freshness=SFS.LIVE_VEHICLE,
+            operational_receipt=_rcpt(SF.BODS),
+        ),
+        SF.DFT: SourceRuntimeMetadata(
+            source_family=SF.DFT,
+            current_standing=SCS.HISTORICAL_ONLY,
+            credential_presence=CP.NOT_REQUIRED,
+            freshness=SFS.HISTORICAL,
+        ),
+        SF.WEBTRIS: SourceRuntimeMetadata(
+            source_family=SF.WEBTRIS,
+            current_standing=SCS.HISTORICAL_ONLY,
+            credential_presence=CP.NOT_REQUIRED,
+            freshness=SFS.HISTORICAL,
+        ),
+        SF.NATIONAL_HIGHWAYS: SourceRuntimeMetadata(
+            source_family=SF.NATIONAL_HIGHWAYS,
+            current_standing=SCS.AVAILABLE,
+            credential_presence=CP.PRESENT,
+            freshness=SFS.NEAR_LIVE,
+            operational_receipt=_rcpt(SF.NATIONAL_HIGHWAYS),
+        ),
+        SF.TFGM: SourceRuntimeMetadata(
+            source_family=SF.TFGM,
+            current_standing=SCS.PROVIDER_DATA_REQUIRED,
+            credential_presence=CP.UNKNOWN,
+            freshness=SFS.UNAVAILABLE,
+            blocker="PROVIDER_DATA_REQUIRED",
+            owner_action="Await provider",
+        ),
+        SF.SUMO: SourceRuntimeMetadata(
+            source_family=SF.SUMO,
+            current_standing=SCS.NOT_DETECTED,
+            credential_presence=CP.NOT_REQUIRED,
+            freshness=SFS.UNAVAILABLE,
+            blocker="SUMO_NOT_DETECTED",
+            owner_action="Install SUMO",
+        ),
+        SF.MANUAL_INCIDENT: SourceRuntimeMetadata(
+            source_family=SF.MANUAL_INCIDENT,
+            current_standing=SCS.SYNTHETIC_AVAILABLE,
+            credential_presence=CP.NOT_REQUIRED,
+            freshness=SFS.SYNTHETIC,
+            operational_receipt=_rcpt(SF.MANUAL_INCIDENT),
+        ),
+        SF.STATIC_MANCHESTER_GEOGRAPHY: SourceRuntimeMetadata(
+            source_family=SF.STATIC_MANCHESTER_GEOGRAPHY,
+            current_standing=SCS.STATIC_AVAILABLE,
+            credential_presence=CP.NOT_REQUIRED,
+            freshness=SFS.STATIC,
+            operational_receipt=_rcpt(SF.STATIC_MANCHESTER_GEOGRAPHY),
+        ),
+    }
+    cat = build_source_operations_catalogue(
+        evaluated_at_utc=UTC_TS_C,
+        snapshot_registry=reg2,
+        runtime_by_family=runtime,
+    )
+    bods_row = next(s for s in cat.sources if s.source.family is SF.BODS)
+    assert bods_row.latest_accepted_snapshot is not None
+    assert bods_row.latest_accepted_snapshot.validation_receipt_fingerprint == val
+    assert bods_row.latest_accepted_snapshot.validation_receipt_fingerprint != prov
+
+
+def test_accepted_without_validation_receipt_fails() -> None:
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistration(
+            registration_id="reg-no-val-001",
+            snapshot_identity="snap-no-val-001",
+            content_fingerprint=_fp("no-val"),
+            retrieved_at_utc=UTC_TS_A,
+            source_family=SourceFamily.BODS,
+            coverage_summary="Bus transit positions in admitted GM box",
+            record_count=10,
+            parser_version="p-1.0",
+            schema_version="s-1.0",
+            validation_state=SnapshotValidationState.ACCEPTED,
+            freshness=SourceFreshnessStanding.LIVE_VEHICLE,
+            storage_reference="opaque://x/no-val",
+            provenance_fingerprint=_fp("prov-no-val"),
+            # missing validation_receipt_fingerprint
+            validated_at_utc=UTC_TS_A,
+            evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+        )  # type: ignore[call-arg]
+
+
+def test_rejected_without_reason_fails() -> None:
+    # REJECTED without rejection_code/reason must fail
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistration(
+            registration_id="reg-rej-noreason-001",
+            snapshot_identity="snap-rej-noreason-001",
+            content_fingerprint=_fp("rej-noreason"),
+            retrieved_at_utc=UTC_TS_A,
+            source_family=SourceFamily.BODS,
+            coverage_summary="Bus transit positions in admitted GM box",
+            record_count=10,
+            parser_version="p-1.0",
+            schema_version="s-1.0",
+            validation_state=SnapshotValidationState.REJECTED,
+            freshness=SourceFreshnessStanding.LIVE_VEHICLE,
+            storage_reference="opaque://x/rej-noreason",
+            provenance_fingerprint=_fp("prov-rej-noreason"),
+            validation_receipt_fingerprint=_fp("val-rej-noreason"),
+            validated_at_utc=UTC_TS_A,
+            # missing rejection_code/reason
+            evidence_standing=EvidenceStanding.REAL_MANCHESTER_DATA,
+        )
+    # REJECTED with empty reason also fails
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-rej-empty-001",
+            snapshot_identity="snap-rej-empty-001",
+            validation_state=SnapshotValidationState.REJECTED,
+            rejection_reason="",
+            rejection_code="VALIDATION_FAILED",
+        )
+    # ACCEPTED with rejection fields must fail
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-acc-with-rej-001",
+            snapshot_identity="snap-acc-with-rej-001",
+            validation_state=SnapshotValidationState.ACCEPTED,
+            rejection_code="SHOULD_NOT_HAVE",
+            rejection_reason="Should not have rejection",
+        )
+
+
+def test_reversed_validation_time_fails() -> None:
+    # retrieved > validated must fail at registration
+    with pytest.raises((ValidationError, ValueError)):
+        _make_reg(
+            registration_id="reg-rev-001",
+            snapshot_identity="snap-rev-001",
+            retrieved_at_utc=UTC_TS_B,
+            validated_at_utc=UTC_TS_A,
+        )
+    # validated > registered must fail at registry
+    reg = _make_reg(
+        registration_id="reg-rev-002",
+        snapshot_identity="snap-rev-002",
+        retrieved_at_utc=UTC_TS_A,
+        validated_at_utc=UTC_TS_B,
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        SnapshotRegistry(registered_at_utc=UTC_TS_A, snapshots=(reg,))
+
+
+def test_forged_registry_queried_through_each_public_helper() -> None:
+    # Build a valid registry then forge via model_copy
+    valid = _make_reg(registration_id="reg-valid-001", snapshot_identity="snap-valid-001")
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    reg = register_snapshot(empty, valid)
+    # Forge by injecting invalid BODS coverage via model_copy
+    forged_reg = valid.model_copy(update={"coverage_summary": "General road traffic in Manchester"})
+    forged = reg.model_copy(update={"snapshots": (forged_reg,)})
+    # Each public helper must revalidate and raise typed error without leaking secret/path
+    for helper, kwargs in [
+        (get_snapshot, {"registration_id": "reg-valid-001"}),
+        (latest_snapshot_for_family, {"family": SourceFamily.BODS}),
+        (latest_accepted_for_family, {"family": SourceFamily.BODS}),
+        (latest_rejected_for_family, {"family": SourceFamily.BODS}),
+        (snapshot_registry_fingerprint, {}),
+    ]:
+        with pytest.raises(SnapshotRegistryError) as exc:
+            if helper is get_snapshot:
+                helper(forged, **kwargs)  # type: ignore
+            elif helper is snapshot_registry_fingerprint:
+                helper(forged)
+            else:
+                helper(forged, **kwargs)  # type: ignore
+        # No secret/path in error
+        assert "/Users" not in str(exc.value)
+        assert "/etc" not in str(exc.value)
+        assert "Bearer" not in str(exc.value)
+        assert exc.value.code in {"INVALID_REGISTRY", "INVALID_REGISTRATION"}
+
+
+def test_valid_happy_paths_with_exact_receipts() -> None:
+    # Valid ACCEPTED BODS with correct chronology and receipt
+    reg_acc = _make_reg(
+        registration_id="reg-happy-acc-001",
+        snapshot_identity="snap-happy-acc-001",
+        source_family=SourceFamily.BODS,
+        validation_state=SnapshotValidationState.ACCEPTED,
+        retrieved_at_utc=UTC_TS_A,
+        validated_at_utc=UTC_TS_B,
+    )
+    reg_rej = _make_reg(
+        registration_id="reg-happy-rej-001",
+        snapshot_identity="snap-happy-rej-001",
+        source_family=SourceFamily.BODS,
+        validation_state=SnapshotValidationState.REJECTED,
+        retrieved_at_utc=UTC_TS_B,
+        validated_at_utc=UTC_TS_B,
+        rejection_code="VALIDATION_FAILED",
+        rejection_reason="Failed generic validation.",
+    )
+    empty = SnapshotRegistry(registered_at_utc=UTC_TS_C, snapshots=())
+    r1 = register_snapshot(empty, reg_acc)
+    r2 = register_snapshot(r1, reg_rej)
+    assert latest_accepted_for_family(r2, SourceFamily.BODS) == reg_acc
+    assert latest_rejected_for_family(r2, SourceFamily.BODS) == reg_rej
+    assert latest_snapshot_for_family(r2, SourceFamily.BODS) == reg_rej  # latest is B
+    assert get_snapshot(r2, "reg-happy-acc-001") == reg_acc
+    fp = snapshot_registry_fingerprint(r2)
+    assert len(fp) == 64
