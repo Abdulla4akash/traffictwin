@@ -14,7 +14,7 @@ import math
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, ValidationError, field_validator, model_validator
 
 from traffictwin.replay_observatory.models import (
     MAX_EVENTS_PER_STREAM,
@@ -34,6 +34,7 @@ MAX_SPEED_MULTIPLIER: float = 16.0
 MAX_WINDOW_DURATION_S: float = 86400.0 * 7  # one week bound
 MAX_WINDOW_EVENTS: int = MAX_EVENTS_PER_STREAM
 MAX_STEP_COUNT: int = MAX_EVENTS_PER_STREAM
+MAX_ADVANCE_DELTA_S: float = 86400.0 * 7
 
 # Keep fingerprint helper local to avoid importing adapter internals.
 
@@ -50,6 +51,26 @@ def _canonical_json(value: object) -> str:
 
 def _fingerprint_dict(data: dict[str, object]) -> str:
     return hashlib.sha256(_canonical_json(data).encode("utf-8")).hexdigest()
+
+
+def _revalidate_stream(stream: ReplayEventStream) -> ReplayEventStream:
+    try:
+        validated = ReplayEventStream.model_validate_json(stream.model_dump_json())
+    except ValidationError as exc:
+        raise ReplayEngineError("INVALID_STREAM", f"stream revalidation failed: {exc}") from exc
+    except Exception as exc:  # pragma: no cover
+        raise ReplayEngineError("INVALID_STREAM", f"stream revalidation failed: {exc}") from exc
+    return validated
+
+
+def _revalidate_request(request: ReplayControlRequest) -> ReplayControlRequest:
+    try:
+        validated = ReplayControlRequest.model_validate_json(request.model_dump_json())
+    except ValidationError as exc:
+        raise ReplayEngineError("INVALID_REQUEST", f"request revalidation failed: {exc}") from exc
+    except Exception as exc:  # pragma: no cover
+        raise ReplayEngineError("INVALID_REQUEST", f"request revalidation failed: {exc}") from exc
+    return validated
 
 
 # ---------------------------------------------------------------------------
@@ -81,6 +102,7 @@ class ReplayControl(StrEnum):
     PAUSE = "pause"
     STEP = "step"
     SEEK = "seek"
+    ADVANCE = "advance"
 
 
 class ReplayControlRequest(ReplayModel):
@@ -92,8 +114,9 @@ class ReplayControlRequest(ReplayModel):
     step_direction: Literal["forward", "backward"] | None = None
     speed_multiplier: float | None = None
     expected_stream_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    advance_delta_s: float | None = None
 
-    @field_validator("target_time_s", "speed_multiplier")
+    @field_validator("target_time_s", "speed_multiplier", "advance_delta_s")
     @classmethod
     def validate_finite(cls, value: float | None) -> float | None:
         if value is None:
@@ -115,6 +138,10 @@ class ReplayControlRequest(ReplayModel):
                 )
             if self.speed_multiplier <= 0:
                 raise ValueError("speed_multiplier must be positive")
+        if self.advance_delta_s is not None and (
+            self.advance_delta_s < 0 or self.advance_delta_s > MAX_ADVANCE_DELTA_S
+        ):
+            raise ValueError(f"advance_delta_s must be within [0,{MAX_ADVANCE_DELTA_S}]")
         if self.control is ReplayControl.SEEK:
             if self.target_time_s is None:
                 raise ValueError("seek requires target_time_s")
@@ -122,6 +149,8 @@ class ReplayControlRequest(ReplayModel):
                 raise ValueError("target_time_s must be non-negative")
             if self.step_count is not None or self.step_direction is not None:
                 raise ValueError("seek must not carry step fields")
+            if self.advance_delta_s is not None:
+                raise ValueError("seek must not carry advance_delta_s")
         elif self.control is ReplayControl.STEP:
             if self.step_count is None:
                 raise ValueError("step requires step_count")
@@ -129,16 +158,24 @@ class ReplayControlRequest(ReplayModel):
                 raise ValueError(f"step_count must be within [1,{MAX_STEP_COUNT}]")
             if self.step_direction is None:
                 raise ValueError("step requires step_direction")
-            if self.target_time_s is not None and self.speed_multiplier is not None:
-                # speed on step is allowed but target_time must not be present
-                pass
             if self.target_time_s is not None:
                 raise ValueError("step must not carry target_time_s")
+            if self.advance_delta_s is not None:
+                raise ValueError("step must not carry advance_delta_s")
+        elif self.control is ReplayControl.ADVANCE:
+            if self.advance_delta_s is None:
+                raise ValueError("advance requires advance_delta_s")
+            if self.target_time_s is not None:
+                raise ValueError("advance must not carry target_time_s")
+            if self.step_count is not None or self.step_direction is not None:
+                raise ValueError("advance must not carry step fields")
         elif self.control in (ReplayControl.PLAY, ReplayControl.PAUSE):
             if self.target_time_s is not None:
                 raise ValueError(f"{self.control.value} must not carry target_time_s")
             if self.step_count is not None or self.step_direction is not None:
                 raise ValueError(f"{self.control.value} must not carry step fields")
+            if self.advance_delta_s is not None:
+                raise ValueError(f"{self.control.value} must not carry advance_delta_s")
         return self
 
     def canonical_dict(self) -> dict[str, object]:
@@ -156,6 +193,79 @@ class ReplayCursor(ReplayModel):
     is_at_end: bool
     total_events: int = Field(ge=0, le=MAX_EVENTS_PER_STREAM)
 
+    @field_validator("simulator_time_s")
+    @classmethod
+    def validate_sim_time(cls, value: float) -> float:
+        if not math.isfinite(value):
+            raise ValueError("simulator_time_s must be finite")
+        return value
+
+    @model_validator(mode="after")
+    def validate_cursor(self) -> ReplayCursor:
+        if self.is_empty:
+            if self.total_events != 0:
+                raise ValueError("empty cursor requires total_events == 0")
+            if not self.is_at_end:
+                raise ValueError("empty cursor requires is_at_end == True")
+            if self.index != 0:
+                raise ValueError("empty cursor requires index == 0")
+            if self.event_id is not None:
+                raise ValueError("empty cursor requires event_id is None")
+            if self.simulator_time_s != 0.0:
+                raise ValueError("empty cursor requires simulator_time_s == 0.0")
+        else:
+            if self.total_events == 0:
+                raise ValueError("non-empty cursor requires total_events > 0")
+            if self.is_at_end:
+                if self.index != self.total_events:
+                    raise ValueError("at-end cursor requires index == total_events")
+                if self.event_id is not None:
+                    raise ValueError("at-end cursor requires event_id is None")
+            else:
+                if self.index >= self.total_events:
+                    raise ValueError("cursor index must be < total_events when not at end")
+                if self.event_id is None:
+                    raise ValueError("cursor requires event_id when not at end")
+                if self.is_at_end:
+                    raise ValueError("inconsistent at_end flag")
+        return self
+
+    def verify_against_stream(self, stream: ReplayEventStream) -> None:
+        """Exact verifier that requires the stream for identity coherence."""
+        canonical = _revalidate_stream(stream)
+        total = len(canonical.events)
+        if self.total_events != total:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor total_events mismatch")
+        if (total == 0) != self.is_empty:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor is_empty mismatch")
+        if self.is_empty:
+            if self.index != 0 or self.event_id is not None or self.simulator_time_s != 0.0:
+                raise ReplayEngineError("CURSOR_MISMATCH", "empty cursor fields mismatch")
+            if not self.is_at_end:
+                raise ReplayEngineError("CURSOR_MISMATCH", "empty must be at end")
+            return
+        is_at_end = self.index >= total
+        if is_at_end != self.is_at_end:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor is_at_end mismatch")
+        if is_at_end:
+            if self.event_id is not None:
+                raise ReplayEngineError("CURSOR_MISMATCH", "at-end event_id must be None")
+            if total > 0:
+                expected_time = float(canonical.events[-1].simulator_time_s)
+                if self.simulator_time_s != expected_time:
+                    raise ReplayEngineError(
+                        "CURSOR_MISMATCH", "at-end simulator_time_s must match last event"
+                    )
+            return
+        ev = canonical.events[self.index]
+        if ev.event_id != self.event_id:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor event_id mismatch")
+        if float(ev.simulator_time_s) != self.simulator_time_s:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor simulator_time_s mismatch")
+
+    def verify_exact(self, stream: ReplayEventStream) -> None:
+        self.verify_against_stream(stream)
+
 
 class ReplayEngineState(ReplayModel):
     playback_state: PlaybackState
@@ -168,6 +278,15 @@ class ReplayEngineState(ReplayModel):
     end_of_stream: bool
     empty_stream: bool
 
+    @field_validator("speed_multiplier", "window_start_s", "window_end_s")
+    @classmethod
+    def validate_finite_fields(cls, value: float | None) -> float | None:
+        if value is None:
+            return None
+        if not math.isfinite(value):
+            raise ValueError("value must be finite")
+        return value
+
     @model_validator(mode="after")
     def validate_window(self) -> ReplayEngineState:
         if (
@@ -176,8 +295,32 @@ class ReplayEngineState(ReplayModel):
             and self.window_end_s < self.window_start_s
         ):
             raise ValueError("window_end_s must be >= window_start_s")
+        if (
+            self.window_start_s is not None
+            and self.window_end_s is not None
+            and self.window_end_s - self.window_start_s > MAX_WINDOW_DURATION_S
+        ):
+            raise ValueError("window duration exceeds bound")
         if tuple(sorted(self.unavailable_event_types, key=str)) != self.unavailable_event_types:
             raise ValueError("unavailable_event_types must use canonical lexical order")
+        if len(set(self.unavailable_event_types)) != len(self.unavailable_event_types):
+            raise ValueError("unavailable_event_types must not contain duplicates")
+        # Cross flags
+        if self.empty_stream != self.cursor.is_empty:
+            raise ValueError("empty_stream must match cursor.is_empty")
+        if self.end_of_stream != self.cursor.is_at_end:
+            raise ValueError("end_of_stream must match cursor.is_at_end")
+        if self.empty_stream:
+            if not self.end_of_stream:
+                raise ValueError("empty stream requires end_of_stream")
+            if self.playback_state is not PlaybackState.ENDED:
+                raise ValueError("empty stream requires playback_state == ended")
+        elif self.end_of_stream:
+            if self.playback_state is not PlaybackState.ENDED:
+                raise ValueError("end_of_stream requires playback_state == ended")
+        else:
+            if self.playback_state is PlaybackState.ENDED:
+                raise ValueError("ended playback requires end_of_stream")
         return self
 
     def canonical_dict(self) -> dict[str, object]:
@@ -186,8 +329,41 @@ class ReplayEngineState(ReplayModel):
     def fingerprint(self) -> str:
         return _fingerprint_dict(self.canonical_dict())
 
+    def verify_against_engine(self, engine: ReplayEngine) -> None:
+        """Exact verifier requiring the live engine/stream."""
+        # Revalidate self canonically to catch model_copy forgery.
+        try:
+            ReplayEngineState.model_validate_json(self.model_dump_json())
+        except ValidationError as exc:
+            raise ReplayEngineError("INVALID_STATE", f"state revalidation failed: {exc}") from exc
+        engine._verify_integrity()
+        if self.stream_fingerprint != engine.stream_fingerprint:
+            raise ReplayEngineError("STATE_MISMATCH", "state stream_fingerprint mismatch")
+        if self.speed_multiplier != engine.speed_multiplier:
+            raise ReplayEngineError("STATE_MISMATCH", "state speed_multiplier mismatch")
+        if (
+            self.window_start_s != engine._window_start_s
+            or self.window_end_s != engine._window_end_s
+        ):
+            raise ReplayEngineError("STATE_MISMATCH", "state window mismatch")
+        if self.playback_state != engine.playback_state and not (
+            engine.is_at_end() and self.playback_state is PlaybackState.ENDED
+        ):
+            # Allow empty mapping: engine maps empty to ENDED, but also maps at-end to ENDED.
+            raise ReplayEngineError("STATE_MISMATCH", "playback_state mismatch")
+        self.cursor.verify_against_stream(engine.stream)
+        if self.empty_stream != engine.is_empty() or self.end_of_stream != engine.is_at_end():
+            raise ReplayEngineError("STATE_MISMATCH", "empty/end flag mismatch")
+        # unavailable types must match engine's computed
+        if self.unavailable_event_types != engine._unavailable_event_types:
+            raise ReplayEngineError("STATE_MISMATCH", "unavailable_event_types mismatch")
+
+    def verify_exact(self, engine: ReplayEngine) -> None:
+        self.verify_against_engine(engine)
+
 
 class ReplayReceipt(ReplayModel):
+    request: ReplayControlRequest
     request_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
     resulting_state: ReplayEngineState
     stream_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -195,11 +371,57 @@ class ReplayReceipt(ReplayModel):
     error_code: str | None = None
     causal_disclaimer: str = "replay is deterministic; no causality implied"
 
+    @model_validator(mode="after")
+    def validate_receipt(self) -> ReplayReceipt:
+        # Canonical revalidation of nested models already ensures strictness; now coherence.
+        if self.request.fingerprint() != self.request_fingerprint:
+            raise ValueError("request_fingerprint must match request fingerprint")
+        if self.resulting_state.stream_fingerprint != self.stream_fingerprint:
+            raise ValueError("stream_fingerprint must match resulting_state.stream_fingerprint")
+        if self.causal_disclaimer != "replay is deterministic; no causality implied":
+            raise ValueError("causal_disclaimer must be exact")
+        if self.tamper_detected and self.error_code != "TAMPER_DETECTED":
+            raise ValueError("tamper_detected requires error_code == TAMPER_DETECTED")
+        if not self.tamper_detected and self.error_code == "TAMPER_DETECTED":
+            raise ValueError("TAMPER_DETECTED error requires tamper_detected == True")
+        if self.resulting_state.cursor.total_events == 0 and not self.resulting_state.empty_stream:
+            raise ValueError("receipt state empty coherence")
+        return self
+
     def canonical_dict(self) -> dict[str, object]:
         return self.model_dump(mode="json")
 
     def fingerprint(self) -> str:
         return _fingerprint_dict(self.canonical_dict())
+
+    def verify_against(
+        self, engine: ReplayEngine, request: ReplayControlRequest | None = None
+    ) -> None:
+        """Exact verifier against engine and originating request."""
+        try:
+            ReplayReceipt.model_validate_json(self.model_dump_json())
+        except ValidationError as exc:
+            raise ReplayEngineError(
+                "INVALID_RECEIPT", f"receipt revalidation failed: {exc}"
+            ) from exc
+        engine._verify_integrity()
+        check_req = request if request is not None else self.request
+        # Revalidate request canonically
+        validated_req = _revalidate_request(check_req)
+        if validated_req.fingerprint() != self.request_fingerprint:
+            raise ReplayEngineError("RECEIPT_MISMATCH", "request fingerprint mismatch")
+        if self.request.fingerprint() != self.request_fingerprint:
+            raise ReplayEngineError("RECEIPT_MISMATCH", "embedded request fingerprint mismatch")
+        if self.stream_fingerprint != engine.stream_fingerprint:
+            raise ReplayEngineError("RECEIPT_MISMATCH", "receipt stream fingerprint mismatch")
+        self.resulting_state.verify_against_engine(engine)
+        if self.tamper_detected:
+            raise ReplayEngineError("TAMPER_DETECTED", "receipt indicates tamper")
+        if self.error_code is not None:
+            raise ReplayEngineError(self.error_code, "receipt carries error_code")
+
+    def verify_exact(self, engine: ReplayEngine) -> None:
+        self.verify_against(engine, self.request)
 
 
 # ---------------------------------------------------------------------------
@@ -225,6 +447,7 @@ class ReplayEngine:
         window_start_s: float | None = None,
         window_end_s: float | None = None,
     ) -> None:
+        stream = _revalidate_stream(stream)
         if not math.isfinite(speed_multiplier):
             raise ReplayEngineError("INVALID_SPEED", "speed_multiplier must be finite")
         if speed_multiplier < MIN_SPEED_MULTIPLIER or speed_multiplier > MAX_SPEED_MULTIPLIER:
@@ -250,10 +473,16 @@ class ReplayEngine:
             and window_end_s < window_start_s
         ):
             raise ReplayEngineError("INVALID_WINDOW", "window_end_s must be >= window_start_s")
+        if (
+            window_start_s is not None
+            and window_end_s is not None
+            and window_end_s - window_start_s > MAX_WINDOW_DURATION_S
+        ):
+            raise ReplayEngineError("INVALID_WINDOW", "window duration exceeds bound")
         # Defensive tamper check: stream fingerprint must be computable.
         try:
             fp = stream.fingerprint()
-        except Exception as exc:
+        except Exception as exc:  # pragma: no cover
             raise ReplayEngineError("INVALID_STREAM", "stream fingerprint failed") from exc
 
         self._stream: ReplayEventStream = stream
@@ -398,9 +627,14 @@ class ReplayEngine:
     # -- integrity ----------------------------------------------------------
 
     def _verify_integrity(self) -> None:
-        current_fp = self._stream.fingerprint()
+        # Revalidate stream to catch model_copy forgery that bypassed init validation.
+        validated = _revalidate_stream(self._stream)
+        # Use validated's fingerprint; if mismatch, tamper.
+        current_fp = validated.fingerprint()
         if current_fp != self._stream_fingerprint:
             raise ReplayEngineError("TAMPER_DETECTED", "stream fingerprint mismatch")
+        # Keep canonical validated copy
+        self._stream = validated
 
     def verify_integrity(self, expected_fingerprint: str | None = None) -> bool:
         fp = self._stream.fingerprint()
@@ -450,7 +684,7 @@ class ReplayEngine:
         if end_of_stream and playback is not PlaybackState.ENDED:
             # Keep paused/playing label until explicit; snapshot reflects cursor.
             pass
-        if self.is_empty():
+        if self.is_empty() or end_of_stream:
             playback = PlaybackState.ENDED
         return ReplayEngineState(
             playback_state=playback,
@@ -472,6 +706,7 @@ class ReplayEngine:
         Validation is fail-closed: invalid fields, tamper, negative/nonfinite
         values, or aggregate violations produce a typed error.
         """
+        request = _revalidate_request(request)
         # Tamper check before transition.
         if (
             request.expected_stream_fingerprint is not None
@@ -532,11 +767,33 @@ class ReplayEngine:
                     self._playback_state = PlaybackState.ENDED
                 else:
                     self._playback_state = PlaybackState.PAUSED
+
+        elif request.control is ReplayControl.ADVANCE:
+            assert request.advance_delta_s is not None
+            # ADVANCE is deterministic non-real-time; never sleeps.
+            if self.is_empty() or self.is_at_end():
+                self._playback_state = PlaybackState.ENDED
+                # No cursor movement
+            elif self._playback_state is not PlaybackState.PLAYING:
+                # Explicit PAUSED behavior: do not advance, remain paused.
+                pass
+            else:
+                # PLAYING: advance target_time by delta_s * speed_multiplier
+                cur_time = float(self._stream.events[self._cursor_index].simulator_time_s)
+                delta = request.advance_delta_s
+                target = cur_time + delta * self._speed_multiplier
+                idx = self._find_seek_index(target)
+                self._cursor_index = idx
+                if self.is_at_end():
+                    self._playback_state = PlaybackState.ENDED
+                else:
+                    self._playback_state = PlaybackState.PLAYING
         else:
             raise ReplayEngineError("INVALID_CONTROL", f"unknown control {request.control}")
 
         resulting_state = self.state()
         receipt = ReplayReceipt(
+            request=request,
             request_fingerprint=request.fingerprint(),
             resulting_state=resulting_state,
             stream_fingerprint=self._stream_fingerprint,
@@ -587,10 +844,12 @@ class ReplayEngine:
             if speed_multiplier < MIN_SPEED_MULTIPLIER or speed_multiplier > MAX_SPEED_MULTIPLIER:
                 raise ReplayEngineError("INVALID_SPEED", "speed_multiplier out of bounds")
             self._speed_multiplier = speed_multiplier
+            req = ReplayControlRequest(
+                control=ReplayControl.PAUSE, speed_multiplier=speed_multiplier
+            )
             return ReplayReceipt(
-                request_fingerprint=ReplayControlRequest(
-                    control=ReplayControl.PAUSE, speed_multiplier=speed_multiplier
-                ).fingerprint(),
+                request=req,
+                request_fingerprint=req.fingerprint(),
                 resulting_state=self.state(),
                 stream_fingerprint=self._stream_fingerprint,
                 tamper_detected=False,
@@ -608,4 +867,22 @@ class ReplayEngine:
             req_control = ReplayControl.PAUSE
         return self.apply(
             ReplayControlRequest(control=req_control, speed_multiplier=speed_multiplier)
+        )
+
+    def advance(self, delta_s: float) -> ReplayReceipt:
+        """Deterministic non-real-time advancement while PLAYING.
+
+        Moves simulation target time by ``delta_s * speed_multiplier``,
+        preserves equal-time ordering, never sleeps or consults wall clock,
+        and produces the same typed :class:`ReplayReceipt`.
+        While PAUSED or ENDED the cursor does not move; behavior is explicit.
+        """
+        if not math.isfinite(delta_s):
+            raise ReplayEngineError("INVALID_ADVANCE", "delta_s must be finite")
+        if delta_s < 0:
+            raise ReplayEngineError("INVALID_ADVANCE", "delta_s must be non-negative")
+        if delta_s > MAX_ADVANCE_DELTA_S:
+            raise ReplayEngineError("INVALID_ADVANCE", "delta_s exceeds bound")
+        return self.apply(
+            ReplayControlRequest(control=ReplayControl.ADVANCE, advance_delta_s=delta_s)
         )

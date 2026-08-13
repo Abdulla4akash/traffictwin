@@ -566,3 +566,303 @@ def test_synthetic_fixture_determinism_via_adapter() -> None:
     # Equal-time handling not needed here but ordering is canonical
     times = [e.simulator_time_s for e in w1]
     assert times == sorted(times)
+
+
+# ---------------------------------------------------------------------------
+# Additional hardening: forged streams, request fingerprint, cursor/state
+# invariants, advance with speed, pause/end, and receipt verification
+# ---------------------------------------------------------------------------
+
+
+def test_forged_stream_via_model_copy_fails_closed() -> None:
+    stream = _stream_with_events([_sim_event(seq=0, time=0.0), _sim_event(seq=1, time=1.0)])
+    # Forge by inventing a vehicle event not in manifest's available types
+    from traffictwin.replay_observatory.models import VehicleStateEvent
+
+    src = _source()
+    v_extra = VehicleStateEvent(
+        event_id="evt-forged-veh-099",
+        sequence=99,
+        simulator_time_s=5.0,
+        entity=EntityIdentity(kind=EntityKind.VEHICLE, entity_id="veh-099"),
+        source=src,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src.artifact_sha256, record="rec-forged-099"),
+        payload=VehicleStatePayload(x_m=0.0, y_m=0.0, speed_mps=0.0),
+    )
+    forged = stream.model_copy(update={"events": tuple(list(stream.events) + [v_extra])})
+    with pytest.raises(ReplayEngineError, match="INVALID_STREAM"):
+        ReplayEngine(forged)
+
+
+def test_forged_manifest_event_type_inflation_fails() -> None:
+    # Stream with only SIMULATION_TIME, try to inflate available types via manifest copy
+    src = _source()
+    e = _sim_event(seq=0, time=0.0, source=src)
+    manifest = _manifest(source=src, available=(EventType.SIMULATION_TIME,))
+    stream = ReplayEventStream(
+        stream_id="stream-001",
+        capability_manifest=manifest,
+        present_event_types=(EventType.SIMULATION_TIME,),
+        events=(e,),
+        limitations=("a",),
+    )
+    # Forge manifest to claim vehicle_state available
+    # but not present yet fails on present vs available
+    # Instead forge stream to include vehicle event without manifest cap
+    from traffictwin.replay_observatory.models import VehicleStateEvent
+
+    v_evt = VehicleStateEvent(
+        event_id="evt-veh-999",
+        sequence=1,
+        simulator_time_s=1.0,
+        entity=EntityIdentity(kind=EntityKind.VEHICLE, entity_id="veh-999"),
+        source=src,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src.artifact_sha256, record="rec-veh-999"),
+        payload=VehicleStatePayload(x_m=0.0, y_m=0.0, speed_mps=0.0),
+    )
+    forged_stream = stream.model_copy(
+        update={
+            "events": (e, v_evt),
+            "present_event_types": (EventType.SIMULATION_TIME, EventType.VEHICLE_STATE),
+        }
+    )
+    with pytest.raises(ReplayEngineError, match="INVALID_STREAM"):
+        ReplayEngine(forged_stream)
+
+
+def test_forged_event_source_evidence_inflation_fails() -> None:
+    src1 = _source(artifact=ARTIFACT, source_id="src-001")
+    src2 = _source(artifact=ARTIFACT2, source_id="src-002")
+    e = _sim_event(seq=0, time=0.0, source=src1)
+    stream = _stream_with_events([e])
+    # Forge event source to mismatch manifest
+    forged_event = e.model_copy(update={"source": src2})
+    forged_stream = stream.model_copy(update={"events": (forged_event,)})
+    with pytest.raises(ReplayEngineError, match="INVALID_STREAM"):
+        ReplayEngine(forged_stream)
+
+
+def test_forged_invalid_ordering_fails() -> None:
+    src = _source()
+    e0 = _sim_event(seq=0, time=0.0, source=src)
+    e1 = _sim_event(seq=1, time=1.0, source=src)
+    # Reverse order violates canonical (simulator_time_s, sequence, event_id)
+    stream = _stream_with_events([e0, e1])
+    forged = stream.model_copy(update={"events": (e1, e0)})
+    with pytest.raises(ReplayEngineError, match="INVALID_STREAM"):
+        ReplayEngine(forged)
+
+
+def test_forged_request_via_model_copy_caught() -> None:
+    stream = _stream_with_events([_sim_event(seq=0, time=0.0)])
+    engine = ReplayEngine(stream)
+    req = ReplayControlRequest(control=ReplayControl.SEEK, target_time_s=1.0)
+    forged_req = req.model_copy(update={"target_time_s": -5.0})
+    with pytest.raises(ReplayEngineError, match="INVALID_REQUEST"):
+        engine.apply(forged_req)
+
+
+def test_request_fingerprint_mismatch_fails() -> None:
+    stream = _stream_with_events([_sim_event(seq=0, time=0.0)])
+    engine = ReplayEngine(stream)
+    req = ReplayControlRequest(control=ReplayControl.PLAY)
+    receipt = engine.apply(req)
+    # Forge receipt request fingerprint
+    forged_receipt = receipt.model_copy(update={"request_fingerprint": "0" * 64})
+    with pytest.raises((ValidationError, ReplayEngineError)):
+        forged_receipt.verify_against(engine)
+
+
+def test_cursor_invariants_structural() -> None:
+    from traffictwin.replay_observatory.engine import ReplayCursor
+
+    # empty cursor must have total 0, index 0, event_id None
+    with pytest.raises(ValidationError):
+        ReplayCursor(
+            index=1,
+            simulator_time_s=0.0,
+            event_id=None,
+            is_empty=True,
+            is_at_end=True,
+            total_events=0,
+        )
+    with pytest.raises(ValidationError):
+        ReplayCursor(
+            index=0,
+            simulator_time_s=0.0,
+            event_id="evt-001",
+            is_empty=True,
+            is_at_end=True,
+            total_events=0,
+        )
+    with pytest.raises(ValidationError):
+        ReplayCursor(
+            index=0,
+            simulator_time_s=1.0,
+            event_id=None,
+            is_empty=False,
+            is_at_end=False,
+            total_events=1,
+        )
+
+
+def test_state_invariants_and_verifiers() -> None:
+    stream = _stream_with_events([_sim_event(seq=0, time=0.0)])
+    engine = ReplayEngine(stream)
+    state = engine.state()
+    # Tamper cursor via model_copy
+    from traffictwin.replay_observatory.engine import ReplayEngineState
+
+    forged_cursor = state.cursor.model_copy(update={"is_empty": True})
+    with pytest.raises(ValidationError):
+        ReplayEngineState(
+            playback_state=state.playback_state,
+            cursor=forged_cursor,
+            speed_multiplier=state.speed_multiplier,
+            stream_fingerprint=state.stream_fingerprint,
+            window_start_s=state.window_start_s,
+            window_end_s=state.window_end_s,
+            unavailable_event_types=state.unavailable_event_types,
+            end_of_stream=state.end_of_stream,
+            empty_stream=state.empty_stream,
+        )
+    # Verify exact catches tampered stream
+    forged_stream = stream.model_copy(update={"events": ()})
+    # Direct verify should fail because total_events mismatch
+    with pytest.raises(ReplayEngineError):
+        state.cursor.verify_against_stream(forged_stream)
+    # Receipt verification catches tampered state
+    req = ReplayControlRequest(control=ReplayControl.PLAY)
+    receipt = engine.apply(req)
+    forged_state = receipt.resulting_state.model_copy(update={"stream_fingerprint": "f" * 64})
+    forged_receipt = receipt.model_copy(
+        update={"resulting_state": forged_state, "stream_fingerprint": "f" * 64}
+    )
+    with pytest.raises((ValidationError, ReplayEngineError)):
+        forged_receipt.verify_against(engine)
+
+
+def test_advance_half_and_double_speed() -> None:
+    events = [_sim_event(seq=i, time=float(i)) for i in range(5)]
+    stream = _stream_with_events(events)
+    engine = ReplayEngine(stream, speed_multiplier=1.0)
+    engine.play()
+    # speed 0.5x: delta 2.0 => 1.0 sim time forward
+    engine.set_speed(0.5)
+    engine.play()
+    r = engine.advance(2.0)
+    assert r.resulting_state.cursor.index == 1
+    assert r.resulting_state.cursor.simulator_time_s == 1.0
+    # speed 2.0: delta 1.0 => 2.0 sim time forward from 1.0 => 3.0
+    engine.set_speed(2.0)
+    # still playing
+    r2 = engine.advance(1.0)
+    assert r2.resulting_state.cursor.index == 3
+    assert r2.resulting_state.cursor.simulator_time_s == 3.0
+    assert r2.resulting_state.playback_state is PlaybackState.PLAYING
+    # Receipt is same typed ReplayReceipt and binds request
+    assert r2.request.control is ReplayControl.ADVANCE
+    assert r2.request_fingerprint == r2.request.fingerprint()
+    # Deterministic: replay same sequence on fresh engine
+    engine2 = ReplayEngine(stream, speed_multiplier=0.5)
+    engine2.play()
+    engine2.advance(2.0)
+    engine2.set_speed(2.0)
+    engine2.advance(1.0)
+    assert engine2.state().cursor.index == engine.state().cursor.index
+
+
+def test_advance_equal_time_ordering() -> None:
+    src = _source()
+    e0 = _sim_event(seq=0, time=0.0, source=src, event_id="evt-aaa-000")
+    e1 = _sim_event(seq=1, time=1.0, source=src, event_id="evt-aaa-001")
+    e2 = _sim_event(seq=2, time=1.0, source=src, event_id="evt-aaa-002")
+    e3 = _sim_event(seq=3, time=2.0, source=src, event_id="evt-aaa-003")
+    present = tuple(sorted({e.event_type for e in (e0, e1, e2, e3)}, key=str))
+    manifest = _manifest(source=src, available=present)
+    stream = ReplayEventStream(
+        stream_id="stream-001",
+        capability_manifest=manifest,
+        present_event_types=present,
+        events=(e0, e1, e2, e3),
+        limitations=("a",),
+    )
+    engine = ReplayEngine(stream)
+    engine.play()
+    # At time 0.0, advance 1.0 => target 1.0 lands on first of equal-time group (e1)
+    r = engine.advance(1.0)
+    assert r.resulting_state.cursor.index == 1
+    assert r.resulting_state.cursor.event_id == "evt-aaa-001"
+    # Next advance 0.0 stays at same group head
+    r2 = engine.advance(0.0)
+    assert r2.resulting_state.cursor.index == 1
+    # Advance 0.5 at 1x stays within same time group still at e1 (target 1.5)
+    # Our seek lands on first >= target, so 1.5 lands at e3 (2.0)
+    r3 = engine.advance(0.5)
+    assert r3.resulting_state.cursor.index == 3
+
+
+def test_advance_paused_and_ended_explicit() -> None:
+    stream = _stream_with_events([_sim_event(seq=i, time=float(i)) for i in range(3)])
+    engine = ReplayEngine(stream)
+    # Initially PAUSED, advance should not move
+    r = engine.advance(1.0)
+    assert r.resulting_state.cursor.index == 0
+    assert r.resulting_state.playback_state is PlaybackState.PAUSED
+    # PLAY then advance moves
+    engine.play()
+    r2 = engine.advance(1.0)
+    assert r2.resulting_state.cursor.index == 1
+    assert r2.resulting_state.playback_state is PlaybackState.PLAYING
+    # PAUSE then advance no move
+    engine.pause()
+    r3 = engine.advance(2.0)
+    assert r3.resulting_state.cursor.index == 1
+    assert r3.resulting_state.playback_state is PlaybackState.PAUSED
+    # Seek to end then advance stays ended
+    engine.seek(10.0)
+    assert engine.is_at_end()
+    r4 = engine.advance(1.0)
+    assert r4.resulting_state.end_of_stream is True
+    assert r4.resulting_state.playback_state is PlaybackState.ENDED
+    # Empty stream
+    empty = _stream_with_events([])
+    e_engine = ReplayEngine(empty)
+    r5 = e_engine.advance(1.0)
+    assert r5.resulting_state.empty_stream is True
+
+
+def test_advance_never_sleeps_and_preserves_speed() -> None:
+    import time
+
+    stream = _stream_with_events([_sim_event(seq=i, time=float(i)) for i in range(10)])
+    engine = ReplayEngine(stream)
+    engine.play()
+    start = time.monotonic()
+    r = engine.advance(5.0)
+    elapsed = time.monotonic() - start
+    assert elapsed < 0.05  # no sleep
+    assert r.resulting_state.speed_multiplier == 1.0
+    # Speed still bound after advance
+    with pytest.raises((ValidationError, ReplayEngineError)):
+        ReplayControlRequest(control=ReplayControl.ADVANCE, advance_delta_s=float("inf"))
+
+
+def test_receipt_binds_exact_request_and_stream() -> None:
+    stream = _stream_with_events([_sim_event(seq=0, time=0.0)])
+    engine = ReplayEngine(stream)
+    req = ReplayControlRequest(control=ReplayControl.SEEK, target_time_s=0.0)
+    receipt = engine.apply(req)
+    assert receipt.request == req
+    assert receipt.request_fingerprint == req.fingerprint()
+    assert receipt.stream_fingerprint == stream.fingerprint()
+    assert receipt.resulting_state.stream_fingerprint == receipt.stream_fingerprint
+    # Verify passes
+    receipt.verify_against(engine, req)
+    # Forged stream fingerprint fails
+    forged = receipt.model_copy(update={"stream_fingerprint": "a" * 64})
+    # Construction itself should fail validation due to state mismatch
+    with pytest.raises((ValidationError, ReplayEngineError)):
+        forged.verify_against(engine)

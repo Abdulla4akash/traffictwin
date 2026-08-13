@@ -133,6 +133,7 @@ def _agreement_for(
         "left_stream_fingerprint": left.fingerprint(),
         "right_stream_fingerprint": right.fingerprint(),
         "identity_namespace": "src-001",
+        "compatibility_acknowledged": True,
         "declared_event_types": tuple(
             sorted(set(left.present_event_types) & set(right.present_event_types), key=str)
         ),
@@ -168,6 +169,7 @@ def test_side_by_side_requires_explicit_agreement() -> None:
                 "left_stream_fingerprint": "bad",
                 "right_stream_fingerprint": right.fingerprint(),
                 "identity_namespace": "src-001",
+                "compatibility_acknowledged": True,
                 "causal_disclaimer": CAUSAL_DISCLAIMER,
             }
         )
@@ -207,6 +209,7 @@ def test_compatible_source_schema_and_fingerprints() -> None:
         left_stream_fingerprint=left.fingerprint(),
         right_stream_fingerprint=right2.fingerprint(),
         identity_namespace="src-001",
+        compatibility_acknowledged=True,
         declared_event_types=(),
         causal_disclaimer=CAUSAL_DISCLAIMER,
     )
@@ -348,6 +351,7 @@ def test_research_aggregate_remains_zero_event_unavailable() -> None:
         left_stream_fingerprint=left.fingerprint(),
         right_stream_fingerprint=agg_stream.fingerprint(),
         identity_namespace="src-001",
+        compatibility_acknowledged=True,
         declared_event_types=(),
         causal_disclaimer=CAUSAL_DISCLAIMER,
     )
@@ -367,6 +371,7 @@ def test_research_aggregate_remains_zero_event_unavailable() -> None:
             left_stream_fingerprint=left.fingerprint(),
             right_stream_fingerprint=agg_stream.fingerprint(),
             identity_namespace="src-001",
+            compatibility_acknowledged=True,
             declared_event_types=(EventType.SIMULATION_TIME,),
             causal_disclaimer=CAUSAL_DISCLAIMER,
         )
@@ -487,3 +492,259 @@ def test_incompatible_identity_namespace_still_requires_explicit() -> None:
     # invalid namespace fails strict validation
     with pytest.raises(ValidationError):
         _agreement_for(left, right, identity_namespace="bad namespace with spaces")
+
+
+# ---------------------------------------------------------------------------
+# Additional hardening: forged agreement/stream, window, namespace, disclaimer
+# ---------------------------------------------------------------------------
+
+
+def test_forged_stream_manifest_via_model_copy_fails_side_by_side() -> None:
+    left = _stream()
+    right = _stream()
+    # Forge left by adding invented event
+    extra = _sim_event(seq=99, time=99.0, source=_source())
+    forged_left = left.model_copy(update={"events": tuple(list(left.events) + [extra])})
+    agreement = _agreement_for(left, right)
+    # Using original left/right fingerprints agreement will mismatch forged left
+    with pytest.raises(ComparisonAgreementError):
+        SideBySideReplay(forged_left, right, agreement)
+    # Also forging agreement fingerprint fails
+    forged_agreement = agreement.model_copy(update={"left_stream_fingerprint": "f" * 64})
+    with pytest.raises(ComparisonAgreementError):
+        # revalidation will catch fingerprint mismatch or tamper
+        SideBySideReplay(left, right, forged_agreement)
+
+
+def test_wrong_agreement_stream_window_fails() -> None:
+    left = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(3)])
+    right = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(3)])
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=2.0)
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    # Tamper state window: forge left_window outside agreement window
+    tampered_state = state.model_copy(
+        update={"left_window": (_sim_event(seq=0, time=5.0, source=_source()),)}
+    )
+    # model_copy bypasses validation, so verify should fail
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        tampered_state.verify_against(left, right)
+    # Wrong stream fingerprint in receipt fails
+    receipt = replay.synchronized_receipt()
+    forged_receipt = receipt.model_copy(update={"left_stream_fingerprint": "b" * 64})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_receipt.verify_against(left, right)
+    # Stale stream: modify underlying stream to have extra event, then verify should fail
+    forged_left = left.model_copy(
+        update={"events": tuple(list(left.events) + [_sim_event(seq=10, time=10.0)])}
+    )
+    with pytest.raises(ComparisonAgreementError):
+        receipt.verify_against(forged_left, right)
+
+
+def test_namespace_mismatch_fails() -> None:
+    left = _stream(source=_source(source_id="alpha-src"))
+    right = _stream(source=_source(source_id="beta-src"))
+    # Common namespace applies to both; left/right explicit must match
+    with pytest.raises(ValidationError):
+        _agreement_for(
+            left, right, identity_namespace="alpha-src", left_identity_namespace="wrong-ns"
+        )
+    with pytest.raises(ValidationError):
+        _agreement_for(
+            left, right, identity_namespace="alpha-src", right_identity_namespace="other-ns"
+        )
+    # Missing compatibility acknowledgement fails
+    with pytest.raises(ValidationError):
+        SideBySideAgreement.model_validate(
+            {
+                "time_basis": "simulator_time_s",
+                "time_units": "seconds",
+                "alignment": "clock_align",
+                "tolerance_s": 0.1,
+                "window_start_s": 0.0,
+                "window_end_s": 10.0,
+                "left_stream_fingerprint": left.fingerprint(),
+                "right_stream_fingerprint": right.fingerprint(),
+                "identity_namespace": "alpha-src",
+                "compatibility_acknowledged": False,
+                "causal_disclaimer": CAUSAL_DISCLAIMER,
+            }
+        )
+
+
+def test_causal_disclaimer_required_and_bound() -> None:
+    left = _stream()
+    right = _stream()
+    # Exact disclaimer required on agreement
+    with pytest.raises(ValidationError):
+        _agreement_for(left, right, causal_disclaimer="causality claimed")
+    agreement = _agreement_for(left, right)
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    receipt = replay.synchronized_receipt()
+    assert state.causal_disclaimer == CAUSAL_DISCLAIMER
+    assert receipt.causal_disclaimer == CAUSAL_DISCLAIMER
+    # Forge state disclaimer via model_copy bypasses validation, verify catches
+    tampered_state = state.model_copy(update={"causal_disclaimer": "bad"})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        tampered_state.verify_against(left, right)
+    tampered_receipt = receipt.model_copy(update={"causal_disclaimer": "bad"})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        tampered_receipt.verify_against(left, right)
+    # Forge agreement disclaimer via model_copy should be caught
+    _ = agreement.model_copy(update={"causal_disclaimer": CAUSAL_DISCLAIMER})
+    # No-op copy still passes; but creating with wrong value fails
+    with pytest.raises(ValidationError):
+        SideBySideAgreement.model_validate(
+            {
+                **agreement.model_dump(mode="json"),
+                "causal_disclaimer": "synchronization is causality",
+            }
+        )
+
+
+def test_side_by_side_receipt_and_state_exact_verifiers() -> None:
+    left = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(3)])
+    right = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(3)])
+    agreement = _agreement_for(left, right)
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    receipt = replay.synchronized_receipt()
+    # Exact verifiers pass on canonical
+    state.verify_against(left, right)
+    state.verify_exact(left, right)
+    receipt.verify_against(left, right)
+    receipt.verify_exact(left, right)
+    # Tamper agreement fingerprint inside state should fail
+    forged_state = state.model_copy(update={"agreement_fingerprint": "0" * 64})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_state.verify_against(left, right)
+    # Tamper stream fingerprint inside receipt
+    forged_receipt = receipt.model_copy(update={"agreement_fingerprint": "1" * 64})
+    with pytest.raises((ValidationError, ComparisonAgreementError)):
+        forged_receipt.verify_against(left, right)
+    # Verify before and after transitions: SideBySideReplay verifies integrity
+    # Mutate underlying stream to simulate tamper, next operation should fail
+    object.__setattr__(replay, "_left_stream", left.model_copy(update={"events": ()}))
+    with pytest.raises(ComparisonAgreementError):
+        replay.synchronized_state()
+
+
+def test_side_by_side_operations_verify_integrity_before_after() -> None:
+    left = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(4)])
+    right = _stream(events=[_sim_event(seq=i, time=float(i)) for i in range(4)])
+    agreement = _agreement_for(left, right, window_start_s=0.0, window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    # seek and step should verify before/after
+    r1 = replay.seek_both(1.0)
+    assert r1.resulting_state.left_state.cursor.index == 1
+    r2 = replay.step_both(1, "forward")
+    assert r2.resulting_state.right_state.cursor.index == 2
+    # Tamper right stream fingerprint mismatch should be caught on next seek
+    object.__setattr__(replay, "_right_stream", right.model_copy(update={"events": ()}))
+    with pytest.raises(ComparisonAgreementError):
+        replay.step_both(1, "forward")
+
+
+def test_compatibility_schema_and_identity_namespace_enforced() -> None:
+    # Same replay schema/source schema required
+    src_v1 = SourceIdentity(
+        source_id="src-001",
+        source_kind=SourceKind.SYNTHETIC_FIXTURE,
+        artifact_sha256=ARTIFACT,
+        schema_version="1.0",
+    )
+    src_v2 = SourceIdentity(
+        source_id="src-001",
+        source_kind=SourceKind.SYNTHETIC_FIXTURE,
+        artifact_sha256=ARTIFACT2,
+        schema_version="2.0",
+    )
+    left = _stream(source=src_v1)
+    right = _stream(source=src_v2, events=[_sim_event(seq=0, time=0.0, source=src_v2)])
+    with pytest.raises(ComparisonAgreementError, match="INCOMPATIBLE_SCHEMA"):
+        SideBySideReplay(left, right, _agreement_for(left, right))
+    # Declared types must be present, not just available
+    src = _source()
+    left2 = _stream(source=src, events=[_sim_event(seq=0, time=0.0, source=src)])
+    right2 = _stream(source=src, events=[_sim_event(seq=0, time=0.0, source=src)])
+    # Try to declare vehicle_state which is not present
+    with pytest.raises(ComparisonAgreementError, match="INCOMPATIBLE_CAPABILITIES"):
+        bad = _agreement_for(left2, right2, declared_event_types=(EventType.VEHICLE_STATE,))
+        SideBySideReplay(left2, right2, bad)
+    # Aggregate never gains events: declare events on aggregate fails
+    agg_src = SourceIdentity(
+        source_id="agg-src",
+        source_kind=SourceKind.RESEARCH_AGGREGATE,
+        artifact_sha256=ARTIFACT3,
+        schema_version="1.0",
+    )
+    agg_manifest = SourceCapabilityManifest(
+        manifest_id="m-agg",
+        source=agg_src,
+        source_data_kind=SourceDataKind.AGGREGATE_ONLY,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        available_event_types=(),
+        limitations=("a",),
+    )
+    agg_stream = ReplayEventStream(
+        stream_id="agg-stream",
+        capability_manifest=agg_manifest,
+        present_event_types=(),
+        events=(),
+        limitations=("a",),
+    )
+    left3 = _stream()
+    with pytest.raises(ComparisonAgreementError, match="AGGREGATE"):
+        bad2 = SideBySideAgreement(
+            time_basis="simulator_time_s",
+            time_units="seconds",
+            alignment=AlignmentMode.CLOCK_ALIGN,
+            tolerance_s=0.1,
+            window_start_s=0.0,
+            window_end_s=10.0,
+            left_stream_fingerprint=left3.fingerprint(),
+            right_stream_fingerprint=agg_stream.fingerprint(),
+            identity_namespace="src-001",
+            compatibility_acknowledged=True,
+            declared_event_types=(EventType.SIMULATION_TIME,),
+            causal_disclaimer=CAUSAL_DISCLAIMER,
+        )
+        SideBySideReplay(left3, agg_stream, bad2)
+
+
+def test_missing_execution_target_truthful_no_synthesis() -> None:
+    src = _source()
+    offer = TaskOfferedEvent(
+        event_id="evt-offer-002",
+        sequence=0,
+        simulator_time_s=1.0,
+        entity=EntityIdentity(kind=EntityKind.TASK, entity_id="task-002"),
+        source=src,
+        evidence_standing=EvidenceStanding.SYNTHETIC_DATA,
+        provenance=_provenance(artifact=src.artifact_sha256, record="rec-offer-002"),
+        payload=TaskOfferedPayload(offered_to_entity_id="res-002"),
+    )
+    left = ReplayEventStream(
+        stream_id="left-offer2",
+        capability_manifest=_manifest(source=src, available=(EventType.TASK_OFFERED,)),
+        present_event_types=(EventType.TASK_OFFERED,),
+        events=(offer,),
+        limitations=("a",),
+    )
+    right = _stream(source=src, events=[_sim_event(seq=0, time=0.0, source=src)])
+    agreement = _agreement_for(left, right, declared_event_types=(), window_end_s=10.0)
+    replay = SideBySideReplay(left, right, agreement)
+    state = replay.synchronized_state()
+    assert state.missing_execution_target is True
+    # Windows truthfully do not contain execution_target
+    assert all(ev.event_type is not EventType.EXECUTION_TARGET for ev in state.left_window)
+    assert all(ev.event_type is not EventType.EXECUTION_TARGET for ev in state.right_window)
+    # Receipt also truthful
+    receipt = replay.synchronized_receipt()
+    assert receipt.resulting_state.missing_execution_target is True
+    # No synthesis after seek/step
+    replay.seek_both(0.0)
+    state2 = replay.synchronized_state()
+    assert state2.missing_execution_target is True
