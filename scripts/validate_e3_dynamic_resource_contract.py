@@ -94,7 +94,7 @@ def _contains_forbidden_arm_ids(obj: object) -> list[str]:
     return found
 
 
-def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noqa: ANN401
+def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:
     violations: list[str] = []
     forbidden_key_subs = ["currency", "price", "billing", "usd", "dollar", "$"]
     forbidden_val_subs = ["currency", "price", "billing", "$", "usd", "dollar"]
@@ -124,9 +124,13 @@ def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noq
             if kl not in allowed_key_exact:
                 for sub in forbidden_key_subs:
                     if sub in kl:
-                        # Special allow: cost_currency etc inside forbidden_fields list is handled by skipping that list  # noqa: E501
-                        # But key itself like "cost_currency" should be forbidden everywhere
-                        # If k is exactly forbidden_fields we skip, otherwise error
+                        # Special allow: cost_currency etc inside
+                        # forbidden_fields list is handled by skipping
+                        # that list
+                        # But key itself like "cost_currency" should be
+                        # forbidden everywhere
+                        # If k is exactly forbidden_fields we skip,
+                        # otherwise error
                         violations.append(
                             f"monetary-like key forbidden at {path}.{k!r}: contains {sub!r}"
                         )
@@ -135,17 +139,20 @@ def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noq
             if k == "forbidden_fields" and isinstance(v, list):
                 # Documentation of forbidden fields is allowed to list monetary names
                 continue
-            # For key "monetary", value must be false; any other monetary-like value is checked below  # noqa: E501
+            # For key "monetary", value must be false; any other
+            # monetary-like value is checked below
             if kl == "monetary":
                 if v is not False:
-                    # If monetary is not false, any monetary claim is violation unless it's part of allowed phrase?  # noqa: E501
+                    # If monetary is not false, any monetary claim is
+                    # violation unless it's part of allowed phrase?
                     # monetary: false is only allowed normative phrase
                     violations.append(f"monetary must be false at {path}.{k!r} (got {v!r})")
                 # don't recurse into boolean false
                 continue
             # Recurse into value
             violations.extend(_find_monetary_violations(v, f"{path}.{k}"))
-            # Also check if value is string containing forbidden substrings (for dict values that are strings)  # noqa: E501
+            # Also check if value is string containing forbidden substrings
+            # (for dict values that are strings)
             if isinstance(v, str):
                 vl = v.lower()
                 # allow if contains explicit normative false phrase
@@ -154,7 +161,8 @@ def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noq
                 for sub in forbidden_val_subs:
                     if sub in vl:
                         violations.append(
-                            f"monetary-like string forbidden at {path}.{k!r}: {v!r} contains {sub!r}"  # noqa: E501
+                            f"monetary-like string forbidden at "
+                            f"{path}.{k!r}: {v!r} contains {sub!r}"
                         )
                         break
     elif isinstance(obj, list):
@@ -167,7 +175,8 @@ def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noq
                 for sub in forbidden_val_subs:
                     if sub in vl:
                         violations.append(
-                            f"monetary-like string forbidden at {path}[{idx}]: {item!r} contains {sub!r}"  # noqa: E501
+                            f"monetary-like string forbidden at "
+                            f"{path}[{idx}]: {item!r} contains {sub!r}"
                         )
                         break
             violations.extend(_find_monetary_violations(item, f"{path}[{idx}]"))
@@ -178,7 +187,7 @@ def _find_monetary_violations(obj: object, path: str = "$") -> list[str]:  # noq
         for sub in forbidden_val_subs:
             if sub in vl:
                 violations.append(
-                    f"monetary-like string forbidden at {path}: {obj!r} contains {sub!r}"  # noqa: E501
+                    f"monetary-like string forbidden at {path}: {obj!r} contains {sub!r}"
                 )
                 break
     return violations
@@ -237,8 +246,9 @@ def validate_contract(data: object) -> dict[str, Any]:
     if "alone and jointly" in low_rq:
         _err(
             errors,
-            "research_question must not contain 'alone and jointly' "  # noqa: E501
-            "(bounded staged grid does not fully cross every placement/scaler)",
+            "research_question must not contain 'alone and jointly' "
+            "(bounded staged grid does not fully cross every "
+            "placement/scaler)",
         )
     if "e3a isolates placement" not in low_rq:
         _err(errors, "research_question must state E3a isolates placement")
@@ -249,7 +259,7 @@ def validate_contract(data: object) -> dict[str, Any]:
     if "without fully crossing every placement with every scaler" not in low_rq:
         _err(
             errors,
-            "research_question must state bounded grid does not fully cross "  # noqa: E501
+            "research_question must state bounded grid does not fully cross "
             "every placement with every scaler",
         )
 
@@ -1133,6 +1143,15 @@ def validate_contract(data: object) -> dict[str, Any]:
             _err(errors, "e3c fresh_observations_reused must be 16")
         if e3c.get("stale_variant_equation") != "48 - 16 = 32":
             _err(errors, "e3c stale_variant_equation must be '48 - 16 = 32'")
+        expected_e3c_eq = (
+            "2 contrasts * 2 arms * 3 staleness * 4 draws = 48 observations; "
+            "48 - 16 = 32 stale variants"
+        )
+        if e3c.get("equation") != expected_e3c_eq:
+            _err(
+                errors,
+                f"e3c equation must be {expected_e3c_eq!r} (got {e3c.get('equation')!r})",
+            )
         if e3c.get("stale_is_view_parameter") is not True:
             _err(errors, "e3c stale_is_view_parameter must be true")
         # Reject old total_candidate_with_stale_max ==60
@@ -2371,6 +2390,28 @@ def validate_contract(data: object) -> dict[str, Any]:
                 "p2c_mixer fold must be h_init 0x6A09E667F3BCC909 and "
                 "for_each_ordered_field h=splitmix64(h xor uint64(field))",
             )
+        expected_order = EXPECTED_COUNTER_FIELDS
+        fold_order = fold.get("field_order") if isinstance(fold, dict) else None
+        if fold_order != expected_order:
+            _err(
+                errors,
+                f"p2c_mixer fold field_order must exactly equal "
+                f"{expected_order} (got {fold_order!r})",
+            )
+        fd_order = fd.get("fields_ordered") if isinstance(fd, dict) else None
+        if fd_order != expected_order:
+            _err(
+                errors,
+                "p2c_mixer field_declaration fields_ordered must "
+                f"exactly equal {expected_order} (got {fd_order!r})",
+            )
+        if isinstance(fold_order, list) and isinstance(fd_order, list) and fold_order != fd_order:
+            _err(
+                errors,
+                "p2c_mixer fold field_order must exactly equal "
+                "field_declaration fields_ordered "
+                f"(fold {fold_order!r} != declaration {fd_order!r})",
+            )
         pidx = pm.get("pair_indices", {})
         if not isinstance(pidx, dict):
             _err(errors, "p2c_mixer pair_indices missing or not dict")
@@ -2938,79 +2979,641 @@ def validate_contract(data: object) -> dict[str, Any]:
 
 
 def render_markdown(data: dict[str, Any]) -> str:
-    """Deterministic markdown generation: template plus canonical JSON block.
+    """Pure deterministic markdown from JSON fields only.
 
-    The template is derived from the committed canonical markdown's prefix/suffix.
-    For canonical data, output must byte-equal the committed file.
+    No filesystem reads. Static headings fixed; scientific values from data.
+    Output is fully determined by data.
     """
-    # Try to load template prefix/suffix from the committed markdown file at runtime.
-    # Fallback to minimal template if file unavailable (e.g., CLI with missing md).
-    try:
-        committed_path = (
-            Path(__file__).resolve().parents[1]
-            / "docs/evaluation/e3/e3_dynamic_resource_v2_contract_v1.md"
-        )
-        # Use the current committed file's prefix/suffix as template (canonical when file is
-        # canonical).
-        # Read bytes to preserve exact line endings.
-        committed_text = committed_path.read_text(encoding="utf-8")
-        if CANONICAL_BLOCK_START in committed_text and CANONICAL_BLOCK_END in committed_text:
-            prefix = committed_text[: committed_text.index(CANONICAL_BLOCK_START)]
-            suffix = committed_text[
-                committed_text.index(CANONICAL_BLOCK_END) + len(CANONICAL_BLOCK_END) :
-            ]
-        else:
-            prefix = ""
-            suffix = "\n*End of normative contract v1.*\n"
-    except Exception:
-        prefix = ""
-        suffix = "\n*End of normative contract v1.*\n"
-        committed_text = None
 
-    # If we have a prefix that already contains the start marker, we need to reconstruct correctly.
-    # The canonical file has: prefix + START + "\n```json\n" + dump + "```\n" + END + suffix
-    # For determinism, we use the committed prefix (which ends just before START) and suffix (after
-    # END).
-    # Rebuild from data.
-    if committed_text is not None and CANONICAL_BLOCK_START in committed_text:
-        # prefix already ends before START, suffix starts after END
-        canonical_block = (
-            f"{CANONICAL_BLOCK_START}\n```json\n{_canonical_dump(data)}```\n{CANONICAL_BLOCK_END}"
-        )
-        # Ensure prefix ends as in canonical (it already does), and suffix starts as in canonical
-        return prefix + canonical_block + suffix
-    # Fallback: construct minimal markdown with header + block
-    header = (
-        "# E3 Dynamic Resource v2 — Scientific Contract v1\n\n"
-        f"**Campaign:** `{CAMPAIGN}`\n"
-        f"**Contract version:** `{CONTRACT_VERSION}`\n"
-        f"**Status:** `predeclared_before_any_e3_trace_execution`\n"
-        f"**Created:** `2026-08-13`\n"
-        f"**Base commit (exact):** `{BASE_COMMIT}`\n"
-        f"**Lane:** `01` (`{BRANCH}`)\n\n"
-        "This scientific contract is governed solely by the JSON file "
-        "`e3_dynamic_resource_v2_contract_v1.json`, which is the single "
-        "normative authority. "
-        "The Markdown file `e3_dynamic_resource_v2_contract_v1.md` is a "
-        "deterministic generated view from that JSON via the pure "
-        "function `render_markdown(data)` (template plus canonical JSON "
-        "block). "
-        "The entire committed Markdown bytes must equal "
-        "`render_markdown(canonical_json)`; any prose change outside the "
-        "block must fail byte-equivalence, and byte mismatch is "
-        "authoritative. Residual prose checks are defense-in-depth "
-        "only.\n\n---\n\n"
+    def _get(path: list[str], default: object = "") -> object:
+        cur: object = data
+        for key in path:
+            if isinstance(cur, dict):
+                cur = cur.get(key, default)
+            else:
+                return default
+        return cur if cur is not None else default
+
+    def _s(val: object) -> str:
+        return str(val) if val is not None else ""
+
+    base_commit = _s(_get(["base_commit"], BASE_COMMIT))
+    campaign = _s(_get(["campaign"], CAMPAIGN))
+    version = _s(_get(["schema_version"], CONTRACT_VERSION))
+    rq = _s(_get(["research_question"], ""))
+    auth = _s(_get(["authority_note"], ""))
+
+    fp_raw = _get(["frozen_prerequisites"], {})
+    fp: dict[str, Any] = fp_raw if isinstance(fp_raw, dict) else {}
+    e2b = fp.get("e2b", {}) if isinstance(fp.get("e2b"), dict) else {}
+    e2c = fp.get("e2c", {}) if isinstance(fp.get("e2c"), dict) else {}
+    e2d = fp.get("e2d", {}) if isinstance(fp.get("e2d"), dict) else {}
+    actor = fp.get("actor", {}) if isinstance(fp.get("actor"), dict) else {}
+    trace = fp.get("trace", {}) if isinstance(fp.get("trace"), dict) else {}
+    eval_seed = fp.get("evaluator_seed", EXPECTED_EVALUATOR_SEED)
+
+    rep_raw = _get(["replication"], {})
+    rep: dict[str, Any] = rep_raw if isinstance(rep_raw, dict) else {}
+
+    hyps_raw = _get(["hypotheses"], {})
+    hyps: dict[str, Any] = hyps_raw if isinstance(hyps_raw, dict) else {}
+    hyp_items = hyps.get("items", [])
+
+    cs_raw = _get(["compute_scaling"], {})
+    cs: dict[str, Any] = cs_raw if isinstance(cs_raw, dict) else {}
+    reactive = cs.get("reactive", {})
+    if not isinstance(reactive, dict):
+        reactive = {}
+    proactive = cs.get("proactive", {})
+    if not isinstance(proactive, dict):
+        proactive = {}
+    dyn_bounds = cs.get("dynamic_bounds", {})
+    if not isinstance(dyn_bounds, dict):
+        dyn_bounds = {}
+    fixed_1x = cs.get("fixed_1x", {})
+    if not isinstance(fixed_1x, dict):
+        fixed_1x = {}
+    static_over = cs.get("static_overprovisioned", {})
+    if not isinstance(static_over, dict):
+        static_over = {}
+
+    tm_raw = _get(["time_model"], {})
+    tm: dict[str, Any] = tm_raw if isinstance(tm_raw, dict) else {}
+    scen_raw = _get(["scenario"], {})
+    scen: dict[str, Any] = scen_raw if isinstance(scen_raw, dict) else {}
+    sd_raw = _get(["staged_design"], {})
+    sd: dict[str, Any] = sd_raw if isinstance(sd_raw, dict) else {}
+    inf_raw = _get(["inference"], {})
+    inf: dict[str, Any] = inf_raw if isinstance(inf_raw, dict) else {}
+    cost_raw = _get(["cost"], {})
+    cost: dict[str, Any] = cost_raw if isinstance(cost_raw, dict) else {}
+    ta_raw = _get(["task_accounting"], {})
+    ta: dict[str, Any] = ta_raw if isinstance(ta_raw, dict) else {}
+    cb_raw = _get(["claim_boundaries"], {})
+    cb: dict[str, Any] = cb_raw if isinstance(cb_raw, dict) else {}
+    ms_raw = _get(["mechanism_separation"], {})
+    ms: dict[str, Any] = ms_raw if isinstance(ms_raw, dict) else {}
+    pm_raw = _get(["p2c_mixer"], {})
+    pm: dict[str, Any] = pm_raw if isinstance(pm_raw, dict) else {}
+    fd = pm.get("field_declaration", {})
+    if not isinstance(fd, dict):
+        fd = {}
+    fold = pm.get("fold", {})
+    if not isinstance(fold, dict):
+        fold = {}
+
+    out: list[str] = []
+    out.append("# E3 Dynamic Resource v2 — Scientific Contract v1")
+    out.append("")
+    out.append(f"**Campaign:** `{campaign}`")
+    out.append(f"**Contract version:** `{version}`")
+    out.append("**Status:** `predeclared_before_any_e3_trace_execution`")
+    out.append("**Created:** `2026-08-13`")
+    out.append(f"**Base commit (exact):** `{base_commit}`")
+    out.append(f"**Lane:** `01` (`{BRANCH}`)")
+    out.append("")
+    out.append(
+        "JSON is the single normative scientific contract "
+        "(`e3_dynamic_resource_v2_contract_v1.json`). "
+        "Markdown is a deterministic generated view via "
+        "`render_markdown(data)` and must byte-equal its output; "
+        "byte mismatch is authoritative."
     )
-    # Append a note that will still satisfy required needle checks via block? But minimal fallback
-    # must still be valid for CLI missing cases.
-    # For missing file case, this fallback is only used for byte-equivalence comparison; missing
-    # file
-    # will still fail because file missing.
-    # So return prefix fallback plus block
-    return header + (
-        f"{CANONICAL_BLOCK_START}\n```json\n{_canonical_dump(data)}"
-        f"```\n{CANONICAL_BLOCK_END}\n\n*End of normative contract v1.*\n"
+    if auth:
+        out.append("")
+        out.append(f"Authority note: {auth}")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 1. Research question")
+    out.append("")
+    if rq:
+        out.append(f"> {rq}")
+        out.append("")
+    out.append(
+        "Three orthogonal control dimensions — placement, admission, "
+        "scaling — are isolated. E3a isolates placement at fixed_1x, "
+        "E3b holds placement fixed at per_task_dla for scaling "
+        "contrasts, E3c tests selected stale-state contrasts "
+        "(0/1000/3000 ms), without fully crossing every placement "
+        "with every scaler."
     )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 2. Frozen prerequisites and provenance")
+    out.append("")
+    out.append(f"- E2b commit: `{e2b.get('commit', EXPECTED_E2B)}`")
+    out.append(f"- E2c commit: `{e2c.get('commit', EXPECTED_E2C)}`")
+    out.append(f"- E2d commit: `{e2d.get('commit', EXPECTED_E2D)}`")
+    out.append(f"- E2d manifest SHA-256: `{e2d.get('manifest_sha256', EXPECTED_E2D_MANIFEST)}`")
+    out.append(f"- Actor path: `{actor.get('path', EXPECTED_ACTOR_PATH)}`")
+    out.append(f"- Actor SHA-256: `{actor.get('sha256', EXPECTED_ACTOR_SHA)}`")
+    out.append(f"- Trace path: `{trace.get('path', EXPECTED_TRACE_PATH)}`")
+    out.append(f"- Trace SHA-256: `{trace.get('sha256', EXPECTED_TRACE_SHA)}`")
+    out.append(f"- Evaluator seed: `{eval_seed}`")
+    out.append(f"- Scenario: {scen.get('scenario', 'Manchester incident trace')}")
+    scen_steps = scen.get("steps", 3600)
+    scen_smoke = scen.get("smoke_steps", 10)
+    out.append(f"- Steps: {scen_steps}; smoke steps: {scen_smoke}")
+    scen_rsus = scen.get("rsus", 10)
+    scen_width = scen.get("padded_fleet_width", 2488)
+    out.append(f"- RSUs: {scen_rsus}; padded_fleet_width: {scen_width}")
+    tm_tick = tm.get("outer_tick_ms", 1000)
+    tm_slots = tm.get("within_tick_task_slots", 5)
+    out.append(f"- Outer tick: {tm_tick} ms; task slots: {tm_slots}")
+    tm_stale = tm.get("candidate_stale_levels_ms", [0, 1000, 3000])
+    out.append(f"- Candidate stale levels: {tm_stale}")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 3. Replication — fleet_draw via fleet_seed")
+    out.append("")
+    out.append(f"- Replication unit: `{rep.get('replication_unit', 'fleet_draw')}`")
+    rep_key = rep.get("replication_key", "fleet_seed")
+    out.append(f"- Replication key: `{rep_key}` (integer 1..4)")
+    out.append(f"- N: `{rep.get('n', 4)}` fleet draws (tasks are not replicates)")
+    out.append(f"- Fleet seeds: `{rep.get('fleet_seeds', [1, 2, 3, 4])}`")
+    out.append(f"- Note: {rep.get('fleet_draw_note', 'padded-slot assignment')}")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 4. Hypotheses H1–H5 (hypothesis_not_expected_truth)")
+    out.append("")
+    out.append("All hypotheses have status `hypothesis_not_expected_truth` and kind `hypothesis`;")
+    out.append("negative, null, or opposite results are acceptable and remain valid.")
+    out.append("")
+    if isinstance(hyp_items, list):
+        for item in hyp_items:
+            if isinstance(item, dict):
+                hid = item.get("id", "")
+                stmt = item.get("statement", "")
+                status = item.get("status", "hypothesis_not_expected_truth")
+                out.append(f"- **{hid}** `{status}` — {stmt}")
+    out.append("")
+    out.append(
+        "H1: P2C may approach per_task_dla with less global inspection; "
+        "H2: reactive may improve with churn;"
+    )
+    out.append(
+        "H3: proactive may help when load change outruns actuation; "
+        "H4: per_task_dla may degrade faster than P2C under stale state;"
+    )
+    out.append(
+        "H5: additional compute (static_overprovisioned) may not win "
+        "once resource_unit_seconds is considered."
+    )
+    out.append("Hypotheses are not expected truths; negative results acceptable.")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 5. Mechanism separation")
+    out.append("")
+    out.append("| Mechanism | Controls | Does not control |")
+    out.append("|---|---|---|")
+    ms_place = ms.get("placement", "which RSU executes admitted V2I task")
+    out.append(f"| Placement | {ms_place} | admission; compute capacity |")
+    ms_adm = ms.get("admission", "whether task admitted via deadline gate")
+    out.append(f"| Admission | {ms_adm} | where it executes; compute capacity |")
+    ms_scale = ms.get("scaling", "how many compute units active per RSU")
+    out.append(f"| Scaling | {ms_scale} | which RSU chosen; admission decision |")
+    out.append("")
+    out.append(
+        "- Queue ceiling is not compute capacity: "
+        "queue_ceiling_is_not_compute_capacity must be true."
+    )
+    out.append("- Actor never observes RSU load and never selects execution RSU.")
+    out.append("- Rejected work never executes.")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 6. Placement — p2c_dla, ingress_dla, per_task_dla")
+    out.append("")
+    out.append("- Feasibility first; two distinct feasible candidates.")
+    out.append(
+        f"- Counter key fields: {EXPECTED_COUNTER_FIELDS} "
+        "(stable counter-based key; no global RNG)."
+    )
+    fd_ordered = fd.get("fields_ordered", EXPECTED_COUNTER_FIELDS)
+    out.append(f"- Field declaration ordered: {fd_ordered}")
+    fold_order = fold.get("field_order", EXPECTED_COUNTER_FIELDS)
+    out.append(f"- Fold field_order: {fold_order}")
+    out.append(
+        "- Inspect only pair; lower effective_busy_ms wins; "
+        "tie by lowest RSU id; immediate reservation; "
+        "one candidate per task; common target forbidden."
+    )
+    out.append(
+        "- Stale: immutable delayed view; "
+        "same_tick_reservation_overlay; no future leakage; "
+        "exposes state_age_ms."
+    )
+    out.append(
+        "- Pair mapper: sorted ascending unique feasible RSU IDs; "
+        "SplitMix64 over ordered fields; final pair sorted."
+    )
+    out.append(
+        "- Modulo bias note: modulo reduction has negligible bias "
+        "not mathematically exact-uniform; H1 is pair-only ranking vs "
+        "global least-busy dependence not statistical uniformity proof."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 7. Compute scaling")
+    out.append("")
+    f1_units = fixed_1x.get("active_units_per_rsu", 1)
+    f1_mult = fixed_1x.get("multiplier", 1)
+    f1_svc = fixed_1x.get("rsu_service_mult", 1.0)
+    out.append(
+        f"- fixed_1x: active_units_per_rsu={f1_units} "
+        f"multiplier={f1_mult} rsu_service_mult={f1_svc}"
+    )
+    so_units = static_over.get("active_units_per_rsu", 3)
+    so_mult = static_over.get("multiplier", 3)
+    so_svc = static_over.get("rsu_service_mult", 3.0)
+    out.append(
+        f"- static_overprovisioned: active_units_per_rsu={so_units} "
+        f"multiplier={so_mult} rsu_service_mult={so_svc} "
+        "(fixed 3x compute, never queue capacity)"
+    )
+    db_min = dyn_bounds.get("min_units", 1)
+    db_max = dyn_bounds.get("max_units", 3)
+    db_delay = dyn_bounds.get("actuation_delay_ms", 2000)
+    db_ticks = dyn_bounds.get("actuation_delay_ticks", 2)
+    out.append(
+        f"- Dynamic bounds: {db_min}--{db_max} units; "
+        f"actuation_delay {db_delay} ms / {db_ticks} ticks; "
+        "one level per action; one pending; apply due before tick; "
+        "free_scaling_forbidden and unbounded_scaling_forbidden."
+    )
+    r_sig = reactive.get("signal", "service_workload_ms")
+    r_units = reactive.get("signal_units", "work_ms_independent_of_capacity")
+    r_up = reactive.get("scale_up_threshold_ms", 800)
+    r_down = reactive.get("scale_down_threshold_ms", 200)
+    r_gap = reactive.get("threshold_gap_ms", 600)
+    r_cool = reactive.get("cooldown_ms", 5000)
+    r_delay = reactive.get("actuation_delay_ms", 2000)
+    out.append(
+        f"- Reactive: signal {r_sig} ({r_units}) per RSU; "
+        f"thresholds up >= {r_up} inclusive, down <= {r_down} inclusive; "
+        f"gap {r_gap} is hysteresis; cooldown {r_cool} ms; "
+        f"actuation {r_delay} ms; bounds 1..3; one level; one pending; "
+        "stable inclusive edges; prediction false; state_age 0/1000/3000."
+    )
+    out.append("- Reactive signal units: work-ms, independent of capacity")
+    p_formulas = proactive.get("formulas", {})
+    if not isinstance(p_formulas, dict):
+        p_formulas = {}
+    older = p_formulas.get("older_mean", "mean(W[0:2])")
+    recent = p_formulas.get("recent_mean", "mean(W[2:4])")
+    trend = p_formulas.get("trend", "recent_mean - older_mean")
+    forecast = p_formulas.get("forecast", "max(0, mean(W) + 2*trend)")
+    out.append(
+        f"- Proactive: transparent baseline, not optimal predictor; "
+        f"signal arrival_work_ms per-RSU at 1000 ms ticks; "
+        f"window 4 observations oldest_to_newest at 1000 ms; "
+        f"warm_up 4 valid; formulas older_mean={older}, "
+        f"recent_mean={recent}, trend={trend}, forecast={forecast}; "
+        "horizon 2000 ms (2 ticks); same 800/200 thresholds gap 600 "
+        "hysteresis inclusive; cooldown 5000; delay 2000; "
+        "bounds 1..3; one level/pending; no future leakage."
+    )
+    out.append("- Hysteresis is gap (600) — no extra hysteresis_ms excursion beyond thresholds.")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 8. Time model")
+    out.append("")
+    out.append(
+        f"- outer_tick_ms: {tm.get('outer_tick_ms', 1000)} "
+        "(1000 ms = 1 second, advances physical time)"
+    )
+    out.append(
+        f"- within_tick_task_slots: {tm.get('within_tick_task_slots', 5)} "
+        "(do NOT advance physical time)"
+    )
+    out.append(
+        f"- state_age_unit: {tm.get('state_age_unit', 'integer_simulator_ms')} "
+        "(signal snapshot age)"
+    )
+    tm_stale2 = tm.get("candidate_stale_levels_ms", [0, 1000, 3000])
+    out.append(f"- candidate_stale_levels_ms: {tm_stale2}")
+    cc_off = tm.get("control_clock_offset_ms", 3000)
+    cc_pre = tm.get("prepopulate_control_times_ms", [0, 1000, 2000])
+    out.append(
+        f"- control_clock_offset_ms: {cc_off}; "
+        f"prepopulate {cc_pre} with empty_initial_infrastructure_state; "
+        "trace tick 0 maps to control 3000."
+    )
+    out.append(
+        "- Stale 200ms is forbidden; stale levels are candidate values; "
+        "permits exact 0/1000/3000 without clamping."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 9. Cost — resource_unit_seconds")
+    out.append("")
+    out.append(f"- Metric: `{cost.get('metric', 'resource_unit_seconds')}`")
+    cost_form = cost.get("formula", "sum(active_compute_units * interval_seconds)")
+    out.append(f"- Formula: `{cost_form}`")
+    out.append(
+        "- Monetary is false (never monetary): no currency, price, billing, USD, dollar claims."
+    )
+    out.append(
+        "- Cost per RSU per tick: active_compute_units * 1 second; "
+        "charged even when idle; at most one interval per RSU per tick."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 10. Task accounting")
+    out.append("")
+    ta_req = ta.get("required", [])
+    out.append(f"- Required: {ta_req}")
+    ul = ta.get("unavailable_lifecycle", {})
+    if not isinstance(ul, dict):
+        ul = {}
+    out.append(
+        f"- Unavailable lifecycle must remain null: "
+        f"started={ul.get('started')}, "
+        f"compute_completed={ul.get('compute_completed')}, "
+        f"returned={ul.get('returned')}, dropped={ul.get('dropped')} "
+        "(null means unmodelled not zero)."
+    )
+    out.append("- Forbidden to fabricate physical started/completed/returned lifecycle.")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 11. Compute-service semantics")
+    out.append("")
+    css_raw = _get(["compute_service_semantics"], {})
+    css: dict[str, Any] = css_raw if isinstance(css_raw, dict) else {}
+    css_enq = css.get("enqueue_equation", "enqueued_work_ms = raw_1x_service_work_ms")
+    out.append(f"- Enqueue: {css_enq} (must not divide by capacity)")
+    css_drain = css.get(
+        "drain_equation",
+        "drain_work_ms = min(backlog_work_ms, active_capacity_units * 1000)",
+    )
+    out.append(f"- Drain: {css_drain} per 1000 ms tick for all queued work")
+    css_back = css.get(
+        "backlog_equation",
+        "backlog_work_ms[t+1] = backlog_work_ms[t] + enqueued_raw_work_ms - drained_work_ms",
+    )
+    out.append(f"- Backlog: {css_back} (invariant baseline, work_ms storage)")
+    css_res = css.get(
+        "resource_time_equation",
+        "resource_unit_seconds_per_RSU_per_tick = active_capacity_units * 1",
+    )
+    out.append(f"- Resource time: {css_res} even when idle; at_most_one_interval")
+    css_lat = css.get(
+        "latency_equation",
+        "(raw_work_ahead_ms + raw_own_service_work_ms) / active_capacity_units",
+    )
+    out.append(
+        f"- Latency: {css_lat} admission-time estimate not physical "
+        "lifecycle; physical lifecycle fields remain null; not repriced."
+    )
+    out.append(
+        "- Placement/admission/stale/reactive use raw_backlog_work_ms; "
+        "proactive uses raw_admitted_arrival_work_ms; "
+        "queue safety uses current occupancy plus same-tick reservations."
+    )
+    out.append(
+        "- Scaling applied at tick start before placement/admission "
+        "and before latency estimate/drain; active capacity for entire tick; "
+        "reduces to E2d at fixed_1x."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 12. Stale decision vs true execution")
+    out.append("")
+    sdt_raw = _get(["stale_decision_vs_true_execution"], {})
+    sdt: dict[str, Any] = sdt_raw if isinstance(sdt_raw, dict) else {}
+    obs = sdt.get(
+        "observed_decision_backlog_work_ms",
+        "fresh_or_delayed_immutable_backlog_work_ms_plus_decision_overlay_"
+        "plus_same_tick_reservation_overlay",
+    )
+    out.append(f"- observed_decision_backlog_work_ms: {obs}")
+    true_b = sdt.get(
+        "true_execution_backlog_work_ms",
+        "current_true_backlog_work_ms_plus_actual_prior_same_tick_admitted_work_at_chosen_RSU",
+    )
+    out.append(f"- true_execution_backlog_work_ms: {true_b}")
+    out.append(
+        "- optimistic stale admitted executes and may miss per true latency; "
+        "pessimistic stale rejected never executes."
+    )
+    out.append(
+        "- deadline_success is based on true simulated latency, "
+        "never the controller's stale estimate."
+    )
+    out.append(
+        "- not evidence of physical started/completed/returned lifecycle; "
+        "do not retroactively reprice."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 13. Dense position and diagnostics")
+    out.append("")
+    out.append(
+        "- Sequential task ordinal: task_slot * padded_fleet_width + "
+        "vehicle_slot (dense position identity, independent of active mask; "
+        "range [0,12439])."
+    )
+    out.append(
+        "- Outer tick, task_slot, vehicle_slot, sequential_task_ordinal "
+        "are all required counter key fields."
+    )
+    out.append(
+        "- P2C mixer: field_declaration fields_ordered must equal "
+        "fold field_order and equal expected counter fields; "
+        "splitmix64 definition with wrap 2^64; fold h_init 0x6A09E667F3BCC909 "
+        "for_each_ordered_field h=splitmix64(h xor uint64(field))."
+    )
+    out.append(
+        "- Diagnostic coverage: feasibility_workload_checks, "
+        "ranking_workload_inspections, unique_workload_values_observed; "
+        "MUST NOT claim only two total global state reads or "
+        "proven lower total state acquisition."
+    )
+    out.append(
+        "- Resource diagnostics: drained_work_ms / "
+        "(active_capacity_units * 1000 work_ms) bounded [0,1]; "
+        "waiting-room occupancy is a separate task count; "
+        "execution share is actual admitted V2I execution count / "
+        "total admitted V2I execution count; when denominator is zero "
+        "it is null with reason."
+    )
+    out.append(
+        "- Target switching is counted over consecutive admitted V2I tasks "
+        "in exact deterministic (outer_tick, task_slot, vehicle_slot) "
+        "order; first admitted task is not a switch; "
+        "resource_unit_seconds denominator stays required for diagnostic "
+        "deadline per resource cost."
+    )
+    out.append(
+        "- Pair-only ranking; H1 concern is pair-only inspection/"
+        "global-state dependence not statistical uniformity proof."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 14. Staged design — candidate grid")
+    out.append("")
+    out.append(
+        f"- stage_listed_cells: {sd.get('stage_listed_cells', 60)}; "
+        f"maximum_candidate_unique_cells: "
+        f"{sd.get('maximum_candidate_unique_cells', 56)}"
+    )
+    out.append(
+        f"- Equations: stage_listed "
+        f"{sd.get('stage_listed_equation', '12 + 16 + 32 = 60')}; "
+        f"unique {sd.get('unique_equation', '12 + 12 + 32 = 56')}"
+    )
+    e3a = sd.get("e3a", {})
+    if not isinstance(e3a, dict):
+        e3a = {}
+    e3b = sd.get("e3b", {})
+    if not isinstance(e3b, dict):
+        e3b = {}
+    e3c = sd.get("e3c", {})
+    if not isinstance(e3c, dict):
+        e3c = {}
+    e3a_place = e3a.get("placement", ["ingress_dla", "per_task_dla", "p2c_dla"])
+    e3a_scale = e3a.get("scaling", ["fixed_1x"])
+    e3a_stale = e3a.get("stale_ms", [0])
+    e3a_cells = e3a.get("cells", 12)
+    out.append(
+        f"- E3a (isolates placement): {e3a_place} x {e3a_scale} x "
+        f"staleness {e3a_stale} x 4 draws = {e3a_cells} cells"
+    )
+    e3b_place = e3b.get("placement", ["per_task_dla"])
+    e3b_scale = e3b.get(
+        "scaling",
+        ["fixed_1x", "static_overprovisioned", "reactive", "proactive"],
+    )
+    e3b_stale = e3b.get("stale_ms", [0])
+    e3b_cells = e3b.get("cells", 16)
+    e3b_over = e3b.get("overlap_with_e3a", 4)
+    e3b_add = e3b.get("unique_additional", 12)
+    out.append(
+        f"- E3b (holds per_task_dla, scaling contrasts): {e3b_place} x "
+        f"{e3b_scale} x staleness {e3b_stale} x 4 draws = {e3b_cells} "
+        f"stage-listed; overlap_with_e3a {e3b_over} reused not rerun; "
+        f"unique_additional {e3b_add}"
+    )
+    e3c_obs = e3c.get("total_contrast_observations", 48)
+    e3c_reused = e3c.get("fresh_observations_reused", 16)
+    e3c_eq = e3c.get(
+        "equation",
+        "2 contrasts * 2 arms * 3 staleness * 4 draws = 48 observations; "
+        "48 - 16 = 32 stale variants",
+    )
+    e3c_stale_eq = e3c.get("stale_variant_equation", "48 - 16 = 32")
+    e3c_add = e3c.get("additional_stale_variant_cells_max", 32)
+    out.append(
+        f"- E3c (stale-state contrasts): {e3c_obs} total contrast "
+        f"observations; {e3c_reused} fresh reused; "
+        f"equation {e3c_eq} ; stale_variant {e3c_stale_eq} ; "
+        f"additional stale variant cells max {e3c_add}"
+    )
+    sd_note = sd.get("note", "reused across stage summaries rather than rerun")
+    out.append(f"- Note: {sd_note}")
+    out.append("- E3c reuses identical fresh cells; not double-counted;")
+    out.append("  depends_on fresh construct gates.")
+    out.append(
+        "- Maximum candidate is 56 unique cells (60 stage-listed): "
+        "12 + 12 + 32 unique; 12 + 16 + 32 stage-listed."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 15. Inference")
+    out.append("")
+    inf_unit = inf.get("unit", "fleet_draw")
+    inf_key = inf.get("key", "fleet_seed")
+    inf_n = inf.get("n", 4)
+    inf_seeds = inf.get("fleet_seeds", [1, 2, 3, 4])
+    out.append(f"- Unit: {inf_unit} keyed by {inf_key} N={inf_n} seeds {inf_seeds}")
+    inf_interval = inf.get(
+        "interval",
+        "95% Student-t; df=n-1=3; t_0.975,3=3.182; mean +- t*s/sqrt(n)",
+    )
+    out.append(f"- Interval: {inf_interval}")
+    out.append(
+        f"- Sample SD: {inf.get('sample_sd', 'Bessel n-1')}; SE: {inf.get('se', 's / sqrt(n)')}"
+    )
+    out.append(
+        "- Paired differences per fleet_seed; reportable contrast "
+        "requires all four paired seeds 1..4."
+    )
+    out.append(
+        "- Forbidden: task_as_n, p_value_as_primary, "
+        "citywide_generalisation, population_claim, "
+        "equivalence_without_margin, seed_0_in_primary."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 16. Claim boundaries and limitations")
+    out.append("")
+    out.append(
+        f"- Any post-observation source change requires successor: "
+        f"{cb.get('any_post_observation_source_change_requires_successor', True)}"
+    )
+    out.append(
+        f"- Monetary cost tested: "
+        f"{cb.get('monetary_cost_tested', False)} "
+        "(false — resource_unit_seconds only; not monetary)"
+    )
+    out.append(
+        f"- Kubernetes orchestration tested: "
+        f"{cb.get('kubernetes_orchestration_tested', False)}; "
+        f"learned controller: {cb.get('learned_controller_tested', False)}; "
+        f"Manchester-wide: {cb.get('manchester_wide_deployment_tested', False)}; "
+        f"physical return: {cb.get('physical_result_return_tested', False)}"
+    )
+    out.append(
+        "- Proactive is transparent baseline, not an optimal predictor; "
+        "transparent baseline not optimal."
+    )
+    out.append(
+        "- Work-ms, independent of capacity; optimistic stale admitted "
+        "executes and may miss per true latency; pessimistic stale "
+        "rejected never executes; deadline_success based on true "
+        "simulated latency never stale estimate; not evidence of "
+        "physical started/completed/returned; do not retroactively reprice."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## 17. Validation and byte-equivalence")
+    out.append("")
+    out.append(
+        "The entire Markdown bytes must equal "
+        "`render_markdown(canonical_json)`. Any addition, deletion, "
+        "or reordering outside the canonical block fails byte-equivalence. "
+        "Validator compares supplied Markdown bytes with pure render; "
+        "byte mismatch is authoritative."
+    )
+    out.append("")
+    out.append("---")
+    out.append("")
+    canonical_block = (
+        f"{CANONICAL_BLOCK_START}\n```json\n{_canonical_dump(data)}```\n{CANONICAL_BLOCK_END}"
+    )
+    out.append(canonical_block)
+    out.append("")
+    out.append(
+        "*End of normative contract v1 — Markdown is generated view; JSON is authoritative.*"
+    )
+    out.append("")
+    return "\n".join(out)
 
 
 def validate_markdown(md_text: str, data: dict[str, Any]) -> list[str]:

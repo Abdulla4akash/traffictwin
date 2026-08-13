@@ -900,7 +900,7 @@
         }
       ],
       "depends_on": "fresh construct gates (unit, construct, tiny smoke)",
-      "equation": "2 contrasts * 3 staleness * 2 placements? 48 observations; 32 stale variants unique",
+      "equation": "2 contrasts * 2 arms * 3 staleness * 4 draws = 48 observations; 48 - 16 = 32 stale variants",
       "fresh_observations_reused": 16,
       "identical_fresh_cells_reused_not_rerun": true,
       "label": "Staleness sensitivity (reuses identical fresh cells)",

@@ -301,7 +301,7 @@ Do not start:
 - any full `ingress_dla` or `dla` rerun, or any `off`/`jsq` run;
 - any fleet seed outside 1–4 or any seed-0 E2d run, or any task-as-N inference;
 - any E3 trace execution, smoke, benchmark, or full cell before E3 contract v1 `APPROVE`;
-- any E3 cell outside the staged candidate grid (E3a/E3b/E3c as declared, maximum 60 unique cells, reduced plan before execution);
+- any E3 cell outside the staged candidate grid (E3a/E3b/E3c as declared, maximum 56 unique cells (60 stage-listed), reduced plan before execution);
 - any nonzero-backhaul run or queue-as-compute claim;
 - any free/unbounded/fractional scaling outside 1--3 or without thresholds/hysteresis/cooldown/two-second delay/one-level actions;
 - MAPPO or other actor retraining, or any actor that observes RSU load or selects execution RSU;

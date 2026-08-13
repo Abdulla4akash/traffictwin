@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import importlib.util
 import json
 import re
 import sys
@@ -12,22 +13,28 @@ from typing import Any
 import pytest
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
-sys.path.insert(0, str(SCRIPTS))
-
-from validate_e3_dynamic_resource_contract import (  # noqa: E402
-    BASE_COMMIT,
-    EXPECTED_ACTOR_SHA,
-    EXPECTED_E2B,
-    EXPECTED_E2C,
-    EXPECTED_E2D,
-    EXPECTED_E2D_MANIFEST,
-    EXPECTED_TRACE_SHA,
-    main,
-    render_markdown,
-    validate_contract,
-    validate_markdown,
-    validate_markdown_contains,
+_spec = importlib.util.spec_from_file_location(
+    "validate_e3_dynamic_resource_contract",
+    SCRIPTS / "validate_e3_dynamic_resource_contract.py",
 )
+assert _spec is not None
+assert _spec.loader is not None
+_mod = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = _mod
+_spec.loader.exec_module(_mod)
+
+BASE_COMMIT: str = _mod.BASE_COMMIT
+EXPECTED_ACTOR_SHA: str = _mod.EXPECTED_ACTOR_SHA
+EXPECTED_E2B: str = _mod.EXPECTED_E2B
+EXPECTED_E2C: str = _mod.EXPECTED_E2C
+EXPECTED_E2D: str = _mod.EXPECTED_E2D
+EXPECTED_E2D_MANIFEST: str = _mod.EXPECTED_E2D_MANIFEST
+EXPECTED_TRACE_SHA: str = _mod.EXPECTED_TRACE_SHA
+main = _mod.main
+render_markdown = _mod.render_markdown
+validate_contract = _mod.validate_contract
+validate_markdown = _mod.validate_markdown
+validate_markdown_contains = _mod.validate_markdown_contains
 
 CANONICAL_JSON = (
     Path(__file__).resolve().parents[1]
@@ -1060,6 +1067,95 @@ def test_cli_nonexistent_contract_md_flag_fails(
     assert rc != 0
 
 
+def _tamper_md_via_file(tmp_path: Path, needle: str, anchor: str = "## 7. Compute scaling") -> Path:
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    tampered = md_text.replace(anchor, f"{needle}\n\n{anchor}")
+    # ensure we actually mutated (anchor must exist)
+    assert tampered != md_text, f"anchor {anchor!r} not found for needle {needle!r}"
+    out = tmp_path / "tampered.md"
+    out.write_text(tampered, encoding="utf-8")
+    return out
+
+
+def test_hostile_task_as_independent_n_via_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    tampered = _tamper_md_via_file(tmp_path, "tasks are replicates so N is number of tasks")
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(tampered)])
+    rc = main()
+    out = capsys.readouterr().out
+    assert rc != 0, f"task-as-N via file should fail: {out}"
+
+
+def test_hostile_monetary_usd_via_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    tampered = _tamper_md_via_file(tmp_path, "cost is 10 USD per task")
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(tampered)])
+    rc = main()
+    out = capsys.readouterr().out
+    assert rc != 0, f"monetary USD via file should fail: {out}"
+
+
+def test_hostile_queue_equals_compute_via_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    tampered = _tamper_md_via_file(tmp_path, "queue ceiling is compute capacity")
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(tampered)])
+    rc = main()
+    out = capsys.readouterr().out
+    assert rc != 0, f"queue==compute via file should fail: {out}"
+
+
+def test_hostile_false_p2c_global_inspection_via_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    tampered = _tamper_md_via_file(tmp_path, "P2C inspects only two total global state reads")
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(tampered)])
+    rc = main()
+    out = capsys.readouterr().out
+    assert rc != 0, f"false P2C global-inspection via file should fail: {out}"
+
+
+def test_hostile_unbounded_scaling_via_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    tampered = _tamper_md_via_file(tmp_path, "unbounded scaling from 1 to 8 is allowed")
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(tampered)])
+    rc = main()
+    out = capsys.readouterr().out
+    assert rc != 0, f"unbounded 1..8 via file should fail: {out}"
+
+
+def test_hostile_markdown_authority_inversion_via_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    tampered = _tamper_md_via_file(tmp_path, "Markdown is the single normative scientific contract")
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(tampered)])
+    rc = main()
+    out = capsys.readouterr().out
+    assert rc != 0, f"markdown authority inversion via file should fail: {out}"
+
+
+def test_hostile_prose_deletion_via_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    md_text = CANONICAL_MD.read_text(encoding="utf-8")
+    lines = md_text.splitlines()
+    # delete a material ~30-line block (skip canonical JSON block)
+    # take lines 40..70 (outside canonical block which is at end)
+    assert len(lines) > 200, "markdown too short to delete 30 lines"
+    del lines[40:70]
+    tampered_text = "\n".join(lines)
+    assert tampered_text != md_text
+    out_path = tmp_path / "deleted.md"
+    out_path.write_text(tampered_text, encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["validate", "--contract-md", str(out_path)])
+    rc = main()
+    out = capsys.readouterr().out
+    assert rc != 0, f"30-line deletion via file should fail: {out}"
+
+
 def test_narrative_drift_outside_block_fails_byte_equivalence_with_specific_error() -> None:
     """Mutate narrative outside block; assert byte-equivalence error."""
     data = canonical()
@@ -1190,7 +1286,7 @@ def test_direct_positive_assertions_for_all_narrative_categories() -> None:
         "replicate-label": "fleet_seed is hidden",
     }
     for cat, needle in categories.items():
-        mutated_md = md_text.replace("## 3. Fixed scenario", f"{needle}\n\n## 3. Fixed scenario")
+        mutated_md = md_text.replace("## 7. Compute scaling", f"{needle}\n\n## 7. Compute scaling")
         errors = validate_markdown_contains(mutated_md, data)
         assert errors, f"category {cat} narrative drift must fail"
         assert any("byte-equivalence" in e for e in errors), (
@@ -2023,7 +2119,60 @@ def test_mutation_p2c_mixer_field_order_rejected() -> None:
     assert_fails(mutated, "field order must be evaluator, fleet, outer_tick, task_slot, ordinal")
     mutated2 = copy.deepcopy(canonical())
     mutated2["p2c_mixer"]["fold"]["h_init"] = "0x0000000000000000"
-    assert_fails(mutated2, "fold field order must be exact")
+    assert_fails(mutated2, "fold h_init must be exact")
+    mutated3 = copy.deepcopy(canonical())
+    mutated3["p2c_mixer"]["fold"]["field_order"] = [
+        "fleet_seed",
+        "evaluator_seed",
+        "outer_tick",
+        "task_slot",
+        "sequential_task_ordinal",
+    ]
+    assert_fails(mutated3, "fold field_order reordered must fail")
+    mutated4 = copy.deepcopy(canonical())
+    mutated4["p2c_mixer"]["fold"]["field_order"] = [
+        "evaluator_seed",
+        "fleet_seed",
+        "outer_tick",
+        "task_slot",
+    ]
+    assert_fails(mutated4, "fold field_order truncated must fail")
+    mutated5 = copy.deepcopy(canonical())
+    del mutated5["p2c_mixer"]["fold"]["field_order"]
+    assert_fails(mutated5, "fold field_order missing must fail")
+
+
+def test_mutation_p2c_mixer_fold_field_order_exact() -> None:
+    data = canonical()
+    assert data["p2c_mixer"]["fold"]["field_order"] == [
+        "evaluator_seed",
+        "fleet_seed",
+        "outer_tick",
+        "task_slot",
+        "sequential_task_ordinal",
+    ]
+    # reordered
+    mutated = copy.deepcopy(data)
+    mutated["p2c_mixer"]["fold"]["field_order"] = [
+        "evaluator_seed",
+        "outer_tick",
+        "fleet_seed",
+        "task_slot",
+        "sequential_task_ordinal",
+    ]
+    assert_fails(mutated, "fold reordered alternative")
+    # truncated
+    mutated2 = copy.deepcopy(data)
+    mutated2["p2c_mixer"]["fold"]["field_order"] = [
+        "evaluator_seed",
+        "fleet_seed",
+        "outer_tick",
+    ]
+    assert_fails(mutated2, "fold truncated")
+    # missing
+    mutated3 = copy.deepcopy(data)
+    mutated3["p2c_mixer"]["fold"].pop("field_order", None)
+    assert_fails(mutated3, "fold missing")
 
 
 def test_mutation_p2c_mixer_test_vectors_rejected() -> None:
