@@ -396,7 +396,8 @@ def latest_snapshot_for_family(
     registry: SnapshotRegistry,
     family: SourceFamily,
 ) -> SnapshotRegistration | None:
-    """Return the latest snapshot for ``family`` ordered by retrieved time."""
+    """Return the latest snapshot for ``family`` ordered by
+    ``(retrieved_at_utc, registration_id)`` tie-break."""
 
     canonical = _require_canonical_registry(registry)
     candidates = [s for s in canonical.snapshots if s.source_family is family]
@@ -409,7 +410,8 @@ def latest_accepted_for_family(
     registry: SnapshotRegistry,
     family: SourceFamily,
 ) -> SnapshotRegistration | None:
-    """Return the latest accepted snapshot for ``family``."""
+    """Return the latest accepted snapshot for ``family`` ordered by
+    ``(retrieved_at_utc, registration_id)`` tie-break."""
 
     canonical = _require_canonical_registry(registry)
     candidates = [
@@ -426,7 +428,8 @@ def latest_rejected_for_family(
     registry: SnapshotRegistry,
     family: SourceFamily,
 ) -> SnapshotRegistration | None:
-    """Return the latest rejected snapshot for ``family``."""
+    """Return the latest rejected snapshot for ``family`` ordered by
+    ``(retrieved_at_utc, registration_id)`` tie-break."""
 
     canonical = _require_canonical_registry(registry)
     candidates = [
