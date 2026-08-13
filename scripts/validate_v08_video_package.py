@@ -731,12 +731,134 @@ def _check_e2d_fidelity(errors: list[str]) -> None:
                 break
 
 
+def _check_tfgm_standing(errors: list[str]) -> None:
+    """Lane 11 narrow defect 1: TfGM signal-location layer is DESIGN-ONLY unavailable.
+
+    Inspects the Segment 3 TfGM signal-location clause itself, not global script
+    keywords. The clause must bind unavailable + design-only + current view +
+    workspace-only/private and must not be promoted to accepted/static/available.
+    """  # noqa: E501
+    script_txt = _read(SCRIPT)
+    checklist_txt = _read(CHECKLIST)
+    # --- Segment 3 clause inspection (not global keyword scan) ---
+    # Extract Segment 3 block (between Segment 3 heading and Segment 4 heading)
+    seg3_match = re.search(r"### Segment 3\b.*?(?=### Segment 4\b)", script_txt, flags=re.DOTALL)
+    seg3_text = seg3_match.group(0) if seg3_match else ""
+    # Find the TfGM signal-location clause within Segment 3
+    # Capture from TfGM to next semicolon/newline (the clause sentence)
+    clause_match = re.search(r"TfGM[^\n;]*", seg3_text, flags=re.IGNORECASE)
+    if not clause_match:
+        errors.append("Segment 3 TfGM signal-location clause missing")
+    else:
+        clause = clause_match.group(0)
+        low_clause = clause.lower()
+        # Must contain signal-location (hyphenated) to ensure we matched the correct layer clause
+        if "signal-location" not in low_clause and "signal location" not in low_clause:
+            errors.append(
+                "Segment 3 TfGM signal-location clause must mention signal-location layer"
+            )
+        # Required bindings: unavailable + design-only + current view + workspace-only/private
+        if "unavailable" not in low_clause:
+            errors.append(
+                "Segment 3 TfGM signal-location clause must bind unavailable/design-only for current view"  # noqa: E501
+            )
+        if "design-only" not in low_clause:
+            errors.append(
+                "Segment 3 TfGM signal-location clause must bind unavailable/design-only for current view"  # noqa: E501
+            )
+        if "current view" not in low_clause:
+            errors.append(
+                "Segment 3 TfGM signal-location clause must bind current view (unavailable/design-only for current view)"  # noqa: E501
+            )
+        if (
+            "workspace-only" not in low_clause
+            and "workspace only" not in low_clause
+            and "private" not in low_clause
+        ):
+            errors.append(
+                "Segment 3 TfGM signal-location clause must note full archive workspace-only/private"  # noqa: E501
+            )
+        # Reject promotion to accepted/static/available within the same clause
+        # (do not rely on word-count failure; check clause directly)
+        if "accepted" in low_clause:
+            errors.append(
+                "Segment 3 TfGM signal-location clause promotion to accepted/static/available found — must be unavailable/design-only for current view (full archive workspace-only/private)"  # noqa: E501
+            )
+        if re.search(r"\bstatic\b", low_clause):
+            errors.append(
+                "Segment 3 TfGM signal-location clause promotion to accepted/static/available found — must be unavailable/design-only for current view (full archive workspace-only/private)"  # noqa: E501
+            )
+        # Reject bare available (not part of unavailable) within the clause
+        if re.search(r"\bavailable\b", low_clause):
+            errors.append(
+                "Segment 3 TfGM signal-location clause promotion to accepted/static/available found — must be unavailable/design-only for current view (full archive workspace-only/private)"  # noqa: E501
+            )
+        # Also reject the exact controller counterexample phrase explicitly
+        if "accepted/static" in low_clause:
+            # already covered, but ensure explicit detection
+            pass
+    # --- Global fallback promotion phrase (legacy) ---
+    if re.search(r"TfGM signal locations are static", script_txt, flags=re.IGNORECASE):
+        errors.append(
+            "TfGM signal locations promotion to static available found — must be unavailable/design-only for current view (full archive workspace-only/private)"  # noqa: E501
+        )
+    # SHOT-04 limitation must not imply accepted/available and must state unavailable/design-only + workspace-only/private  # noqa: E501
+    m = re.search(r"\| SHOT-04[^\n]*\|", checklist_txt)
+    if m:
+        row04 = m.group(0)
+        low04 = row04.lower()
+        if "tfgm" not in low04:
+            errors.append("SHOT-04 limitation must mention TfGM signal-location layer")
+        if "unavailable" not in low04 or "design-only" not in low04:
+            errors.append(
+                "SHOT-04 limitation must state TfGM signal-location layer unavailable/design-only for current view"  # noqa: E501
+            )
+        if "workspace-only" not in low04 and "workspace only" not in low04:
+            errors.append("SHOT-04 limitation must note full archive workspace-only/private")
+        if re.search(r"tfgm signal locations are static", row04, flags=re.IGNORECASE):
+            errors.append(
+                "SHOT-04 limitation must not claim TfGM signal locations are static available"  # noqa: E501
+            )
+        if "accepted/static" in low04 or "accepted" in low04:
+            errors.append(
+                "SHOT-04 limitation must not claim TfGM signal-location layer accepted/static"  # noqa: E501
+            )
+    else:
+        errors.append("SHOT-04 row missing for TfGM standing check")
+
+
 def _check_evidence_checklist(errors: list[str]) -> None:
     txt = _read(CHECKLIST)
     rows = [line for line in txt.splitlines() if line.startswith("| SHOT-")]
-    if len(rows) < 8:
-        errors.append(f"evidence checklist shot rows {len(rows)} < 8")
+    # Exact required set SHOT-01..SHOT-10, no missing or duplicate
+    required_ids = {f"SHOT-{i:02d}" for i in range(1, 11)}
+    found_ids: list[str] = []
+    for row in rows:
+        m = re.search(r"SHOT-\d{2}", row)
+        if m:
+            found_ids.append(m.group(0))
+    if len(rows) != 10:
+        errors.append(f"evidence checklist shot rows {len(rows)} != 10 (required SHOT-01..SHOT-10)")
+    if len(found_ids) != len(set(found_ids)):
+        dup = [x for x in set(found_ids) if found_ids.count(x) > 1]
+        errors.append(f"duplicate shot ID(s): {', '.join(sorted(dup))}")
+    missing = required_ids - set(found_ids)
+    if missing:
+        errors.append(f"missing shot ID(s): {', '.join(sorted(missing))}")
+    extra = set(found_ids) - required_ids
+    if extra:
+        errors.append(f"unexpected shot ID(s): {', '.join(sorted(extra))}")
+    # Early return only if no rows to avoid further index errors
+    if not rows:
         return
+    id_to_row: dict[str, str] = {}
+    for row in rows:
+        m = re.search(r"SHOT-\d{2}", row)
+        if m:
+            sid = m.group(0)
+            # keep first occurrence for binding checks; duplicate already flagged
+            if sid not in id_to_row:
+                id_to_row[sid] = row
     for row in rows:
         parts = [p.strip() for p in row.split("|")]
         # parts: ["", "SHOT-..", "Segment", "Visual", "Artifact", "Standing", "Limitation", ""]
@@ -750,27 +872,48 @@ def _check_evidence_checklist(errors: list[str]) -> None:
         if not limitation or limitation == "-":
             errors.append(f"shot missing limitation: {row[:80]}")
 
-    # Check required artifact types present in checklist
-    needed = [
-        "Manchester/current-data view",
-        "Strategy matrix",
-        "improved result",
-        "Reproducibility artifact",
-    ]
-    low = txt.lower()
-    for need in needed:
-        # Map need variants
-        if "manchester" in need.lower():
-            if "manchester" not in low or "mixed" not in low:
-                errors.append(f"checklist missing required artifact class: {need}")
-        elif "strategy matrix" in need.lower():
-            if "strategy_matrix.json" not in txt:
-                errors.append(f"checklist missing required artifact class: {need}")
-        elif "improved result" in need.lower():
-            if "improved result" not in low and "improved_strategy_results" not in txt:
-                errors.append(f"checklist missing required artifact class: {need}")
-        elif "reproducibility" in need.lower() and "reproducibility" not in low:
-            errors.append(f"checklist missing required artifact class: {need}")
+    # Bind each required evidence class to its intended row (no free-prose satisfaction)
+    # SHOT-04: honest Manchester/current-data view (MIXED)
+    if "SHOT-04" in id_to_row:
+        r04 = id_to_row["SHOT-04"].lower()
+        if "current_view_artifact" not in r04 and "manchester" not in r04:
+            errors.append("SHOT-04 must contain honest Manchester/current-data view binding")
+        if "mixed" not in r04:
+            errors.append("SHOT-04 must state MIXED standing")
+    # SHOT-05: strategy matrix
+    if "SHOT-05" in id_to_row:
+        r05 = id_to_row["SHOT-05"]
+        if "strategy_matrix.json" not in r05:
+            errors.append("SHOT-05 must contain strategy matrix binding")
+    # SHOT-07: improved result — must be in SHOT-07 row itself, not elsewhere
+    # Requires all three: "One improved result", exact improved_strategy_results.json,
+    # and exact fig3_e2d_per_task_minus_ingress_seed2 in the same row.
+    if "SHOT-07" in id_to_row:
+        r07 = id_to_row["SHOT-07"].lower()
+        missing07: list[str] = []
+        if "one improved result" not in r07:
+            missing07.append("One improved result")
+        if "improved_strategy_results.json" not in r07:
+            missing07.append("improved_strategy_results.json")
+        if "fig3_e2d_per_task_minus_ingress_seed2" not in r07:
+            missing07.append("fig3_e2d_per_task_minus_ingress_seed2")
+        if missing07:
+            errors.append(
+                f"SHOT-07 must contain all of One improved result + improved_strategy_results.json + fig3_e2d_per_task_minus_ingress_seed2 in its row (missing: {', '.join(missing07)})"  # noqa: E501
+            )
+    # SHOT-08: reproducibility artifact — must be in SHOT-08 row itself
+    # Requires both: "Reproducibility artifact" + improved_strategy_evidence_index.json  # noqa: E501
+    if "SHOT-08" in id_to_row:
+        r08 = id_to_row["SHOT-08"].lower()
+        missing08: list[str] = []
+        if "reproducibility artifact" not in r08:
+            missing08.append("Reproducibility artifact")
+        if "improved_strategy_evidence_index.json" not in r08:
+            missing08.append("improved_strategy_evidence_index.json")
+        if missing08:
+            errors.append(
+                f"SHOT-08 must contain both Reproducibility artifact and improved_strategy_evidence_index.json in its row (missing: {', '.join(missing08)})"  # noqa: E501
+            )
 
 
 def _check_forbidden(errors: list[str]) -> None:
@@ -836,6 +979,7 @@ def validate() -> list[str]:
     _check_click_path_routes(errors)
     _check_click_path_sha_prefixes(errors)
     _check_evidence_checklist(errors)
+    _check_tfgm_standing(errors)
     _check_forbidden(errors)
     _check_honesty_and_provenance(errors)
     _check_e2d_fidelity(errors)

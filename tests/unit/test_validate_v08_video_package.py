@@ -467,6 +467,112 @@ def test_click_path_wrong_total_must_fail() -> None:
         CLICK_PATH.write_text(original, encoding="utf-8")
 
 
+def test_tfgm_promotion_to_static_must_fail() -> None:
+    """Discriminating: promoting tfgm_signal_locations from unavailable/design-only must fail."""  # noqa: E501
+    original = SCRIPT.read_text(encoding="utf-8")
+    # Promotion: replace unavailable/design-only sentence with static claim
+    mutated = original.replace(
+        "TfGM signal-location layer is unavailable/design-only for the current view (full archive workspace-only/private);",  # noqa: E501
+        "TfGM signal locations are static;",
+        1,
+    )
+    assert mutated != original, "TfGM promotion mutation did not apply"
+    SCRIPT.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("tfgm" in e.lower() for e in errs), f"expected TfGM standing failure, got {errs}"
+    finally:
+        SCRIPT.write_text(original, encoding="utf-8")
+
+
+def test_mutation_remove_shot_07_must_fail() -> None:
+    """Removing SHOT-07 row must fail exact SHOT-01..SHOT-10 enforcement."""
+    original = CHECKLIST.read_text(encoding="utf-8")
+    # Remove SHOT-07 line
+    lines = original.splitlines()
+    mutated_lines = [line for line in lines if not line.startswith("| SHOT-07 ")]
+    mutated = "\n".join(mutated_lines) + "\n"
+    assert len(mutated_lines) == len(lines) - 1, "SHOT-07 removal did not change line count"
+    CHECKLIST.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("missing shot" in e.lower() or "shot-07" in e.lower() for e in errs), (
+            f"expected missing SHOT-07 failure, got {errs}"
+        )
+    finally:
+        CHECKLIST.write_text(original, encoding="utf-8")
+
+
+def test_mutation_remove_shot_08_must_fail() -> None:
+    """Removing SHOT-08 row must fail exact SHOT-01..SHOT-10 enforcement."""
+    original = CHECKLIST.read_text(encoding="utf-8")
+    lines = original.splitlines()
+    mutated_lines = [line for line in lines if not line.startswith("| SHOT-08 ")]
+    mutated = "\n".join(mutated_lines) + "\n"
+    assert len(mutated_lines) == len(lines) - 1, "SHOT-08 removal did not change line count"
+    CHECKLIST.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("missing shot" in e.lower() or "shot-08" in e.lower() for e in errs), (
+            f"expected missing SHOT-08 failure, got {errs}"
+        )
+    finally:
+        CHECKLIST.write_text(original, encoding="utf-8")
+
+
+def test_mutation_duplicate_id_masks_missing_must_fail() -> None:
+    """Duplicate/relabelled ID cannot mask a missing row — duplicate must fail."""
+    original = CHECKLIST.read_text(encoding="utf-8")
+    # Duplicate SHOT-05 as SHOT-07 replacement: remove SHOT-07 and duplicate SHOT-05
+    lines = original.splitlines()
+    # Find SHOT-05 line to duplicate
+    shot05 = next(line for line in lines if line.startswith("| SHOT-05 "))
+    # Remove SHOT-07 and add duplicate SHOT-05 at its place
+    mutated_lines: list[str] = []
+    for line in lines:
+        if line.startswith("| SHOT-07 "):
+            # Replace with duplicate SHOT-05 (relabel)
+            mutated_lines.append(shot05.replace("SHOT-05", "SHOT-05", 1))
+            # Actually keep duplicate ID SHOT-05 to mask missing SHOT-07
+            continue
+        mutated_lines.append(line)
+    # The mutated file now has duplicate SHOT-05 and missing SHOT-07
+    mutated = "\n".join(mutated_lines) + "\n"
+    # Ensure we created a duplicate scenario
+    assert mutated.count("| SHOT-05 ") == 2, "duplicate SHOT-05 not created"
+    assert "| SHOT-07 " not in mutated, "SHOT-07 should be missing"
+    CHECKLIST.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("duplicate" in e.lower() or "missing shot" in e.lower() for e in errs), (
+            f"expected duplicate/missing failure, got {errs}"
+        )
+    finally:
+        CHECKLIST.write_text(original, encoding="utf-8")
+
+
+def test_shot_07_row_binding_must_fail_if_moved_outside() -> None:
+    """Improved result bound to SHOT-07 row — free prose elsewhere must not satisfy."""
+    original = CHECKLIST.read_text(encoding="utf-8")
+    # Remove binding from SHOT-07 row entirely, then add free prose elsewhere
+    mutated = original.replace(
+        "| SHOT-07 | 6 — 4:10–5:15 | **One improved result** (per_task_dla vs ingress_dla, seed 2) | `docs/closure/v08_alignment/improved_strategy_results.json` row `fig3_e2d_per_task_minus_ingress_seed2` + `improved_strategy_evidence_index.json` | RESEARCH-EVIDENCE FACT — read-only E2d, fleet draw replication | Per-seed differences 0.00464, 0.00587, 0.00507, 0.00551; mean 0.00527; 95% interval 0.00442–0.00612 (e2d_primary_interval, excludes zero, predeclared); range 0.00464..0.00587; per-task N not independent replicates |",  # noqa: E501
+        "| SHOT-07 | 6 — 4:10–5:15 | **Placeholder no binding** | `docs/closure/v08_alignment/requirements_baseline_v1.json` row `MISSING` | RESEARCH-EVIDENCE FACT — read-only E2d, fleet draw replication | Placeholder without binding |",  # noqa: E501
+        1,
+    )
+    assert mutated != original, "SHOT-07 binding mutation did not apply"
+    # Free prose elsewhere that old validator would have accepted
+    mutated += "\nFree prose elsewhere: improved result fig3_e2d_per_task_minus_ingress_seed2 should not satisfy row binding.\n"  # noqa: E501
+    CHECKLIST.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("shot-07" in e.lower() and "improved" in e.lower() for e in errs), (
+            f"expected SHOT-07 row binding failure, got {errs}"
+        )
+    finally:
+        CHECKLIST.write_text(original, encoding="utf-8")
+
+
 def test_pristine_temporary_package_without_harness_must_pass(
     tmp_path: pathlib.Path,
 ) -> None:
@@ -516,3 +622,83 @@ def test_pristine_temporary_package_without_harness_must_pass(
         validator.CLICK_PATH = orig_click
         validator.CHECKLIST = orig_check
         validator.RESULTS_JSON = orig_results
+
+
+def test_controller_bypass_tfgm_accepted_static_in_segment3_clause_must_fail() -> None:
+    """Controller bypass 1: accepted/static promotion in Segment 3 clause must fail."""
+    original = SCRIPT.read_text(encoding="utf-8")
+    mutated = original.replace(
+        "TfGM signal-location layer is unavailable/design-only for the current view",
+        "TfGM signal-location layer is accepted/static for the current view",
+        1,
+    )
+    assert mutated != original, "TfGM controller mutation did not apply"
+    SCRIPT.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("tfgm" in e.lower() and "unavailable" in e.lower() for e in errs) or any(
+            "accepted/static" in e.lower() or "promotion" in e.lower() for e in errs
+        ), f"expected Segment 3 TfGM standing failure, got {errs}"
+        assert any("segment 3" in e.lower() for e in errs), (
+            f"expected Segment 3 clause failure, got {errs}"
+        )
+    finally:
+        SCRIPT.write_text(original, encoding="utf-8")
+    # Restored must pass
+    assert validator.validate() == [], (
+        f"restored after TfGM bypass must pass, got {validator.validate()}"
+    )
+
+
+def test_controller_bypass_shot07_requires_all_three_in_row_must_fail() -> None:
+    """Controller bypass 2: SHOT-07 artifact replaced with baseline must fail."""  # noqa: E501
+    original = CHECKLIST.read_text(encoding="utf-8")
+    # Replace the exact results/figure artifact cell with requirements_baseline_v1.json
+    # Original cell contains improved_strategy_results.json + fig3_e2d_per_task_minus_ingress_seed2
+    mutated = original.replace(
+        "docs/closure/v08_alignment/improved_strategy_results.json` row `fig3_e2d_per_task_minus_ingress_seed2",  # noqa: E501
+        "docs/closure/v08_alignment/requirements_baseline_v1.json",
+        1,
+    )
+    assert mutated != original, "SHOT-07 controller mutation did not apply"
+    # Ensure One improved result still present in the mutated row
+    assert "One improved result" in mutated
+    CHECKLIST.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("shot-07" in e.lower() for e in errs), f"expected SHOT-07 failure, got {errs}"
+        # Must be row-binding reason (missing json/figure)
+        assert any(
+            "improved_strategy_results.json" in e.lower()
+            or "fig3_e2d_per_task_minus_ingress_seed2" in e.lower()
+            for e in errs
+        ), f"expected SHOT-07 row-binding missing artifact, got {errs}"
+    finally:
+        CHECKLIST.write_text(original, encoding="utf-8")
+    assert validator.validate() == [], (
+        f"restored after SHOT-07 bypass must pass, got {validator.validate()}"
+    )
+
+
+def test_controller_bypass_shot08_requires_both_reproducibility_and_index_must_fail() -> None:
+    """Controller bypass 3: SHOT-08 evidence index replaced with baseline must fail."""  # noqa: E501
+    original = CHECKLIST.read_text(encoding="utf-8")
+    mutated = original.replace(
+        "docs/closure/v08_alignment/improved_strategy_evidence_index.json",
+        "docs/closure/v08_alignment/requirements_baseline_v1.json",
+        1,
+    )
+    assert mutated != original, "SHOT-08 controller mutation did not apply"
+    assert "Reproducibility artifact" in mutated
+    CHECKLIST.write_text(mutated, encoding="utf-8")
+    try:
+        errs = validator.validate()
+        assert any("shot-08" in e.lower() for e in errs), f"expected SHOT-08 failure, got {errs}"
+        assert any("improved_strategy_evidence_index.json" in e.lower() for e in errs), (
+            f"expected SHOT-08 missing evidence index, got {errs}"
+        )
+    finally:
+        CHECKLIST.write_text(original, encoding="utf-8")
+    assert validator.validate() == [], (
+        f"restored after SHOT-08 bypass must pass, got {validator.validate()}"
+    )
