@@ -32,11 +32,22 @@ from traffictwin.ui.tables import ColumnDisplay, capability_rows, table_column_c
 E2_RESOURCE_STRATEGY_INTENT_KEY = "resource_strategy_intent"
 E2_RESOURCE_STRATEGY_INTENT_VALUE = "e2"
 
+# Stable session-state intent for the built-in E3 mode in Resource Strategy Explorer.
+E3_RESOURCE_STRATEGY_INTENT_KEY = "resource_strategy_intent"
+E3_RESOURCE_STRATEGY_INTENT_VALUE = "e3"
+
 
 def _on_inspect_e2_research() -> None:
     """Record E2 intent then navigate via the proven callback router."""
 
     st.session_state[E2_RESOURCE_STRATEGY_INTENT_KEY] = E2_RESOURCE_STRATEGY_INTENT_VALUE
+    activate_page(UiPage.RESOURCE_STRATEGY_EXPLORER)
+
+
+def _on_inspect_e3_research() -> None:
+    """Record E3 intent then navigate via the proven callback router."""
+
+    st.session_state[E3_RESOURCE_STRATEGY_INTENT_KEY] = E3_RESOURCE_STRATEGY_INTENT_VALUE
     activate_page(UiPage.RESOURCE_STRATEGY_EXPLORER)
 
 
@@ -158,6 +169,27 @@ def _render_v07_home(config: UiConfig) -> None:
             "Opens Resource Strategy Explorer and preselects the built-in E2 mode via "
             "a stable session-state intent. Synthetic demonstration remains available "
             "separately in the explorer."
+        )
+
+    with st.container(border=True):
+        st.markdown("**Inspect E3 Dynamic Resource V2 — dormant staged design (no results)**")
+        st.caption(
+            "Bounded E3a/E3b/E3c staged design (14 arms, 56 configs, fleet_draw N=4, "
+            "evaluator_seed 0, 10 RSUs, 3600 ticks dormant). No E3 research results exist today; "
+            "typed semantics and structure only. Admission not yet authorized."
+        )
+        st.button(
+            "Inspect E3 Dynamic Resource V2",
+            key="home_inspect_e3_research",
+            width="stretch",
+            type="primary",
+            on_click=_on_inspect_e3_research,
+        )
+        st.caption(
+            "Opens Resource Strategy Explorer and preselects the built-in E3 mode via "
+            "a stable session-state intent. This is dormant staged design, not Manchester "
+            "observation, not a live forecast, and not deployment. Today there are no results; "
+            "every numeric surface renders NOT_EXECUTED / NO_E3_RESEARCH_RESULTS_AVAILABLE."
         )
 
     has_workspace, workspace_ready, _ws_status = _workspace_presence(effective_workspace)
@@ -525,6 +557,24 @@ def _render_legacy_home(config: UiConfig) -> None:
             st.caption(
                 "Opens Resource Strategy Explorer and preselects the built-in E2 mode via "
                 "a stable session-state intent."
+            )
+        with st.container(border=True):
+            st.markdown("**Inspect E3 Dynamic Resource V2 — dormant (no results)**")
+            st.caption(
+                "Bounded E3a/E3b/E3c dormant staged design (14 arms, 56 configs). "
+                "No results exist today; semantics and structure only."
+            )
+            st.button(
+                "Inspect E3 Dynamic Resource V2",
+                key="home_legacy_inspect_e3_research",
+                width="stretch",
+                type="primary",
+                on_click=_on_inspect_e3_research,
+            )
+            st.caption(
+                "Opens Resource Strategy Explorer with the built-in E3 mode preselected. "
+                "Dormant design only, not Manchester observation, not deployment. "
+                "No results today."
             )
 
         section_header("Recent workspace artifacts")
