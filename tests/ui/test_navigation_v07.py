@@ -365,10 +365,9 @@ def test_expansion_routes_are_additive_and_coherent() -> None:
     assert len(nav["Evidence & reports"]) == 10, (
         f"expected 10 Evidence & reports pages, got {len(nav['Evidence & reports'])}"
     )
-    # Total pages: normative 34 + additive 15 + expansion 4 = 53 plus hidden root.
-    # hidden root (1) + normative 34 + additive 15 + expansion 4 = 54
-    # Validate instead that validation still passes and counts are coherent.
-    # Validate instead that validation still passes and counts are coherent.
+    # Total pages: normative 54 + additive 15 + expansion 4 = 73 plus hidden root = 74.
+    # Normative 54 + 15 existing additive + 4 expansion + hidden root
+    # validated via validate_v07_page_specs().
     validate_v07_page_specs()
     # Resource Strategy untouched.
     assert any(s.page.value == "Resource Strategy Explorer" for s in V07_PAGE_SPECS)
@@ -405,4 +404,4 @@ def test_expansion_additive_pages_smoke_render() -> None:
         app.run(timeout=25)
         assert not app.exception, f"expansion page {spec.title} failed: {app.exception}"
         # Page must render a title or meaningful marker.
-        assert len(app.title) >= 1 or len(app.markdown) >= 1 or len(app.caption) >= 1
+        assert any(len(x) >= 1 for x in (app.title, app.markdown, app.caption))

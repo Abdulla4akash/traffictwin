@@ -78,12 +78,8 @@ def test_validator_discriminates_via_typed_construction() -> None:
         )
     # Discriminating: check 05 must have proven the semantic invariant, not tuple shape
     assert "SCIENTIFICALLY_ACCEPTED_BASELINE requires scientific present" in by_id["05"].detail
-    assert "tuple" not in by_id["05"].detail.lower() or "semantic" in by_id["05"].detail.lower()
     # Discriminating: check 08 must have exercised the real ingestion path and proved allowlist rejection + snapshot unchanged
-    assert (
-        "not in admission allowlist" in by_id["08"].detail
-        or "allowlist" in by_id["08"].detail.lower()
-    )
+    assert "not in admission allowlist" in by_id["08"].detail
     assert "fingerprint unchanged" in by_id["08"].detail.lower()
     assert "no E3 admitted" in by_id["08"].detail
 
@@ -151,6 +147,121 @@ def test_validator_check_05_rejects_semantic_not_tuple_shape() -> None:
         assert "SCIENTIFICALLY_ACCEPTED_BASELINE requires scientific present" in msg
         assert "tuple_type" not in msg
         assert "journey_fingerprint must be re-derived" not in msg
+
+
+def test_validator_check_04_rejects_semantic_not_diagnostics() -> None:
+    """Discriminating: forged AUTO_ACCEPTED with correct diagnostics must be rejected for the semantic invariant.
+
+    A superficial diagnostics-mismatch would pass for the wrong reason
+    (diagnostics must equal derived diagnostics) without proving that unresolved
+    map-match silent acceptance is forbidden. The honest projection is
+    UNRESOLVED; a forged AUTO_ACCEPTED that carries the honest derived
+    diagnostics must still be rejected for AUTO_ACCEPTED requires
+    owner_policy_accepted_candidate.
+    """
+    from scripts.validate_traffictwin_expansion_v1 import run_all_checks
+
+    by_id = {r.id: r for r in run_all_checks()}
+    assert by_id["04"].status == "PASS"
+    assert "AUTO_ACCEPTED requires owner_policy_accepted_candidate" in by_id["04"].detail
+    assert "diagnostics must equal" not in by_id["04"].detail
+    # Direct public-model proof: forged AUTO_ACCEPTED via honest projection dump + model_validate
+    # Use the public build_map_match_workflow result's honest MapMatchObservationProjection
+    # as canonical source, revalidate a dumped honest projection through public
+    # MapMatchObservationProjection.model_validate with only acceptance fields forged.
+    from decimal import Decimal
+
+    from traffictwin.integration.manchester.map_match_workflow import (
+        MapMatchDftSourceIdentity,
+        MapMatchObservationProjection,
+        build_map_match_workflow,
+    )
+    from traffictwin.integration.manchester.observation_matching import EdgeCandidate
+    from traffictwin.integration.manchester.observation_matching_v11 import (
+        ManchesterMapMatchPolicyV11,
+        ObservationMatchV11,
+        RoadGroupV11,
+        build_manual_review_queue,
+    )
+
+    policy = ManchesterMapMatchPolicyV11()
+    content_fp = "ab" * 32
+    snap_id = f"dft_raw_counts-20260726T230000Z-{content_fp[:12]}"
+    provenance = f"roadtraffic.dft.gov.uk:/api/raw-counts/pages/page-0001.json#{snap_id}"
+    receipt_fp = "cd" * 32
+    source = MapMatchDftSourceIdentity(
+        source_family="dft",
+        provider="roadtraffic.dft.gov.uk",
+        observation_role="historical_measured_count",
+        snapshot_id=snap_id,
+        content_fingerprint=content_fp,
+        provenance=provenance,
+        admission_receipt_fingerprint=receipt_fp,
+        is_accepted=True,
+        is_source_blocked=False,
+    )
+    cand = EdgeCandidate(
+        edge_id="e1",
+        road_type="highway.primary",
+        road_class="primary",
+        road_ref="A56",
+        normalised_ref="A56",
+        distance_m=Decimal("1.200"),
+        geometry_source="explicit_edge_shape",
+        bearing_degrees=Decimal("45.000"),
+        requires_manual_confirmation=False,
+    )
+    group = RoadGroupV11(
+        group_key="ref:A56|primary",
+        normalised_ref="A56",
+        road_class_family="primary",
+        members=(cand,),
+        nearest_distance_m=Decimal("1.200"),
+        contains_service_member=False,
+        exact_reference_match=True,
+        admitted_by_override=False,
+        family_mismatch=None,
+    )
+    obs = ObservationMatchV11(
+        policy_fingerprint=policy.fingerprint(),
+        count_point_id=999,
+        dft_road_type="Major",
+        dft_road_name="A56",
+        dft_normalised_ref="A56",
+        groups=(group,),
+        rejections=(),
+        candidates_readmitted=(),
+        overrides_applied=(),
+        overrides_refused=(),
+        missing_evidence=(),
+        confidence="review_required",
+        disposition="awaiting_manual_review",
+        acceptance_path=None,
+        audit_flag=False,
+        family_mismatch=None,
+        reasons=(),
+        review_reasons=("the nearest candidate is beyond the strict clear distance",),
+    )
+    queue = build_manual_review_queue([obs])
+    honest_wf = build_map_match_workflow(
+        observations=[obs], queue=queue, policy=policy, source=source
+    )
+    assert honest_wf.observations[0].standing == "UNRESOLVED"
+    honest_payload = honest_wf.observations[0].model_dump()
+    forged_payload = dict(honest_payload)
+    forged_payload["standing"] = "AUTO_ACCEPTED"
+    forged_payload["standing_reason"] = (
+        "owner policy unambiguously accepted under clear thresholds; distance alone not sufficient"
+    )
+    forged_payload["accepted_group_key"] = "ref:A56|primary"
+    forged_payload["matched_edge_ids"] = ("e1",)
+    try:
+        MapMatchObservationProjection.model_validate(forged_payload)
+        raise AssertionError("forged AUTO_ACCEPTED should be rejected")
+    except Exception as exc:
+        msg = str(exc)
+        assert "AUTO_ACCEPTED requires owner_policy_accepted_candidate" in msg
+        assert "diagnostics must equal" not in msg
 
 
 def test_validator_check_08_proves_fail_closed_ingestion() -> None:
@@ -454,9 +565,7 @@ def test_manchester_source_operations_inspectable_offline_secret_free() -> None:
     assert cat.method_version == "manchester-source-operations-1.0"
     dumped = cat.model_dump_json()
     assert "/Users/" not in dumped
-    assert (
-        "api_key" not in dumped.lower() or "api_key" not in dumped
-    )  # model has no credential value field
+    assert "api_key" not in dumped.lower()  # model has no credential value field
     # BODS remains bus-only
     bods_row = next(r for r in cat.sources if r.source.family.value == "bods")
     assert "bus" in bods_row.source.can_infer[0].lower()
@@ -517,5 +626,6 @@ def test_portable_artifacts_contain_no_absolute_paths() -> None:
         assert result.status == "ok"  # type: ignore[union-attr]
         portable = receipt_to_portable_dict(result, workspace_path=ws)  # type: ignore[arg-type]
         assert "/Users/" not in json.dumps(portable)
-        assert "/tmp/" not in json.dumps(portable) or tmp not in json.dumps(portable)
+        assert "/tmp/" not in json.dumps(portable)
+        assert tmp not in json.dumps(portable)
         assert str(ws) not in json.dumps(portable)

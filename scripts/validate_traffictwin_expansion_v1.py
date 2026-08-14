@@ -527,37 +527,37 @@ def check_04_unresolved_map_match() -> CheckResult:
             "unresolved observation should yield UNRESOLVED not AUTO_ACCEPTED",
         )
 
+    # Canonical honest projection via public workflow — the honest source for forgery.
+    # Build once and reuse as the dumped canonical payload; do not reconstruct private
+    # diagnostics via private helpers. This proves the semantic invariant, not a
+    # diagnostics mismatch.
+    honest_workflow = build_map_match_workflow(
+        observations=[obs], queue=queue, policy=policy, source=_source()
+    )
+    honest_projection = honest_workflow.observations[0]
+    assert honest_projection.standing == "UNRESOLVED"
+    # Dump via public model_dump (python mode preserves Decimal/tuple) for honest base.
+    honest_payload = honest_projection.model_dump()
+
     def _forged_auto() -> Any:
         from traffictwin.integration.manchester.map_match_workflow import (
             MapMatchObservationProjection,
         )
 
-        return MapMatchObservationProjection(
-            schema_version="1.0",
-            capability_id="MAN-09",
-            method_version="manchester-map-match-workflow-1.0",
-            observation=obs,
-            queue_fingerprint="ff" * 32,
-            ledger_seal=None,
-            standing="AUTO_ACCEPTED",
-            standing_reason="forged: distance alone should accept",
-            diagnostics=("no candidate",),
-            ambiguity_reason=None,
-            unmatched_reason=None,
-            reviewer_name=None,
-            reviewer_role=None,
-            decision_fingerprint=None,
-            decided_at_utc=None,
-            decision_kind=None,
-            accepted_group_key="ref:A56|primary",
-            matched_edge_ids=("e1",),
-            nearest_distance_m=Decimal("1.200"),
-            original_disposition="awaiting_manual_review",
-            scientifically_validated=False,
-            observational_truth_claimed=False,
-            baseline_acceptance_claimed=False,
-            automatic_selection_performed=False,
+        # Forge only the acceptance fields; keep all honest derived fields
+        # (diagnostics, ambiguity_reason, unmatched_reason, nearest_distance_m,
+        # observation, queue_fingerprint, original_disposition, etc.) from the
+        # honest public projection. Revalidate via public model_validate to
+        # ensure real validation (not unchecked model_copy).
+        forged_payload = dict(honest_payload)
+        forged_payload["standing"] = "AUTO_ACCEPTED"
+        forged_payload["standing_reason"] = (
+            "owner policy unambiguously accepted under clear thresholds; "
+            "distance alone not sufficient"
         )
+        forged_payload["accepted_group_key"] = "ref:A56|primary"
+        forged_payload["matched_edge_ids"] = ("e1",)
+        return MapMatchObservationProjection.model_validate(forged_payload)
 
     rejected, detail = _expect_rejection(_forged_auto)
     if not rejected:
@@ -568,12 +568,20 @@ def check_04_unresolved_map_match() -> CheckResult:
             detail,
             "forged AUTO_ACCEPTED projection via MapMatchObservationProjection",
         )
+    if "AUTO_ACCEPTED requires owner_policy_accepted_candidate" not in detail:
+        return CheckResult(
+            "04",
+            "unresolved map match forged AUTO_ACCEPTED must be rejected for the semantic invariant",
+            "FAIL",
+            f"rejection detail did not contain expected semantic reason: {detail}",
+            "AUTO_ACCEPTED requires owner_policy_accepted_candidate via MapMatchObservationProjection",
+        )
     return CheckResult(
         "04",
         "Unresolved map match correctly remains UNRESOLVED; forged AUTO_ACCEPTED rejected; distance alone never accepts",
         "PASS",
         f"{d_ok} | {detail}",
-        "honest UNRESOLVED vs forged AUTO_ACCEPTED via map_match_workflow",
+        "honest UNRESOLVED vs forged AUTO_ACCEPTED via map_match_workflow (semantic invariant)",
     )
 
 
@@ -866,8 +874,6 @@ def check_06_incompatible_comparison() -> CheckResult:
         return result
 
     ok, detail = _expect_success(_incompatible)
-    # This should succeed in the sense that the workflow correctly refuses incompatible; we already assert inside.
-    # So we test that incompatible is correctly detected as refused, not as silently available.
     if not ok:
         return CheckResult(
             "06",
@@ -876,12 +882,34 @@ def check_06_incompatible_comparison() -> CheckResult:
             detail,
             "incompatible scope should be REFUSED_INCOMPATIBLE via comparison_workflow",
         )
+    # Enrich detail with the proved blocker_code and standings for receipt informativeness
+    try:
+        # Re-run to capture the actual workflow result for detailed receipt
+        _contract_probe = _contract()
+        _lineage_probe = _lineage()
+        _obs_probe = _observed(value="10", scope="other_zone", scope_fp="f" * 64)
+        _sim_probe = _simulated(value="12")
+        _req_probe = build_comparison_workflow_request(
+            workflow_id="wf-incompat-detail",
+            contract=_contract_probe,
+            lineage=_lineage_probe,
+            observed_inputs=[_obs_probe],
+            simulated_inputs=[_sim_probe],
+            prerequisites=_prereq(),
+        )
+        _res_probe = evaluate_comparison_workflow(_req_probe)
+        detail_informative = (
+            f"incompatible correctly REFUSED_INCOMPATIBLE blocker={_res_probe.blocker_code} "
+            f"standing={_res_probe.standing} scope_mismatch=other_zone vs synthetic_zone | {detail} | {d_ok2}"
+        )
+    except Exception:
+        detail_informative = f"{detail} | {d_ok2}"
     return CheckResult(
         "06",
         "Incompatible metric comparison is refused; compatible vehicle_count comparison succeeds",
         "PASS",
-        f"{detail} | {d_ok2}",
-        "compatible vs incompatible scope via comparison_workflow",
+        detail_informative,
+        "compatible vs incompatible scope via comparison_workflow (SCOPE_MISMATCH)",
     )
 
 
@@ -1898,8 +1926,11 @@ def run_all_checks() -> list[CheckResult]:
         try:
             res = fn()
         except Exception as exc:
+            # Canonical crash id: extract leading digits if present (e.g., check_01_* -> 01)
+            raw = fn.__name__.replace("check_", "")
+            crash_id = raw[:2] if raw[:2].isdigit() else "99"
             res = CheckResult(
-                fn.__name__.replace("check_", ""),
+                crash_id,
                 fn.__doc__ or "check failed with exception",
                 "FAIL",
                 f"exception in check: {exc.__class__.__name__}: {str(exc)[:800]}",

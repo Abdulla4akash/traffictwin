@@ -50,8 +50,9 @@ def test_home_navigation_renders_and_links_to_expansion() -> None:
         + "\n".join(str(x.value) for x in app.markdown)
         + "\n".join(str(x.value) for x in app.caption)
     )
-    # Home should not claim city-wide live traffic incorrectly
-    assert "city-wide live" not in blob.lower() or "unavailable" in blob.lower()
+    # Home must not claim city-wide live traffic as available (concrete positive claim)
+    assert "city-wide live" not in blob.lower()
+    assert "city-wide live traffic is available" not in blob.lower()
 
 
 def test_manchester_source_operations_renders_truthfully() -> None:
@@ -66,18 +67,21 @@ def test_manchester_source_operations_renders_truthfully() -> None:
         + "\n".join(str(x.value) for x in getattr(app2, "caption", []))
         + "\n".join(str(x.value) for x in getattr(app2, "dataframe", []))
     )
-    # Must show truthful per-family standing and BODS bus-only disclaimer
+    # Must show truthful per-family standing and BODS bus-only disclaimer via typed catalogue
     lower = blob.lower()
-    assert "bods" in lower or "bus" in lower or app2.exception is None  # page did not crash
+    assert "bus" in lower, "Manchester Source Operations page must state BODS is bus-only"
     # Page must not perform network or expose secrets
     assert "/Users/" not in blob
     assert "api_key" not in lower
-    # Also test via direct import render for offline secret-free guarantee
+    # Typed catalogue is the ground truth — BODS family is bus-only, not general traffic
     from traffictwin.ui.manchester_source_operations import build_demonstrator_catalogue
 
     cat = build_demonstrator_catalogue()
     assert len(cat.sources) == 8
     assert any(r.source.family.value == "bods" for r in cat.sources)
+    bods_row = next(r for r in cat.sources if r.source.family.value == "bods")
+    assert "bus" in bods_row.source.can_infer[0].lower()
+    assert any("general" in x.lower() for x in bods_row.source.cannot_infer)
 
 
 def test_manchester_twin_renders_synthetic_and_blocked_truthfully() -> None:
@@ -92,17 +96,39 @@ def test_manchester_twin_renders_synthetic_and_blocked_truthfully() -> None:
         + "\n".join(str(x.value) for x in getattr(app, "warning", []))
     )
     lower = blob.lower()
-    # Must be labelled synthetic/design-only and provider blocked
+    # Must be labelled synthetic/design-only and provider blocked via exact standing
     assert "synthetic" in lower
-    assert "provider_data_required" in lower or "provider" in lower
-    # Must not claim scientific acceptance or mapping truth from distance
-    assert (
-        "scientifically_accepted_baseline" not in lower
-        or "not" in lower
-        or "software_valid" in lower
+    assert "provider_data_required" in lower
+    # Must not claim scientific acceptance — the typed journey proves this
+    from traffictwin.integration.manchester.closed_loop_journey import build_closed_loop_journey
+
+    j_blocked = build_closed_loop_journey(
+        journey_id="journey-ui-twin-blocked-check",
+        source_provider_available=False,
+        source_snapshot_id=None,
+        baseline_package=None,
+        baseline_decision=None,
+        baseline_software_validation=None,
+        map_workflow=None,
+        demand_result=None,
+        demand_receipt=None,
+        demand_decision=None,
+        calibration_result=None,
+        calibration_decision=None,
+        calibration_receipt=None,
+        sumo_request=None,
+        sumo_receipt=None,
+        output_package=None,
+        output_receipt=None,
+        comparison_result=None,
     )
-    # Must distinguish software-valid from scientific
-    assert "software_valid" in lower or "software-valid" in lower or "software" in lower
+    assert j_blocked.overall_standing == "PROVIDER_DATA_REQUIRED"
+    assert j_blocked.scientific_acceptance_present is False
+    # Page truthfully teaches that scientifically_accepted_baseline requires explicit decision — not self-claimed
+    assert "scientifically_accepted_baseline" in lower
+    assert "software_valid does not imply scientifically_accepted_baseline" in lower
+    # Page must distinguish software-valid from scientific acceptance (typed proof above is sufficient; no duplicate assert)
+    assert any(m in lower for m in ("software_valid", "software-valid"))
 
 
 def test_observed_simulated_compatibility_truthful() -> None:
@@ -148,10 +174,29 @@ def test_replay_observatory_renders_with_disclaimers() -> None:
     lower = blob.lower()
     assert "replay observatory" in lower
     assert "deterministic" in lower
-    # Must not infer task-level E2 replay from aggregate evidence
-    assert "aggregate-only" in lower or "synthetic" in lower or "disclaimer" in lower
-    # No causal claim from sync
-    assert "causal" not in lower or "not" in lower or "non-causal" in lower
+    # Must carry the typed non-causal disclaimers verbatim
+    from traffictwin.ui.replay_observatory_service import (
+        SYNCHRONIZED_REPLAY_DISCLAIMER,
+    )
+
+    assert SYNCHRONIZED_REPLAY_DISCLAIMER.lower() in lower
+    assert "synthetic" in lower
+    # Typed view disclaimers must be exact — prove via service, not vague substring
+    from traffictwin.ui.replay_observatory_service import (
+        build_synthetic_engineering_stream as _build_stream_j3,
+    )
+    from traffictwin.ui.replay_observatory_service import (
+        create_engine as _create_engine_j3,
+    )
+    from traffictwin.ui.replay_observatory_service import (
+        get_observatory_view as _get_view_j3,
+    )
+
+    _s_j3 = _build_stream_j3()
+    _v_j3 = _get_view_j3(_create_engine_j3(_s_j3))
+    assert _v_j3.causal_disclaimer == "replay is deterministic; no causality implied"
+    assert _v_j3.sync_disclaimer == "synchronization is not evidence of causality"
+    assert "SYNTHETIC ENGINEERING" in _v_j3.synthetic_disclaimer
 
 
 def test_research_registry_renders_admitted_and_unavailable_truthfully() -> None:
@@ -167,12 +212,29 @@ def test_research_registry_renders_admitted_and_unavailable_truthfully() -> None
     )
     lower = blob.lower()
     assert "research registry" in lower
-    # Must show admitted E2 and truthful unavailable, and note E3 absent
-    assert "admitted" in lower or "e2" in lower
-    # Provenance/report identities must be present
-    assert "provenance" in lower or "fingerprint" in lower or "code_sha" in lower
-    # No E3 fabricated
-    assert "e3" not in lower or "absent" in lower or "unavailable" in lower or "no" in lower
+    # Typed registry is the ground truth for admission
+    from traffictwin.research_registry.models import AdmissionStatus
+    from traffictwin.research_registry.service import RegistryService
+
+    _snap_j4 = RegistryService.with_default_e2().snapshot()
+    _admitted_e2 = [
+        r
+        for r in _snap_j4.records
+        if r.study.startswith("E2") and r.admission_status == AdmissionStatus.ADMITTED
+    ]
+    assert len(_admitted_e2) >= 3, "typed registry must have at least 3 admitted E2"
+    assert all(r.code_sha is not None and len(r.code_sha) == 40 for r in _admitted_e2)
+    _e3_admitted = [
+        r
+        for r in _snap_j4.records
+        if r.study == "E3" and r.admission_status == AdmissionStatus.ADMITTED
+    ]
+    assert len(_e3_admitted) == 0, "typed registry must have zero admitted E3 — no fabrication"
+    # Page must show admitted and expose provenance identities via exact rendered marker
+    assert "admitted" in lower
+    assert "snapshot fingerprint" in lower
+    # Registry UI contract: truthful future E3 absent/unavailable state must be rendered exactly
+    assert "e3 is absent/unavailable by default" in lower
 
 
 def test_cross_epic_journey_end_to_end_via_navigation_and_services() -> None:
@@ -186,10 +248,8 @@ def test_cross_epic_journey_end_to_end_via_navigation_and_services() -> None:
     cat = build_demonstrator_catalogue()
     # Truthful blocked states: BODS is credential_required when no credential, but our demonstrator may be synthetic? Check that at least one blocked or historical exists
     standings = {r.current_standing.value for r in cat.sources}
-    assert (
-        "credential_required" in standings
-        or "historical_only" in standings
-        or "provider_data_required" in standings
+    assert any(
+        s in standings for s in ("credential_required", "historical_only", "provider_data_required")
     )
     # 3. Twin/SUMO — truthful blocked and synthetic available (two journeys)
     from traffictwin.integration.manchester.closed_loop_journey import build_closed_loop_journey
@@ -330,7 +390,7 @@ def test_cross_epic_journey_end_to_end_via_navigation_and_services() -> None:
 
     s = build_synthetic_engineering_stream()
     e = create_engine(s)
-    assert e.state().playhead_time_s == 0.0 or e.state().playhead_time_s >= 0
+    assert e.state().playhead_time_s == 0.0
     # 6. Registry
     from traffictwin.research_registry.service import RegistryService
 
@@ -389,11 +449,26 @@ def test_no_inference_from_aggregate_sync_distance_or_convergence() -> None:
         ).EXPANSION_PAGE_SPECS
     )
     lower = blob.lower()
-    # Pages should not contain causal language implying visual sync = effect
-    assert "causal" not in lower or "non-causal" in lower or "not" in lower or "never" in lower
-    # Validator limitations must state no inference from those sources
+    # Validator limitations must be exact and forbid the four inference classes
     from scripts.validate_traffictwin_expansion_v1 import build_validator_receipt, run_all_checks
 
     receipt = build_validator_receipt(run_all_checks())
     lim = "\n".join(receipt["limitations"]).lower()
-    assert "inferences from aggregate" in lim or "aggregate" in lim
+    assert (
+        "inferences from aggregate evidence, visual sync, distance alone, or convergence to realism are never made"
+        in lim
+    )
+    # No page may claim causal effect — typed disclaimers are the enforcement
+    from traffictwin.ui.replay_observatory_service import (
+        build_synthetic_engineering_stream as _build_j5,
+    )
+    from traffictwin.ui.replay_observatory_service import create_engine as _create_j5
+    from traffictwin.ui.replay_observatory_service import get_observatory_view as _get_view_j5
+
+    _v_j5 = _get_view_j5(_create_j5(_build_j5()))
+    assert _v_j5.causal_disclaimer == "replay is deterministic; no causality implied"
+    assert _v_j5.sync_disclaimer == "synchronization is not evidence of causality"
+    # Source expansion routes must not contain causal prose — strict anti-claim list
+    assert "causal effect" not in lower
+    assert "proves causality" not in lower
+    assert "causally proves" not in lower

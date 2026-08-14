@@ -1,11 +1,11 @@
 # Lane 16 Expansion V1 — Closure Report
 
-**Lane:** 16 dependency-gated acceptance  
-**Base:** `d83bc92fe4286ed85454ce07fb6d1c86d25996e0`  
-**Workspace:** `worktrees/lane16` (relative; absolute path redacted)  
-**Runtime identity:** `PROVIDER=meta` `MODEL=muse-spark-1.2-contributor` `REASONING_EFFORT=xhigh`  
-**Method:** `expansion-v1` (`traffictwin-expansion-v1-validator-1.0`)  
-**Date:** 2026-08-13  
+**Lane:** 16 dependency-gated acceptance
+**Base:** `d83bc92fe4286ed85454ce07fb6d1c86d25996e0`
+**Workspace:** `worktrees/lane16` (relative; absolute path redacted)
+**Runtime identity:** `PROVIDER=meta` `MODEL=muse-spark-1.2-contributor` `REASONING_EFFORT=xhigh`
+**Method:** `expansion-v1` (`traffictwin-expansion-v1-validator-1.0`)
+**Date:** 2026-08-13
 **Validator receipt:** `docs/closure/traffictwin_expansion_v1/validator_receipt.json`
 
 ## 1. Integration base proved
@@ -22,9 +22,9 @@ Lane 16 proves the integrated release assembled from Lanes 01–14 at `d83bc92` 
 | Research Registry | Evidence & reports | `app_pages/research_registry.py` | `research-registry` |
 
 - Owned additive file: `src/traffictwin/ui/expansion_routes.py` — 4× `V07AdditivePageSpec`, `EXPANSION_GROUPING`, `NAVIGATION_OVERLAP_NOTE`.
-- Owned composition file: `src/traffictwin/ui/navigation_v07.py` — lazy import in `validate_v07_page_specs()` and `v07_navigation_pages()`, collision-checked against normative 54 inventory (normative 34 + earlier additive + 4 expansion), Platform appended.
+- Owned composition file: `src/traffictwin/ui/navigation_v07.py` — lazy import in `validate_v07_page_specs()` and `v07_navigation_pages()`, collision-checked against normative 54-page `V07_PAGE_SPECS` plus 15 existing additive specs plus 4 expansion specs (total 73 pages plus hidden root = 74; Platform appended after seven normative groups).
 - Result: `Source evidence = 11`, `Evidence & reports = 10`. Asserted in `tests/ui/test_navigation_v07.py` (now 69 tests, +7 for expansion).
-- No `Resource Strategy Explorer`, `app_pages/resource_strategy_explorer.py`, `Home`, `Guided Demo`, or any `Dynamic Resource/E3` file touched. Diff scope below confirms only the 9 allowlisted paths.
+- No `Resource Strategy Explorer`, `app_pages/resource_strategy_explorer.py`, `Home`, `Guided Demo`, or any `Dynamic Resource/E3` file touched. Diff scope below confirms only the 10 allowlisted paths.
 
 ### Overlap honesty (navigation)
 
@@ -40,8 +40,8 @@ Carried verbatim in `expansion_routes.NAVIGATION_OVERLAP_NOTE` and `docs/traffic
 
 ```
 Overall: PASS  12/12
-validator_fingerprint: 6cc069e1ad1fde45ba8c3a7a4f4f946c25c62bdfaed47dd98741cd3f25b57964
-receipt_fingerprint:   dc472ae6ae5ce3357ea45943894d33cfa2ea3c96ffdb9e5b943a018d20c9d3a0
+validator_fingerprint: 664fb4ae304633c130159eec7aedff6498cba4ddd2aac2d5e787501052a04823
+receipt_fingerprint:   11bdaec2454fee2a26f3e239c90da47bf6c9859f94add5958a9d51814019c1ed
 schema_version:        1.0
 method_version:        traffictwin-expansion-v1-validator-1.0
 integration_provenance:
@@ -70,11 +70,11 @@ No private-home, Linux-home, temporary-directory, or system-private absolute pat
 | ID | Gate | How proved (real typed path) |
 |----|------|------------------------------|
 | 01 | SUMO injection | `ClosedLoopExecutionRequest` with a synthetic private-home absolute path as config file refused; `ClosedLoopInputDeclaration` with a traversal path refused; valid synthetic accepted |
-| 02 | standing inflation | Historical TFGM/NH snapshot cannot claim `REAL_MANCHESTER_DATA` — `SnapshotRegistration` validation refuses |
+| 02 | standing inflation | `SnapshotRegistration` inflated `TFGM` (HISTORICAL) and `NATIONAL_HIGHWAYS` (NEAR_LIVE) to `REAL_MANCHESTER_DATA` — `SnapshotRegistration` validation refuses via frozen `EvidenceStanding` (city-road only) |
 | 03 | BODS relabel | BODS coverage must contain `bus` — general `vehicle_count` refused |
-| 04 | unresolved map match | Honest workflow has `UNRESOLVED` + queue; forged cleared `unresolved_ids` refused via `MapMatchObservationProjection` revalidation; distance alone never accepts |
+| 04 | unresolved map match | Honest `UNRESOLVED` projection via `build_map_match_workflow` dumped via public `MapMatchObservationProjection.model_dump()` and revalidated through `MapMatchObservationProjection.model_validate(...)` with only acceptance fields forged (`standing`, exact accepted `standing_reason`, `accepted_group_key`, `matched_edge_ids`) — rejected with `AUTO_ACCEPTED requires owner_policy_accepted_candidate` via real validation (not unchecked `model_copy`) (semantic invariant, not diagnostics mismatch); distance alone never accepts |
 | 05 | unaccepted baseline | Provider-absent synthetic journey is `PROVIDER_DATA_REQUIRED` / `SOFTWARE_VALID_SYNTHETIC_AVAILABLE`, not `SCIENTIFICALLY_ACCEPTED_BASELINE`; forged tuple stages with `overall_standing=SCIENTIFICALLY_ACCEPTED_BASELINE` + `scientific_acceptance_present=False` refused for semantic invariant `SCIENTIFICALLY_ACCEPTED_BASELINE requires scientific present` (not tuple shape/fingerprint) |
-| 06 | incompatible metric | Compatible `vehicle_count/vehicles_per_interval/synthetic_zone/synthetic_utc_hour` succeeds; incompatible measure/scope/unit fails `BLOCKED`; missing intervals `exclude_unpaired_never_zero`, never zero-filled; `unit_conversion==none` |
+| 06 | incompatible metric | Compatible `vehicle_count`/`vehicles_per_interval`/`synthetic_zone`/`synthetic_utc_hour` succeeds; incompatible `other_zone`/`SCOPE_MISMATCH` is `REFUSED_INCOMPATIBLE` via `build_comparison_workflow_request`/`evaluate_comparison_workflow` (not generic BLOCKED); missing intervals `exclude_unpaired_never_zero`, never zero-filled; `unit_conversion==none` |
 | 07 | missing code SHA | `ResearchStudyRecord` admitted requires 40-hex `code_sha` + 64-hex `manifest_hash` — missing/malformed refused |
 | 08 | fake E3 | Structurally valid future E3 `ResearchStudyPackage` rejected via `RegistryService.ingest_package` with authoritative E2 allowlist (`not in admission allowlist`), snapshot fingerprint unchanged, no E3 admitted (future-generic contract preserved) |
 | 09 | invented replay | `SourceCapabilityManifest(available_event_types=SIMULATION_TIME)` cannot stream `TASK_OFFERED`; `AGGREGATE_ONLY` cannot be replayed — both refused |
@@ -104,22 +104,22 @@ Focused owned tests:
 
 ```
 tests/ui/test_navigation_v07.py                          69 passed
-tests/integration/test_traffictwin_expansion_v1_acceptance.py   8 passed
+tests/integration/test_traffictwin_expansion_v1_acceptance.py  11 passed
 tests/integration/test_expansion_replay_truthfulness.py         7 passed
-tests/integration/test_expansion_journey_ui.py                  8 passed
+tests/integration/test_expansion_journey_ui.py                  9 passed
 ---
-Focused owned: 92 passed (24 new acceptance + 68 existing nav, with 7 new)
-Full relevant sweep (owned + adjacent platform): ~2030+ passed at d83bc92 baseline, zero new failures on d83bc92+lane16
+Focused owned: 96 passed (27 new acceptance + journey + replay + 69 navigation; 11+7+9=27 new)
+Full owned verification: 96 passed; full relevant adjacent sweep not claimed as executed in this lane (provider workloads remain zero)
 ```
 
 Ruff/format/mypy (strict, per `pyproject.toml`):
 
 ```
-uv run ruff check src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py scripts/validate_traffictwin_expansion_v1.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py docs/traffictwin_expansion_v1.md
+uv run ruff check src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py scripts/validate_traffictwin_expansion_v1.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
   -> pass (no issues)
-uv run ruff format --check scripts/validate_traffictwin_expansion_v1.py src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
+uv run ruff format --check src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py scripts/validate_traffictwin_expansion_v1.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
   -> pass
-uv run mypy --strict src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py scripts/validate_traffictwin_expansion_v1.py
+uv run mypy --strict src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
   -> pass (strict)
 ```
 
@@ -158,13 +158,15 @@ Dynamic/E3 touch:
 - No causal inference from visual synchronisation (`synchronization is not evidence of causality`, `replay is deterministic; no causality implied`).
 - No map-match truth from distance alone — requires explicit policy and manual review.
 - No optimiser-convergence realism — calibration remains explicit.
-- **No genuine blocker.** All required gates are green: 12/12 mutations PASS, validator deterministic, 92 focused tests PASS, Ruff/format/mypy clean, scope/leak/Dynamic-E3 clean, journey AppTests render without binary/network/credentials, Resource Strategy untouched and overlap recorded.
+- **Lane-local software gates pass** — 12/12 mutations PASS, validator deterministic (byte-identical twice), 96 focused tests PASS, Ruff/format/mypy clean, scope/leak/Dynamic-E3 clean, journey AppTests render without binary/network/credentials, Resource Strategy untouched and overlap recorded. **Bounded truth:** fresh exact-SHA Opus approval, promotion, and final global gates remain pending and are not claimed.
 
 ## 9. How to reproduce
 
 ```bash
-# base
-git rev-parse HEAD  # d83bc92
+# base — HEAD is the successor candidate beyond d83bc92; prove base ancestry truthfully
+git rev-parse HEAD  # successor candidate (not d83bc92)
+git merge-base --is-ancestor d83bc92 HEAD && echo "base d83bc92 is ancestor of HEAD" || echo "base ancestry check failed"
+git log --oneline d83bc92..HEAD  # expansion changes beyond base (if any)
 
 # validator (deterministic, non-networked)
 PYTHONPATH=src uv run python scripts/validate_traffictwin_expansion_v1.py
@@ -174,10 +176,10 @@ PYTHONPATH=src uv run python scripts/validate_traffictwin_expansion_v1.py --json
 PYTHONPATH=src uv run python -m pytest tests/ui/test_navigation_v07.py -v
 PYTHONPATH=src uv run python -m pytest tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py -v
 
-# quality
-uv run ruff check src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py scripts/validate_traffictwin_expansion_v1.py tests/ui/test_navigation_v07.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
+# quality — all seven changed Python files in Ruff; strict mypy on six files (validator imported via tests)
+uv run ruff check src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py scripts/validate_traffictwin_expansion_v1.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
 uv run ruff format --check src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py scripts/validate_traffictwin_expansion_v1.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
-uv run mypy --strict src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py
+uv run mypy --strict src/traffictwin/ui/expansion_routes.py src/traffictwin/ui/navigation_v07.py tests/ui/test_navigation_v07.py tests/integration/test_traffictwin_expansion_v1_acceptance.py tests/integration/test_expansion_replay_truthfulness.py tests/integration/test_expansion_journey_ui.py
 
 # scope/leak
 git diff --name-only d83bc92

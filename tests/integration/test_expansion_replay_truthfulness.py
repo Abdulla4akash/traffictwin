@@ -1,4 +1,4 @@
-# ruff: noqa: S108,E501,B017,F841,N811,ANN001,ANN201,ANN401,TRY003,TRY301,SIM222
+# ruff: noqa: S108,E501,B017,F841,N811,ANN001,ANN201,ANN401,TRY003,TRY301
 """Expansion replay truthfulness — Lane 16.
 
 Proves Replay Observatory does not invent events, does not imply causality
@@ -150,28 +150,25 @@ def test_replay_does_not_imply_causality_or_sync() -> None:
     s = build_synthetic_engineering_stream()
     engine = create_engine(s)
     view = get_observatory_view(engine)
-    # Disclaimer must be present and state non-causal — ObservatoryView exposes three disclaimer fields
-    assert (
-        view.causal_disclaimer == "replay is deterministic; no causality implied"
-        or "causality" in view.causal_disclaimer.lower()
-    )
-    assert (
-        view.sync_disclaimer == "synchronization is not evidence of causality"
-        or "synchronization" in view.sync_disclaimer.lower()
-    )
+    # Disclaimers must be exact typed values — no vague substring matching
+    assert view.causal_disclaimer == "replay is deterministic; no causality implied"
+    assert view.sync_disclaimer == "synchronization is not evidence of causality"
     assert view.synthetic_disclaimer.lower().startswith("synthetic")
-    # Our validator's disclaimer check: the page must carry synchronized disclaimer
+    assert "SYNTHETIC ENGINEERING" in view.synthetic_disclaimer
+    assert "not Manchester observation" in view.synthetic_disclaimer
+    assert "not admitted task-level" in view.synthetic_disclaimer
+    # Service constants must be exact
     from traffictwin.ui.replay_observatory_service import (
         SYNTHETIC_ENGINEERING_DISCLAIMER,
     )
 
     assert SYNCHRONIZED_REPLAY_DISCLAIMER == "synchronized visual replay is not causal evidence"
     assert SYNTHETIC_ENGINEERING_DISCLAIMER.lower().startswith("synthetic")
-    # No E2 task-level inference from aggregate
-    blob = json.dumps(view.model_dump(mode="json"), sort_keys=True)
-    assert "task-level" not in blob.lower() or "not" in blob.lower()
-    # Visual synchronisation does not imply causal effect — view must not claim causality
-    assert "causal" in blob.lower() and "not" in blob.lower()
+    # Typed view must explicitly deny causality — check exact disclaimer fields, not blob containing "not"
+    assert view.causal_disclaimer == "replay is deterministic; no causality implied"
+    assert view.sync_disclaimer == "synchronization is not evidence of causality"
+    # The synthetic disclaimer must deny causal/task-level inference from aggregate
+    assert "not admitted task-level research evidence" in view.synthetic_disclaimer
 
 
 def test_replay_empty_and_aggregate_only_are_truthfully_unavailable() -> None:
@@ -188,11 +185,10 @@ def test_replay_provenance_binding_is_exact() -> None:
     s = build_synthetic_engineering_stream()
     for ev in s.events:
         assert ev.provenance.source_artifact_sha256 == ev.source.artifact_sha256
-        assert (
-            ev.source.artifact_sha256 == s.capability_manifest.source.artifact_sha256
-            or ev.source.source_id == s.capability_manifest.source.source_id
-            or True  # noqa: SIM222
-        )
+    # Also prove the synthetic stream's manifest source is consistent with at least one event
+    assert any(
+        ev.source.artifact_sha256 == s.capability_manifest.source.artifact_sha256 for ev in s.events
+    )
     # Broken binding would have been rejected at stream construction (checked above)
 
 

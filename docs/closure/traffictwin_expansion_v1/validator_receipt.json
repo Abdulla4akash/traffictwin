@@ -22,9 +22,9 @@
       "title": "BODS bus-only labeling enforced; relabel to general traffic rejected"
     },
     {
-      "detail": "accepted as expected: MapMatchWorkflowResult | rejected as expected: ValidationError: 1 validation error for MapMatchObservationProjection\n  Value error, diagnostics must equal derived diagnostics for observation [type=value_error, input_value={'schema_version': '1.0',...ction_performed': False}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "detail": "accepted as expected: MapMatchWorkflowResult | rejected as expected: ValidationError: 1 validation error for MapMatchObservationProjection\n  Value error, AUTO_ACCEPTED requires owner_policy_accepted_candidate [type=value_error, input_value={'schema_version': '1.0',...ction_performed': False}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
       "id": "04",
-      "mutation": "honest UNRESOLVED vs forged AUTO_ACCEPTED via map_match_workflow",
+      "mutation": "honest UNRESOLVED vs forged AUTO_ACCEPTED via map_match_workflow (semantic invariant)",
       "status": "PASS",
       "title": "Unresolved map match correctly remains UNRESOLVED; forged AUTO_ACCEPTED rejected; distance alone never accepts"
     },
@@ -36,9 +36,9 @@
       "title": "Scientifically unaccepted baseline correctly not marked accepted; forged acceptance rejected for the semantic invariant"
     },
     {
-      "detail": "accepted as expected: ManchesterComparisonWorkflowResult | accepted as expected: ManchesterComparisonWorkflowResult",
+      "detail": "incompatible correctly REFUSED_INCOMPATIBLE blocker=SCOPE_MISMATCH standing=REFUSED_INCOMPATIBLE scope_mismatch=other_zone vs synthetic_zone | accepted as expected: ManchesterComparisonWorkflowResult | accepted as expected: ManchesterComparisonWorkflowResult",
       "id": "06",
-      "mutation": "compatible vs incompatible scope via comparison_workflow",
+      "mutation": "compatible vs incompatible scope via comparison_workflow (SCOPE_MISMATCH)",
       "status": "PASS",
       "title": "Incompatible metric comparison is refused; compatible vehicle_count comparison succeeds"
     },
@@ -140,13 +140,13 @@
   ],
   "method_version": "traffictwin-expansion-v1-validator-1.0",
   "overall_result": "PASS",
-  "receipt_fingerprint": "dc472ae6ae5ce3357ea45943894d33cfa2ea3c96ffdb9e5b943a018d20c9d3a0",
+  "receipt_fingerprint": "11bdaec2454fee2a26f3e239c90da47bf6c9859f94add5958a9d51814019c1ed",
   "schema_version": "1.0",
   "summary": {
     "failed": 0,
     "passed": 12,
     "total": 12
   },
-  "validator_fingerprint": "6cc069e1ad1fde45ba8c3a7a4f4f946c25c62bdfaed47dd98741cd3f25b57964",
+  "validator_fingerprint": "664fb4ae304633c130159eec7aedff6498cba4ddd2aac2d5e787501052a04823",
   "validator_version": "1.0"
 }
