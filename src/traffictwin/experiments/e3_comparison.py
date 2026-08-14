@@ -141,16 +141,6 @@ class E3ResearchComparisonView(BaseModel):
     scenario: str = Field(default=SCENARIO)
 
 
-def _unavailable(
-    contrast_id: str, metric: str, treatment: str, control: str, age: int | None
-) -> PairedDifferenceUnavailable:
-    return PairedDifferenceUnavailable(
-        comparison_id=contrast_id,
-        unavailable_reason=f"NO_E3_RESEARCH_RESULTS_AVAILABLE — research_workloads_launched = 0, evidence_state = NOT_EXECUTED, contrast {contrast_id} not yet executed",
-        estimand=contrast_id,  # extra field ignored? keep for typing
-    )  # type: ignore[call-arg]
-
-
 def build_e3_comparison_view(pkg: E3ResearchEvidencePackage) -> E3ResearchComparisonView:
     """Build the typed no-results comparison view from the admitted package."""
     _check_package_hold(pkg)
@@ -319,20 +309,6 @@ def build_e3_comparison_view(pkg: E3ResearchEvidencePackage) -> E3ResearchCompar
             raise ValueError("universal_superiority must be forbidden")
 
     return E3ResearchComparisonView(e3a=e3a_view, e3b=e3b_view, e3c=e3c_view)
-
-
-def _deterministic_mean(values: tuple[float, ...] | list[float]) -> float:
-    if not values:
-        raise ValueError("cannot compute mean of empty values")
-    return sum(values) / len(values)
-
-
-def _check_mean_not_tasks_as_n(per_seed_count: int) -> None:
-    if per_seed_count != 4:
-        raise ValueError(f"paired differences N must be 4 fleet draws, got {per_seed_count}")
-    # Forbid tasks-as-N
-    if per_seed_count > 100:
-        raise ValueError("tasks must never be N; replication unit is fleet_draw, N=4")
 
 
 __all__ = [

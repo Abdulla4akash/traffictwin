@@ -344,3 +344,230 @@ def test_provenance_limitations_missingness_are_first_class() -> None:
     for miss in pkg.missingness:
         assert len(miss.field) > 1
         assert len(miss.reason) > 10
+
+
+# --- Blocker 1 regressions ---
+def test_provenance_wrong_ac8e410_rejected() -> None:
+    data = json.loads(builtin_e3_research_json())
+    for entry in data["provenance"]:
+        if entry["kind"] == "runner":
+            entry["note"] = "approved candidate ac8e410... and promotion 342789..."
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    msg = str(exc.value).lower()
+    assert "approval" in msg or "provenance" in msg or "mismatch" in msg
+
+
+def test_provenance_corrected_passes() -> None:
+    data = json.loads(builtin_e3_research_json())
+    for entry in data["provenance"]:
+        if entry["kind"] == "runner":
+            entry["note"] = (
+                "approved candidate c5d66ef7e77f3b7d1f3fde084feea45a83f5c178 and promotion 342789434233e97cd87ea74e21a759878610ce40"
+            )
+    pkg = load_e3_research_evidence_json(json.dumps(data))
+    assert pkg.approved_candidate_sha == "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178"
+    assert pkg.research_promotion_sha == "342789434233e97cd87ea74e21a759878610ce40"
+
+
+def test_provenance_wrong_promotion_rejected() -> None:
+    data = json.loads(builtin_e3_research_json())
+    for entry in data["provenance"]:
+        if entry["kind"] == "runner":
+            entry["note"] = (
+                "approved candidate c5d66ef7e77f3b7d1f3fde084feea45a83f5c178 and promotion deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+            )
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    msg = str(exc.value).lower()
+    assert "promotion" in msg or "mismatch" in msg
+
+
+# --- Blocker 2 fail-closed regressions ---
+def test_bypass_strings_are_rejected() -> None:
+    # Measured bypasses that previously slipped via negation window
+    for payload in [
+        "there is no doubt kubernetes cluster is live",
+        "never in doubt: supervisor approved this",
+    ]:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = payload
+        with pytest.raises((ValidationError, ValueError)):
+            load_e3_research_evidence_json(json.dumps(data))
+
+
+def test_forbidden_families_top_level_rejected() -> None:
+    families = [
+        "kubernetes cluster is live is true",
+        "supervisor approved this deployment is true",
+        "universal superiority is proven is true",
+        "tasks as n is valid is true",
+        "manchester-wide inference is valid is true",
+        "monetary cost is low is true",
+        "actor selects execution rsu is true",
+        "cost_dollars = 100 is true",
+        "randy confirmed this is true",
+        "queue ceiling is compute is true",
+    ]
+    for phrase in families:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = phrase
+        with pytest.raises((ValidationError, ValueError)) as exc:
+            load_e3_research_evidence_json(json.dumps(data))
+        assert "forbidden" in str(exc.value).lower() or "claim" in str(exc.value).lower()
+
+
+def test_forbidden_families_deep_nested_rejected() -> None:
+    families = [
+        ("kubernetes is live deep", "kubernetes"),
+        ("supervisor approved deep", "supervisor approved"),
+        ("universal superiority deep", "universal superiority"),
+        ("tasks_as_n deep", "tasks_as_n"),
+        ("manchester_wide deep", "manchester_wide"),
+        ("monetary cost deep", "monetary cost"),
+        ("actor_selects_rsu deep", "actor_selects_rsu"),
+        ("cost_dollars deep", "cost_dollars"),
+        ("randy confirmed deep", "randy confirmed"),
+        ("queue ceiling is compute deep", "queue ceiling is"),
+    ]
+    for phrase, needle in families:
+        data = json.loads(builtin_e3_research_json())
+        # deep-nested under factors extra with neutral key
+        data["factors"]["deep_nested"] = {"level2": {"level3": phrase}}  # type: ignore[assignment]
+        with pytest.raises((ValidationError, ValueError)) as exc:
+            load_e3_research_evidence_json(json.dumps(data))
+        msg = str(exc.value).lower()
+        assert needle in msg
+
+
+def test_allowlisted_disclaimers_still_pass() -> None:
+    # Exact allowlisted disclaimers must be accepted even though they contain forbidden substrings
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+    for disclaimer in ALLOWLISTED_DISCLAIMERS:
+        data = json.loads(builtin_e3_research_json())
+        # Place disclaimer as a whole non_claim entry (exact byte-equal) - should be exempt
+        # Replace index 1 (not the fleet_draw entry at 0) to keep fleet_draw mention
+        data["non_claims"][1] = disclaimer
+        pkg = load_e3_research_evidence_json(json.dumps(data))
+        assert pkg is not None
+    # Also test that a string containing allowlisted disclaimer as substring but with extra suffix is rejected
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+    data = json.loads(builtin_e3_research_json())
+    dis = ALLOWLISTED_DISCLAIMERS[0]
+    data["limitations"][0] = dis + " extra suffix to break exact match kubernetes is live"
+    with pytest.raises((ValidationError, ValueError)):
+        load_e3_research_evidence_json(json.dumps(data))
+
+
+# --- Blocker 3 recursive scan coverage ---
+def test_deep_nested_private_path_caught_by_scan() -> None:
+    data = json.loads(builtin_e3_research_json())
+    # Private path deep under factors extra nested - field validator for factors does not check private path for nested, only scan does
+    # Use neutral extra key that does not contain 'private' to isolate scan vs extra error
+    data["factors"]["deep1"] = {"a": {"b": "/tmp/evil_private_path"}}  # type: ignore[assignment]  # noqa: S108
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    assert "private" in str(exc.value).lower()
+
+
+def test_deep_nested_true_authorized_caught_by_scan() -> None:
+    data = json.loads(builtin_e3_research_json())
+    # Deep-nested true _authorized under factors (field validator does not check _authorized)
+    data["factors"]["deep2"] = {"level2": {"my_authorized": True}}  # type: ignore[assignment]
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    msg = str(exc.value).lower()
+    assert "_authorized" in msg
+
+
+def test_deep_nested_forbidden_via_evidence_scan() -> None:
+    data = json.loads(builtin_e3_research_json())
+    data["factors"]["deep3"] = {"x": {"y": "kubernetes deep forbidden claim is true"}}  # type: ignore[assignment]
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    assert "kubernetes" in str(exc.value).lower()
+
+
+def test_artifact_private_path_secret_via_artifact_api() -> None:
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+
+    raw = builtin_e3_research_json()
+    data = json.loads(raw)
+    # Inject private path as a key (not value) deep inside factors to isolate artifact raw check
+    # Key containing private path will be caught by artifact raw text check but not by evidence dict scan (which doesn't check keys for private path)
+    data["factors"]["evil_key"] = {"/tmp/evil_key": 123}  # type: ignore[assignment]  # noqa: S108
+    injected = json.dumps(data)
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        validate_e3_research_artifact(injected)
+    assert "private path" in str(exc.value).lower()
+
+
+# --- Secondary 1 factors strict ---
+def test_factors_extra_result_like_numeric_rejected() -> None:
+    data = json.loads(builtin_e3_research_json())
+    data["factors"]["e3a_mean_diff"] = 0.062  # type: ignore[assignment]
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    assert "extra" in str(exc.value).lower() or "factors" in str(exc.value).lower()
+
+
+def test_factors_allows_all_declared_keys() -> None:
+    data = json.loads(builtin_e3_research_json())
+    # Should pass with all declared keys present
+    pkg = load_e3_research_evidence_json(json.dumps(data))
+    assert pkg.factors["padded_fleet_width"] == 2488
+    assert pkg.factors["smoke_ticks"] == 10
+
+
+# --- Secondary 4 manifest sidecar ---
+def test_manifest_sidecar_mismatch_rejected() -> None:
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+
+    raw = builtin_e3_research_json()
+    data = json.loads(raw)
+    # Corrupt manifest sidecar SHA in provenance
+    for entry in data["provenance"]:
+        if entry["kind"] == "manifest":
+            entry["note"] = entry["note"].replace(
+                "39862882ae34e71260ce5b466fcd4a93d61da783c4dd16fc987be562ea396438",
+                "0000000000000000000000000000000000000000000000000000000000000000",
+            )
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        validate_e3_research_artifact(json.dumps(data))
+    assert "manifest" in str(exc.value).lower() or "sidecar" in str(exc.value).lower()
+
+
+# --- Blocker 3 direct scan unit tests ---
+def test_scan_for_private_paths_direct() -> None:
+    from traffictwin.experiments.e3_research_evidence import _scan_for_private_paths
+
+    deep = {"a": {"b": {"c": "/tmp/direct_private"}}}  # noqa: S108
+    violations = _scan_for_private_paths(deep)
+    assert any("private path" in v.lower() for v in violations)
+    # Secret via password keyword (no assignment) should be caught only by this scan
+    deep_secret = {"x": {"y": "my password is foo"}}
+    violations2 = _scan_for_private_paths(deep_secret)
+    assert any("secret" in v.lower() for v in violations2)
+
+
+def test_scan_for_true_authorized_direct() -> None:
+    from traffictwin.experiments.e3_research_evidence import _scan_for_true_authorized
+
+    deep_true = {"a": {"b": {"my_authorized": True}}}
+    violations = _scan_for_true_authorized(deep_true)
+    assert any("_authorized" in v.lower() for v in violations)
+    # Non-bool authorized should also be caught only by this scan
+    deep_nobool = {"a": {"b": {"other_authorized": "yes"}}}
+    violations2 = _scan_for_true_authorized(deep_nobool)
+    assert any("_authorized" in v.lower() for v in violations2)
+
+
+def test_assert_no_private_paths_direct() -> None:
+    from traffictwin.experiments.e3_research_artifact import _assert_no_private_paths_or_secrets
+
+    with pytest.raises((ValidationError, ValueError)):
+        _assert_no_private_paths_or_secrets("prefix /tmp/private is here")
+    with pytest.raises((ValidationError, ValueError)):
+        _assert_no_private_paths_or_secrets("api_key: secret123")

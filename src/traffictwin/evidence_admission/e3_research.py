@@ -30,6 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from traffictwin.experiments.e3_research_evidence import (
     ACTOR_SHA256,
+    ALLOWLISTED_DISCLAIMERS,  # noqa: F401  # imported for dedup documentation
     APPROVED_CANDIDATE_SHA,
     CONTRACT_CHECKPOINT_SHA,
     CONTRACT_SHA256,
@@ -46,6 +47,8 @@ from traffictwin.experiments.e3_research_evidence import (
     VEC_CORE_SHA,
     VEC_PROMOTION_SHA,
     E3ResearchEvidencePackage,
+    _contains_affirming_forbidden_any,
+    _contains_private_path,
 )
 
 STANDING_REFUSED: Final[Literal["E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"]] = (
@@ -65,92 +68,6 @@ EXPECTED_ANALYSIS_ARTIFACT_FINGERPRINT: Final[None] = None
 
 _HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
-
-_FORBIDDEN_SUBSTRINGS_LOWER: Final[tuple[str, ...]] = (
-    "queue_ceiling_is_compute",
-    "queue ceiling is compute",
-    "queue ceiling is",
-    "actor selects execution",
-    "actor_selects",
-    "kubernetes",
-    "k8s_deployment",
-    "cost_dollars",
-    "cost_currency",
-    "cost_billing",
-    "monetary cost",
-    "monetary_cost",
-    "task_as_n",
-    "tasks_as_n",
-    "task as n",
-    "tasks as n",
-    "manchester-wide inference",
-    "manchester_wide",
-    "universal superiority",
-    "universal_superiority",
-    "supervisor approved",
-    "supervisor_approved",
-    "randy confirmed",
-    "randy_confirmed",
-)
-
-# Prefixes for private path detection built without contiguous literal.
-_PRIVATE_PREFIXES: Final[tuple[str, ...]] = (
-    "/" + "Users" + "/",
-    "/" + "home" + "/",
-    "/" + "tmp" + "/",
-    "/" + "private" + "/",
-    "/" + "var" + "/",
-    "C:\\",
-)
-
-
-def _contains_private_path(value: str) -> bool:
-    low = value.lower()
-    return any(pref.lower() in low for pref in _PRIVATE_PREFIXES)
-
-
-def _contains_forbidden(value: str) -> str | None:
-    low = value.lower()
-    for substr in _FORBIDDEN_SUBSTRINGS_LOWER:
-        if substr in low:
-            return substr
-    return None
-
-
-def _contains_affirming_forbidden(value: str, phrase: str) -> bool:
-    low = value.lower()
-    needle = phrase.lower()
-    start = 0
-    while True:
-        idx = low.find(needle, start)
-        if idx == -1:
-            return False
-        prefix = low[max(0, idx - 24) : idx]
-        has_negation = any(
-            token in prefix
-            for token in (
-                "not ",
-                "no ",
-                "never",
-                "without",
-                "is not",
-                "are not",
-                "isn't",
-                "isnt",
-                "forbidden",
-            )
-        )
-        if has_negation:
-            start = idx + len(needle)
-            continue
-        return True
-
-
-def _contains_affirming_forbidden_any(value: str) -> str | None:
-    for substr in _FORBIDDEN_SUBSTRINGS_LOWER:
-        if _contains_affirming_forbidden(value, substr):
-            return substr
-    return None
 
 
 def _validate_hex40_strict(value: str, field_name: str) -> str:

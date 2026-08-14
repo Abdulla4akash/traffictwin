@@ -146,7 +146,14 @@ def validate_e3_research_artifact(text: str) -> E3ResearchEvidencePackage:
         raise ValueError(f"vec adapter mismatch: {pkg.vec_runtime.adapter_candidate!r}")
     if pkg.contract.sha256 != CONTRACT_SHA256:
         raise ValueError(f"contract sha256 mismatch: {pkg.contract.sha256!r}")
-    # Manifest sidecar is not stored directly in package? We check provenance or contract? For now verify that package's contract matches.
+    # Wire MANIFEST_SIDECAR_SHA256 validation via provenance manifest entry
+    manifest_entries = [pr for pr in pkg.provenance if pr.kind == "manifest"]
+    if not manifest_entries:
+        raise ValueError("missing manifest provenance for sidecar")
+    if not any(MANIFEST_SIDECAR_SHA256 in pr.note for pr in manifest_entries):
+        raise ValueError(
+            f"manifest sidecar SHA mismatch: expected {MANIFEST_SIDECAR_SHA256} not found in manifest provenance notes {[pr.note for pr in manifest_entries]!r}"
+        )
     # Also verify execution authority hold
     ea = pkg.execution_authority
     if ea.status != "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED":

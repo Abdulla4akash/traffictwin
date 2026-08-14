@@ -11,13 +11,11 @@ null with reasons before execution.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
-from traffictwin.experiments.e3_research_evidence import (
-    NO_E3_RESEARCH_RESULTS_AVAILABLE,
-    NOT_EXECUTED,
-    REJECTION_CLASSES,
-)
+from traffictwin.experiments.e3_research_evidence import REJECTION_CLASSES
 
 # ---------------------------------------------------------------------------
 # Reasons — explicit unavailable with first-class null
@@ -110,7 +108,7 @@ class QueueVsComputeSeparation(BaseModel):
     queue_unit: str = Field(default="waiting_room_task_slots")
     compute_unit: str = Field(default="compute_unit")
     is_separate: bool = Field(default=True)
-    queue_is_not_compute: bool = Field(default=True)
+    queue_is_not_compute: Literal[True] = Field(default=True)
     compute_is_not_queue: bool = Field(default=True)
     reason: str = Field(
         default="Queue waiting-room capacity (tasks per RSU, ceiling 6220) is strictly separate from compute service capacity (units 1..3 per RSU draining 1000 work_ms per second per unit)"
@@ -153,8 +151,10 @@ class E3TaskAccountingView(BaseModel):
 
     model_config = ConfigDict(frozen=True, strict=True, extra="forbid")
 
-    evidence_state: str = Field(default=NOT_EXECUTED)
-    result_availability: str = Field(default=NO_E3_RESEARCH_RESULTS_AVAILABLE)
+    evidence_state: Literal["NOT_EXECUTED"] = Field(default="NOT_EXECUTED")
+    result_availability: Literal["NO_E3_RESEARCH_RESULTS_AVAILABLE"] = Field(
+        default="NO_E3_RESEARCH_RESULTS_AVAILABLE"
+    )
     research_workloads_launched: int = Field(default=0, ge=0, le=0)
 
     offered: None = Field(default=None)

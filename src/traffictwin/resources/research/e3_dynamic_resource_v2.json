@@ -814,7 +814,7 @@
     {
       "artifact": "run_e3_dynamic_resource_v2.py",
       "kind": "runner",
-      "note": "approved candidate ac8e410... and promotion 342789..."
+      "note": "approved candidate c5d66ef7e77f3b7d1f3fde084feea45a83f5c178 and promotion 342789434233e97cd87ea74e21a759878610ce40"
     },
     {
       "artifact": "vec_evaluator",

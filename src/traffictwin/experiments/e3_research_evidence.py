@@ -133,14 +133,32 @@ _FORBIDDEN_SUBSTRINGS_LOWER: Final[tuple[str, ...]] = (
     "tasks_as_n",
     "task as n",
     "tasks as n",
+    "tasks-as-n",
+    "task-as-n",
     "manchester-wide inference",
     "manchester_wide",
+    "manchester-wide",
     "universal superiority",
     "universal_superiority",
     "supervisor approved",
     "supervisor_approved",
     "randy confirmed",
     "randy_confirmed",
+)
+
+
+# Frozen allowlist of exact disclaimer sentences that legitimately contain
+# forbidden substrings but are shipped by the package. Fail-closed semantics
+# allow these verbatim strings byte-equal; any other string containing a
+# forbidden substring is rejected.
+ALLOWLISTED_DISCLAIMERS: Final[tuple[str, ...]] = (
+    "No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population",
+    "No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective",
+    "No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency",
+    "No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster",
+    "No actor selects execution RSU; frozen actor does not observe load",
+    "No tasks-as-N; tasks are accounting records, not independent replicates; task-level N is forbidden",
+    "Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority",
 )
 
 _SECRET_RE = re.compile(
@@ -167,39 +185,27 @@ def _contains_forbidden(value: str) -> str | None:
 
 
 def _contains_affirming_forbidden(value: str, phrase: str) -> bool:
+    # Fail-closed: any occurrence is affirming unless the whole string is an allowlisted disclaimer.
+    if value in ALLOWLISTED_DISCLAIMERS:
+        return False
     low = value.lower()
     needle = phrase.lower()
-    start = 0
-    while True:
-        idx = low.find(needle, start)
-        if idx == -1:
-            return False
-        prefix = low[max(0, idx - 24) : idx]
-        has_negation = any(
-            token in prefix
-            for token in (
-                "not ",
-                "no ",
-                "never",
-                "without",
-                "is not",
-                "are not",
-                "isn't",
-                "isnt",
-                "forbidden",
-            )
-        )
-        if has_negation:
-            start = idx + len(needle)
-            continue
-        return True
+    return needle in low
 
 
 def _contains_affirming_forbidden_any(value: str) -> str | None:
+    # Fail-closed: exact allowlisted disclaimer strings are exempt; otherwise any substring match is a violation.
+    if value in ALLOWLISTED_DISCLAIMERS:
+        return None
+    low = value.lower()
     for substr in _FORBIDDEN_SUBSTRINGS_LOWER:
-        if _contains_affirming_forbidden(value, substr):
+        if substr in low:
             return substr
     return None
+
+
+def _is_allowlisted(value: str) -> bool:
+    return value in ALLOWLISTED_DISCLAIMERS
 
 
 def _scan_for_private_paths(obj: Any, path: str = "$") -> list[str]:
@@ -897,6 +903,52 @@ class ProvenanceEntry(StrictBase):
             raise ValueError(f"value contains forbidden claim: {v!r}")
         return v
 
+    @field_validator("note")
+    @classmethod
+    def validate_provenance_hex(cls, v: str) -> str:
+        # Any hex adjacent to approval/promotion language must equal the declared identity.
+        # Find hex substrings 7-40 chars and check preceding window (short) for language.
+        for m in re.finditer(r"[0-9a-f]{7,40}", v, re.IGNORECASE):
+            hex_str = m.group(0).lower()
+            start = m.start()
+            window = v[max(0, start - 20) : start].lower()
+            if "approv" in window or "candidate" in window:
+                expected = APPROVED_CANDIDATE_SHA.lower()
+                if len(hex_str) == 40:
+                    if hex_str != expected:
+                        raise ValueError(
+                            f"provenance approval SHA mismatch: {hex_str!r} != approved {expected!r}"
+                        )
+                else:
+                    if not expected.startswith(hex_str):
+                        raise ValueError(
+                            f"provenance approval SHA prefix mismatch: {hex_str!r} not prefix of {expected!r}"
+                        )
+            if "promot" in window:
+                # Distinguish vec promotion vs research promotion via vec keyword
+                if "vec" in window:
+                    expected_options = [VEC_PROMOTION_SHA.lower()]
+                else:
+                    expected_options = [
+                        TRAFFICTWIN_RESEARCH_PROMOTION_SHA.lower(),
+                        VEC_PROMOTION_SHA.lower(),
+                    ]
+                matched = False
+                for expected in expected_options:
+                    if len(hex_str) == 40:
+                        if hex_str == expected:
+                            matched = True
+                            break
+                    else:
+                        if expected.startswith(hex_str):
+                            matched = True
+                            break
+                if not matched:
+                    raise ValueError(
+                        f"provenance promotion SHA mismatch: {hex_str!r} not prefix of any expected promotion {[e[:7] for e in expected_options]!r}"
+                    )
+        return v
+
 
 class MissingnessReason(StrictBase):
     field: str = Field(min_length=1)
@@ -988,6 +1040,20 @@ class E3ResearchEvidencePackage(StrictBase):
     def validate_factors(cls, v: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(v, dict):
             raise ValueError("factors must be dict")
+        allowed_keys = {
+            "evaluator_seed",
+            "fleet_seeds",
+            "padded_fleet_width",
+            "placements",
+            "scalings",
+            "scenario_rsus",
+            "smoke_ticks",
+            "state_age_ms_values",
+            "ticks_per_cell",
+        }
+        extra = set(v.keys()) - allowed_keys
+        if extra:
+            raise ValueError(f"factors contains forbidden extra keys: {sorted(extra)!r}")
         # check placements etc.
         placements = v.get("placements")
         scalings = v.get("scalings")
@@ -1006,7 +1072,29 @@ class E3ResearchEvidencePackage(StrictBase):
             raise ValueError(f"factors fleet_seeds must be [1,2,3,4], got {fleet!r}")
         if rsus is not None and rsus != 10:
             raise ValueError(f"factors scenario_rsus must be 10, got {rsus!r}")
+        # Strict type checks for known numerics to prevent result-like numerics
+        for key in (
+            "evaluator_seed",
+            "padded_fleet_width",
+            "scenario_rsus",
+            "smoke_ticks",
+            "ticks_per_cell",
+        ):
+            if key in v and type(v[key]) is not int:
+                raise ValueError(f"factors {key} must be int, got {type(v[key]).__name__}")
         for val in (placements, scalings, state_age, fleet):
+            if isinstance(val, list):
+                for item in val:
+                    if (
+                        isinstance(item, str)
+                        and _contains_affirming_forbidden_any(item) is not None
+                    ):
+                        raise ValueError(f"factors contains forbidden claim: {item!r}")
+        # Recursive scan for any nested forbidden/private content already handled in model_validator via _scan_for_private_paths,
+        # but also ensure no forbidden claim hidden in any string value of factors (deep)
+        for val in v.values():
+            if isinstance(val, str) and _contains_affirming_forbidden_any(val) is not None:
+                raise ValueError(f"factors contains forbidden claim: {val!r}")
             if isinstance(val, list):
                 for item in val:
                     if (

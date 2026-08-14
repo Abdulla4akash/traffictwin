@@ -225,3 +225,108 @@ def test_refusal_is_deterministic() -> None:
     r1 = admit_e3_research(pkg)
     r2 = admit_e3_research(pkg)
     assert r1.model_dump(mode="json") == r2.model_dump(mode="json")
+
+
+# --- Blocker 2 deep-nested via admission ---
+def test_admission_bypass_strings_rejected() -> None:
+    for payload in [
+        "there is no doubt kubernetes cluster is live",
+        "never in doubt: supervisor approved this",
+    ]:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = payload
+        # validate via admission helper should return forbidden errors
+        errs = validate_e3_package_for_admission(data)
+        # Should be non-empty and contain forbidden
+        assert len(errs) > 0
+        assert any("forbidden" in e.lower() for e in errs)
+        # admit should also refuse
+        result = admit_e3_research(data)
+        assert result.admitted is False
+        assert "REFUSED" in result.reason_code
+
+
+def test_admission_forbidden_families_deep_nested() -> None:
+    families = [
+        ("kubernetes deep via admission is true", "kubernetes"),
+        ("supervisor approved deep via admission is true", "supervisor approved"),
+        ("universal_superiority deep via admission is true", "universal_superiority"),
+        ("tasks_as_n deep via admission is true", "tasks_as_n"),
+        ("manchester_wide deep via admission is true", "manchester_wide"),
+        ("monetary_cost deep via admission is true", "monetary_cost"),
+        ("actor_selects_rsu deep via admission is true", "actor_selects"),
+        ("cost_dollars deep via admission is true", "cost_dollars"),
+        ("randy confirmed deep via admission is true", "randy confirmed"),
+        ("queue ceiling is compute deep via admission is true", "queue ceiling is"),
+    ]
+    for phrase, needle in families:
+        pkg = load_builtin_e3_research()
+        # Forge package with deep nested forbidden via model_copy (bypasses validation)
+        new_factors = dict(pkg.factors)
+        new_factors["deep_admission"] = {"inner": {"deepest": phrase}}  # type: ignore[assignment]
+        forged = pkg.model_copy(update={"factors": new_factors})
+        errs = validate_e3_package_for_admission(forged)
+        assert len(errs) > 0
+        assert any(needle in e.lower() for e in errs), f"expected {needle!r} in {errs!r}"
+
+
+def test_admission_allowlisted_disclaimers_pass_precheck() -> None:
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+    for dis in ALLOWLISTED_DISCLAIMERS:
+        # Use a valid package and set one limitation to the exact allowlisted disclaimer
+        # Pre-check should not flag it as forbidden
+        data = json.loads(builtin_e3_research_json())
+        # Only test disclaimers that are in non_claims - put as non_claim entry
+        data["non_claims"][0] = dis
+        # Need to ensure other non_claims are not causing extra forbidden - they are already allowlisted
+        # For this test, we just check that a package with that dis still has no forbidden pre-errors beyond the expected missing future artifact
+        # validate_e3_package_for_admission should return empty (no forbidden) for allowlisted, because allowlisted is exempt
+        # But other fields may still be valid, so we check that errs do not contain forbidden
+        errs = validate_e3_package_for_admission(data)
+        # Filter forbidden errors
+        forbidden_errs = [e for e in errs if "forbidden" in e.lower()]
+        assert forbidden_errs == [], (
+            f"allowlisted disclaimer incorrectly flagged: {dis!r} -> {forbidden_errs}"
+        )
+
+
+def test_admission_deep_nested_forbidden_via_package_object() -> None:
+    pkg = load_builtin_e3_research()
+    new_factors = dict(pkg.factors)
+    new_factors["deep5"] = {"level2": {"deepest": "kubernetes deep via package object is true"}}  # type: ignore[assignment]
+    forged = pkg.model_copy(update={"factors": new_factors})
+    errs = validate_e3_package_for_admission(forged)
+    assert len(errs) > 0
+    assert any("kubernetes" in e.lower() for e in errs)
+    result = admit_e3_research(forged)
+    assert result.admitted is False
+    assert "FORBIDDEN" in result.reason_code or "REFUSED" in result.reason_code
+
+
+def test_admission_deep_nested_true_authorized_via_package_object() -> None:
+    pkg = load_builtin_e3_research()
+    new_factors = dict(pkg.factors)
+    new_factors["deep6"] = {"level2": {"my_authorized": True}}  # type: ignore[assignment]
+    forged = pkg.model_copy(update={"factors": new_factors})
+    errs = validate_e3_package_for_admission(forged)
+    assert len(errs) > 0
+    assert any("_authorized" in e.lower() for e in errs)
+
+
+def test_admission_deep_nested_private_path_via_package_object() -> None:
+    pkg = load_builtin_e3_research()
+    new_factors = dict(pkg.factors)
+    new_factors["deep7"] = {"deep": {"path": "/tmp/evil_via_admission"}}  # type: ignore[assignment]  # noqa: S108
+    forged = pkg.model_copy(update={"factors": new_factors})
+    errs = validate_e3_package_for_admission(forged)
+    assert len(errs) > 0
+    assert any("private" in e.lower() for e in errs)
+
+
+def test_scan_forbidden_recursive_direct() -> None:
+    from traffictwin.evidence_admission.e3_research import _scan_forbidden_recursive
+
+    deep = {"a": {"b": {"c": "kubernetes deep direct is true"}}}
+    errs = _scan_forbidden_recursive(deep)
+    assert any("kubernetes" in e.lower() for e in errs)
