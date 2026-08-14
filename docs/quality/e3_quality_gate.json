@@ -16,82 +16,54 @@
       "result": "PASS",
       "exit_code": 0,
       "errors": [],
-      "checks": 15,
+      "checks": 16,
       "deterministic": true
     },
     "validator_mutations": {
       "count": 20,
       "each_must_fail_with_typed_error_no_traceback": true,
-      "result": "PASS",
-      "tested_categories": [
-        "identity_mismatch product_base_sha",
-        "identity_mismatch vec_promotion",
-        "identity_mismatch actor_sha256",
-        "identity_mismatch manifest_sidecar",
-        "tasks_as_n forbidden",
-        "queue_compute_conflation",
-        "unavailable_to_zero",
-        "monetary_cost",
-        "kubernetes_claim",
-        "actor_selects_rsu",
-        "manchester_wide_and_universal",
-        "missing_resource_denominator",
-        "free_unbounded_scaling",
-        "state_age_drift",
-        "broken_e3_journey_route",
-        "export_mismatch",
-        "non_deterministic_exports",
-        "placeholder_fabricated",
-        "path_secret_leakage",
-        "supervisor_approval"
-      ]
+      "result": "deferred_to_controller",
+      "note": "mutation self-tests are in acceptance suite; deferred here"
     },
     "acceptance_apptest": {
       "path": "tests/integration/test_e3_research_product_acceptance.py",
-      "tests": 57,
-      "result": "PASS",
-      "covers": [
-        "generic synthetic still works",
-        "e2 journey unchanged",
-        "e3 hold banner and refusal",
-        "e3 null lifecycle and provenance pins",
-        "e3 no placeholder fabricated",
-        "cta sequences mutual exclusion",
-        "exports deterministic typed payload no leakage",
-        "validator self-tests 20 mutations",
-        "no absolute path literals"
-      ]
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "pytest not run in gate; controller verifies via subprocess"
     },
     "lane10_focused": {
-      "tests": 162,
       "suites": [
         "tests/unit/test_e3_research_evidence.py",
         "tests/unit/test_e3_admission.py",
         "tests/unit/test_e3_comparison_accounting_strategy.py"
       ],
-      "result": "PASS"
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "deferred to controller"
     },
     "lane11_focused": {
-      "tests": 35,
       "suites": [
         "tests/unit/ui/test_e3_reporting.py",
         "tests/unit/ui/test_e3_components.py",
         "tests/unit/ui/test_resource_strategy_explorer_e3.py"
       ],
-      "result": "PASS"
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "deferred to controller"
     },
     "accessibility": {
       "path": "tests/ui/test_accessibility.py",
-      "tests": 442,
-      "result": "PASS",
-      "note": "documentation-only pages don't need it, but run as gate"
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "documentation-only pages don't need it, but deferred"
     },
     "ruff_format_check": {
       "changed_files": [
         "scripts/validate_e3_research_product.py",
         "tests/integration/test_e3_research_product_acceptance.py"
       ],
-      "result": "PASS",
+      "result": "deferred_to_controller",
+      "note": "ruff format deferred to controller",
       "command": "ruff format --check"
     },
     "ruff_check": {
@@ -99,21 +71,23 @@
         "scripts/validate_e3_research_product.py",
         "tests/integration/test_e3_research_product_acceptance.py"
       ],
-      "result": "PASS",
+      "result": "deferred_to_controller",
+      "note": "ruff check deferred to controller",
       "command": "ruff check"
     },
     "mypy_strict": {
       "path": "scripts/validate_e3_research_product.py",
-      "result": "PASS",
-      "command": "mypy --strict",
-      "errors": 0
+      "result": "deferred_to_controller",
+      "note": "mypy deferred to controller",
+      "command": "mypy --strict"
     },
     "py_compile": {
       "paths": [
         "scripts/validate_e3_research_product.py",
         "tests/integration/test_e3_research_product_acceptance.py"
       ],
-      "result": "PASS"
+      "result": "deferred_to_controller",
+      "note": "py_compile deferred"
     },
     "scope_check": {
       "allowed_prefixes": [
@@ -136,7 +110,7 @@
       ],
       "forbidden_literal": "/Users/ contiguous",
       "result": "PASS",
-      "note": "path checks use constructed \"/\" + \"Users\" + \"/\" to avoid literal in source"
+      "note": "path checks use constructed \"/\" + \"Users\" + \"/\" to avoid literal"
     },
     "no_secrets": {
       "checked_files": [
@@ -146,7 +120,7 @@
         "docs/closure/e3_product_traceability.json"
       ],
       "result": "PASS",
-      "note": "no password/secret/api_key/credential/private_key affirmatively"
+      "note": "no password/secret/api_key/credential/private_key"
     },
     "e2_preservation": {
       "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",

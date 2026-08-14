@@ -151,7 +151,15 @@ No empirical offering; no placeholder fabricated results.
 
 ### Limitations and non-claims
 
-Limitations (8) — bounded incident hour, fleet draws, actor/trace frozen, queue/compute separation and resource_unit_seconds not money, task counts unavailable, staleness typed int, provenance first-class, admission fail-closed.
+Limitations (8):
+- Evidence state NOT_EXECUTED, result_availability NO_E3_RESEARCH_RESULTS_AVAILABLE, research_workloads_launched = 0, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD, E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED — no E3 research results exist; model natively represents no-results truth
+- Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority
+- One Manchester incident hour 2024-03-15 20:00-21:00 Europe/London, provisional uk2030 fleet width 2488, 10 RSUs, 3600 ticks per cell (dormant), waiting-room ceiling 6220 (2.5x), fixed 1x service baseline, zero backhaul in frozen design
+- Frozen MAPPO actor 93c97059 does not observe RSU load and does not select execution RSU; frozen trace e188ce07 frozen E2d manifest f77afb23; actor and trace are implementation-verified facts, not learned control
+- Queue waiting-room capacity strictly separate from compute service capacity (units 1..3 per RSU); resource cost is resource_unit_seconds normalized usage not money; scale-action receipts, per-RSU summaries, capacity levels, state-age receipts null with reasons before execution
+- All task counts offered/admitted/rejected/forwarded/deadline_success unavailable with reasons; genuine rejection classes v2i_gate_rejected, v2i_cap_rejected, local_mqd_rejected, v2v_mqd_rejected, v2i_unavailable, v2v_unavailable remain null; unavailable lifecycle started/compute_completed/returned/dropped stays null with reasons, never zero
+- Staleness state_age_ms typed integer milliseconds in {0,1000,3000} as view parameter only; does not mutate true state; no empirical staleness results; E3c dormant
+- Provenance and missingness are first-class; limitations and non-claims are first-class; admission fails closed requiring exact frozen fingerprints plus future analysis artifact and package fingerprint
 
 Non-claims (10):
 - No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population

@@ -1365,3 +1365,588 @@ def test_no_absolute_path_literals_in_changed_files() -> None:
         txt2 = Path(p).read_text(encoding="utf-8")
         assert prefix_users not in txt2, f"{p} contains Users literal"
         assert prefix_home not in txt2 or "importlib" in txt2.lower()
+
+
+# ---- B5 regressions: self_sha sentinel and base-pin repo verification via CLI ----
+
+
+def test_b5_self_sha_invented_hex_fails_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Invented hex for self_sha must fail typed via CLI, sentinel passes already covered."""
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    data["lanes"]["12"]["self_sha"] = "a" * 40  # invented hex, not sentinel
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LANE_PIN_MISMATCH") for e in errs), (
+        f"expected pin mismatch got {errs}"
+    )
+    # Subprocess CLI check
+    import json as _json
+    import os
+    import subprocess
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        # Write tampered traceability to temp and use subprocess with _REPO_ROOT override? Use monkey via CLI subprocess with env?
+        # Instead verify via direct subprocess call that invented hex fails when we patch file on disk temporarily
+        # We'll use the same monkeypatch approach but also test via subprocess by writing tampered file to a fake repo
+        import shutil
+
+        fake_root = td_path / "repo"
+        (fake_root / "docs/closure").mkdir(parents=True)
+        (fake_root / "docs/quality").mkdir(parents=True)
+        (fake_root / "docs").mkdir(parents=True, exist_ok=True)
+        # copy needed files
+        (fake_root / "docs/closure/e3_product_traceability.json").write_text(
+            json.dumps(data), encoding="utf-8"
+        )
+        (fake_root / "docs/closure/e2_product_lane12_base_receipt.json").write_text(
+            Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        (fake_root / "docs/e3_dynamic_resource_v2_product.md").write_text(
+            Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        (fake_root / "docs/quality/e3_quality_gate.json").write_text(
+            Path("docs/quality/e3_quality_gate.json").read_text(encoding="utf-8"), encoding="utf-8"
+        )
+        (fake_root / "docs/quality/e3_validator_verdict.json").write_text(
+            Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        # Need src for imports? We'll just test via v.main with fake _REPO_ROOT
+        import scripts.validate_e3_research_product as v
+
+        orig_root = v._REPO_ROOT
+        v._REPO_ROOT = fake_root  # type: ignore[assignment]
+        try:
+            out = td_path / "out.json"
+            rc2 = v.main(["--output", str(out)])
+            assert rc2 != 0
+            errs2 = json.loads(out.read_text(encoding="utf-8")).get("errors", [])
+            assert any(e.startswith("E3PV_LANE_PIN_MISMATCH") for e in errs2)
+        finally:
+            v._REPO_ROOT = orig_root  # type: ignore[assignment]
+
+
+def test_b5_self_sha_sentinel_passes_via_cli(tmp_path: Path) -> None:
+    """Sentinel BOUND_AT_PROMOTION must pass via CLI (real tree)."""
+    import scripts.validate_e3_research_product as v
+
+    out = tmp_path / "sentinel.json"
+    rc = v.main(["--output", str(out)])
+    assert rc == 0
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["pass"] is True
+    assert data["lanes"]["12"]["self_sha"] == "BOUND_AT_PROMOTION"
+
+
+def test_b5_base_pin_tampered_fails_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Tampered base pin (invented hex or wrong ancestor) must fail via CLI repo-verified check."""
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Tamper to all zeros (valid hex but not an ancestor)
+    data["lanes"]["12"]["base_integration_sha"] = "0" * 40
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LANE_PIN_MISMATCH") for e in errs)
+    # Also test tampering to a different valid ancestor (lane10 promotion) should fail because not git-derived lane11
+    data2 = json.loads(real)
+    data2["lanes"]["12"]["base_integration_sha"] = (
+        "8a2f0fffb605fac94ec625f49f80260a54daba6d"  # lane10 promotion, is ancestor but wrong
+    )
+
+    def fake_read2(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data2)
+        return orig_read(self, *args, **kwargs)
+
+    mp2 = pytest.MonkeyPatch()
+    mp2.setattr(Path, "read_text", fake_read2)
+    try:
+        rc2, errs2, _ = _run_validator_cli(mp2, tmp_path)
+        assert rc2 != 0
+        assert any(e.startswith("E3PV_LANE_PIN_MISMATCH") for e in errs2)
+    finally:
+        mp2.undo()
+
+
+# ---- Full receipt scan coverage: gate, verdict, e2 receipt, traceability ----
+
+
+def test_gate_injection_fails_typed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    real_gate = Path("docs/quality/e3_quality_gate.json").read_text(encoding="utf-8")
+    gate_data = json.loads(real_gate)
+    gate_data["injected_forbidden"] = "Kubernetes deployment is live"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_quality_gate.json"):
+            return json.dumps(gate_data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_KUBERNETES_CLAIM") for e in errs)
+
+
+def test_verdict_injection_fails_typed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    real_verdict = Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
+    # Inject via traceability-like: add a field with forbidden
+    # Instead inject into verdict's hold or provenance via monkey patching build_verdict? Simpler: monkeypatch Path.read_text for verdict
+    # We'll inject into the file that validator reads: docs/quality/e3_validator_verdict.json is not currently read by validator for forb scan?
+    # But our validator now scans it, so we can inject.
+    gate_data = json.loads(real_verdict)
+    gate_data["injected"] = "We treat tasks as N for analysis"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_validator_verdict.json"):
+            return json.dumps(gate_data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_TASKS_AS_N") for e in errs)
+
+
+def test_e2_base_receipt_injection_fails_typed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real_receipt = Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(
+        encoding="utf-8"
+    )
+    receipt_data = json.loads(real_receipt)
+    receipt_data["injected"] = "Supervisor approval already granted for release"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e2_product_lane12_base_receipt.json"):
+            return json.dumps(receipt_data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_SUPERVISOR_CLAIM") for e in errs)
+
+
+def test_e2_base_receipt_injection_manchester_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real_receipt = Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(
+        encoding="utf-8"
+    )
+    receipt_data = json.loads(real_receipt)
+    receipt_data["note"] = "This generalizes across all of Manchester"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e2_product_lane12_base_receipt.json"):
+            return json.dumps(receipt_data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_MANCHESTER_WIDE") for e in errs)
+
+
+# ---- Verdict committed-vs-fresh equality (same pattern as gate) ----
+
+
+def test_tracked_verdict_receipt_matches_fresh_regeneration(tmp_path: Path) -> None:
+    import scripts.validate_e3_research_product as v
+
+    tracked = Path("docs/quality/e3_validator_verdict.json")
+    assert tracked.exists(), "tracked verdict must exist"
+    before = tracked.read_bytes()
+    fresh = tmp_path / "fresh_verdict.json"
+    rc = v.main(["--output", str(fresh)])
+    assert rc == 0
+    fresh_text = fresh.read_text(encoding="utf-8")
+    # Also via sorted errors deterministic
+    fresh2 = tmp_path / "fresh_verdict2.json"
+    rc2 = v.main(["--output", str(fresh2)])
+    assert rc2 == 0
+    assert fresh.read_text(encoding="utf-8") == fresh2.read_text(encoding="utf-8")
+    assert before.decode("utf-8") == fresh_text, "committed verdict must match fresh regeneration"
+    after = tracked.read_bytes()
+    assert before == after, "suite must leave tracked verdict byte-identical"
+
+
+def test_verdict_tamper_then_regenerate_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Tampering source (product_base_sha) then regenerating verdict must show FAIL or mismatch."""
+    from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+
+    orig = load_builtin_e3_research
+
+    def fake() -> Any:
+        pkg = orig()
+        return pkg.model_copy(update={"product_base_sha": "0" * 40})
+
+    monkeypatch.setattr(
+        "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
+    )
+    import scripts.validate_e3_research_product as v
+
+    fresh = tmp_path / "tampered_verdict.json"
+    rc = v.main(["--output", str(fresh)])
+    assert rc != 0, "tampered package should make validator FAIL"
+    data = json.loads(fresh.read_text(encoding="utf-8"))
+    assert data["pass"] is False
+    assert any(e.startswith("E3PV_IDENTITY_MISMATCH") for e in data["errors"])
+    # Fresh tampered verdict must NOT equal committed
+    committed = Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
+    assert fresh.read_text(encoding="utf-8") != committed
+
+
+def test_gate_tamper_then_regenerate_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Tampering source then regenerating gate must not echo committed provenance; fresh != committed and verdict FAIL."""
+    from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+
+    orig = load_builtin_e3_research
+
+    def fake() -> Any:
+        pkg = orig()
+        return pkg.model_copy(update={"product_base_sha": "0" * 40})
+
+    monkeypatch.setattr(
+        "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
+    )
+    import scripts.validate_e3_research_product as v
+
+    fresh = tmp_path / "tampered_gate.json"
+    rc = v.main(["--emit-gate-receipt", str(fresh)])
+    assert rc == 0  # gate generation still succeeds but should record FAIL verdict
+    fresh_data = json.loads(fresh.read_text(encoding="utf-8"))
+    assert fresh_data["verdict"] == "FAIL"
+    assert fresh_data["gates"]["validator_real_tree"]["result"] == "FAIL"
+    assert len(fresh_data["gates"]["validator_real_tree"]["errors"]) > 0
+    # Fresh gate provenance must reflect tampered input, not echo committed
+    committed_gate = json.loads(
+        Path("docs/quality/e3_quality_gate.json").read_text(encoding="utf-8")
+    )
+    assert fresh_data["provenance"]["product_base_sha"] == "0" * 40
+    assert committed_gate["provenance"]["product_base_sha"] != "0" * 40
+    assert fresh_data != committed_gate
+
+
+# ---- Truthful limitations: exact sets, advertised counts, contradictions ----
+
+
+def test_limitations_deleting_one_fails_typed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.validate_e3_research_product as v
+
+    # Delete one limitation from doc via monkeypatch
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            # Remove one expected limitation verbatim
+            from scripts.validate_e3_research_product import _EXPECTED_LIMITATIONS
+
+            return real.replace(_EXPECTED_LIMITATIONS[0], "")
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LIMITATIONS_MISSING") for e in errs)
+
+
+def test_non_claims_deleting_one_fails_typed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            from scripts.validate_e3_research_product import _EXPECTED_NON_CLAIMS
+
+            return real.replace(_EXPECTED_NON_CLAIMS[3], "")
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_NON_CLAIMS_MISSING") for e in errs)
+
+
+def test_disclaimer_deleting_one_fails_typed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+            return real.replace(ALLOWLISTED_DISCLAIMERS[0], "")
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LIMITATIONS_MISSING") for e in errs)
+
+
+def test_advertised_counts_mismatch_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real.replace("Limitations (8)", "Limitations (7)")
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any("Limitations" in e for e in errs)
+
+
+def test_verified_results_headline_flip_fails_typed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\n# Verified results\nWe have verified results for all workloads.\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_CONTRADICTION") for e in errs)
+
+
+def test_hosted_ci_is_green_fails_typed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nHosted CI is green and passing.\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_HOSTED_CI_CONTRADICTION") for e in errs)
+
+
+def test_workloads_launched_claim_fails_typed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nresearch_workloads_launched = 5\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
+
+
+def test_traceability_verified_results_injection_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    data["note"] = "Verified results show improvement"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_CONTRADICTION") for e in errs)
+
+def test_workloads_launched_space_colon_fails_on_doc(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Controller probe: `research workloads launched: 12` in docs must fail typed."""
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nresearch workloads launched: 12\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
+
+
+def test_we_launched_E3_workloads_fails_on_doc(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Controller probe: `we launched 12 E3 research workloads` in docs must fail typed."""
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nwe launched 12 E3 research workloads\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
+
+
+def test_workloads_launched_space_colon_fails_on_verdict_receipt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Controller probe: `research workloads launched: 12` in verdict receipt must fail typed."""
+    real = Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    data["injected_note"] = "research workloads launched: 12"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_validator_verdict.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
+
+
+def test_we_launched_E3_workloads_fails_on_verdict_receipt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Controller probe: `we launched 12 E3 research workloads` in verdict receipt must fail typed."""
+    real = Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    data["injected_note"] = "we launched 12 E3 research workloads"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_validator_verdict.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
+
+
+def test_workload_truthful_zero_still_passes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Truthful `research_workloads_launched = 0` statements keep passing."""
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nresearch_workloads_launched = 0\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc == 0
+    assert not any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
+
+
+def test_workload_executed_without_count_fails_on_doc(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Without count assertion like `we launched E3 research workloads` must fail."""
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nwe launched E3 research workloads\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
+
+
+def test_first_donot_no_bullet_deletion_fails_typed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression: deleting the FIRST doc bullet matching `does not`/leading `no ` must fail typed.
+
+    That bullet lives in Scientific question and bounded scope (What is displayed) — the Question bullet.
+    Pinned-exact-set now covers EVERY non-claim and disclaimer bullet (content-pinned, not count-floored).
+    """
+    doc_text = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
+    # Find FIRST bullet matching does not / leading no (case-insensitive)
+    first: str | None = None
+    for line in doc_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            content = stripped[2:].strip()
+            low = content.lower()
+            if "does not" in low or low.startswith("no "):
+                first = content
+                break
+    assert first is not None, "doc must have at least one does-not/no bullet"
+    # Diagnose location for documentation
+    assert "does not observe load" in first.lower() or first.lower().startswith("no ")
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real.replace(first, "")
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LIMITATIONS_MISSING") for e in errs)
