@@ -48,6 +48,7 @@ generate_dormant_arms = _mod.generate_dormant_arms
 generate_dormant_configs = _mod.generate_dormant_configs
 _collect_recursive_manifest_errors = _mod._collect_recursive_manifest_errors
 _check_unauthorized_capabilities_strict = _mod._check_unauthorized_capabilities_strict
+MANIFEST_TOP_LEVEL_KEYS = _mod.MANIFEST_TOP_LEVEL_KEYS
 UNAUTHORIZED_REQUIRED_KEYS = _mod.UNAUTHORIZED_REQUIRED_KEYS
 FORBIDDEN_MANIFEST_KEYS = _mod.FORBIDDEN_MANIFEST_KEYS
 FORBIDDEN_RESULT_KEYS = _mod.FORBIDDEN_RESULT_KEYS
@@ -104,6 +105,10 @@ def _is_finite_number(v: object) -> bool:
     return math.isfinite(float(v))
 
 
+def _is_execution_authority_path(path: str) -> bool:
+    return path == "manifest.execution_authority" or path == "result.execution_authority"
+
+
 def _collect_recursive_errors(obj: Any, path: str, errors: list[str]) -> None:  # noqa: ANN401
     """Recursively reject forbidden keys, timestamps, private paths, actor/k8s claims."""
     if isinstance(obj, dict):
@@ -131,6 +136,13 @@ def _collect_recursive_errors(obj: Any, path: str, errors: list[str]) -> None:  
             for substr in FORBIDDEN_SUBSTRINGS_LOWER:
                 if substr in low_k:
                     errors.append(f"forbidden substring {substr!r} in key {k!r} at {path}")
+            # capability key ending in _authorized must be false outside exact execution_authority
+            if (
+                not _is_execution_authority_path(path)
+                and low_k.endswith("_authorized")
+                and v is not False
+            ):
+                errors.append(f"unauthorized capability {k!r} not false at {path}, got {v!r}")
             _collect_recursive_errors(v, f"{path}.{k}", errors)
             # Check value if string contains forbidden absolute prefixes
             if isinstance(v, str):
@@ -186,6 +198,10 @@ def validate_manifest_dict(
     manifest_filename: str | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    if set(data.keys()) != MANIFEST_TOP_LEVEL_KEYS:
+        extra = set(data.keys()) - set(MANIFEST_TOP_LEVEL_KEYS)
+        missing = set(MANIFEST_TOP_LEVEL_KEYS) - set(data.keys())
+        errors.append(f"manifest top-level key set drift extra={extra} missing={missing}")
     # Schema version
     if data.get("schema_version") != MANIFEST_SCHEMA_VERSION:
         errors.append(
@@ -249,9 +265,13 @@ def validate_manifest_dict(
             missing = set(EXECUTION_AUTHORITY_EXPECTED.keys()) - set(auth.keys())
             errors.append(f"execution_authority key set drift extra={extra} missing={missing}")
         for k, v in EXECUTION_AUTHORITY_EXPECTED.items():
-            if auth.get(k) != v:
-                errors.append(f"auth {k!r} {auth.get(k)!r} != {v!r}")
-        if auth.get("research_workloads_launched") != 0:
+            got = auth.get(k)
+            if got != v or type(got) is not type(v):
+                errors.append(f"auth {k!r} {got!r} != {v!r} (strict type)")
+        if (
+            auth.get("research_workloads_launched") != 0
+            or type(auth.get("research_workloads_launched")) is not int
+        ):
             errors.append("research_workloads_launched nonzero")
         if auth.get("scientific_execution_authorized") is not False:
             errors.append("scientific_execution_authorized not false")
@@ -514,8 +534,9 @@ def validate_construct_result(
             missing = set(EXECUTION_AUTHORITY_EXPECTED.keys()) - set(auth.keys())
             errors.append(f"result auth key set drift extra={extra} missing={missing}")
         for k, v in EXECUTION_AUTHORITY_EXPECTED.items():
-            if auth.get(k) != v:
-                errors.append(f"result auth {k!r} {auth.get(k)!r} != {v!r}")
+            got = auth.get(k)
+            if got != v or type(got) is not type(v):
+                errors.append(f"result auth {k!r} {got!r} != {v!r} (strict type)")
     # Hold fields at top level
     for k in ("status", "lane_09", "evidence_state", "result_availability"):
         expected: Any = EXECUTION_AUTHORITY_EXPECTED.get(k)
@@ -825,17 +846,34 @@ def validate_construct_result(
             or nested.get("resource_intervals")
             or nested.get("tick_resource_intervals")
         )
+        # Initialize for fail-closed completeness when intervals absent
+        num_rsus_nested: Any = nested.get("num_rsus")
+        total: Any = nested.get("total_resource_unit_seconds")
+        seen: set[int] = set()
+        total_from_intervals = 0.0
         if not isinstance(intervals, list):
             errors.append("nested resource_intervals missing")
             intervals = []
+            # Still validate total presence/type even when intervals missing
+            if type(total) is bool or not isinstance(total, (int, float)):
+                errors.append(
+                    "nested total_resource_unit_seconds not numeric strict, rejecting bool"
+                )
+            else:
+                if not math.isfinite(float(total)):
+                    errors.append("nested total_resource_unit_seconds not finite")
+                if _is_strict_int(num_rsus_nested):
+                    lo = int(num_rsus_nested) * 1
+                    hi = int(num_rsus_nested) * 3
+                    if not (lo - 1e-9 <= float(total) <= hi + 1e-9):
+                        errors.append(
+                            f"nested total_resource_unit_seconds {total} out of range [{lo},{hi}] for {num_rsus_nested} RSUs"  # noqa: E501
+                        )
         else:
-            num_rsus_nested = nested.get("num_rsus")
             if _is_strict_int(num_rsus_nested) and len(intervals) != num_rsus_nested:
                 errors.append(
                     f"nested resource_intervals len {len(intervals)} != num_rsus {num_rsus_nested}"
                 )
-            seen: set[int] = set()
-            total_from_intervals = 0.0
             for iv in intervals:
                 if not isinstance(iv, dict):
                     errors.append("interval not dict")
@@ -871,7 +909,6 @@ def validate_construct_result(
             if _is_strict_int(num_rsus_nested):  # noqa: SIM102
                 if seen != set(range(int(num_rsus_nested))):  # noqa: SIM102
                     errors.append(f"intervals must cover each RSU exactly once, got {seen}")
-            total = nested.get("total_resource_unit_seconds")
             if type(total) is bool or not isinstance(total, (int, float)):
                 errors.append(
                     "nested total_resource_unit_seconds not numeric strict, rejecting bool"

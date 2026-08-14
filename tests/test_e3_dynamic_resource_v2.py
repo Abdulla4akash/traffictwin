@@ -1996,3 +1996,583 @@ def test_no_bare_pass_in_changed_scripts() -> None:
         for idx, line in enumerate(lines, 1):
             stripped = line.strip()
             assert stripped != "pass", f"bare pass found in {path}:{idx}"
+
+
+def _self_checksummed_manifest(base: dict[str, Any]) -> tuple[dict[str, Any], bytes, str, str]:
+    """Helper: canonical JSON bytes and sidecar material for self-checksummed manifest."""
+    raw = json.dumps(base, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+    hexv = hashlib.sha256(raw).hexdigest()
+    sidecar_raw = f"{hexv}  {MANIFEST_PATH.name}\n"
+    return base, raw, hexv, sidecar_raw
+
+
+def test_blocker1_manifest_authority_prefix_escape_rejected() -> None:
+    """Sibling execution_authority_extra and nested prefix-confusion must fail both validators."""
+    manifest = _load_manifest()
+    # Test each forbidden authorization key variant with true value
+    auth_keys = [
+        "full_3600_step_cells_authorized",
+        "e3a_authorized",
+        "manchester_trace_comparative_execution_authorized",
+        "empirical_e3_results_authorized",
+        "statistical_inference_authorized",
+    ]
+    for key in auth_keys:
+        # Top-level execution_authority_extra with true capability
+        bad = copy.deepcopy(manifest)
+        bad["execution_authority_extra"] = {key: True, "note": "should be rejected"}
+        raw = json.dumps(bad, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+        sidecar_raw = f"{hashlib.sha256(raw).hexdigest()}  {MANIFEST_PATH.name}\n"
+        # Standalone validator
+        errs = validate_manifest_dict(
+            bad,
+            raw_bytes=raw,
+            sidecar_hex=hashlib.sha256(raw).hexdigest(),
+            sidecar_raw=sidecar_raw,
+            manifest_filename=MANIFEST_PATH.name,
+        )
+        assert any(
+            "execution_authority_extra" in e
+            or key in e
+            or "top-level" in e.lower()
+            or "_authorized" in e
+            for e in errs
+        ), f"top-level extra true {key} should fail, got {errs}"
+        # Runner file-based verification via temp files
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as td:
+            m_path = Path(td) / MANIFEST_PATH.name
+            s_path = m_path.with_suffix(".sha256")
+            m_path.write_bytes(raw)
+            s_path.write_text(sidecar_raw, encoding="utf-8")
+            errs_file = validate_manifest_file(m_path, s_path)
+            assert len(errs_file) > 0, f"file validator should fail for top-level extra {key}"
+            # Runner _verify_manifest must also fail
+            import importlib.util as _ilu
+
+            spec = _ilu.spec_from_file_location("run_e3_tmp", RUNNER_PATH)
+            assert spec is not None and spec.loader is not None
+            mod = _ilu.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            try:
+                mod._verify_manifest(m_path, s_path)
+                raise AssertionError(f"runner _verify_manifest should fail for {key}")
+            except Exception as e:
+                assert (
+                    "top-level" in str(e).lower()
+                    or "extra" in str(e).lower()
+                    or "_authorized" in str(e).lower()
+                    or "drift" in str(e).lower()
+                )
+
+        # Nested prefix-confusion: object under unrelated key containing execution_authority_extra
+        bad2 = copy.deepcopy(manifest)
+        bad2["custom_wrapper"] = {"execution_authority_extra": {key: True}}
+        raw2 = (
+            json.dumps(bad2, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+        )
+        sidecar_raw2 = f"{hashlib.sha256(raw2).hexdigest()}  {MANIFEST_PATH.name}\n"
+        errs2 = validate_manifest_dict(
+            bad2,
+            raw_bytes=raw2,
+            sidecar_hex=hashlib.sha256(raw2).hexdigest(),
+            sidecar_raw=sidecar_raw2,
+            manifest_filename=MANIFEST_PATH.name,
+        )
+        assert any(
+            key in e or "_authorized" in e or "top-level" in e.lower() or "custom_wrapper" in e
+            for e in errs2
+        ), f"nested prefix confusion true {key} should fail, got {errs2}"
+        with tempfile.TemporaryDirectory() as td:
+            m_path = Path(td) / MANIFEST_PATH.name
+            s_path = m_path.with_suffix(".sha256")
+            m_path.write_bytes(raw2)
+            s_path.write_text(sidecar_raw2, encoding="utf-8")
+            errs_file2 = validate_manifest_file(m_path, s_path)
+            assert len(errs_file2) > 0, f"nested prefix {key} file should fail"
+
+
+def test_blocker1_manifest_strict_type_rejects_int_for_bool() -> None:
+    """Integer 0 must not be accepted for boolean false field in execution_authority."""
+    manifest = _load_manifest()
+    bad = copy.deepcopy(manifest)
+    # Replace a boolean false field with integer 0
+    bad["execution_authority"]["scientific_execution_authorized"] = 0  # type: ignore[assignment]
+    raw = json.dumps(bad, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+    sidecar_raw = f"{hashlib.sha256(raw).hexdigest()}  {MANIFEST_PATH.name}\n"
+    errs = validate_manifest_dict(
+        bad,
+        raw_bytes=raw,
+        sidecar_hex=hashlib.sha256(raw).hexdigest(),
+        sidecar_raw=sidecar_raw,
+        manifest_filename=MANIFEST_PATH.name,
+    )
+    assert any(
+        "strict" in e.lower() or "type" in e.lower() or "scientific_execution_authorized" in e
+        for e in errs
+    ), f"int 0 for bool false should fail, got {errs}"
+    # Also test via file validator and runner
+    import importlib.util as _ilu
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        m_path = Path(td) / MANIFEST_PATH.name
+        s_path = m_path.with_suffix(".sha256")
+        m_path.write_bytes(raw)
+        s_path.write_text(sidecar_raw, encoding="utf-8")
+        errs_file = validate_manifest_file(m_path, s_path)
+        assert len(errs_file) > 0
+        spec = _ilu.spec_from_file_location("run_e3_tmp2", RUNNER_PATH)
+        assert spec is not None and spec.loader is not None
+        mod = _ilu.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        try:
+            mod._verify_manifest(m_path, s_path)
+            raise AssertionError("runner should reject int 0 for bool")
+        except Exception as e:
+            assert "strict" in str(e).lower() or "mismatch" in str(e).lower()
+
+
+def test_blocker1_manifest_top_level_allowlist() -> None:
+    """Exact top-level allowlist must reject any extra sibling keys."""
+    manifest = _load_manifest()
+    bad = copy.deepcopy(manifest)
+    bad["extra_sibling_key"] = {"note": "should be rejected"}
+    raw = json.dumps(bad, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+    sidecar_raw = f"{hashlib.sha256(raw).hexdigest()}  {MANIFEST_PATH.name}\n"
+    errs = validate_manifest_dict(
+        bad,
+        raw_bytes=raw,
+        sidecar_hex=hashlib.sha256(raw).hexdigest(),
+        sidecar_raw=sidecar_raw,
+        manifest_filename=MANIFEST_PATH.name,
+    )
+    assert any("top-level" in e.lower() and "extra_sibling_key" in e for e in errs) or any(
+        "extra" in e.lower() for e in errs
+    ), f"allowlist should reject extra key, got {errs}"
+
+
+def test_blocker2_result_unauthorized_booleans() -> None:
+    """Result validator must reject any _authorized true outside exact
+    result.execution_authority."""  # noqa: E501
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    # Direct top-level unauthorized true
+    payload = _valid_adapter_payload()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    wrapped["e3a_authorized"] = True  # type: ignore[assignment]
+    errs = validate_construct_result(wrapped, _load_manifest())
+    assert any("_authorized" in e and "not false" in e.lower() for e in errs) or any(
+        "e3a_authorized" in e for e in errs
+    ), f"top-level true should fail, got {errs}"
+    # Non-boolean _authorized (int)
+    payload2 = _valid_adapter_payload()
+    wrapped2 = _runner_mod._build_construct_result(payload2, base_sha, TRAFFICTWIN_BASE_SHA)
+    wrapped2["statistical_inference_authorized"] = 1  # type: ignore[assignment]
+    errs2 = validate_construct_result(wrapped2, _load_manifest())
+    assert any("_authorized" in e for e in errs2), f"non-boolean should fail, got {errs2}"
+    # Deep nested inside nested_adapter_result
+    payload3 = _valid_adapter_payload()
+    wrapped3 = _runner_mod._build_construct_result(payload3, base_sha, TRAFFICTWIN_BASE_SHA)
+    wrapped3["nested_adapter_result"]["empirical_e3_results_authorized"] = True  # type: ignore[assignment]
+    errs3 = validate_construct_result(wrapped3, _load_manifest())
+    assert any("_authorized" in e or "empirical" in e for e in errs3), (
+        f"nested true should fail, got {errs3}"
+    )
+    # Arbitrary deep object
+    payload4 = _valid_adapter_payload()
+    wrapped4 = _runner_mod._build_construct_result(payload4, base_sha, TRAFFICTWIN_BASE_SHA)
+    wrapped4["nested_adapter_result"]["deep"] = {"inner": {"full_3600_step_cells_authorized": True}}  # type: ignore[assignment]
+    errs4 = validate_construct_result(wrapped4, _load_manifest())
+    assert any("_authorized" in e or "full_3600" in e for e in errs4), (
+        f"deep nested true should fail, got {errs4}"
+    )
+    # Ensure canonical result authority exact strict set still passes
+    payload_ok = _valid_adapter_payload()
+    wrapped_ok = _runner_mod._build_construct_result(payload_ok, base_sha, TRAFFICTWIN_BASE_SHA)
+    errs_ok = validate_construct_result(wrapped_ok, _load_manifest())
+    assert errs_ok == [], f"canonical should pass, got {errs_ok}"
+    # Mutate canonical authority with int 0 for bool false must fail strict type
+    payload5 = _valid_adapter_payload()
+    wrapped5 = _runner_mod._build_construct_result(payload5, base_sha, TRAFFICTWIN_BASE_SHA)
+    wrapped5["execution_authority"]["scientific_execution_authorized"] = 0  # type: ignore[assignment]
+    errs5 = validate_construct_result(wrapped5, _load_manifest())
+    assert any(
+        "strict" in e.lower() or "type" in e.lower() or "scientific_execution_authorized" in e
+        for e in errs5
+    ), f"int 0 for bool in result authority should fail, got {errs5}"
+
+
+def test_blocker3_missing_interval_validation_abort_direct() -> None:
+    """Missing all nested interval aliases must report error and not raise;
+    later checks still run."""  # noqa: E501
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    # Build base wrapped then remove all three interval aliases from nested
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    nested = wrapped["nested_adapter_result"]
+    # Remove all interval aliases
+    nested.pop("resource_intervals_this_tick", None)
+    nested.pop("resource_intervals", None)
+    nested.pop("tick_resource_intervals", None)
+    # Also inject later-check failures that should still be reported
+    wrapped["task_outcomes"] = [{"mismatch": 1}]  # mirror mismatch
+    wrapped["state_age_ms"] = 999  # state age mismatch vs nested
+    nested["created_utc"] = "2026-01-01"  # forbidden timestamp
+    nested["note"] = "/Users/some/private/path"  # private path
+    wrapped["resource_intervals"] = []  # to trigger mirror mismatch difference
+    # Also ensure export byte drift and forbidden substring will be tested
+    # via direct call without export? We'll test export separately
+    # Direct function must not raise
+    try:
+        errs = validate_construct_result(wrapped, _load_manifest())
+    except Exception as e:
+        raise AssertionError(  # noqa: E501
+            f"should not raise UnboundLocalError, got {e} {type(e).__name__}"
+        ) from e
+    assert any(
+        "resource_intervals missing" in e.lower() or "nested resource_intervals" in e.lower()
+        for e in errs
+    ), f"missing intervals should be reported, got {errs}"
+    # Later checks must still run despite missing intervals
+    assert any("mirror mismatch" in e.lower() for e in errs), (
+        f"mirror check should still run, got {errs}"
+    )
+    # State age check (receipt vs factor) may still run, but we altered
+    # top state_age, so expect some state_age error
+    assert any("state_age" in e.lower() or "receipt_state_age" in e.lower() for e in errs), (
+        f"state age should be checked, got {errs}"
+    )
+    assert any("timestamp" in e.lower() for e in errs), (
+        f"timestamp check should still run, got {errs}"
+    )
+    assert any("private" in e.lower() or "absolute" in e.lower() for e in errs), (
+        f"private path should still run, got {errs}"
+    )
+
+
+def test_blocker3_missing_interval_cli_emits_typed_verdict() -> None:
+    """CLI must emit pass=false JSON verdict instead of traceback when intervals missing."""
+    import json as _json
+    import subprocess
+    import sys
+    import tempfile
+
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    nested = wrapped["nested_adapter_result"]
+    nested.pop("resource_intervals_this_tick", None)
+    nested.pop("resource_intervals", None)
+    nested.pop("tick_resource_intervals", None)
+    # Inject later checks as well to ensure CLI reports them
+    nested["note"] = "queue ceiling is the compute capacity"  # forbidden claim variant
+    wrapped["task_outcomes"] = []
+    # Prepare temp manifest and construct files
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        m_path = td_path / MANIFEST_PATH.name
+        s_path = m_path.with_suffix(".sha256")
+        m_path.write_bytes(MANIFEST_PATH.read_bytes())
+        s_path.write_text(
+            f"{hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()}  {m_path.name}\n",
+            encoding="utf-8",
+        )
+        c_path = td_path / "construct.json"
+        c_path.write_text(_json.dumps(wrapped), encoding="utf-8")
+        # Also prepare export file with byte drift? We'll just test without export first
+        proc = subprocess.run(  # noqa: S603
+            [
+                sys.executable,
+                str(VALIDATOR_PATH),
+                "--manifest",
+                str(m_path),
+                "--construct-result",
+                str(c_path),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        # Should not produce traceback
+        assert "Traceback" not in proc.stderr, f"CLI should not traceback, got {proc.stderr}"
+        assert "UnboundLocalError" not in proc.stderr
+        assert "UnboundLocalError" not in proc.stdout
+        # stdout should be JSON with pass false
+        try:
+            out = _json.loads(proc.stdout)
+        except Exception as e:
+            raise AssertionError(f"CLI output not JSON, got {proc.stdout!r} err {e}") from e
+        assert out.get("pass") is False, f"should be pass false, got {out}"
+        assert isinstance(out.get("errors"), list) and len(out["errors"]) > 0
+        errs = out["errors"]
+        assert any("resource_intervals" in e.lower() for e in errs), (
+            f"missing intervals error expected, got {errs}"
+        )
+        assert any("queue ceiling is" in e.lower() or "forbidden" in e.lower() for e in errs), (
+            f"forbidden claim should still be reported, got {errs}"
+        )
+        assert any("mirror" in e.lower() for e in errs), (
+            f"mirror check should still run in CLI, got {errs}"
+        )
+        # Now test export drift still reported alongside missing intervals
+        export_path = td_path / "export.json"
+        export_path.write_text("not canonical", encoding="utf-8")
+        proc2 = subprocess.run(  # noqa: S603
+            [
+                sys.executable,
+                str(VALIDATOR_PATH),
+                "--manifest",
+                str(m_path),
+                "--construct-result",
+                str(c_path),
+                "--export",
+                str(export_path),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        out2 = _json.loads(proc2.stdout)
+        assert out2.get("pass") is False
+        assert any("export" in e.lower() and "drift" in e.lower() for e in out2["errors"]) or any(
+            "drift" in e.lower() for e in out2["errors"]
+        ), f"export drift should be reported even with missing intervals, got {out2['errors']}"
+
+
+def test_defense_claim_variants_rejected() -> None:
+    """Natural-language claim variants containing actor selects and queue ceiling is must
+    be rejected."""  # noqa: E501
+    manifest = _load_manifest()
+    for variant in [
+        "actor selects the exact execution RSU",
+        "queue ceiling is the compute capacity",
+    ]:
+        bad = copy.deepcopy(manifest)
+        bad["note"] = variant
+        raw = json.dumps(bad, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+        sidecar_raw = f"{hashlib.sha256(raw).hexdigest()}  {MANIFEST_PATH.name}\n"
+        errs = validate_manifest_dict(
+            bad,
+            raw_bytes=raw,
+            sidecar_hex=hashlib.sha256(raw).hexdigest(),
+            sidecar_raw=sidecar_raw,
+            manifest_filename=MANIFEST_PATH.name,
+        )
+        assert any(
+            "forbidden" in e.lower()
+            or "actor selects" in e.lower()
+            or "queue ceiling is" in e.lower()
+            for e in errs
+        ), f"variant {variant!r} should be rejected, got {errs}"
+        # Also test at nested depth
+        bad2 = copy.deepcopy(manifest)
+        bad2["custom"] = {"deep": {"note": variant}}
+        raw2 = (
+            json.dumps(bad2, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+        )
+        sidecar_raw2 = f"{hashlib.sha256(raw2).hexdigest()}  {MANIFEST_PATH.name}\n"
+        errs2 = validate_manifest_dict(
+            bad2,
+            raw_bytes=raw2,
+            sidecar_hex=hashlib.sha256(raw2).hexdigest(),
+            sidecar_raw=sidecar_raw2,
+            manifest_filename=MANIFEST_PATH.name,
+        )
+        assert any("forbidden" in e.lower() for e in errs2), (
+            f"nested variant {variant!r} should fail, got {errs2}"
+        )
+    # Also test result variant
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    wrapped["nested_adapter_result"]["note"] = "Actor selects the exact execution RSU"
+    errs3 = validate_construct_result(wrapped, _load_manifest())
+    assert any("forbidden" in e.lower() or "actor selects" in e.lower() for e in errs3), (
+        f"result variant should fail, got {errs3}"
+    )
+    payload2 = _valid_adapter_payload()
+    wrapped2 = _runner_mod._build_construct_result(payload2, base_sha, TRAFFICTWIN_BASE_SHA)
+    wrapped2["nested_adapter_result"]["deep"] = {"msg": "QUEUE CEILING IS the compute capacity"}
+    errs4 = validate_construct_result(wrapped2, _load_manifest())
+    assert any("forbidden" in e.lower() for e in errs4), (
+        f"deep result variant should fail, got {errs4}"
+    )
+
+
+def test_defense_canonical_config_id_strict_rsus() -> None:
+    """Shared config-ID helper must accept only {1,2,10}, rejecting intermediate counts."""
+    for valid in (1, 2, 10):
+        # Use a valid placement/scaling/age
+        cfg = canonical_config_id("per_task_dla", "fixed_1x", 0, 0, 1, valid)
+        assert f"__rsus_{valid}" in cfg
+    for invalid in (3, 4, 5, 6, 7, 8, 9):
+        try:
+            canonical_config_id("per_task_dla", "fixed_1x", 0, 0, 1, invalid)
+            raise AssertionError(f"should reject num_rsus {invalid}")
+        except ValueError as e:
+            assert "must be 1, 2" in str(e).lower() or "out of range" in str(e).lower()
+    # Also test that pilot of manifest generation still uses 10 only
+    configs = _runner_mod.generate_dormant_configs()
+    assert all(c["num_rsus"] == 10 for c in configs)
+
+
+def test_path_encoding_escape_dotted_sibling_manifest_and_result() -> None:
+    """Literal dotted sibling keys must not bypass _authorized via path-join encoding."""
+    manifest = _load_manifest()
+    # --- Manifest top-level dotted sibling ---
+    for dotted_key in ["execution_authority.extra", "execution_authority.evil.deep"]:
+        bad = copy.deepcopy(manifest)
+        bad[dotted_key] = {"e3a_authorized": True}  # type: ignore[assignment]
+        raw = json.dumps(bad, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+        sidecar_raw = f"{hashlib.sha256(raw).hexdigest()}  {MANIFEST_PATH.name}\n"
+        errs = validate_manifest_dict(
+            bad,
+            raw_bytes=raw,
+            sidecar_hex=hashlib.sha256(raw).hexdigest(),
+            sidecar_raw=sidecar_raw,
+            manifest_filename=MANIFEST_PATH.name,
+        )
+        assert any(dotted_key in e or "top-level" in e.lower() for e in errs) or any(
+            "_authorized" in e for e in errs
+        ), f"manifest top-level dotted {dotted_key!r} should fail, got {errs}"
+        assert any("_authorized" in e or "e3a_authorized" in e for e in errs), (
+            f"manifest dotted {dotted_key!r} must flag _authorized true, got {errs}"
+        )
+        # also via file and runner
+        import importlib.util as _ilu
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as td:
+            m_path = Path(td) / MANIFEST_PATH.name
+            s_path = m_path.with_suffix(".sha256")
+            m_path.write_bytes(raw)
+            s_path.write_text(sidecar_raw, encoding="utf-8")
+            errs_file = validate_manifest_file(m_path, s_path)
+            assert len(errs_file) > 0, f"file validator should fail dotted {dotted_key}"
+            spec = _ilu.spec_from_file_location("run_e3_tmp_dotted", RUNNER_PATH)
+            assert spec is not None and spec.loader is not None
+            mod = _ilu.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            try:
+                mod._verify_manifest(m_path, s_path)
+                raise AssertionError(f"runner should reject manifest dotted {dotted_key}")
+            except Exception as e:
+                assert (
+                    "top-level" in str(e).lower()
+                    or "extra" in str(e).lower()
+                    or "_authorized" in str(e).lower()
+                    or "drift" in str(e).lower()
+                )
+        # --- Manifest nested dotted sibling (literal key inside unrelated container) ---
+        for dotted_nested in ["execution_authority.extra", "execution_authority.evil.deep"]:
+            bad2 = copy.deepcopy(manifest)
+            bad2["custom_wrapper"] = {dotted_nested: {"e3a_authorized": True}}  # type: ignore[assignment]
+            raw2 = (
+                json.dumps(bad2, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8")
+                + b"\n"
+            )
+            sidecar_raw2 = f"{hashlib.sha256(raw2).hexdigest()}  {MANIFEST_PATH.name}\n"
+            errs2 = validate_manifest_dict(
+                bad2,
+                raw_bytes=raw2,
+                sidecar_hex=hashlib.sha256(raw2).hexdigest(),
+                sidecar_raw=sidecar_raw2,
+                manifest_filename=MANIFEST_PATH.name,
+            )
+            assert any("_authorized" in e or "e3a_authorized" in e for e in errs2), (
+                f"manifest nested dotted {dotted_nested!r} should flag _authorized, got {errs2}"
+            )
+            # deeply nested wrapper
+            bad3 = copy.deepcopy(manifest)
+            bad3["outer"] = {"inner": {dotted_nested: {"e3a_authorized": True}}}  # type: ignore[assignment]
+            raw3 = (
+                json.dumps(bad3, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8")
+                + b"\n"
+            )
+            sidecar_raw3 = f"{hashlib.sha256(raw3).hexdigest()}  {MANIFEST_PATH.name}\n"
+            errs3 = validate_manifest_dict(
+                bad3,
+                raw_bytes=raw3,
+                sidecar_hex=hashlib.sha256(raw3).hexdigest(),
+                sidecar_raw=sidecar_raw3,
+                manifest_filename=MANIFEST_PATH.name,
+            )
+            assert any("_authorized" in e for e in errs3), (
+                f"manifest deep nested dotted {dotted_nested!r} should fail, got {errs3}"
+            )
+
+    # --- Result top-level dotted sibling ---
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    for dotted_key in ["execution_authority.extra", "execution_authority.evil.deep"]:
+        payload = _valid_adapter_payload()
+        wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+        wrapped[dotted_key] = {"e3a_authorized": True}  # type: ignore[assignment]
+        errs = validate_construct_result(wrapped, _load_manifest())
+        assert any("_authorized" in e or "e3a_authorized" in e for e in errs), (
+            f"result top-level dotted {dotted_key!r} should flag _authorized, got {errs}"
+        )
+        # nested dotted sibling inside result custom container
+        payload2 = _valid_adapter_payload()
+        wrapped2 = _runner_mod._build_construct_result(payload2, base_sha, TRAFFICTWIN_BASE_SHA)
+        wrapped2["custom_wrapper"] = {dotted_key: {"e3a_authorized": True}}  # type: ignore[assignment]
+        errs2 = validate_construct_result(wrapped2, _load_manifest())
+        assert any("_authorized" in e for e in errs2), (
+            f"result nested custom_wrapper dotted {dotted_key!r} should fail, got {errs2}"
+        )
+        # nested inside nested_adapter_result
+        payload3 = _valid_adapter_payload()
+        wrapped3 = _runner_mod._build_construct_result(payload3, base_sha, TRAFFICTWIN_BASE_SHA)
+        wrapped3["nested_adapter_result"][dotted_key] = {"e3a_authorized": True}  # type: ignore[assignment]
+        errs3 = validate_construct_result(wrapped3, _load_manifest())
+        assert any("_authorized" in e for e in errs3), (
+            f"result nested_adapter_result dotted {dotted_key!r} should fail, got {errs3}"
+        )
+        # deep nested
+        payload4 = _valid_adapter_payload()
+        wrapped4 = _runner_mod._build_construct_result(payload4, base_sha, TRAFFICTWIN_BASE_SHA)
+        wrapped4["deep_outer"] = {"inner": {dotted_key: {"empirical_e3_results_authorized": True}}}  # type: ignore[assignment]
+        errs4 = validate_construct_result(wrapped4, _load_manifest())
+        assert any("_authorized" in e for e in errs4), (
+            f"result deep nested dotted {dotted_key!r} should fail, got {errs4}"
+        )
+
+
+def test_manifest_allowlist_unconditional_and_validator_binding() -> None:
+    """Validator must bind allowlist at import and enforce unconditionally."""
+
+    # Validator binds at import time, no conditional try/except fallback
+    v_text = VALIDATOR_PATH.read_text(encoding="utf-8")
+    assert "MANIFEST_TOP_LEVEL_KEYS = _mod.MANIFEST_TOP_LEVEL_KEYS" in v_text, (
+        "validator must bind MANIFEST_TOP_LEVEL_KEYS at import time"
+    )
+    # No dynamic try/except import inside validate_manifest_dict
+    # Ensure the function does not contain the old conditional pattern
+    assert (
+        "from run_e3_dynamic_resource_v2 import" not in v_text
+        or v_text.count("MANIFEST_TOP_LEVEL_KEYS") <= 3
+    ), "validator should not dynamically import MANIFEST_TOP_LEVEL_KEYS inside function"
+    # Directly check no try/except turning allowlist off inside validate_manifest_dict source
+    func_src = v_text.split("def validate_manifest_dict")[1].split("def validate_manifest_file")[0]
+    assert "mtlk: frozenset" not in func_src, "old mtlk conditional should be removed"
+    assert (
+        "try:" not in func_src.split("if set(data.keys())")[0]
+        or "MANIFEST_TOP_LEVEL_KEYS" in func_src.split("if set(data.keys())")[0]
+    ), "allowlist check must be unconditional, not inside try/except"
+    # Functional check: extra key must fail unconditionally
+    manifest = _load_manifest()
+    bad = copy.deepcopy(manifest)
+    bad["execution_authority.extra"] = {"note": "allowlist"}  # type: ignore[assignment]
+    raw = json.dumps(bad, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+    sidecar_raw = f"{hashlib.sha256(raw).hexdigest()}  {MANIFEST_PATH.name}\n"
+    errs = validate_manifest_dict(
+        bad,
+        raw_bytes=raw,
+        sidecar_hex=hashlib.sha256(raw).hexdigest(),
+        sidecar_raw=sidecar_raw,
+        manifest_filename=MANIFEST_PATH.name,
+    )
+    assert any("top-level" in e.lower() for e in errs), (
+        f"unconditional allowlist should reject dotted sibling, got {errs}"
+    )
+    # Ensure validator module actually has the attribute
+    assert hasattr(_validator_mod, "MANIFEST_TOP_LEVEL_KEYS")
+    assert _validator_mod.MANIFEST_TOP_LEVEL_KEYS == _runner_mod.MANIFEST_TOP_LEVEL_KEYS

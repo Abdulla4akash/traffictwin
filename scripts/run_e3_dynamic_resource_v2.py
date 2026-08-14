@@ -119,7 +119,9 @@ FORBIDDEN_RESULT_KEYS: Final[tuple[str, ...]] = (
 FORBIDDEN_SUBSTRINGS_LOWER: Final[tuple[str, ...]] = (
     "queue_ceiling_is_compute",
     "queue ceiling is compute",
+    "queue ceiling is",
     "actor selects execution",
+    "actor selects",
     "actor_selects",
     "kubernetes",
     "k8s_deployment",
@@ -127,6 +129,35 @@ FORBIDDEN_SUBSTRINGS_LOWER: Final[tuple[str, ...]] = (
 
 SENTINEL_TRACE: Final[str] = "__SENTINEL_MISSING_TRACE__"
 SENTINEL_ACTOR: Final[str] = "__SENTINEL_MISSING_ACTOR__"
+
+MANIFEST_TOP_LEVEL_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "approved_candidate_commit",
+        "authorized_cells",
+        "authorized_execution_config_ids",
+        "authorized_runs",
+        "campaign",
+        "contract",
+        "dormant_arm_count",
+        "dormant_arms",
+        "dormant_config_count",
+        "dormant_configs",
+        "execution_authority",
+        "factors",
+        "promoted_checkpoint_commit",
+        "provenance",
+        "result_schema_version",
+        "runner_schema_version",
+        "schema_version",
+        "traffictwin_runtime",
+        "unauthorized_capabilities",
+        "vec_runtime",
+    }
+)
+
+
+def _is_manifest_execution_authority_path(path: str) -> bool:
+    return path == "manifest.execution_authority"
 
 
 def _collect_recursive_manifest_errors(obj: Any, path: str, errors: list[str]) -> None:  # noqa: E501, ANN401
@@ -156,7 +187,7 @@ def _collect_recursive_manifest_errors(obj: Any, path: str, errors: list[str]) -
             # capability key ending in _authorized must be false (no additional true)
             # Exclude execution_authority's documented true key; it has its own strict check
             if (
-                not path.startswith("manifest.execution_authority")
+                not _is_manifest_execution_authority_path(path)
                 and low_k.endswith("_authorized")
                 and v is not False
             ):
@@ -247,9 +278,8 @@ def canonical_config_id(
         raise ValueError(f"evaluator_seed must be {EVALUATOR_SEED}")
     if fleet_seed not in FLEET_SEEDS:
         raise ValueError(f"fleet_seed must be in {FLEET_SEEDS}")
-    if num_rsus != SCENARIO_RSUS and num_rsus not in (1, 2):  # noqa: SIM102
-        if not (1 <= num_rsus <= SCENARIO_RSUS):  # noqa: SIM102
-            raise ValueError(f"num_rsus {num_rsus} out of range")
+    if num_rsus not in (1, 2, SCENARIO_RSUS):
+        raise ValueError(f"num_rsus {num_rsus} must be 1, 2, or {SCENARIO_RSUS}")
     return f"{arm}__eval_{evaluator_seed}__fleet_{fleet_seed}__rsus_{num_rsus}"
 
 
@@ -469,6 +499,10 @@ def _verify_manifest(
             raise ValueError("manifest not canonical sorted/indented")
         if raw != canonical:
             raise ValueError("manifest byte drift vs canonical")
+    if set(data.keys()) != MANIFEST_TOP_LEVEL_KEYS:
+        extra = set(data.keys()) - set(MANIFEST_TOP_LEVEL_KEYS)
+        missing = set(MANIFEST_TOP_LEVEL_KEYS) - set(data.keys())
+        raise ValueError(f"manifest top-level key set drift extra={extra} missing={missing}")
     if data.get("schema_version") != MANIFEST_SCHEMA_VERSION:
         raise ValueError(
             f"schema_version {data.get('schema_version')!r} != {MANIFEST_SCHEMA_VERSION!r}"
@@ -499,8 +533,9 @@ def _verify_manifest(
     if not isinstance(auth, dict):
         raise ValueError("execution_authority missing")
     for k, v in EXECUTION_AUTHORITY.items():
-        if auth.get(k) != v:
-            raise ValueError(f"execution_authority {k!r} mismatch: {auth.get(k)!r} != {v!r}")
+        got = auth.get(k)
+        if got != v or type(got) is not type(v):
+            raise ValueError(f"execution_authority {k!r} mismatch: {got!r} != {v!r} (strict type)")
     # Ensure no extra hidden authority key and exact key set
     if set(auth.keys()) != set(EXECUTION_AUTHORITY.keys()):
         extra = set(auth.keys()) - set(EXECUTION_AUTHORITY.keys())
@@ -1168,8 +1203,12 @@ def _build_construct_result(
     for substr in (
         "queue_ceiling_is_compute",
         "queue ceiling is compute",
+        "queue ceiling is",
+        "actor selects execution",
         "actor selects",
+        "actor_selects",
         "kubernetes",
+        "k8s_deployment",
     ):
         if substr in lower:
             raise ValueError(f"output contains forbidden substring {substr!r}")
