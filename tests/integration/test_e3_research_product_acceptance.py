@@ -1804,6 +1804,7 @@ def test_traceability_verified_results_injection_fails(
     assert rc != 0
     assert any(e.startswith("E3PV_CONTRADICTION") for e in errs)
 
+
 def test_workloads_launched_space_colon_fails_on_doc(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1822,7 +1823,7 @@ def test_workloads_launched_space_colon_fails_on_doc(
     assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
 
 
-def test_we_launched_E3_workloads_fails_on_doc(
+def test_we_launched_e3_workloads_fails_on_doc(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Controller probe: `we launched 12 E3 research workloads` in docs must fail typed."""
@@ -1860,7 +1861,7 @@ def test_workloads_launched_space_colon_fails_on_verdict_receipt(
     assert any(e.startswith("E3PV_WORKLOADS_CONTRADICTION") for e in errs)
 
 
-def test_we_launched_E3_workloads_fails_on_verdict_receipt(
+def test_we_launched_e3_workloads_fails_on_verdict_receipt(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Controller probe: `we launched 12 E3 research workloads` in verdict receipt must fail typed."""
