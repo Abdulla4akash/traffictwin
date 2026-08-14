@@ -26,7 +26,10 @@ from traffictwin.evidence_admission.e3_research import (
     admit_e3_research,
 )
 from traffictwin.experiments.e3_comparison import build_e3_comparison_view
-from traffictwin.experiments.e3_research_evidence import E3ResearchEvidencePackage
+from traffictwin.experiments.e3_research_evidence import (
+    E3ResearchEvidencePackage,
+    _scan_forbidden_recursive,
+)
 from traffictwin.experiments.e3_strategy_semantics import e3_strategy_semantics
 from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
 
@@ -139,6 +142,14 @@ def _build_payload(
 
     _assert_no_forbidden_content(package.model_dump(mode="json"), "package")
     _assert_no_forbidden_content(receipt.model_dump(mode="json"), "receipt")
+    # Forbidden-claims re-scan for mutated free text (limitations etc.)
+    for obj, label in [
+        (package.model_dump(mode="json"), "package"),
+        (receipt.model_dump(mode="json"), "receipt"),
+    ]:
+        v = _scan_forbidden_recursive(obj)
+        if v:
+            raise ValueError(f"{label} contains forbidden claim: {v[0]}")
 
     strategy_defs: list[dict[str, object]] = []
     for sem in semantics:
@@ -194,10 +205,8 @@ def _build_payload(
         dormant_arms_list.append(
             {
                 "arm_id": arm.arm_id,
-                "placement": str(
-                    arm.placement.value if hasattr(arm.placement, "value") else arm.placement
-                ),
-                "scaling": str(arm.scaling.value if hasattr(arm.scaling, "value") else arm.scaling),
+                "placement": arm.placement.value,
+                "scaling": arm.scaling.value,
                 "state_age_ms": arm.state_age_ms,
             }
         )
@@ -207,10 +216,8 @@ def _build_payload(
             {
                 "config_id": cfg.config_id,
                 "arm_id": cfg.arm_id,
-                "placement": str(
-                    cfg.placement.value if hasattr(cfg.placement, "value") else cfg.placement
-                ),
-                "scaling": str(cfg.scaling.value if hasattr(cfg.scaling, "value") else cfg.scaling),
+                "placement": cfg.placement.value,
+                "scaling": cfg.scaling.value,
                 "state_age_ms": cfg.state_age_ms,
                 "evaluator_seed": cfg.evaluator_seed,
                 "fleet_seed": cfg.fleet_seed,
@@ -219,29 +226,22 @@ def _build_payload(
         )
 
     # Per-RSU and scale-action summary STRUCTURE (typed, null with reasons)
+    # All values read from the typed package; no fallback literals.
     per_rsu_structure: dict[str, object] = {
         "summary": "Per-RSU summaries are null with reasons before execution",
         "value": None,
         "null_value": None,
-        "reason": package.scaling_receipts.per_rsu_summaries_null_reason
-        if hasattr(package.scaling_receipts, "per_rsu_summaries_null_reason")
-        else accounting.scaling_receipts.per_rsu_reason,
-        "rso_count": package.factors.get("scenario_rsus", 10),
+        "reason": package.scaling_receipts.per_rsu_summaries_null_reason,
+        "rsu_count": package.factors["scenario_rsus"],
         "notes": "Structure exists but values are UNAVAILABLE before execution",
     }
     scale_action_structure: dict[str, object] = {
         "summary": "Scale-action receipts are null with reasons before execution",
         "value": None,
         "null_value": None,
-        "receipts_reason": package.scaling_receipts.receipts_when_not_executed_null_reason
-        if hasattr(package.scaling_receipts, "receipts_when_not_executed_null_reason")
-        else accounting.scaling_receipts.reason,
-        "capacity_levels_reason": package.scaling_receipts.capacity_levels_null_reason
-        if hasattr(package.scaling_receipts, "capacity_levels_null_reason")
-        else accounting.scaling_receipts.capacity_reason,
-        "state_age_reason": package.scaling_receipts.state_age_receipts_null_reason
-        if hasattr(package.scaling_receipts, "state_age_receipts_null_reason")
-        else accounting.scaling_receipts.state_age_reason,
+        "receipts_reason": package.scaling_receipts.receipts_when_not_executed_null_reason,
+        "capacity_levels_reason": package.scaling_receipts.capacity_levels_null_reason,
+        "state_age_reason": package.scaling_receipts.state_age_receipts_null_reason,
         "has_receipts_when_executed": package.scaling_receipts.has_receipts_when_executed,
         "scaling_semantics_per_arm": [
             {"placement": s.placement_id, "scaling": s.scaling_id, "semantics": s.scaling_semantics}
@@ -262,18 +262,7 @@ def _build_payload(
         "returned",
         "dropped",
     ):
-        # Try to get reason from accounting
-        reason_val: str = ""
-        if hasattr(accounting, f"{key}_reason"):
-            reason_val = str(getattr(accounting, f"{key}_reason"))
-        elif key in accounting.unavailable:
-            reason_val = str(accounting.unavailable[key].reason)
-        else:
-            # fallback to package missingness
-            for m in package.missingness:
-                if m.field == key:
-                    reason_val = m.reason
-                    break
+        reason_val = str(getattr(accounting, f"{key}_reason"))
         unavailable_map[key] = {
             "value": None,
             "null_value": None,
@@ -841,7 +830,7 @@ def _build_csv(package: E3ResearchEvidencePackage) -> str:
         "returned",
         "dropped",
     ):
-        reason = getattr(acct, f"{field}_reason", "") if hasattr(acct, f"{field}_reason") else ""
+        reason = str(getattr(acct, f"{field}_reason"))
         writer.writerow(
             {
                 "section": "task_accounting",
@@ -1142,7 +1131,7 @@ def _build_markdown(
     per = payload["per_rsu_structure"]
     assert isinstance(per, dict)
     lines.append(f"- Per-RSU summaries: `{per['value']}` — {per['reason']}")
-    lines.append(f"- RSU count: {per['rso_count']} note: {per['notes']}")
+    lines.append(f"- RSU count: {per['rsu_count']} note: {per['notes']}")
     scale = payload["scale_action_structure"]
     assert isinstance(scale, dict)
     lines.append(f"- Scale-action receipts: `{scale['value']}` — {scale['receipts_reason']}")
@@ -1306,6 +1295,14 @@ def build_e3_research_exports(
         raise TypeError(f"receipt must be E3ResearchAdmissionRefusal, got {type(receipt).__name__}")
     _assert_no_forbidden_content(package.model_dump(mode="json"), "package")
     _assert_no_forbidden_content(receipt.model_dump(mode="json"), "receipt")
+    # Re-scan for forbidden claims (mutated containers)
+    for obj, label in [
+        (package.model_dump(mode="json"), "package"),
+        (receipt.model_dump(mode="json"), "receipt"),
+    ]:
+        v = _scan_forbidden_recursive(obj)
+        if v:
+            raise ValueError(f"{label} contains forbidden claim: {v[0]}")
 
     try:
         authoritative = admit_e3_research(package)
@@ -1359,6 +1356,28 @@ def build_e3_research_exports(
 
     payload = _build_payload(package, receipt)
     _assert_no_forbidden_content(payload, "payload")
+    # Lane-10 forbidden-claims scan on payload to prevent mutated free text leaking into exports.
+    # The payload deliberately contains negative flags and disclaimers that include forbidden substrings
+    # as part of explicit denials (e.g., not_supervisor_approval, universal_superiority_forbidden,
+    # never tasks_as_N). These are allowlisted when they are part of the typed structure, not free-text
+    # mutations. Filter them so only true affirmative mutations (like limitations) are flagged.
+    _allowlisted_payload_substrings = {
+        "not_supervisor_approval",
+        "not_randy_confirmation",
+        "manchester_wide_inference_forbidden",
+        "universal_superiority_forbidden",
+        "never tasks_as_N",
+        "never tasks_as_n",
+        "No Manchester-wide inference, no universal superiority",
+        "no_inference_beyond",
+    }
+    violations = [
+        v
+        for v in _scan_forbidden_recursive(payload)
+        if not any(allow in v for allow in _allowlisted_payload_substrings)
+    ]
+    if violations:
+        raise ValueError(f"payload contains forbidden claim: {violations[0]}")
 
     export_fingerprint = _fingerprint(payload)
 

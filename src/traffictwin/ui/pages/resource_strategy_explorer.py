@@ -260,9 +260,29 @@ def _render_e3_preset() -> bool:
         # Handle delayed pop from previous navigation (one-shot, delayed by one render
         # to keep legacy AppTest assertions that check intent presence after
         # navigation passing, while still guaranteeing consumption before clear).
+        # Preserve E3 intent when it is pending consumption.
         if st.session_state.get("_resource_strategy_intent_pending_pop"):
-            st.session_state.pop("resource_strategy_intent", None)
-            st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+            if st.session_state.get("resource_strategy_intent") == "e3":
+                # Do not pop the fresh E3 intent on the same render where it must
+                # be consumed; the pending flag here is stale from a prior
+                # activation and can be cleared without destroying the new intent.
+                # For E3, the pending flag will be set anew after consumption, so
+                # we only clear the stale flag here.
+                # If this pending belongs to E3 itself from previous render, it
+                # should be popped together with the intent that has already been
+                # consumed; but since intent is still e3 (fresh), we preserve it
+                # and clear only the stale flag, allowing consumption below.
+                # The next render (after consumption sets a new pending) will
+                # correctly pop the intent after one-render delay.
+                # To distinguish, we check whether E3 is already active.
+                if st.session_state.get("resource_strategy_e3_active"):
+                    st.session_state.pop("resource_strategy_intent", None)
+                    st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+                else:
+                    st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+            else:
+                st.session_state.pop("resource_strategy_intent", None)
+                st.session_state.pop("_resource_strategy_intent_pending_pop", None)
 
         # Consume Home/Guided Demo intent one-shot: exact value "e3"
         intent = st.session_state.get("resource_strategy_intent")
@@ -325,10 +345,12 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
         "withheld until admission is explicit."
     )
 
+    if st.session_state.get("resource_strategy_intent") == "e3":  # noqa: SIM102
+        if _render_e3_preset():  # noqa: SIM102
+            return
     # --- E2 preset — no path input needed ---
     if _render_e2_preset():
         return
-
     # --- E3 preset — visibly separate one-click, no path input needed ---
     if _render_e3_preset():
         return

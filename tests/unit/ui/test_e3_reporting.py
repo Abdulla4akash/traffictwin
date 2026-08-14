@@ -21,10 +21,15 @@ def test_e3_reporting_deterministic_and_no_timestamps() -> None:
     assert b1.json == b2.json
     assert b1.csv == b2.csv
     assert b1.markdown == b2.markdown
-    # No timestamps or randomness
+    # No timestamps or randomness — strict: ISO 8601 timestamps must not appear
+    iso_ts_re = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+    timestamp_key_re = re.compile(r'"timestamp"\s*:')
     for txt in (b1.json, b1.csv, b1.markdown):
         assert "\r\n" not in txt
-        assert "timestamp" not in txt.lower() or "scientific_timestamp" not in txt.lower()
+        assert not timestamp_key_re.search(txt.lower()), "export must not contain timestamp field"
+        assert not iso_ts_re.search(txt), (
+            f"export must not contain ISO timestamp, found {iso_ts_re.search(txt).group(0)!r}"
+        )
         # No local path leaks
         assert ("/" + "Users" + "/") not in txt
         assert ("/" + "tmp" + "/") not in txt
@@ -155,3 +160,70 @@ render_e3_research(pkg, receipt, comp, acct, exports)
     # Actor selects RSU affirmatively not present
     if "actor selects execution rsu" in lower:
         assert "no actor selects execution rsu" in lower
+
+
+def test_e3_reporting_forbidden_mutated_limitations_rejected() -> None:
+    """Regression: mutating limitations post-construction must be rejected in export."""
+    pkg = load_builtin_e3_research()
+    # Mutate limitations to inject a forbidden claim (supervisor approved)
+    mutated = pkg.model_copy(update={"limitations": ["supervisor approved"]})
+    # The package itself will fail validation if we try to admit, but we test export re-scan
+    # Use original receipt but mutated package – export should raise via forbidden-claim scan
+    receipt = admit_e3_research(pkg)
+    # Build exports with mutated package – should fail closed via Lane-10 scan
+    try:
+        from traffictwin.reporting.e3_research import build_e3_research_exports
+
+        build_e3_research_exports(mutated, receipt)  # type: ignore[arg-type]
+        raise AssertionError("export should have raised on mutated forbidden limitation")
+    except ValueError as exc:
+        assert "forbidden" in str(exc).lower() or "supervisor" in str(exc).lower()
+    # Also try with monetary claim
+    mutated2 = pkg.model_copy(update={"limitations": ["cost is $100 dollars"]})
+    try:
+        build_e3_research_exports(mutated2, receipt)  # type: ignore[arg-type]
+        raise AssertionError("export should have raised on monetary claim")
+    except ValueError as exc:
+        assert "forbidden" in str(exc).lower() or "dollar" in str(exc).lower() or "$" in str(exc)
+
+
+def test_e3_reporting_rendered_constants_match_package() -> None:
+    """Drift regression: every scientific constant rendered equals typed package value."""
+    pkg = load_builtin_e3_research()
+    # Verify that the typed package's constants are exactly the frozen identities
+    assert pkg.factors["scenario_rsus"] == 10
+    assert pkg.factors["padded_fleet_width"] == 2488
+    assert pkg.factors["ticks_per_cell"] == 3600
+    assert pkg.queue_capacity.capacity_per_rsu == 6220
+    assert pkg.compute_capacity.active_units_per_rsu_range == [1, 2, 3]
+    assert pkg.resource_cost.interval_seconds == 1
+    assert pkg.replication.n == 4
+    assert list(pkg.replication.fleet_seeds) == [1, 2, 3, 4]
+    assert pkg.replication.evaluator_seed == 0
+    assert pkg.replication.degrees_of_freedom == 3
+    assert 3.18 < pkg.replication.critical_value < 3.19
+    assert pkg.factors["state_age_ms_values"] == [0, 1000, 3000]
+    assert len(pkg.dormant_arms) == 14
+    assert len(pkg.dormant_configs) == 56
+    # Verify reporting respects these (not hardcoded drift)
+    from traffictwin.reporting.e3_research import build_e3_research_exports
+
+    receipt = admit_e3_research(pkg)
+    bundle = build_e3_research_exports(pkg, receipt)
+    import json
+
+    j = json.loads(bundle.json)
+    # Check that JSON's tradeoff and rsu counts equal package
+    assert j["tradeoff_structure"]["state_age_ms_allowed"] == sorted(
+        pkg.factors["state_age_ms_values"]
+    )
+    assert j["per_rsu_structure"]["rsu_count"] == pkg.factors["scenario_rsus"]
+    assert j["queue_capacity"]["capacity_per_rsu"] == pkg.queue_capacity.capacity_per_rsu
+    assert j["compute_capacity"]["active_units_per_rsu_range"] == list(
+        pkg.compute_capacity.active_units_per_rsu_range
+    )
+    assert j["resource_cost"]["interval_seconds"] == pkg.resource_cost.interval_seconds
+    assert j["replication"]["n"] == pkg.replication.n
+    assert j["replication"]["fleet_seeds"] == list(pkg.replication.fleet_seeds)
+    assert j["dormant_counts"]["arms"] == len(pkg.dormant_arms)
+    assert j["dormant_counts"]["configs"] == len(pkg.dormant_configs)

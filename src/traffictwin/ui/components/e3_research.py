@@ -110,17 +110,17 @@ def render_e3_scientific_question(
     """Render the scientific question and bounded scope."""
     st.subheader("Scientific question")
     st.markdown(
-        "How do placement (ingress_dla vs per_task_dla vs p2c_dla), "
-        "scaling (fixed_1x vs static_overprovisioned vs reactive vs proactive), "
-        "and staleness (0 / 1000 / 3000 ms) trade off offered-task deadline "
-        "attainment, rejection share, and resource_unit_seconds across "
-        "matched fleet draws under a frozen MAPPO actor that does not observe load?"
+        f"How do placement ({', '.join(package.factors.get('placements', []))}), "
+        f"scaling ({', '.join(package.factors.get('scalings', []))}), "
+        f"and staleness ({' / '.join(str(v) for v in package.factors.get('state_age_ms_values', []))} ms) trade off offered-task deadline "
+        f"attainment, rejection share, and {package.resource_cost.metric} across "
+        f"matched fleet draws under a frozen MAPPO actor that does not observe load?"
     )
     st.caption(
-        "All comparisons are bounded to one incident hour "
-        "2024-03-15 20:00-21:00, provisional fleet width 2488, 10 RSUs, "
-        "3600 ticks per cell (dormant), replication unit fleet_draw N=4 matched "
-        "draws 1-4, evaluator_seed 0. Tasks are accounting records, never replicates."
+        f"All comparisons are bounded to one incident hour "
+        f"2024-03-15 20:00-21:00, provisional fleet width {package.factors.get('padded_fleet_width')}, {package.factors.get('scenario_rsus')} RSUs, "
+        f"{package.factors.get('ticks_per_cell')} ticks per cell (dormant), replication unit {package.replication.replication_unit} N={package.replication.n} matched "
+        f"draws {list(package.replication.fleet_seeds)}, evaluator_seed {package.replication.evaluator_seed}. Tasks are accounting records, never replicates."
     )
     st.caption(
         "No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population"
@@ -135,7 +135,7 @@ def render_e3_scientific_question(
         f"Bounded replication: `{package.replication.replication_unit}` "
         f"N={package.replication.n} fleet_seeds {list(package.replication.fleet_seeds)} "
         f"evaluator_seed {package.replication.evaluator_seed} - "
-        f"two-sided Student-t 95% interval df=3, t=3.182 over fleet-draw differences."
+        f"two-sided Student-t 95% interval df={package.replication.degrees_of_freedom}, t={package.replication.critical_value:.3f} over fleet-draw differences."
     )
     st.caption(
         "Frozen actor does not observe RSU load and does not select execution RSU; "
@@ -158,12 +158,22 @@ def render_e3_strategy_semantics(
     scalings = sorted({s.scaling_id for s in semantics})
     st.markdown(f"**Placement families:** `{', '.join(placements)}`")
     st.markdown(f"**Scaling families:** `{', '.join(scalings)}`")
-    st.markdown("**Staleness values:** `0 ms, 1000 ms, 3000 ms` (typed int milliseconds)")
-    st.caption(
-        "Resource cost is resource_unit_seconds, never monetary. Queue waiting-room "
-        "capacity (tasks per RSU, ceiling 6220) is strictly separate from compute service "
-        "capacity (units 1..3 per RSU draining 1000 work_ms per second per unit)."
+    _stale_vals = sorted({s.state_age_ms for s in semantics})
+    st.markdown(
+        f"**Staleness values:** `{', '.join(str(v) for v in _stale_vals)} ms` (typed int milliseconds)"
     )
+    # Read constants from typed semantics (derived from package) — no literal duplication.
+    if semantics:
+        _q_note = semantics[0].queue_capacity_note
+        _c_note = semantics[0].compute_capacity_note
+        _r_note = semantics[0].resource_cost_note
+        st.caption(
+            f"Resource cost is resource_unit_seconds, never monetary. {_q_note} {_c_note} {_r_note}"
+        )
+    else:
+        st.caption(
+            "Resource cost is resource_unit_seconds, never monetary. Queue and compute capacities are strictly separate per typed package."
+        )
     cols = st.columns(2)
     for idx, sem in enumerate(semantics):
         col = cols[idx % 2]
@@ -215,14 +225,28 @@ def render_e3_tradeoff_structure(
         f"queue_is_not_compute: {package.queue_capacity.is_queue_not_compute} "
         f"compute_is_not_queue: {package.compute_capacity.is_compute_not_queue}"
     )
+    # Derive staged design numbers from the typed package — no literal duplication.
+    _e3a_cells = (
+        len(package.factors.get("placements", []))
+        * len([1])
+        * len([1])
+        * len(package.replication.fleet_seeds)
+    )
+    _unique_configs = len(package.dormant_configs)
+    _arms = len(package.dormant_arms)
+    # Use exact package-derived values; no fallback literals.
     st.caption(
-        "Staged design: E3a 12 cells (3 placements x 1 scaling x 1 staleness x 4 draws), "
-        "E3b 12 unique additional cells (4 scalers x 1 placement x 1 staleness x 4 draws minus 4 overlap), "
-        "E3c 32 stale variants max (not rerun, view parameter) over 48 contrast observations. "
-        "Maximum 56 unique configs, 14 arms, not double counted."
+        f"Staged design: E3a {package.staged_design.e3a.stage_listed_cells} cells "
+        f"({len(package.factors.get('placements', []))} placements x 1 scaling x 1 staleness x {len(package.replication.fleet_seeds)} draws), "
+        f"E3b {package.staged_design.e3b.unique_cells} unique additional cells "
+        f"({len(package.factors.get('scalings', []))} scalers x 1 placement x 1 staleness x {len(package.replication.fleet_seeds)} draws minus overlap), "
+        f"E3c {package.staged_design.e3c.stale_variant_cells_max} stale variants max (not rerun, view parameter) over "
+        f"{_unique_configs} unique configs, {_arms} arms, not double counted."
     )
     with st.container(border=True):
-        st.markdown("**Dormant arms (14) and configs (56) - STRUCTURE ONLY**")
+        st.markdown(
+            f"**Dormant arms ({len(package.dormant_arms)}) and configs ({len(package.dormant_configs)}) - STRUCTURE ONLY**"
+        )
         arms = sorted(package.dormant_arms, key=lambda a: a.arm_id)
         rows = [
             {
@@ -250,7 +274,7 @@ def render_e3_tradeoff_structure(
         ]
         st.dataframe(cfg_rows, hide_index=True, width="stretch")
         st.caption(
-            "Showing 10 of 56 dormant configs; full list in JSON export. All are STRUCTURE ONLY, not results."
+            f"Showing 10 of {len(package.dormant_configs)} dormant configs; full list in JSON export. All are STRUCTURE ONLY, not results."
         )
 
 
@@ -269,7 +293,9 @@ def render_e3_per_rsu_and_scale_action_structure(
         st.markdown("`value = None`")
         st.caption(package.scaling_receipts.per_rsu_summaries_null_reason)
         st.caption(accounting.scaling_receipts.per_rsu_reason)
-        st.markdown("RSU count: 10 structure exists but per-RSU values are null with reasons.")
+        st.markdown(
+            f"RSU count: {package.factors.get('scenario_rsus')} structure exists but per-RSU values are null with reasons."
+        )
     with st.container(border=True):
         st.markdown("**Scale-action receipts**")
         st.markdown("`value = None`")
@@ -280,7 +306,10 @@ def render_e3_per_rsu_and_scale_action_structure(
         st.caption(package.scaling_receipts.capacity_levels_null_reason)
         st.caption(accounting.scaling_receipts.capacity_reason)
         st.markdown("**State-age receipts**")
-        st.markdown("`value = None` typed int milliseconds 0/1000/3000")
+        _state_vals = package.factors.get("state_age_ms_values", [0, 1000, 3000])
+        st.markdown(
+            f"`value = None` typed int milliseconds {'/'.join(str(v) for v in _state_vals)}"
+        )
         st.caption(package.scaling_receipts.state_age_receipts_null_reason)
         st.caption(accounting.scaling_receipts.state_age_reason)
         st.caption(
@@ -369,9 +398,9 @@ def render_e3_comparison_structure(
     """Render comparison structure - estimands and paired differences unavailable."""
     st.subheader("Comparison structure (E3a / E3b / E3c - no results)")
     st.caption(
-        "Replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, "
-        "two-sided Student-t 95% interval df=3, t=3.182. All per-draw values are "
-        "null with reasons while hold is active. Tasks are accounting records, not replicates."
+        f"Replication unit {comparison.e3a.replication_unit} N={comparison.e3a.n_fleet_draws} matched draws {list(comparison.e3a.fleet_seeds)}, evaluator_seed {comparison.e3a.evaluator_seed}, "
+        f"two-sided Student-t 95% interval df={comparison.e3a.degrees_of_freedom}, t={comparison.e3a.critical_value:.3f}. All per-draw values are "
+        f"null with reasons while hold is active. Tasks are accounting records, not replicates."
     )
     for view in (comparison.e3a, comparison.e3b, comparison.e3c):
         with st.container(border=True):

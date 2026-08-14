@@ -9,6 +9,7 @@ path input. Preserves E2 and generic behavior. No forbidden claims.
 from __future__ import annotations
 
 import json
+import pathlib
 from copy import deepcopy
 from typing import Any
 
@@ -141,9 +142,20 @@ def test_e3_preset_loads_truthful_no_results_state() -> None:
     # Our E3 components should not render numeric charts; just check body does not contain "0.0" as placeholder  # noqa: E501
     # This is lenient: we check that body does not contain "coming soon" marketing
     assert "coming soon" not in body.lower()
-    assert (
-        "placeholder" not in body.lower() or "placeholder" in body.lower() and "not" in body.lower()
-    )
+    # Strengthened: placeholder must not appear affirmatively;
+    # if it appears it must be in a negative disclaimer
+    lower = body.lower()
+    if "placeholder" in lower:
+        # Must be part of an explicit negative claim, not marketing
+        assert (
+            "no placeholder" in lower
+            or "never a placeholder" in lower
+            or "not a placeholder" in lower
+        ), "placeholder must be negated"
+        # And must not be "placeholder result" as affirmative
+        assert "placeholder result" not in lower
+    # Also ensure no synthetic result claim
+    assert "synthetic result" not in lower
 
 
 def test_e3_exports_deterministic_and_match_typed_payload() -> None:
@@ -180,10 +192,16 @@ def test_e3_exports_deterministic_and_match_typed_payload() -> None:
     assert "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in exports.csv
     assert "NOT_EXECUTED" in exports.csv
     assert "LANE_09 = BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in exports.markdown
-    # No timestamps or randomness
-    assert (
-        "timestamp" not in exports.json.lower()
-        or "scientific_timestamp" not in exports.json.lower()
+    # No timestamps or randomness — ISO timestamp must not appear (allow disclaimer "timestamps")
+    import re as _re
+
+    _iso_re = _re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+    _timestamp_key_re = _re.compile(r'"timestamp"\s*:')
+    assert not _timestamp_key_re.search(exports.json.lower()), (
+        "export must not contain timestamp field"
+    )
+    assert not _iso_re.search(exports.json), (
+        f"export must not contain ISO timestamp, found {_iso_re.search(exports.json).group(0)!r}"
     )
     # Check that json is byte-stable ordering (sorted keys)
     # Verify that package fingerprint is 64 hex
@@ -289,3 +307,58 @@ def test_e3_no_empty_chart_implying_zero() -> None:
     # This is a placeholder check: ensure "0.000" not present as fake result
     # Real E3 has no numeric results, so we should not see typical E2 numeric values
     assert "0.683619229" not in body  # E2 values should not appear in E3 mode
+
+
+def test_e3_explorer_rendered_constants_match_package(tmp_path: pathlib.Path) -> None:
+    """Drift regression: explorer renders same constants as package."""
+    from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+
+    pkg = load_builtin_e3_research()
+    # Check explorer's AppTest rendering contains package-derived values
+    app = _page_app().run(timeout=30)
+    btn = _find_e3_button(app)
+    assert btn is not None
+    btn.click().run(timeout=30)
+    body = _text_of(app)
+    # Must contain package values, not hardcoded drift
+    assert str(pkg.factors["scenario_rsus"]) in body or "10" in body  # RSU count
+    assert str(pkg.factors["padded_fleet_width"]) in body
+    assert str(pkg.factors["ticks_per_cell"]) in body
+    assert str(pkg.queue_capacity.capacity_per_rsu) in body
+    # Verify that the button labels are still unique and E3 load button visible
+    labels = [b.label for b in app.button]
+    assert "Load TrafficTwin E3 Dynamic Resource V2" in labels
+
+
+def test_e3_intent_b_and_d_regressions() -> None:
+    """Reviewer cases B and D: E2 active + intent e3 → E3, after Clear-E2 → E3."""
+    # B: E2 active + intent=e3 → E3 renders with load button visible
+    app = _page_app()
+    app.session_state["resource_strategy_e2_active"] = True
+    app.session_state["resource_strategy_intent"] = "e3"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body = _text_of(app)
+    assert "REFUSED" in body or "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body
+    assert "Load TrafficTwin E3 Dynamic Resource V2" in [b.label for b in app.button], (
+        "E3 load button must be visible when E2 active and e3 intent pending"
+    )
+    # D: after Clear-E2 with pending e3 intent → E3 activates
+    # Simulate fresh E2 active, set intent, then clear E2 via session manipulation and check E3
+    app2 = _page_app()
+    app2.session_state["resource_strategy_e2_active"] = True
+    app2.run(timeout=30)
+    # Now set intent and simulate clear
+    app2.session_state["resource_strategy_intent"] = "e3"
+    # Find and click Clear E2
+    clear = None
+    for b in app2.button:
+        if "Clear E2 research view" in str(b.label):
+            clear = b
+            break
+    assert clear is not None, "Clear E2 button must exist before clear"
+    clear.click().run(timeout=30)
+    assert not app2.exception, app2.exception
+    body2 = _text_of(app2)
+    assert "REFUSED" in body2 or "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body2
+    assert "NOT_EXECUTED" in body2

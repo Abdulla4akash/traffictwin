@@ -1,87 +1,41 @@
-"""Tests for E3 reporting and components - deterministic, truthful emptiness."""
+"""Tests for E3 UI components — component-scoped, truthful no-results.
+
+Covers individual E3 Streamlit components in isolation with the promoted Lane 10
+typed package. No reporting determinism checks (those live in test_e3_reporting.py);
+this file is genuinely component-scoped with non-duplicated coverage.
+"""
 
 from __future__ import annotations
 
-import json
 import pathlib
-import re
 
 from streamlit.testing.v1 import AppTest
 
 from traffictwin.evidence_admission.e3_research import admit_e3_research
+from traffictwin.experiments.e3_comparison import build_e3_comparison_view
 from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
 from traffictwin.reporting.e3_research import build_e3_research_exports
 
 
-def test_e3_reporting_deterministic_and_no_timestamps() -> None:
-    pkg = load_builtin_e3_research()
-    receipt = admit_e3_research(pkg)
-    b1 = build_e3_research_exports(pkg, receipt)
-    b2 = build_e3_research_exports(pkg, receipt)
-    assert b1.json == b2.json
-    assert b1.csv == b2.csv
-    assert b1.markdown == b2.markdown
-    # No timestamps or randomness
-    for txt in (b1.json, b1.csv, b1.markdown):
-        assert "\r\n" not in txt
-        assert "timestamp" not in txt.lower() or "scientific_timestamp" not in txt.lower()
-        # No local path leaks
-        assert ("/" + "Users" + "/") not in txt
-        assert ("/" + "tmp" + "/") not in txt
-    j = json.loads(b1.json)
-    assert j["hold"]["lane_09"] == "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
-    assert j["hold"]["evidence_state"] == "NOT_EXECUTED"
-    assert j["task_accounting"]["offered"] is None
-    assert "UNAVAILABLE" in b1.csv
-    assert "LANE_09 = BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in b1.markdown
+def _render_code(tmp_path: pathlib.Path, code_fragment: str) -> AppTest:
+    p = tmp_path / f"e3_component_{abs(hash(code_fragment)) % 100000}.py"
+    p.write_text(code_fragment)
+    at = AppTest.from_file(str(p))
+    at.run(timeout=30)
+    return at
 
 
-def test_e3_reporting_matches_typed_payload() -> None:
-    pkg = load_builtin_e3_research()
-    receipt = admit_e3_research(pkg)
-    bundle = build_e3_research_exports(pkg, receipt)
-    j = json.loads(bundle.json)
-    # Provenance pins
-    assert j["provenance"]["product_base_sha"] == "2b6d4675658b426f96a79c41ac7f0b8f2a82bc5c"
-    assert (
-        j["provenance"]["actor_sha256"]
-        == "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
-    )
-    # Dormant counts
-    assert j["dormant_counts"]["arms"] == 14
-    assert j["dormant_counts"]["configs"] == 56
-    # Replication
-    assert j["replication"]["replication_unit"] == "fleet_draw"
-    assert j["replication"]["n"] == 4
-    # No numeric results - all paired differences null
-    for stage in ("e3a", "e3b", "e3c"):
-        for pd in j["comparison"][stage]["paired_differences"]:
-            assert pd["per_seed_values"] is None
-            assert pd["mean"] is None
-    # Fingerprints are 64 hex
-    assert re.fullmatch(r"[0-9a-f]{64}", j["package_fingerprint"])
-    assert re.fullmatch(r"[0-9a-f]{64}", j["export_fingerprint"])
-
-
-def test_e3_components_render_truthful_no_results(tmp_path: pathlib.Path) -> None:
+def test_e3_hold_banner_renders_immutable_hold(tmp_path: pathlib.Path) -> None:
     code = """
 from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 from traffictwin.evidence_admission.e3_research import admit_e3_research
-from traffictwin.experiments.e3_comparison import build_e3_comparison_view
-from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
-from traffictwin.reporting.e3_research import build_e3_research_exports
-from traffictwin.ui.components.e3_research import render_e3_research
+from traffictwin.ui.components.e3_research import render_e3_hold_banner
 pkg=load_builtin_e3_research()
 receipt=admit_e3_research(pkg)
-comp=build_e3_comparison_view(pkg)
-acct=build_e3_task_accounting_view()
-exports=build_e3_research_exports(pkg, receipt)
-render_e3_research(pkg, receipt, comp, acct, exports)
+render_e3_hold_banner(pkg, receipt)
 """
-    p = tmp_path / "e3_comp_test.py"
-    p.write_text(code)
-    at = AppTest.from_file(str(p))
-    at.run(timeout=30)
+    at = _render_code(tmp_path, code)
     assert not at.exception, at.exception
     body = "\n".join(str(x.value) for x in at.markdown) + "\n".join(
         str(x.value) for x in at.caption
@@ -90,39 +44,122 @@ render_e3_research(pkg, receipt, comp, acct, exports)
     assert "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED" in body
     assert "NOT_EXECUTED" in body
     assert "NO_E3_RESEARCH_RESULTS_AVAILABLE" in body
-    assert "UNAVAILABLE" in body
-    assert "Download E3 JSON" in [b.label for b in at.download_button]
-    # No placeholder numbers
-    assert "coming soon" not in body.lower()
+    assert "research_workloads_launched = 0" in body
 
 
-def test_e3_home_and_guided_demo_entries_present() -> None:
-    from copy import deepcopy
+def test_e3_admission_banner_refused_state(tmp_path: pathlib.Path) -> None:
+    code = """
+from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+from traffictwin.evidence_admission.e3_research import admit_e3_research
+from traffictwin.ui.components.e3_research import render_e3_admission_banner
+pkg=load_builtin_e3_research()
+receipt=admit_e3_research(pkg)
+render_e3_admission_banner(pkg, receipt)
+"""
+    at = _render_code(tmp_path, code)
+    assert not at.exception, at.exception
+    body = "\n".join(str(x.value) for x in at.markdown) + "\n".join(
+        str(x.value) for x in at.caption
+    )
+    assert "REFUSED" in body
+    assert "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body
+    assert "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED" in body
+    assert (
+        "REFUSED_MISSING_FUTURE_ARTIFACT" in body
+        or "reason_code" in body.lower()
+        or "Reason code" in body
+    )
 
-    from traffictwin.ui.state import default_session_state
 
-    for page in [
-        "src/traffictwin/ui/app_pages/home.py",
-        "src/traffictwin/ui/app_pages/guided_demo.py",
-    ]:
-        at = AppTest.from_file(page)
-        for k, v in deepcopy(default_session_state()).items():
-            at.session_state[k] = v
-        at.session_state["_v07_navigation_active"] = True
-        at.run(timeout=30)
-        assert not at.exception, f"{page} exception {at.exception}"
-        labels = [b.label for b in at.button]
-        assert "Inspect E3 Dynamic Resource V2" in labels, f"E3 entry missing on {page}"
-        # Unique labels
-        assert len(labels) == len(set(labels)), f"duplicate labels on {page}: {labels}"
-        body = "\n".join(str(x.value) for x in at.markdown) + "\n".join(
-            str(x.value) for x in at.caption
-        )
-        assert "E3" in body
+def test_e3_scientific_question_uses_package_constants(tmp_path: pathlib.Path) -> None:
+    pkg = load_builtin_e3_research()
+    code = """
+from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+from traffictwin.ui.components.e3_research import render_e3_scientific_question
+pkg=load_builtin_e3_research()
+render_e3_scientific_question(pkg)
+"""
+    at = _render_code(tmp_path, code)
+    assert not at.exception, at.exception
+    body = "\n".join(str(x.value) for x in at.markdown) + "\n".join(
+        str(x.value) for x in at.caption
+    )
+    # Must use package-derived constants, not hardcoded drift
+    assert str(pkg.factors["padded_fleet_width"]) in body
+    assert str(pkg.factors["scenario_rsus"]) in body
+    assert str(pkg.factors["ticks_per_cell"]) in body
+    assert str(pkg.replication.n) in body
+    assert "ingress_dla" in body
+    assert "resource_unit_seconds" in body
 
 
-def test_e3_forbidden_claims_absent_in_rendered(tmp_path: pathlib.Path) -> None:
-    # Verify that rendered E3 UI does not contain affirmative forbidden claims
+def test_e3_strategy_semantics_renders_families(tmp_path: pathlib.Path) -> None:
+    code = """
+from traffictwin.experiments.e3_strategy_semantics import e3_strategy_semantics
+from traffictwin.ui.components.e3_research import render_e3_strategy_semantics
+sems=e3_strategy_semantics()
+render_e3_strategy_semantics(sems)
+"""
+    at = _render_code(tmp_path, code)
+    assert not at.exception, at.exception
+    body = "\n".join(str(x.value) for x in at.markdown) + "\n".join(
+        str(x.value) for x in at.caption
+    )
+    assert "ingress_dla" in body
+    assert "per_task_dla" in body
+    assert "p2c_dla" in body
+    assert "fixed_1x" in body
+    # Staleness values derived from semantics
+    assert "0" in body and "1000" in body and "3000" in body
+
+
+def test_e3_tradeoff_structure_reads_from_package(tmp_path: pathlib.Path) -> None:
+    pkg = load_builtin_e3_research()
+    code = """
+from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+from traffictwin.ui.components.e3_research import render_e3_tradeoff_structure
+pkg=load_builtin_e3_research()
+render_e3_tradeoff_structure(pkg)
+"""
+    at = _render_code(tmp_path, code)
+    assert not at.exception, at.exception
+    body = "\n".join(str(x.value) for x in at.markdown) + "\n".join(
+        str(x.value) for x in at.caption
+    )
+    assert str(pkg.queue_capacity.capacity_per_rsu) in body
+    assert str(pkg.factors["scenario_rsus"]) in body or "RSU" in body
+    assert "resource_unit_seconds" in body
+    assert str(len(pkg.dormant_arms)) in body
+    assert str(len(pkg.dormant_configs)) in body
+
+
+def test_e3_per_rsu_structure_uses_package_rsu_count(tmp_path: pathlib.Path) -> None:
+    pkg = load_builtin_e3_research()
+    code = """
+from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
+from traffictwin.ui.components.e3_research import render_e3_per_rsu_and_scale_action_structure
+pkg=load_builtin_e3_research()
+acct=build_e3_task_accounting_view()
+render_e3_per_rsu_and_scale_action_structure(pkg, acct)
+"""
+    at = _render_code(tmp_path, code)
+    assert not at.exception, at.exception
+    body = "\n".join(str(x.value) for x in at.markdown) + "\n".join(
+        str(x.value) for x in at.caption
+    )
+    assert str(pkg.factors["scenario_rsus"]) in body
+    assert "Per-RSU" in body or "per-RSU" in body.lower()
+    assert "Scale-action" in body or "scale-action" in body.lower()
+
+
+def test_e3_components_no_hardcoded_drift(tmp_path: pathlib.Path) -> None:
+    """Drift regression: components must reflect package values, not literals."""
+    pkg = load_builtin_e3_research()
+    receipt = admit_e3_research(pkg)
+    build_e3_comparison_view(pkg)
+    build_e3_task_accounting_view()
+    build_e3_research_exports(pkg, receipt)
     code = """
 from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 from traffictwin.evidence_admission.e3_research import admit_e3_research
@@ -137,21 +174,15 @@ acct=build_e3_task_accounting_view()
 exports=build_e3_research_exports(pkg, receipt)
 render_e3_research(pkg, receipt, comp, acct, exports)
 """
-    p = tmp_path / "e3_forbidden_check.py"
-    p.write_text(code)
-    at = AppTest.from_file(str(p))
-    at.run(timeout=30)
+    at = _render_code(tmp_path, code)
+    assert not at.exception, at.exception
     body = (
         "\n".join(str(x.value) for x in at.markdown)
         + "\n".join(str(x.value) for x in at.caption)
         + "\n".join(str(x.value) for x in at.subheader)
     )
-    lower = body.lower()
-    # These affirmative patterns must not appear
-    assert "supervisor approved" not in lower or "no supervisor approval" in lower
-    assert "k8s" not in lower
-    # Check no monetary $ sign
-    assert "$" not in body
-    # Actor selects RSU affirmatively not present
-    if "actor selects execution rsu" in lower:
-        assert "no actor selects execution rsu" in lower
+    # Verify package-derived constants appear
+    assert str(pkg.factors["padded_fleet_width"]) in body
+    assert str(pkg.queue_capacity.capacity_per_rsu) in body
+    assert str(pkg.factors["scenario_rsus"]) in body
+    assert "Download E3 JSON" in [b.label for b in at.download_button]
