@@ -367,56 +367,69 @@ def test_e3_exports_deterministic_match_typed_payload_and_no_leakage() -> None:
 # ---- Validator self-tests: must pass on real tree --------------------------
 
 
-def test_validator_passes_on_real_tree() -> None:
+def test_validator_passes_on_real_tree(tmp_path: Path) -> None:
     import scripts.validate_e3_research_product as v
 
-    rc: int = v.main()
+    out = tmp_path / "verdict.json"
+    tracked = Path("docs/quality/e3_validator_verdict.json")
+    # Snapshot tracked before
+    before = tracked.read_bytes() if tracked.exists() else b""
+    rc: int = v.main(["--output", str(out)])
     assert rc == 0, "validator must pass on real tree"
-    # Also check verdict JSON
-    verdict_path = Path("docs/quality/e3_validator_verdict.json")
-    assert verdict_path.exists()
-    data: dict[str, Any] = json.loads(verdict_path.read_text(encoding="utf-8"))
+    assert out.exists()
+    data: dict[str, Any] = json.loads(out.read_text(encoding="utf-8"))
     assert data["pass"] is True
     assert data["errors"] == []
     assert data["hosted_ci"] == "HOSTED_CI_UNAVAILABLE"
     assert data["hold"]["lane_09"] == "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
-    # Stable ordering: errors sorted
     assert data["errors"] == sorted(data["errors"])
-    # No timestamps in verdict
-    dump = json.dumps(data)
-    assert (
-        "timestamp" not in dump.lower() or "timestamp" in dump.lower() and "timestamp" not in data
-    )
+    # Ensure tracked file was not modified
+    after = tracked.read_bytes() if tracked.exists() else b""
+    assert before == after, "validator with --output must not modify tracked verdict"
 
 
-# ---- Validator must fail closed on at least 12 mutated scenarios ----------
-
-
-def _run_validator_with_patch(
-    monkeypatch: pytest.MonkeyPatch, patch_fn: Any
-) -> tuple[int, list[str]]:
+def test_tracked_receipt_byte_stability(tmp_path: Path) -> None:
     import scripts.validate_e3_research_product as v
 
-    # Apply patch_fn to setup mutation
-    patch_fn(monkeypatch)
-    # Call main capturing errors without traceback
-    rc = v.main()
-    # Read verdict from the repo root that validator actually used
+    tracked = Path("docs/quality/e3_validator_verdict.json")
+    assert tracked.exists(), "tracked verdict must exist"
+    before = tracked.read_bytes()
+    # Run validator twice with tmp_path output, ensure tracked unchanged
+    out1 = tmp_path / "v1.json"
+    out2 = tmp_path / "v2.json"
+    rc1 = v.main(["--output", str(out1)])
+    rc2 = v.main(["--output", str(out2)])
+    assert rc1 == 0 and rc2 == 0
+    assert out1.read_text(encoding="utf-8") == out2.read_text(encoding="utf-8")
+    after = tracked.read_bytes()
+    assert before == after, "suite must leave tracked file byte-identical"
+
+
+# ---- Helper for CLI-surface mutation tests ---------------------------------
+
+
+def _run_validator_cli(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, patch_fn: Any = None
+) -> tuple[int, list[str], dict[str, Any]]:
+    import scripts.validate_e3_research_product as v
+
+    if patch_fn is not None:
+        patch_fn(monkeypatch)
+    out = tmp_path / "verdict.json"
+    rc = v.main(["--output", str(out)])
     try:
-        verdict_path = v._REPO_ROOT / "docs/quality/e3_validator_verdict.json"  # type: ignore[attr-defined]
-        # Fallback to real path if patched root not set
-        if not verdict_path.exists():
-            verdict_path = Path("docs/quality/e3_validator_verdict.json")
-        verdict = json.loads(verdict_path.read_text(encoding="utf-8"))
-        errs = verdict.get("errors", [])
+        if out.exists():
+            data: dict[str, Any] = json.loads(out.read_text(encoding="utf-8"))
+            errs: list[str] = data.get("errors", [])
+            return rc, errs, data
     except Exception:
-        errs = []
-    return rc, errs
+        pass
+    return rc, [], {}
 
 
-def test_validator_fails_on_wrong_product_base_sha(monkeypatch: pytest.MonkeyPatch) -> None:
-    import scripts.validate_e3_research_product as v
-
+def test_validator_fails_on_wrong_product_base_sha(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
@@ -428,15 +441,15 @@ def test_validator_fails_on_wrong_product_base_sha(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    monkeypatch.setattr(v, "EXPECTED_PRODUCT_BASE_SHA", "2b6d4675658b426f96a79c41ac7f0b8f2a82bc5c")
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _data = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("product_base_sha" in e.lower() for e in errs)
-    # Ensure no traceback: rc is int not exception
+    assert any(e.startswith("E3PV_IDENTITY_MISMATCH:") for e in errs)
     assert isinstance(rc, int)
 
 
-def test_validator_fails_on_wrong_vec_promotion(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_wrong_vec_promotion(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
@@ -449,12 +462,14 @@ def test_validator_fails_on_wrong_vec_promotion(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("vec_promotion" in e.lower() or "vec" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_IDENTITY_MISMATCH:") for e in errs)
 
 
-def test_validator_fails_on_wrong_actor_sha(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_wrong_actor_sha(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
@@ -467,19 +482,20 @@ def test_validator_fails_on_wrong_actor_sha(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("actor" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_IDENTITY_MISMATCH:") for e in errs)
 
 
-def test_validator_fails_on_wrong_manifest_sidecar(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_wrong_manifest_sidecar(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
 
     def fake() -> Any:
         pkg = orig()
-        # Change provenance manifest note to wrong SHA
         new_prov = []
         for pr in pkg.provenance:
             if pr.kind == "manifest":
@@ -497,135 +513,63 @@ def test_validator_fails_on_wrong_manifest_sidecar(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("manifest" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_IDENTITY_MISMATCH:") for e in errs)
 
 
-def test_validator_fails_on_tasks_as_n(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_tasks_as_n(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
 
     def fake() -> Any:
         pkg = orig()
-        bad_rep = pkg.replication.model_copy(update={"replication_unit": "task", "n": 100})  # type: ignore[call-arg]
-        # Use model_copy bypass validation? Need to bypass via dict
-        data = json.loads(pkg.model_dump_json())
-        data["replication"]["replication_unit"] = "task"
-        data["replication"]["n"] = 100
-        # Return dict will be validated in admit but validator loads via artifact which will fail validation
-        # So instead monkeypatch the artifact to return a mock with task unit
-        mock = MagicMock(wraps=pkg)
-        mock.replication = MagicMock()
-        mock.replication.replication_unit = "task"
-        mock.replication.n = 100
-        mock.replication.fleet_seeds = [1, 2, 3, 4]
-        mock.replication.evaluator_seed = 0
-        # Keep other fields from real pkg
-        mock.product_base_sha = pkg.product_base_sha
-        mock.research_promotion_sha = pkg.research_promotion_sha
-        mock.approved_candidate_sha = pkg.approved_candidate_sha
-        mock.contract_checkpoint_sha = pkg.contract_checkpoint_sha
-        mock.vec_runtime = pkg.vec_runtime
-        mock.contract = pkg.contract
-        mock.software_identity = pkg.software_identity
-        mock.provenance = pkg.provenance
-        mock.dormant_arms = pkg.dormant_arms
-        mock.dormant_configs = pkg.dormant_configs
-        mock.factors = pkg.factors
-        mock.queue_capacity = pkg.queue_capacity
-        mock.compute_capacity = pkg.compute_capacity
-        mock.resource_cost = pkg.resource_cost
-        mock.execution_authority = pkg.execution_authority
-        mock.evidence_state = pkg.evidence_state
-        mock.result_availability = pkg.result_availability
-        mock.research_workloads_launched = pkg.research_workloads_launched
-        mock.lane_09 = pkg.lane_09
-        mock.status = pkg.status
-        mock.task_accounting = pkg.task_accounting
-        mock.campaign = pkg.campaign
-        mock.model_dump = pkg.model_dump  # type: ignore[assignment]
-        return mock
-
-    # For this mutation, directly test the identities check via monkeypatching the loader
-    # Use a simpler approach: patch the package's replication via monkeypatch on the module
-    # Instead we test via docs injection for tasks_as_n phrase
-    fake_root = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
-    # Mutation via docs affirming tasks-as-N
-    monkeypatch.setattr(
-        Path,
-        "read_text",
-        lambda *a, **k: (
-            fake_root + "\n\nTrafficTwin performs tasks as N with true claim.\n"
-            if "e3_dynamic" in str(a[0])
-            else Path.read_text.__wrapped__(*a, **k)
-            if hasattr(Path.read_text, "__wrapped__")
-            else open(a[0]).read()
-        ),
-    )  # type: ignore[attr-defined]
-
-    # Simpler: create temp fake doc via patching _REPO_ROOT
-
-    tmp = Path("tmp_mutation_tasks_n.md")
-    # Use tmp_path fixture instead — we will do file-based mutation test separately
-    # For now, just assert that standalone check for tasks_as_n would fail
-    # We do a direct _check_forbidden_claims injection via monkeypatch of package dump
-
-    # Alternative: directly test _check_forbidden_claims by injecting forbidden phrase into package model_dump
-    # We'll patch load_builtin_e3_research to return forged package with deep nested tasks_as_n
-    def fake2() -> Any:
-        pkg2 = orig()
-        new_factors = dict(pkg2.factors)
-        new_factors["deep"] = {"inner": "tasks as n is true claim"}  # type: ignore[assignment]
-        forged = pkg2.model_copy(update={"factors": new_factors})
+        new_factors = dict(pkg.factors)
+        new_factors["deep"] = {"inner": "tasks as n is true claim"}
+        forged = pkg.model_copy(update={"factors": new_factors})
         return forged
 
     monkeypatch.setattr(
-        "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake2
+        "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("tasks_as_n" in e.lower() or "forbidden" in e.lower() for e in errs)
+    assert any(
+        e.startswith("E3PV_TASKS_AS_N:") or e.startswith("E3PV_FORBIDDEN_CLAIM:") for e in errs
+    )
 
 
-def test_validator_fails_on_queue_compute_conflation(monkeypatch: pytest.MonkeyPatch) -> None:
-    import scripts.validate_e3_research_product as v
-
-    errors: list[str] = []
-    # Inject conflation via monkeypatched docs read
-    real = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
-    injected = real + "\n\nQueue ceiling is compute is true for test.\n"
+def test_validator_fails_on_queue_compute_conflation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     orig_read = Path.read_text
 
-    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:  # type: ignore[override]
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
         if str(self).endswith("e3_dynamic_resource_v2_product.md"):
-            return injected
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nQueue ceiling is compute is true for test.\n"
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
-    v._check_forbidden_claims(errors)
-    assert any("queue" in e.lower() for e in errors), (
-        f"expected queue conflation error, got {errors}"
-    )
-    # Also ensure main fails without traceback
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
+    assert any(
+        e.startswith("E3PV_QUEUE_COMPUTE_CONFLATION:") or e.startswith("E3PV_FORBIDDEN_CLAIM:")
+        for e in errs
+    )
 
 
-def test_validator_fails_on_unavailable_to_zero(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_unavailable_to_zero(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
-    from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
+    from unittest.mock import MagicMock
 
     orig_pkg = load_builtin_e3_research
-    orig_view = build_e3_task_accounting_view
 
     def fake_pkg() -> Any:
         pkg = orig_pkg()
-        # Make task_accounting offered = 0 (fabricated zero) via copy
-        data = json.loads(pkg.model_dump_json())
-        data["task_accounting"]["offered"] = 0
-        # Bypass validation by returning mock
         mock = MagicMock(wraps=pkg)
         for k in pkg.model_fields:
             setattr(mock, k, getattr(pkg, k))
@@ -639,129 +583,140 @@ def test_validator_fails_on_unavailable_to_zero(monkeypatch: pytest.MonkeyPatch)
         mock.task_accounting.compute_completed = None
         mock.task_accounting.returned = None
         mock.task_accounting.dropped = None
-        mock.model_dump = pkg.model_dump  # type: ignore[assignment]
+        mock.model_dump = pkg.model_dump
         return mock
-
-    # Instead test via export zero injection
-    def patch_export(monkeypatch: pytest.MonkeyPatch) -> None:
-        from traffictwin.reporting.e3_research import build_e3_research_exports
-
-        orig_build = build_e3_research_exports
-
-        def fake_build(pkg: Any, receipt: Any) -> Any:
-            b = orig_build(pkg, receipt)
-            j = json.loads(b.json)
-            j["task_accounting"]["offered"] = 0
-            # Need to bypass frozen by object setattr via mock
-            mock_b = MagicMock(wraps=b)
-            mock_b.json = json.dumps(j)
-            mock_b.csv = b.csv
-            mock_b.markdown = b.markdown
-            return mock_b
-
-        monkeypatch.setattr(
-            "traffictwin.reporting.e3_research.build_e3_research_exports", fake_build
-        )
 
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake_pkg
     )
-    # The builtin check will catch offered not None
-    rc, errs = _run_validator_with_patch(monkeypatch, patch_export)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("unavailable" in e.lower() or "zero" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_UNAVAILABLE_TO_ZERO:") for e in errs)
 
 
 def test_validator_fails_on_monetary_cost(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    import scripts.validate_e3_research_product as v
-
-    errors: list[str] = []
-    real = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
-    injected = real + "\n\nCost is $100 dollars for test.\n"
     orig_read = Path.read_text
 
-    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:  # type: ignore[override]
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
         if str(self).endswith("e3_dynamic_resource_v2_product.md"):
-            return injected
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nCost is $100 dollars for test.\n"
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
-    v._check_forbidden_claims(errors)
-    assert any("monetary" in e.lower() or "forbidden" in e.lower() for e in errors), f"got {errors}"
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_MONETARY_CLAIM:") for e in errs)
 
 
 def test_validator_fails_on_kubernetes_claim(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    import scripts.validate_e3_research_product as v
-
-    errors: list[str] = []
-    real = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
-    injected = real + "\n\nTrafficTwin performs Kubernetes deployment is live.\n"
     orig_read = Path.read_text
 
-    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:  # type: ignore[override]
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
         if str(self).endswith("e3_dynamic_resource_v2_product.md"):
-            return injected
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nTrafficTwin performs Kubernetes deployment is live.\n"
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
-    v._check_forbidden_claims(errors)
-    assert any("kubernetes" in e.lower() for e in errors), f"got {errors}"
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_KUBERNETES_CLAIM:") for e in errs)
 
 
 def test_validator_fails_on_actor_selects_rsu(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    import scripts.validate_e3_research_product as v
-
-    errors: list[str] = []
-    real = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
-    injected = real + "\n\nThe actor selects execution RSU is live for test.\n"
     orig_read = Path.read_text
 
-    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:  # type: ignore[override]
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
         if str(self).endswith("e3_dynamic_resource_v2_product.md"):
-            return injected
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\nThe actor selects execution RSU is live for test.\n"
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
-    v._check_forbidden_claims(errors)
-    assert any("actor" in e.lower() for e in errors), f"got {errors}"
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_ACTOR_SELECTS_RSU:") for e in errs)
 
 
 def test_validator_fails_on_manchester_wide_and_universal(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    import scripts.validate_e3_research_product as v
-
-    errors: list[str] = []
-    real = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
-    injected = (
-        real + "\n\nOur results generalize across all of Manchester and are universally superior.\n"
-    )
     orig_read = Path.read_text
 
-    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:  # type: ignore[override]
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
         if str(self).endswith("e3_dynamic_resource_v2_product.md"):
-            return injected
+            real = orig_read(self, *args, **kwargs)
+            return (
+                real
+                + "\n\nOur results generalize across all of Manchester and are universally superior.\n"
+            )
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
-    v._check_forbidden_claims(errors)
-    assert any("manchester" in e.lower() or "universal" in e.lower() for e in errors), (
-        f"got {errors}"
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(
+        e.startswith("E3PV_MANCHESTER_WIDE:") or e.startswith("E3PV_UNIVERSAL_SUPERIORITY:")
+        for e in errs
     )
 
 
-def test_validator_fails_on_missing_resource_denominator(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    "sentence,expected_code",
+    [
+        ("The actor selects execution RSU dynamically.", "E3PV_ACTOR_SELECTS_RSU"),
+        ("Supervisor approval already granted for release.", "E3PV_SUPERVISOR_CLAIM"),
+        ("p2c_dla ranks universally superior everywhere.", "E3PV_UNIVERSAL_SUPERIORITY"),
+        ("We generalize Manchester-wide from this hour.", "E3PV_MANCHESTER_WIDE"),
+        ("Kubernetes deployment went live last week.", "E3PV_KUBERNETES_CLAIM"),
+        ("We treat tasks as N for the confidence interval.", "E3PV_TASKS_AS_N"),
+    ],
+)
+def test_bypass_sentences_fail_via_cli(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, sentence: str, expected_code: str
+) -> None:
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+            real = orig_read(self, *args, **kwargs)
+            return real + "\n\n" + sentence + "\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, f"bypass sentence should fail: {sentence!r}"
+    assert any(e.startswith(expected_code + ":") for e in errs), (
+        f"expected {expected_code} in {errs}"
+    )
+
+
+def test_allowlisted_disclaimers_pass_via_cli(tmp_path: Path) -> None:
+    rc, errs, _ = _run_validator_cli(pytest.MonkeyPatch(), tmp_path)
+    # Use a fresh monkeypatch without mutation - should pass
+    import scripts.validate_e3_research_product as v
+
+    out = tmp_path / "verdict_allow.json"
+    rc2 = v.main(["--output", str(out)])
+    assert rc2 == 0
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["pass"] is True
+
+
+def test_validator_fails_on_missing_resource_denominator(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
 
     def fake() -> Any:
         pkg = orig()
-        # Change metric to not resource_unit_seconds via mock
         mock = MagicMock(wraps=pkg)
         for k in pkg.model_fields:
             setattr(mock, k, getattr(pkg, k))
@@ -770,18 +725,23 @@ def test_validator_fails_on_missing_resource_denominator(monkeypatch: pytest.Mon
         mock.resource_cost.monetary = True
         mock.resource_cost.unit = "dollars"
         mock.resource_cost.formula = "cost dollars"
-        mock.model_dump = pkg.model_dump  # type: ignore[assignment]
+        mock.model_dump = pkg.model_dump
         return mock
 
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("resource" in e.lower() or "denominator" in e.lower() for e in errs)
+    assert any(
+        e.startswith("E3PV_RESOURCE_DENOMINATOR_MISSING:") or e.startswith("E3PV_MONETARY_CLAIM:")
+        for e in errs
+    )
 
 
-def test_validator_fails_on_free_unbounded_scaling(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_free_unbounded_scaling(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
@@ -796,41 +756,42 @@ def test_validator_fails_on_free_unbounded_scaling(monkeypatch: pytest.MonkeyPat
         mock.compute_capacity.max_units = 10
         mock.compute_capacity.active_units_per_rsu_range = [1, 10]
         mock.compute_capacity.unit = "compute_unit"
-        mock.model_dump = pkg.model_dump  # type: ignore[assignment]
+        mock.model_dump = pkg.model_dump
         return mock
 
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("scaling" in e.lower() or "capacity" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_CAPACITY_BOUNDS:") for e in errs)
 
 
-def test_validator_fails_on_state_age_drift(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_state_age_drift(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
 
     def fake() -> Any:
         pkg = orig()
-        # Make one arm have state_age 500
         bad_arms = list(pkg.dormant_arms)
-        bad_arm = bad_arms[0].model_copy(update={"state_age_ms": 500})  # type: ignore[call-arg]
+        bad_arm = bad_arms[0].model_copy(update={"state_age_ms": 500})
         bad_arms[0] = bad_arm
         mock = MagicMock(wraps=pkg)
         for k in pkg.model_fields:
             setattr(mock, k, getattr(pkg, k))
         mock.dormant_arms = bad_arms
-        mock.model_dump = pkg.model_dump  # type: ignore[assignment]
+        mock.model_dump = pkg.model_dump
         return mock
 
     monkeypatch.setattr(
         "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
     )
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("state_age" in e.lower() or "stale" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_STATE_AGE_DRIFT:") for e in errs)
 
 
 def test_validator_fails_on_broken_e3_route(
@@ -846,7 +807,6 @@ def test_validator_fails_on_broken_e3_route(
     (fake_root / "src/traffictwin/reporting").mkdir(parents=True)
     (fake_root / "docs").mkdir(parents=True)
     (fake_root / "docs/closure").mkdir(parents=True)
-    # Copy current real files but remove E3 button marker from explorer
     explorer = Path("src/traffictwin/ui/pages/resource_strategy_explorer.py").read_text(
         encoding="utf-8"
     )
@@ -881,12 +841,14 @@ def test_validator_fails_on_broken_e3_route(
         fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
     )
     monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("route" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_ROUTE_BROKEN:") for e in errs)
 
 
-def test_validator_fails_on_export_mismatch(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_export_mismatch(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.reporting.e3_research import build_e3_research_exports
 
     orig = build_e3_research_exports
@@ -902,12 +864,14 @@ def test_validator_fails_on_export_mismatch(monkeypatch: pytest.MonkeyPatch) -> 
         return mock
 
     monkeypatch.setattr("traffictwin.reporting.e3_research.build_e3_research_exports", fake_build)
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("export" in e.lower() or "mismatch" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_EXPORT_MISMATCH:") for e in errs)
 
 
-def test_validator_fails_on_non_deterministic_exports(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_non_deterministic_exports(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.reporting.e3_research import build_e3_research_exports
 
     orig = build_e3_research_exports
@@ -916,7 +880,6 @@ def test_validator_fails_on_non_deterministic_exports(monkeypatch: pytest.Monkey
     def fake_build(pkg: Any, receipt: Any) -> Any:
         b = orig(pkg, receipt)
         call_count["n"] += 1
-        # Alternate to ensure the determinism pair (two consecutive calls) differs
         if call_count["n"] % 2 == 0:
             j = json.loads(b.json)
             j["hold"]["lane_09"] = j["hold"]["lane_09"] + "_2"
@@ -928,32 +891,33 @@ def test_validator_fails_on_non_deterministic_exports(monkeypatch: pytest.Monkey
         return b
 
     monkeypatch.setattr("traffictwin.reporting.e3_research.build_e3_research_exports", fake_build)
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("deterministic" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_NON_DETERMINISTIC:") for e in errs)
 
 
-def test_validator_fails_on_placeholder_fabricated(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validator_fails_on_placeholder_fabricated(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     from traffictwin.experiments.e3_comparison import build_e3_comparison_view
 
     orig = build_e3_comparison_view
 
     def fake(pkg: Any) -> Any:
         comp = orig(pkg)
-        # Fabricate per_seed values not null
         pd = comp.e3a.paired_differences[0]
         object.__setattr__(pd, "per_seed_values", [0.1, 0.2, 0.3, 0.4])
         object.__setattr__(pd, "mean", 0.25)
         return comp
 
     monkeypatch.setattr("traffictwin.experiments.e3_comparison.build_e3_comparison_view", fake)
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("placeholder" in e.lower() or "fabricated" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_PLACEHOLDER_FABRICATED:") for e in errs)
 
 
 def test_validator_fails_on_path_secret_leakage(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     import scripts.validate_e3_research_product as v
 
@@ -974,13 +938,15 @@ def test_validator_fails_on_path_secret_leakage(
         fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
     )
     monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("secret" in e.lower() or "path" in e.lower() for e in errs)
+    assert any(
+        e.startswith("E3PV_SECRET_LEAKAGE:") or e.startswith("E3PV_PATH_LEAKAGE:") for e in errs
+    )
 
 
 def test_validator_fails_on_supervisor_approval(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     import scripts.validate_e3_research_product as v
 
@@ -1001,16 +967,230 @@ def test_validator_fails_on_supervisor_approval(
         fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
     )
     monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
-    rc, errs = _run_validator_with_patch(monkeypatch, lambda mp: None)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
     assert rc != 0
-    assert any("supervisor" in e.lower() for e in errs)
+    assert any(e.startswith("E3PV_SUPERVISOR_CLAIM:") for e in errs)
 
 
-def test_validator_no_traceback_on_mutated_payload(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Ensure mutated payload does not raise traceback, only typed error
+def test_validator_fails_on_hold_mismatch(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    import scripts.validate_e3_research_product as v
+
+    fake_root = tmp_path / "repo_hold_missing"
+    (fake_root / "docs/closure").mkdir(parents=True)
+    (fake_root / "docs").mkdir(parents=True, exist_ok=True)
+    doc_txt = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
+    doc_txt = doc_txt.replace("research_workloads_launched = 0", "research_workloads_launched = 1")
+    (fake_root / "docs/e3_dynamic_resource_v2_product.md").write_text(doc_txt, encoding="utf-8")
+    (fake_root / "docs/closure/e3_product_traceability.json").write_text(
+        Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    import shutil
+
+    shutil.copy(
+        "docs/closure/e2_product_lane12_base_receipt.json",
+        fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_HOLD_MISMATCH:") for e in errs)
+
+
+def test_validator_fails_on_missing_lanes_block(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import scripts.validate_e3_research_product as v
+
+    fake_root = tmp_path / "repo_lanes_missing"
+    (fake_root / "docs/closure").mkdir(parents=True)
+    # Create traceability without lanes
+    real_tr: dict[str, Any] = json.loads(
+        Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    )
+    real_tr.pop("lanes", None)
+    (fake_root / "docs/closure/e3_product_traceability.json").write_text(
+        json.dumps(real_tr), encoding="utf-8"
+    )
+    (fake_root / "docs/e3_dynamic_resource_v2_product.md").write_text(
+        Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    import shutil
+
+    shutil.copy(
+        "docs/closure/e2_product_lane12_base_receipt.json",
+        fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LANE_PIN_MISSING:") for e in errs)
+
+
+def test_validator_fails_on_empty_lanes_block(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import scripts.validate_e3_research_product as v
+
+    fake_root = tmp_path / "repo_lanes_empty"
+    (fake_root / "docs/closure").mkdir(parents=True)
+    real_tr: dict[str, Any] = json.loads(
+        Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    )
+    real_tr["lanes"] = {}
+    (fake_root / "docs/closure/e3_product_traceability.json").write_text(
+        json.dumps(real_tr), encoding="utf-8"
+    )
+    (fake_root / "docs/e3_dynamic_resource_v2_product.md").write_text(
+        Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    import shutil
+
+    shutil.copy(
+        "docs/closure/e2_product_lane12_base_receipt.json",
+        fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LANE_PIN_MISSING:") for e in errs)
+
+
+def test_validator_fails_on_missing_lane_pin_field(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import scripts.validate_e3_research_product as v
+
+    fake_root = tmp_path / "repo_lane_pin_missing"
+    (fake_root / "docs/closure").mkdir(parents=True)
+    real_tr: dict[str, Any] = json.loads(
+        Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    )
+    # Remove promotion from lane 10
+    if "10" in real_tr.get("lanes", {}):
+        real_tr["lanes"]["10"].pop("promotion", None)
+    (fake_root / "docs/closure/e3_product_traceability.json").write_text(
+        json.dumps(real_tr), encoding="utf-8"
+    )
+    (fake_root / "docs/e3_dynamic_resource_v2_product.md").write_text(
+        Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    import shutil
+
+    shutil.copy(
+        "docs/closure/e2_product_lane12_base_receipt.json",
+        fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_LANE_PIN_MISSING:") for e in errs)
+
+
+def test_validator_fails_on_missing_limitations(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import scripts.validate_e3_research_product as v
     from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     orig = load_builtin_e3_research
+
+    def fake() -> Any:
+        pkg = orig()
+        return pkg.model_copy(update={"limitations": []})
+
+    monkeypatch.setattr(
+        "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research", fake
+    )
+    # Also need to mock doc without limitations
+    fake_root = tmp_path / "repo_limit_missing"
+    (fake_root / "docs/closure").mkdir(parents=True)
+    doc_txt = Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8")
+    # Remove Limitations section
+    doc_txt = doc_txt.replace("### Limitations and non-claims", "### Removed")
+    (fake_root / "docs/e3_dynamic_resource_v2_product.md").write_text(doc_txt, encoding="utf-8")
+    (fake_root / "docs/closure/e3_product_traceability.json").write_text(
+        Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    import shutil
+
+    shutil.copy(
+        "docs/closure/e2_product_lane12_base_receipt.json",
+        fake_root / "docs/closure/e2_product_lane12_base_receipt.json",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(
+        e.startswith("E3PV_LIMITATIONS_MISSING:") or e.startswith("E3PV_NON_CLAIMS_MISSING:")
+        for e in errs
+    )
+
+
+def test_validator_fails_on_missing_base_receipt(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import scripts.validate_e3_research_product as v
+
+    fake_root = tmp_path / "repo_base_missing"
+    (fake_root / "docs/closure").mkdir(parents=True)
+    (fake_root / "docs").mkdir(parents=True, exist_ok=True)
+    # Copy doc and traceability but not base receipt
+    (fake_root / "docs/e3_dynamic_resource_v2_product.md").write_text(
+        Path("docs/e3_dynamic_resource_v2_product.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (fake_root / "docs/closure/e3_product_traceability.json").write_text(
+        Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(v, "_REPO_ROOT", fake_root)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_BASE_RECEIPT_MISSING:") for e in errs)
+
+
+def test_validator_fails_on_e2_preservation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from traffictwin.experiments.e2_research_artifact import builtin_e2_research_json
+
+    orig = builtin_e2_research_json
+
+    def fake() -> str:
+        return ""
+
+    monkeypatch.setattr(
+        "traffictwin.experiments.e2_research_artifact.builtin_e2_research_json", fake
+    )
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(e.startswith("E3PV_E2_PRESERVATION_FAILED:") for e in errs)
+
+
+def test_validator_fails_on_e3_builtin(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from traffictwin.evidence_admission.e3_research import admit_e3_research
+
+    orig = admit_e3_research
+
+    def fake(pkg: Any) -> Any:
+        receipt = orig(pkg)
+        return receipt.model_copy(update={"admitted": True})
+
+    monkeypatch.setattr("traffictwin.evidence_admission.e3_research.admit_e3_research", fake)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0
+    assert any(
+        e.startswith("E3PV_E3_BUILTIN_FAILED:") or e.startswith("E3PV_E3_ADMISSION_FAILED:")
+        for e in errs
+    )
+
+
+def test_validator_no_traceback_on_mutated_payload(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
 
     def fake() -> Any:
         raise ValueError("simulated load failure for no traceback test")
@@ -1020,21 +1200,24 @@ def test_validator_no_traceback_on_mutated_payload(monkeypatch: pytest.MonkeyPat
     )
     import scripts.validate_e3_research_product as v
 
-    # main should not raise
+    out = tmp_path / "verdict.json"
     try:
-        rc = v.main()
+        rc = v.main(["--output", str(out)])
         assert rc != 0
     except Exception as exc:
         pytest.fail(f"validator raised traceback on mutated payload: {exc}")
 
 
-def test_validator_emits_deterministic_verdict_json() -> None:
+def test_validator_emits_deterministic_verdict_json(tmp_path: Path) -> None:
     import scripts.validate_e3_research_product as v
 
-    rc1 = v.main()
-    txt1 = Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
-    rc2 = v.main()
-    txt2 = Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
+    out1 = tmp_path / "v1.json"
+    out2 = tmp_path / "v2.json"
+    rc1 = v.main(["--output", str(out1)])
+    rc2 = v.main(["--output", str(out2)])
+    assert rc1 == 0 and rc2 == 0
+    txt1 = out1.read_text(encoding="utf-8")
+    txt2 = out2.read_text(encoding="utf-8")
     assert txt1 == txt2
     j1 = json.loads(txt1)
     j2 = json.loads(txt2)

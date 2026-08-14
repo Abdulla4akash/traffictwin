@@ -12,7 +12,17 @@ Immutable hold verbatim in code, docs, traceability and receipts:
 - `result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE`
 - `research_workloads_launched = 0`
 
-Hosted CI truthfully `HOSTED_CI_UNAVAILABLE`. No supervisor approval, no Randy confirmation, no monetary cost claim. This is not a research approval.
+Hosted CI truthfully `HOSTED_CI_UNAVAILABLE`. This is not a research approval.
+
+No supervisor approval; standing is E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD
+No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency
+No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population
+No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective
+No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster
+No actor selects execution RSU; frozen actor does not observe load
+No tasks-as-N; tasks are accounting records, not independent replicates; task-level N is forbidden
+Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority
+Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; no Manchester-wide inference; no universal superiority.
 
 ## Launch
 
@@ -23,7 +33,7 @@ streamlit run src/traffictwin/ui/app.py -- --help   # then open the app
 traffictwin --help
 ```
 
-No environment secrets, no absolute-path configuration, no `run_e3_dynamic_resource_v2` needed. Research workloads launched remains 0 — the product re-presents dormant staged design, not results. The existing E2 product route is preserved byte-for-byte: `docs/e2_research_product.md` still describes the admitted VEC study and `scripts/validate_e2_research_product.py` still passes.
+No confidential values, no absolute-path configuration, no `run_e3_dynamic_resource_v2` needed. Research workloads launched remains 0 — the product re-presents dormant staged design, not results. The existing E2 product route is preserved byte-for-byte: `docs/e2_research_product.md` still describes the admitted VEC study and `scripts/validate_e2_research_product.py` still passes.
 
 ## Navigate
 
@@ -41,7 +51,7 @@ In **Resource Strategy Explorer**, click **Load TrafficTwin E3 Dynamic Resource 
 
 - Implementation: `load_builtin_e3_research()` via `importlib.resources` reads `traffictwin.resources.research.e3_dynamic_resource_v2.json`; `validate_e3_research_artifact()` delegates to `load_e3_research_evidence_json()` then checks every pinned identity and the no-results hold; `admit_e3_research(package)` returns typed `E3ResearchAdmissionRefusal` with `admitted=False`, `status=REFUSED`, `reason_code=REFUSED_MISSING_FUTURE_ARTIFACT`. No filesystem path input is needed for this preset. Any mutation fails closed and panels are withheld.
 
-The E3 preset declares via `importlib.resources`, not via a filesystem path, so no absolute workstation path contributes. Exports contain no secrets, no workstation paths, no timestamps.
+The E3 preset declares via `importlib.resources`, not via a filesystem path, so no absolute workstation path contributes. Exports contain no confidential values, no workstation paths, no timestamps.
 
 ## What is displayed (exact — truthful no-results)
 
@@ -53,7 +63,8 @@ The E3 preset declares via `importlib.resources`, not via a filesystem path, so 
 ### Scientific question and bounded scope
 
 - Question: How do placement (ingress_dla vs per_task_dla vs p2c_dla), scaling (fixed_1x vs static_overprovisioned vs reactive vs proactive), and staleness (0/1000/3000 ms) trade off offered-task deadline attainment, rejection share, and resource_unit_seconds across matched fleet draws fleet_draw N=4 evaluator_seed 0 under a frozen MAPPO actor that does not observe load?
-- Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority. One incident hour, 10 RSUs, 3600 ticks per cell dormant, waiting-room 6220, fixed 1x baseline, zero backhaul.
+- Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority
+- One incident hour, 10 RSUs, 3600 ticks per cell dormant, waiting-room ceiling 6220, fixed 1x service baseline, zero backhaul.
 
 ### Strategy semantics
 
@@ -63,7 +74,7 @@ Typed `E3StrategySemantics` for each dormant arm (ingress_dla, per_task_dla, p2c
 - `per_task_dla / fixed_1x @ 0 ms` — per-task least-busy plus deadline gate, 1 unit
 - `p2c_dla / fixed_1x @ 1000 ms` — pair-choice diffusion with stale view 1000 ms
 
-All: MAPPO frozen `93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208` does not observe current RSU load and does not choose execution RSU; `is_learned=False`, `is_deterministic=True`; queue capacity is waiting-room tasks per RSU (6220 ceiling), compute capacity is active units 1..3 per RSU each drains 1000 work_ms per second, resource cost is resource_unit_seconds normalized usage not money. Queue and compute are strictly separate — queue ceiling is not compute, compute is not queue, never conflated. No Kubernetes actual deployment or cluster orchestration, no learned scheduler, not autonomous infrastructure control.
+All: MAPPO frozen `93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208` does not observe current RSU load and does not choose execution RSU; `is_learned=False`, `is_deterministic=True`; queue capacity is waiting-room tasks per RSU (6220 ceiling), compute capacity is active units 1..3 per RSU each drains 1000 work_ms per second, resource cost is resource_unit_seconds normalized usage not money. Waiting-room slots are distinct from compute units, strictly separate and never conflated. No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster.
 
 ### Placement / scaling / staleness / resource trade-off structure
 
@@ -72,7 +83,7 @@ All: MAPPO frozen `93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc
 - State ages (typed int milliseconds): `0`, `1000`, `3000` — view parameter only, does not mutate true state, multiples of 1000, no drift.
 - Compute capacity: active units per RSU range `[1, 2, 3]` (min 1, max 3, unit compute_unit, max_pending_actions 1) — free/unbounded scaling outside 1..3 is forbidden.
 - Queue capacity: waiting-room `6220` tasks per RSU, unit waiting_room_task_slots, strictly separate from compute.
-- Resource cost: metric `resource_unit_seconds` (unit resource_unit_seconds, interval 1 s, formula sum_over_RSU sum_over_interval active_compute_units * interval_seconds, normalized usage not money, monetary False) — missing denominator fails closed, monetary dollars/billing/currency claims are forbidden.
+- Resource cost: metric `resource_unit_seconds` (unit resource_unit_seconds, interval 1 s, formula sum_over_RSU sum_over_interval active_compute_units * interval_seconds, normalized usage not money, monetary False) — missing denominator fails closed, currency claims are forbidden.
 - Staged design: E3a 12 cells (3 placements x 1 scaling x 1 staleness x 4 draws), E3b 16 stage-listed, 12 unique additional (4 scalers x 1 placement x 1 staleness x 4 draws minus 4 overlap), E3c 32 stale variants max (not rerun, view parameter) over 56 unique configs, 14 arms, not double counted, maximum candidate unique cells 56.
 
 Dormant arms (14) and configs (56) are structure only — not results. Every arm/config lists placement/scaling/state_age_ms exactly.
@@ -142,7 +153,19 @@ No empirical offering; no placeholder fabricated results.
 
 Limitations (8) — bounded incident hour, fleet draws, actor/trace frozen, queue/compute separation and resource_unit_seconds not money, task counts unavailable, staleness typed int, provenance first-class, admission fail-closed.
 
-Non-claims (10) include: Manchester-wide deployment, universal superiority, monetary cost, Kubernetes actual deployment/cluster orchestration, actor selects RSU, tasks-as-N, supervisor approval, queue/compute conflation, physical result-return verification, stale-state savings. The validator fails if any limitation is removed or any non-claim is affirmed as an affirmative deployment/monetary/universal/Manchester/supervisor claim. Tasks are accounting records, never replicates.
+Non-claims (10):
+- No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population
+- No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective
+- No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency
+- No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster
+- No actor selects execution RSU; frozen actor does not observe load
+- No tasks-as-N; tasks are accounting records, not independent replicates; task-level N is forbidden
+- No supervisor approval; standing is E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD
+- Queue capacity is waiting-room slots, not compute units; queue/compute conflation forbidden
+- No physical result-return verification; deadline_success is simulator outcome when executed
+- No stale-state communication savings proven; H1 remains hypothesis about pair-only vs global least-busy dependence
+
+The validator fails if any limitation is removed or any non-claim is affirmed as an affirmative deployment/monetary/universal/Manchester/supervisor claim. Tasks are accounting records, never replicates.
 
 ## E2 preservation (frozen)
 
@@ -163,5 +186,10 @@ Both must pass without launching research workloads. Hosted CI is `HOSTED_CI_UNA
 
 ## What this product does not claim
 
-Not supervisor or Randy approved, not Kubernetes deployed, not a live traffic or Manchester-wide claim, not population inference, not task-level replication, not free-flow validated, not physically verified return, not a research approval, not monetary cost, not actor selects RSU, not universal superiority — it re-presents the bounded dormant staged design through a typed, deterministic UI and export path with truthful empty state until exact Lane 09 approval.
+No supervisor approval; standing is E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD
+No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster
+Not a live traffic claim, not population inference, not free-flow validated, not physically verified return, not a research approval
+No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency
+No actor selects execution RSU; frozen actor does not observe load
+No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective — it re-presents the bounded dormant staged design through a typed, deterministic UI and export path with truthful empty state until exact Lane 09 approval.
 

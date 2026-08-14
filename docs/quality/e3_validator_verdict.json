@@ -14,7 +14,8 @@
     "placeholder_fabricated",
     "absolute_path_secret",
     "routes",
-    "exports_mismatch_and_determinism"
+    "exports_mismatch_and_determinism",
+    "limitations"
   ],
   "dormant_counts": {
     "arms": 14,
