@@ -534,7 +534,7 @@ def test_backstop_coptic_armenian_rejected_via_admission() -> None:
 
 
 # --- Blocker B+C mutation coverage for admission helpers ---
-def test_admission_contains_forbidden_guard() -> None:
+def test_admission_forbidden_guard_via_public_surface() -> None:
     # Ensure that DormantArm forbidden guard is load-bearing via admission path
     # Craft a package with forbidden in a field that goes through admission scan
     pkg = load_builtin_e3_research()

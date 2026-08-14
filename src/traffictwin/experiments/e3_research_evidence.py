@@ -207,7 +207,9 @@ ALLOWLISTED_DISCLAIMERS: Final[tuple[str, ...]] = (
 # Extended forbidden families as regex patterns on normalized text
 _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     # actual-Kubernetes
-    re.compile(r"kubernetes"),
+    re.compile(
+        r"k[\s_\-]*u[\s_\-]*b[\s_\-]*e[\s_\-]*r[\s_\-]*n[\s_\-]*e[\s_\-]*t[\s_\-]*e[\s_\-]*s"
+    ),
     re.compile(r"k8s"),
     re.compile(
         r"kube[\s_\-]+(?:cluster|deployment)[\s_\-]+is[\s_\-]+(?:live|running|orchestrating|in[\s_\-]+production)"
@@ -235,12 +237,12 @@ _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(r"generaliz\w*[\s_\-]+to[\s_\-]+manchester"),
     re.compile(r"generaliz\w*[\s_\-]+across[\s_\-]+all[\s_\-]+of[\s_\-]+manchester"),
     # monetary
-    re.compile(r"dollars?"),
+    re.compile(r"d[\s_\-]*o[\s_\-]*l[\s_\-]*l[\s_\-]*a[\s_\-]*r[\s_\-]*s?"),
     re.compile(r"\busd\b"),
     re.compile(r"\bgbp\b"),
-    re.compile(r"pounds?"),
-    re.compile(r"billing"),
-    re.compile(r"price"),
+    re.compile(r"p[\s_\-]*o[\s_\-]*u[\s_\-]*n[\s_\-]*d[\s_\-]*s?"),
+    re.compile(r"b[\s_\-]*i[\s_\-]*l[\s_\-]*l[\s_\-]*i[\s_\-]*n[\s_\-]*g"),
+    re.compile(r"p[\s_\-]*r[\s_\-]*i[\s_\-]*c[\s_\-]*e"),
     re.compile(r"monetary[\s_\-]+cost"),
     re.compile(r"\$"),
     re.compile(r"£"),
@@ -260,14 +262,68 @@ _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
 )
 
 
+# Explicit minimal mapping allowlist for post-fold residual non-ASCII (Blocker 1)
+_ZS_SPACE_CODEPOINTS: Final[frozenset[int]] = frozenset(
+    {
+        0x00A0,  # NO-BREAK SPACE
+        0x1680,  # OGHAM SPACE MARK
+        0x2000,  # EN QUAD
+        0x2001,  # EM QUAD
+        0x2002,  # EN SPACE
+        0x2003,  # EM SPACE
+        0x2004,  # THREE-PER-EM SPACE
+        0x2005,  # FOUR-PER-EM SPACE
+        0x2006,  # SIX-PER-EM SPACE
+        0x2007,  # FIGURE SPACE
+        0x2008,  # PUNCTUATION SPACE
+        0x2009,  # THIN SPACE
+        0x200A,  # HAIR SPACE
+        0x202F,  # NARROW NO-BREAK SPACE
+        0x205F,  # MEDIUM MATHEMATICAL SPACE
+        0x3000,  # IDEOGRAPHIC SPACE
+        0x2800,  # BRAILLE PATTERN BLANK
+    }
+)
+_PD_HYPHEN_CODEPOINTS: Final[frozenset[int]] = frozenset(
+    {
+        0x2010,  # HYPHEN
+        0x2011,  # NON-BREAKING HYPHEN
+        0x2012,  # FIGURE DASH
+        0x2013,  # EN DASH
+        0x2014,  # EM DASH
+        0x2015,  # HORIZONTAL BAR
+        0x2212,  # MINUS SIGN
+    }
+)
+_QUOTE_MAP: Final[dict[int, str]] = {
+    0x2018: "'",  # LEFT SINGLE QUOTATION MARK
+    0x2019: "'",  # RIGHT SINGLE QUOTATION MARK
+    0x201C: '"',  # LEFT DOUBLE QUOTATION MARK
+    0x201D: '"',  # RIGHT DOUBLE QUOTATION MARK
+}
+_CURRENCY_RETAIN: Final[frozenset[int]] = frozenset(
+    {
+        0x00A3,  # £ POUND SIGN
+        0x20AC,  # € EURO SIGN
+        0x00A5,  # ¥ YEN SIGN
+        0x00A2,  # ¢ CENT SIGN
+    }
+)
+
+
 def _fold_to_ascii_or_reject(value: str) -> str:
-    """Fold-to-ASCII-or-reject pipeline (spec Blocker 1 steps 1-4).
+    """Fold-to-ASCII-or-reject pipeline with explicit minimal mapping allowlist (Blocker 1).
 
     1. NFKD-normalize; strip all combining marks (category Mn).
     2. Strip Cf (soft hyphen, ZWJ/ZWNJ, BOM, ...); reject surrogates (Cs), unassigned (Cn), private-use (Co).
     3. Apply confusable fold, then casefold, then NFKC.
-    4. Final gate: if result still contains any non-ASCII letter (ord >=128 in L*), reject unless original is allowlisted byte-equal.
-    Non-letter non-ASCII (e.g., currency symbols) may survive to matching.
+    4. Final gate: explicit minimal mapping allowlist, everything else non-ASCII REJECTED:
+       - Zs + U+2800 -> space, Pd dashes (U+2010-U+2015, U+2212) -> hyphen,
+         quotes U+2018/U+2019 -> "'", U+201C/U+201D -> '"', currency £ € ¥ ¢ retained.
+       - Every other non-ASCII codepoint (any category Cc, Po, Sm, So, Sk, Ps/Pe, etc.)
+         is a typed rejection unless original text is byte-equal to an allowlisted disclaimer.
+       Mapped separators become ASCII and are handled by family patterns' existing
+       -/_/space handling, so supervisor\u2010approval folds to supervisor-approval and matches.
     """
     # Step 1: NFKD + strip Mn
     t = unicodedata.normalize("NFKD", value)
@@ -288,20 +344,27 @@ def _fold_to_ascii_or_reject(value: str) -> str:
     t = t.translate(_CONFUSABLE_MAP)
     t = t.casefold()
     t = unicodedata.normalize("NFKC", t)
-    # Step 4: final gate
+    # Step 4: explicit allowlist mapping, else reject
     if value in ALLOWLISTED_DISCLAIMERS:
         return t
+    out: list[str] = []
     for ch in t:
-        if ord(ch) >= 128 and unicodedata.category(ch).startswith("L"):
+        cp = ord(ch)
+        if cp < 128:
+            out.append(ch)
+        elif cp in _ZS_SPACE_CODEPOINTS:
+            out.append(" ")
+        elif cp in _PD_HYPHEN_CODEPOINTS:
+            out.append("-")
+        elif cp in _QUOTE_MAP:
+            out.append(_QUOTE_MAP[cp])
+        elif cp in _CURRENCY_RETAIN:
+            out.append(ch)
+        else:
             raise ValueError(
-                f"forbidden invalid_text: non-ASCII letter U+{ord(ch):04X} remains after fold in {value!r} -> {t!r}"
+                f"forbidden invalid_text: non-ASCII codepoint U+{cp:04X} category {unicodedata.category(ch)} remains after fold in {value!r} -> {t!r}"
             )
-    return t
-
-
-_normalize_forbidden_text = (
-    _fold_to_ascii_or_reject  # back-compat alias; canonical is _fold_to_ascii_or_reject
-)
+    return "".join(out)
 
 
 def _hex_violations_for_string(value: str, path: str) -> list[str]:
@@ -330,10 +393,8 @@ def _hex_violations_for_string(value: str, path: str) -> list[str]:
     return violations
 
 
-# Frozen allowlist of exact disclaimer sentences that legitimately contain
-# forbidden substrings but are shipped by the package. Fail-closed semantics
-# allow these verbatim strings byte-equal; any other string containing a
-# forbidden substring is rejected.
+# Frozen allowlist of 40-char SHAs that may appear as tokens in package strings.
+# Any other 40-char hex token is a provenance mismatch. Fail-closed.
 _ALLOWED_40_SHAS: Final[frozenset[str]] = frozenset(
     s.lower()
     for s in (
@@ -390,10 +451,6 @@ def _contains_affirming_forbidden_any(value: str) -> str | None:
         if m:
             return m.group(0)
     return None
-
-
-# Backward compat alias (duplicate was byte-identical); canonical is _contains_affirming_forbidden_any
-_contains_forbidden = _contains_affirming_forbidden_any
 
 
 def _scan_forbidden_recursive(obj: Any, path: str = "$") -> list[str]:

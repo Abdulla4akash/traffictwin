@@ -988,8 +988,8 @@ def test_shipped_json_semantics_disclaimers_still_load() -> None:
         assert _fold_to_ascii_or_reject(dis) is not None
 
 
-# --- Blocker B+C: one hex validator and mutation coverage for _contains_forbidden and hex ---
-def test_contains_forbidden_rejected_via_dormant_arm_public_surface() -> None:
+# --- Blocker B+C: one hex validator and mutation coverage for forbidden detection and hex ---
+def test_forbidden_detection_rejected_via_dormant_arm_public_surface() -> None:
     from traffictwin.experiments.e3_research_evidence import DormantArm
 
     # Use a valid placement/scaling but inject forbidden claim into arm_id via the validator's forbidden check.
@@ -1403,12 +1403,19 @@ def test_hex_validator_mutation_public_surface() -> None:
     assert "provenance" in str(exc.value).lower() or "mismatch" in str(exc.value).lower()
 
 
-def test_contains_forbidden_mutation_neuter_fails() -> None:
-    # Directly verify that _contains_forbidden is load-bearing: it should detect kubernetes
-    from traffictwin.experiments.e3_research_evidence import _contains_forbidden
-
-    assert _contains_forbidden("kubernetes is here") is not None
-    assert _contains_forbidden("hello world") is None
+def test_forbidden_detection_mutation_neuter_fails_via_public_loader() -> None:
+    # Re-expressed via public loader/semantics surface (was direct private alias test)
+    data = json.loads(builtin_e3_research_json())
+    data["provenance"][0]["note"] = "kubernetes is here"
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    assert "forbidden" in str(exc.value).lower() or "kubernetes" in str(exc.value).lower()
+    # hello world should pass
+    data2 = json.loads(builtin_e3_research_json())
+    data2["provenance"][0]["note"] = "hello world"
+    # Should not raise for benign note (hello world is benign and not forbidden)
+    pkg = load_e3_research_evidence_json(json.dumps(data2))
+    assert pkg is not None
 
 
 def test_hex_validator_mutation_neuter_fails_direct() -> None:
