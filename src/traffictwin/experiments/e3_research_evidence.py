@@ -247,6 +247,8 @@ _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(r"\$"),
     re.compile(r"£"),
     re.compile(r"€"),
+    re.compile(r"¥"),
+    re.compile(r"¢"),
     # actor-selects-RSU
     re.compile(
         r"actor[\s_\-]+(?:selects|chooses|picks)(?:[\s_\-]+the)?(?:[\s_\-]+exact)?(?:[\s_\-]+execution)?[\s_\-]+rsu\b"

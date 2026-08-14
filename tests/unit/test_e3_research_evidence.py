@@ -1742,3 +1742,136 @@ def test_lane10_task_accounting_nulls_via_all_surfaces() -> None:
         validate_e3_research_artifact(json.dumps(data))
     errs = validate_e3_package_for_admission(data)
     assert len(errs) > 0
+
+
+# --- Lane 10 currency drift remediation: every retained currency matched at all surfaces ---
+_CURRENCY_SYMBOLS = ["$", "£", "€", "¥", "¢"]
+_FULLWIDTH_FORMS = ["\uffe0", "\uffe1", "\uffe5"]  # ￠, ￡, ￥ NFKC-fold to ¢, £, ¥
+_ALL_CURRENCY_FORMS = _CURRENCY_SYMBOLS + _FULLWIDTH_FORMS
+_RESOURCE_UNIT_SECONDS_CLEAN = "resource cost is 42 resource_unit_seconds per hour"
+
+
+def test_currency_retention_set_and_pattern_set_in_sync() -> None:
+    """Retention and pattern must stay in sync; every retained symbol has a monetary pattern."""
+
+    from traffictwin.experiments.e3_research_evidence import (
+        _CURRENCY_RETAIN,
+        _FORBIDDEN_FAMILY_PATTERNS,
+        _contains_affirming_forbidden_any,
+    )
+
+    # Retention contains exactly £ € ¥ ¢ (and $ is ASCII, handled separately)
+    assert frozenset({0x00A3, 0x20AC, 0x00A5, 0x00A2}) == _CURRENCY_RETAIN
+    # Patterns contain all five currency symbols as literals ( $ escaped )
+    pattern_strs = [p.pattern for p in _FORBIDDEN_FAMILY_PATTERNS]
+    assert r"\$" in pattern_strs
+    assert "£" in pattern_strs
+    assert "€" in pattern_strs
+    assert "¥" in pattern_strs
+    assert "¢" in pattern_strs
+    # Direct _contains_affirming_forbidden_any verification for task description
+    for sym in _CURRENCY_SYMBOLS:
+        carrier = f"resource cost is 4500{sym} per hour"
+        hit = _contains_affirming_forbidden_any(carrier)
+        assert hit is not None, f"expected match for {sym!r} in {carrier!r}, got None"
+        # hit should contain the symbol (or its escaped form for $)
+        assert sym in hit or (sym == "$" and "$" in hit)
+    for fw in _FULLWIDTH_FORMS:
+        carrier = f"resource cost is 4500{fw} per hour"
+        hit = _contains_affirming_forbidden_any(carrier)
+        assert hit is not None, f"expected match for fullwidth {fw!r} U+{ord(fw):04X}, got None"
+    # resource_unit_seconds without currency must NOT be flagged (no over-rejection)
+    assert _contains_affirming_forbidden_any(_RESOURCE_UNIT_SECONDS_CLEAN) is None
+    assert (
+        _contains_affirming_forbidden_any("Cost is resource_unit_seconds only, not money") is None
+    )
+
+
+def test_currency_symbols_rejected_via_all_four_surfaces() -> None:
+    """For every symbol in _CURRENCY_RETAIN ($, £, €, ¥, ¢) plus fullwidth folds, all four surfaces reject, and resource_unit_seconds passes."""
+    import dataclasses
+    import json
+
+    import pytest
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import load_e3_research_evidence_json
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    # Test each currency form (including fullwidth) at all four surfaces
+    for sym in _ALL_CURRENCY_FORMS:
+        carrier = f"resource cost is 4500{sym} per hour"
+        # 1. package loader surface
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = carrier
+        with pytest.raises((ValidationError, ValueError)) as exc:
+            load_e3_research_evidence_json(json.dumps(data))
+        assert (
+            "forbidden" in str(exc.value).lower()
+            or "claim" in str(exc.value).lower()
+            or sym in str(exc.value)
+        )
+
+        # 2. validate_e3_research_artifact surface
+        with pytest.raises((ValidationError, ValueError)) as exc2:
+            validate_e3_research_artifact(json.dumps(data))
+        assert "forbidden" in str(exc2.value).lower() or "claim" in str(exc2.value).lower()
+
+        # 3. validate_e3_package_for_admission nonempty pre-errors surface
+        errs = validate_e3_package_for_admission(data)
+        assert len(errs) > 0, f"expected nonempty pre-errors for {sym!r}"
+        assert any("forbidden" in e.lower() for e in errs), (
+            f"expected forbidden in {errs} for {sym!r}"
+        )
+
+        # 4. E3StrategySemantics field surface (via dataclasses.replace)
+        canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+        for field in ["human_label", "admission", "forwarding", "execution_placement"]:
+            try:
+                dataclasses.replace(canon, **{field: carrier})  # type: ignore[arg-type]
+                raise AssertionError(
+                    f"expected rejection for currency {sym!r} U+{ord(sym):04X} in field {field}"
+                )
+            except ValueError as exc3:
+                msg = str(exc3).lower()
+                assert "forbidden" in msg or sym.lower() in msg or "currency" in msg
+
+    # resource_unit_seconds without currency must still pass at all surfaces (no over-rejection)
+    clean = _RESOURCE_UNIT_SECONDS_CLEAN
+    # 1. loader passes - append clean to preserve required hold phrases in limitations
+    data_clean = json.loads(builtin_e3_research_json())
+    data_clean["limitations"][0] = data_clean["limitations"][0] + " " + clean
+    pkg = load_e3_research_evidence_json(json.dumps(data_clean))
+    assert pkg is not None
+    # 2. artifact passes
+    from traffictwin.experiments.e3_research_artifact import (
+        validate_e3_research_artifact as validate_art,
+    )
+
+    pkg2 = validate_art(json.dumps(data_clean))
+    assert pkg2 is not None
+    # 3. admission pre-errors empty for forbidden (should be [])
+    errs_clean = validate_e3_package_for_admission(data_clean)
+    # Filter only forbidden errors; other hold errors should be absent because package is valid
+    assert not any("forbidden" in e.lower() for e in errs_clean), (
+        f"clean phrase incorrectly flagged: {errs_clean}"
+    )
+    assert errs_clean == []
+    # 4. strategy semantics field with clean resource_unit_seconds passes
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    # Use a clean extended label that still meets length requirements and mentions resource_unit_seconds
+    clean_label = clean + " with per_task_dla fixed_1x at state_age 0 ms valid extended label"
+    # Should not raise
+    replaced = dataclasses.replace(canon, human_label=clean_label)  # type: ignore[arg-type]
+    assert replaced.human_label == clean_label
+    # Also test admission field with clean phrasing that is still substantive
+    clean_admission = (
+        clean + " deadline gate at ingress with resource_unit_seconds metric only, not money"
+    )
+    replaced2 = dataclasses.replace(canon, admission=clean_admission)  # type: ignore[arg-type]
+    assert replaced2.admission == clean_admission
