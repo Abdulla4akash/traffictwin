@@ -663,19 +663,90 @@ def validate_construct_result(
             errors.append("nested workloads must be strict int")
         if nested.get("schema_version") != "e3_dynamic_resource_v2_contract_v2":
             errors.append(f"nested schema_version {nested.get('schema_version')!r} drift")
-        # Config ID 16-hex recomputation
+        # Fail-closed: require six nested factor fields strictly typed and cross-checked vs factors
+        # These are identity/accounting-critical and must never be silently skipped.
+        placement_n = nested.get("placement")
+        scaling_n = nested.get("scaling")
+        age_n = nested.get("state_age_ms")
+        eval_n = nested.get("evaluator_seed")
+        fleet_n = nested.get("fleet_seed")
+        rsus_n = nested.get("num_rsus")
+        core_n = nested.get("core_sha")
+        # Strict type/value checks for each nested factor
+        if not isinstance(placement_n, str):
+            errors.append(
+                f"nested placement must be string, got {placement_n!r} type {type(placement_n).__name__}"  # noqa: E501
+            )
+        elif placement_n not in ("ingress_dla", "per_task_dla", "p2c_dla"):
+            errors.append(f"nested placement invalid {placement_n!r}")
+        if not isinstance(scaling_n, str):
+            errors.append(
+                f"nested scaling must be string, got {scaling_n!r} type {type(scaling_n).__name__}"
+            )
+        elif scaling_n not in ("fixed_1x", "static_overprovisioned", "reactive", "proactive"):
+            errors.append(f"nested scaling invalid {scaling_n!r}")
+        if not _is_strict_int(age_n):
+            errors.append(
+                f"nested state_age_ms must be strict int, rejecting bool, got {age_n!r} type {type(age_n).__name__}"  # noqa: E501
+            )
+        elif age_n not in (0, 1000, 3000):
+            errors.append(f"nested state_age_ms invalid {age_n!r}")
+        if not _is_strict_int(eval_n):
+            errors.append(
+                f"nested evaluator_seed must be strict int, rejecting bool, got {eval_n!r} type {type(eval_n).__name__}"  # noqa: E501
+            )
+        elif eval_n != 0:
+            errors.append(f"nested evaluator_seed must be 0, got {eval_n!r}")
+        if not _is_strict_int(fleet_n):
+            errors.append(
+                f"nested fleet_seed must be strict int, rejecting bool, got {fleet_n!r} type {type(fleet_n).__name__}"  # noqa: E501
+            )
+        elif fleet_n not in (1, 2, 3, 4):
+            errors.append(f"nested fleet_seed invalid {fleet_n!r}")
+        if not _is_strict_int(rsus_n):
+            errors.append(
+                f"nested num_rsus must be strict int, rejecting bool, got {rsus_n!r} type {type(rsus_n).__name__}"  # noqa: E501
+            )
+        elif rsus_n not in (1, 2):
+            errors.append(f"nested num_rsus invalid {rsus_n!r}")
+        if not isinstance(core_n, str):
+            errors.append(
+                f"nested core_sha must be string, got {core_n!r} type {type(core_n).__name__}"
+            )
+        elif not re.fullmatch(r"[0-9a-f]{40}", core_n):
+            errors.append(f"nested core_sha invalid {core_n!r}")
+        # Cross-check each nested factor against top-level factors (mirror task-count parity at 1242-1247)  # noqa: E501
+        if isinstance(placement_n, str) and isinstance(placement, str) and placement_n != placement:
+            errors.append(
+                f"nested placement {placement_n!r} != factors placement {placement!r} mirror mismatch"  # noqa: E501
+            )
+        if isinstance(scaling_n, str) and isinstance(scaling, str) and scaling_n != scaling:
+            errors.append(
+                f"nested scaling {scaling_n!r} != factors scaling {scaling!r} mirror mismatch"
+            )
+        if _is_strict_int(age_n) and _is_strict_int(state_age) and age_n != state_age:
+            errors.append(
+                f"nested state_age_ms {age_n!r} != factors state_age_ms {state_age!r} mirror mismatch"  # noqa: E501
+            )
+        if _is_strict_int(eval_n) and _is_strict_int(evaluator_seed) and eval_n != evaluator_seed:
+            errors.append(
+                f"nested evaluator_seed {eval_n!r} != factors evaluator_seed {evaluator_seed!r} mirror mismatch"  # noqa: E501
+            )
+        if _is_strict_int(fleet_n) and _is_strict_int(fleet_seed) and fleet_n != fleet_seed:
+            errors.append(
+                f"nested fleet_seed {fleet_n!r} != factors fleet_seed {fleet_seed!r} mirror mismatch"  # noqa: E501
+            )
+        if _is_strict_int(rsus_n) and _is_strict_int(num_rsus) and rsus_n != num_rsus:
+            errors.append(
+                f"nested num_rsus {rsus_n!r} != factors num_rsus {num_rsus!r} mirror mismatch"
+            )
+        # Config ID 16-hex recomputation (fail-closed else when factors mistyped)
         cid = nested.get("config_id")
         if not isinstance(cid, str) or not re.fullmatch(r"[0-9a-f]{16}", cid):
             errors.append(f"nested config_id invalid {cid!r}")
         else:
             try:
-                placement_n = nested.get("placement")
-                scaling_n = nested.get("scaling")
-                age_n = nested.get("state_age_ms")
-                eval_n = nested.get("evaluator_seed")
-                fleet_n = nested.get("fleet_seed")
-                rsus_n = nested.get("num_rsus")
-                core_n = nested.get("core_sha")
+                # Re-use already-fetched nested factor vars for recomputation
                 if (
                     isinstance(placement_n, str)
                     and isinstance(scaling_n, str)
@@ -701,6 +772,10 @@ def validate_construct_result(
                     expected_cid = hashlib.sha256(payload.encode()).hexdigest()[:16]
                     if cid != expected_cid:
                         errors.append(f"nested config_id {cid!r} != recomputed {expected_cid!r}")
+                else:
+                    errors.append(
+                        "nested config_id cannot be validated due to invalid nested factors"
+                    )
             except Exception as e:
                 errors.append(f"nested config_id recomputation failed: {e}")
         # software_identity strict
@@ -849,6 +924,14 @@ def validate_construct_result(
         # Initialize for fail-closed completeness when intervals absent
         num_rsus_nested: Any = nested.get("num_rsus")
         total: Any = nested.get("total_resource_unit_seconds")
+        # Fail-closed: require nested num_rsus strictly typed (gates interval/coverage/per-RSU checks)  # noqa: E501
+        if not _is_strict_int(num_rsus_nested):
+            errors.append(
+                f"nested num_rsus must be strict int, rejecting bool, got {num_rsus_nested!r} type {type(num_rsus_nested).__name__}"  # noqa: E501
+            )
+        elif num_rsus_nested not in (1, 2):
+            errors.append(f"nested num_rsus {num_rsus_nested!r} must be 1 or 2 for construct")
+        # Already cross-checked vs factors above; duplicate check not needed here
         seen: set[int] = set()
         total_from_intervals = 0.0
         if not isinstance(intervals, list):

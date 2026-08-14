@@ -2576,3 +2576,347 @@ def test_manifest_allowlist_unconditional_and_validator_binding() -> None:
     # Ensure validator module actually has the attribute
     assert hasattr(_validator_mod, "MANIFEST_TOP_LEVEL_KEYS")
     assert _validator_mod.MANIFEST_TOP_LEVEL_KEYS == _runner_mod.MANIFEST_TOP_LEVEL_KEYS
+
+
+def test_nested_factor_fields_deletion_fail_closed_direct() -> None:
+    """Each of six nested factor fields when deleted must produce typed error, not zero-pass or traceback."""  # noqa: E501
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    manifest = _load_manifest()
+    # Valid still passes
+    assert validate_construct_result(wrapped, manifest) == []
+    for field in (
+        "placement",
+        "scaling",
+        "state_age_ms",
+        "evaluator_seed",
+        "fleet_seed",
+        "num_rsus",
+    ):
+        bad = copy.deepcopy(wrapped)
+        # Delete from nested
+        assert field in bad["nested_adapter_result"], f"field {field} missing in fixture"
+        del bad["nested_adapter_result"][field]
+        # Must not raise, must produce typed error
+        try:
+            errs = validate_construct_result(bad, manifest)
+        except Exception as e:
+            raise AssertionError(
+                f"deletion of nested {field} raised {e!r} {type(e).__name__}"
+            ) from e
+        assert len(errs) > 0, f"deletion of nested {field} should fail closed, got zero errors"
+        # Typed error must mention field or nested prefix
+        assert any(field in e.lower() or "nested" in e.lower() for e in errs), (
+            f"deletion of {field} should produce typed error mentioning field, got {errs}"
+        )
+        # Also specifically check strict int/string hint for appropriate fields
+        if field in ("state_age_ms", "evaluator_seed", "fleet_seed", "num_rsus"):
+            assert any("strict int" in e.lower() or field in e.lower() for e in errs), (
+                f"int field {field} should mention strict int, got {errs}"
+            )
+        else:
+            assert any("string" in e.lower() or field in e.lower() for e in errs), (
+                f"string field {field} should mention string, got {errs}"
+            )
+
+
+def test_nested_factor_fields_deletion_fail_closed_cli() -> None:
+    """CLI must emit pass=false JSON verdict without traceback when each nested factor deleted."""
+    import subprocess
+    import sys
+    import tempfile
+
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    manifest_bytes = MANIFEST_PATH.read_bytes()
+    for field in (
+        "placement",
+        "scaling",
+        "state_age_ms",
+        "evaluator_seed",
+        "fleet_seed",
+        "num_rsus",
+    ):
+        bad = copy.deepcopy(wrapped)
+        del bad["nested_adapter_result"][field]
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            m_path = td_path / MANIFEST_PATH.name
+            s_path = m_path.with_suffix(".sha256")
+            m_path.write_bytes(manifest_bytes)
+            s_path.write_text(
+                f"{hashlib.sha256(manifest_bytes).hexdigest()}  {m_path.name}\n",
+                encoding="utf-8",
+            )
+            c_path = td_path / "construct.json"
+            c_path.write_text(json.dumps(bad), encoding="utf-8")
+            proc = subprocess.run(  # noqa: S603
+                [
+                    sys.executable,
+                    str(VALIDATOR_PATH),
+                    "--manifest",
+                    str(m_path),
+                    "--construct-result",
+                    str(c_path),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            assert "Traceback" not in proc.stderr, f"CLI traceback for {field}: {proc.stderr}"
+            assert "Traceback" not in proc.stdout, f"CLI traceback stdout for {field}"
+            # stdout must be JSON with pass false
+            try:
+                out = json.loads(proc.stdout)
+            except Exception as e:
+                raise AssertionError(
+                    f"CLI output not JSON for {field}: {proc.stdout!r} err {e}"
+                ) from e
+            assert out.get("pass") is False, f"deletion {field} CLI should be pass false, got {out}"
+            assert isinstance(out.get("errors"), list) and len(out["errors"]) > 0, (
+                f"CLI errors missing for {field}, got {out}"
+            )
+            assert any(field in e.lower() or "nested" in e.lower() for e in out["errors"]), (
+                f"CLI typed error for {field} expected, got {out['errors']}"
+            )
+
+
+def test_exploit_fabricated_exports_rejected_direct_and_cli() -> None:
+    """Two demonstrated exploit exports must be rejected (direct and CLI)."""
+    import subprocess
+    import sys
+    import tempfile
+
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    manifest = _load_manifest()
+    manifest_bytes = MANIFEST_PATH.read_bytes()
+    # Valid still passes
+    assert validate_construct_result(wrapped, manifest) == []
+    # Exploit 1: delete num_rsus, fabricate 5 RSU intervals totalling 15.0 vs factors.num_rsus==2
+    exploit1 = copy.deepcopy(wrapped)
+    del exploit1["nested_adapter_result"]["num_rsus"]
+    exploit1["nested_adapter_result"]["resource_intervals_this_tick"] = [
+        {"active_compute_units": 3, "end_time_ms": 4000, "rsu_id": i, "start_time_ms": 3000}
+        for i in range(5)
+    ]
+    exploit1["nested_adapter_result"]["resource_intervals"] = exploit1["nested_adapter_result"][
+        "resource_intervals_this_tick"
+    ]
+    exploit1["nested_adapter_result"]["tick_resource_intervals"] = exploit1[
+        "nested_adapter_result"
+    ]["resource_intervals_this_tick"]
+    exploit1["nested_adapter_result"]["total_resource_unit_seconds"] = 15.0
+    exploit1["nested_adapter_result"]["per_rsu_cumulative_capacity_ms"] = {
+        str(i): 3000.0 for i in range(5)
+    }
+    exploit1["nested_adapter_result"]["per_rsu_cumulative_drained_ms"] = {
+        str(i): 10.0 for i in range(5)
+    }
+    exploit1["nested_adapter_result"]["total_drained_work_ms"] = 50.0
+    exploit1["nested_adapter_result"]["utilization"] = {str(i): 10.0 / 3000.0 for i in range(5)}
+    # Direct validation must reject
+    try:
+        errs1 = validate_construct_result(exploit1, manifest)
+    except Exception as e:
+        raise AssertionError(f"exploit1 raised {e}") from e
+    assert len(errs1) > 0, "exploit1 (num_rsus omission with 5 intervals) should be rejected"
+    assert any("num_rsus" in e.lower() for e in errs1), (
+        f"exploit1 should mention num_rsus, got {errs1}"
+    )
+    # Also test with top-level mirrors synced to avoid mirror mismatch hiding the fix
+    exploit1_synced = copy.deepcopy(exploit1)
+    exploit1_synced["resource_intervals"] = exploit1["nested_adapter_result"]["resource_intervals"]
+    exploit1_synced["total_resource_unit_seconds"] = 15.0
+    exploit1_synced["resource_conservation"]["per_rsu_intervals"] = exploit1[
+        "nested_adapter_result"
+    ]["resource_intervals"]
+    exploit1_synced["resource_conservation"]["total_resource_unit_seconds"] = 15.0
+    exploit1_synced["total_drained_work_ms"] = 50.0
+    # Must still be rejected due to missing num_rsus gating
+    errs1s = validate_construct_result(exploit1_synced, manifest)
+    assert len(errs1s) > 0, "synced exploit1 still should be rejected"
+    # Exploit 2: delete placement/scaling/state_age_ms, forge config_id 000... (direct)
+    exploit2 = copy.deepcopy(wrapped)
+    for f in ("placement", "scaling", "state_age_ms"):
+        del exploit2["nested_adapter_result"][f]
+    exploit2["nested_adapter_result"]["config_id"] = "0000000000000000"
+    try:
+        errs2 = validate_construct_result(exploit2, manifest)
+    except Exception as e:
+        raise AssertionError(f"exploit2 raised {e}") from e
+    assert len(errs2) > 0, (
+        "exploit2 (placement/scaling/age omission with forged config_id) should be rejected"
+    )
+    assert any(
+        "placement" in e.lower() or "scaling" in e.lower() or "state_age" in e.lower()
+        for e in errs2
+    ), f"exploit2 should mention missing placement/scaling/age, got {errs2}"
+    assert any("config_id" in e.lower() for e in errs2), (
+        f"exploit2 should mention config_id, got {errs2}"
+    )
+    # CLI checks for both exploits
+    for exploit, name in [(exploit1, "exploit1"), (exploit2, "exploit2")]:
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            m_path = td_path / MANIFEST_PATH.name
+            s_path = m_path.with_suffix(".sha256")
+            m_path.write_bytes(manifest_bytes)
+            s_path.write_text(
+                f"{hashlib.sha256(manifest_bytes).hexdigest()}  {m_path.name}\n",
+                encoding="utf-8",
+            )
+            c_path = td_path / "construct.json"
+            c_path.write_text(json.dumps(exploit), encoding="utf-8")
+            proc = subprocess.run(  # noqa: S603
+                [
+                    sys.executable,
+                    str(VALIDATOR_PATH),
+                    "--manifest",
+                    str(m_path),
+                    "--construct-result",
+                    str(c_path),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            assert "Traceback" not in proc.stderr and "Traceback" not in proc.stdout, (
+                f"CLI {name} should not traceback, got {proc.stderr} {proc.stdout}"
+            )
+            out = json.loads(proc.stdout)
+            assert out.get("pass") is False, f"CLI {name} should be pass false, got {out}"
+            assert len(out.get("errors", [])) > 0, f"CLI {name} should have errors"
+
+
+def test_nested_vs_factors_mismatch_rejected() -> None:
+    """Nested factor vs result['factors'] mismatches must be rejected."""
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    manifest = _load_manifest()
+    # Valid passes
+    assert validate_construct_result(wrapped, manifest) == []
+    # Placement mismatch
+    bad = copy.deepcopy(wrapped)
+    bad["nested_adapter_result"]["placement"] = "ingress_dla"
+    # Keep config_id recomputed for new placement to isolate cross-check  # noqa: E501
+    new_cid = _runner_mod._recompute_adapter_config_id(
+        "ingress_dla", "fixed_1x", 0, 0, 1, 2, _runner_mod.VEC_CORE_SHA
+    )
+    bad["nested_adapter_result"]["config_id"] = new_cid
+    errs = validate_construct_result(bad, manifest)
+    assert len(errs) > 0 and any(
+        "placement" in e.lower() and "mirror mismatch" in e.lower() for e in errs
+    ), f"placement mismatch should be rejected with mirror mismatch, got {errs}"
+    # Scaling mismatch
+    bad2 = copy.deepcopy(wrapped)
+    bad2["nested_adapter_result"]["scaling"] = "reactive"
+    errs2 = validate_construct_result(bad2, manifest)
+    assert any("scaling" in e.lower() and "mirror mismatch" in e.lower() for e in errs2), (
+        f"scaling mismatch should be rejected, got {errs2}"
+    )
+    # state_age mismatch
+    bad3 = copy.deepcopy(wrapped)
+    bad3["nested_adapter_result"]["state_age_ms"] = 1000
+    bad3["nested_adapter_result"]["receipt_state_age_ms"] = 1000
+    new_cid3 = _runner_mod._recompute_adapter_config_id(
+        "per_task_dla", "fixed_1x", 1000, 0, 1, 2, _runner_mod.VEC_CORE_SHA
+    )
+    bad3["nested_adapter_result"]["config_id"] = new_cid3
+    errs3 = validate_construct_result(bad3, manifest)
+    assert any("state_age_ms" in e.lower() and "mirror mismatch" in e.lower() for e in errs3), (
+        f"state_age mismatch should be rejected, got {errs3}"
+    )
+    # fleet_seed mismatch
+    bad4 = copy.deepcopy(wrapped)
+    bad4["nested_adapter_result"]["fleet_seed"] = 2
+    bad4["nested_adapter_result"]["software_identity"]["fleet_seed"] = 2
+    new_cid4 = _runner_mod._recompute_adapter_config_id(
+        "per_task_dla", "fixed_1x", 0, 0, 2, 2, _runner_mod.VEC_CORE_SHA
+    )
+    bad4["nested_adapter_result"]["config_id"] = new_cid4
+    errs4 = validate_construct_result(bad4, manifest)
+    assert any("fleet_seed" in e.lower() and "mirror mismatch" in e.lower() for e in errs4), (
+        f"fleet_seed mismatch should be rejected, got {errs4}"
+    )
+    # num_rsus mismatch
+    bad5 = copy.deepcopy(wrapped)
+    bad5["nested_adapter_result"]["num_rsus"] = 1
+    # Also adjust intervals to 1 to avoid extra interval errors masking? Keep 2  # noqa: E501
+    new_cid5 = _runner_mod._recompute_adapter_config_id(
+        "per_task_dla", "fixed_1x", 0, 0, 1, 1, _runner_mod.VEC_CORE_SHA
+    )
+    bad5["nested_adapter_result"]["config_id"] = new_cid5
+    errs5 = validate_construct_result(bad5, manifest)
+    assert any("num_rsus" in e.lower() and "mirror mismatch" in e.lower() for e in errs5), (
+        f"num_rsus mismatch should be rejected, got {errs5}"
+    )
+    # evaluator_seed mismatch (nested 1 vs factors 0) - invalid but should still be caught
+    bad6 = copy.deepcopy(wrapped)
+    bad6["nested_adapter_result"]["evaluator_seed"] = 1
+    errs6 = validate_construct_result(bad6, manifest)
+    assert len(errs6) > 0 and any("evaluator_seed" in e.lower() for e in errs6), (
+        f"evaluator_seed mismatch should be rejected, got {errs6}"
+    )
+
+
+def test_single_field_deletion_sweep_all_critical_nested_fail_closed() -> None:
+    """Full sweep: omission of any identity/accounting-critical nested field must fail closed."""
+    payload = _valid_adapter_payload()
+    base_sha = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+    wrapped = _runner_mod._build_construct_result(payload, base_sha, TRAFFICTWIN_BASE_SHA)
+    manifest = _load_manifest()
+    assert validate_construct_result(wrapped, manifest) == []
+    critical_fields = [
+        "placement",
+        "scaling",
+        "state_age_ms",
+        "evaluator_seed",
+        "fleet_seed",
+        "num_rsus",
+        "core_sha",
+        "config_id",
+        "total_resource_unit_seconds",
+        "total_drained_work_ms",
+        "per_rsu_cumulative_drained_ms",
+        "per_rsu_cumulative_capacity_ms",
+        "resource_intervals_this_tick",
+        "offered",
+        "admitted",
+        "rejected",
+        "forwarded",
+        "deadline_success",
+        "deadline_instrumented",
+        "software_identity",
+        "task_outcomes",
+        "scaling_scheduled",
+        "scaling_applied",
+        "receipt_state_age_ms",
+    ]
+    for field in critical_fields:
+        bad = copy.deepcopy(wrapped)
+        # Handle nested deletion: some fields are top-level aliases but we delete nested
+        if field == "resource_intervals_this_tick":
+            # Delete all interval aliases (they are fallbacks, so all must be gone to be missing)
+            bad["nested_adapter_result"].pop("resource_intervals_this_tick", None)
+            bad["nested_adapter_result"].pop("resource_intervals", None)
+            bad["nested_adapter_result"].pop("tick_resource_intervals", None)
+        elif field in bad["nested_adapter_result"]:
+            del bad["nested_adapter_result"][field]
+        else:
+            # If not in nested, skip this field for this sweep (we only sweep nested)
+            continue
+        try:
+            errs = validate_construct_result(bad, manifest)
+        except Exception as e:
+            raise AssertionError(f"sweep deletion of {field} raised {e}") from e
+        assert len(errs) > 0, (
+            f"sweep: deletion of critical nested field {field!r} should fail closed, got zero errors"  # noqa: E501
+        )
+        # Ensure typed error mentions field or generic nested
+        assert any(
+            field.lower() in e.lower() or "nested" in e.lower() or "missing" in e.lower()
+            for e in errs
+        ), f"sweep {field} should produce typed error, got {errs}"
