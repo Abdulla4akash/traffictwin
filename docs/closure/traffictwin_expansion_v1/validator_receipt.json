@@ -1,0 +1,156 @@
+{
+  "checks": [
+    {
+      "detail": "accepted as expected: ClosedLoopExecutionRequest | rejected as expected: ValidationError: rejected (sanitized) | rejected as expected: ValidationError: 1 validation error for ClosedLoopInputDeclaration\npath\n  Value error, input path must be safe relative [type=value_error, input_value='../evil.xml', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "id": "01",
+      "mutation": "private path + traversal via ClosedLoopExecutionRequest",
+      "status": "PASS",
+      "title": "SUMO executable/command injection is rejected via typed validators; valid synthetic remains accepted"
+    },
+    {
+      "detail": "accepted as expected: SnapshotRegistration | rejected as expected: ValidationError: 1 validation error for SnapshotRegistration\n  Value error, evidence standing inflation is not permitted [type=value_error, input_value={'registration_id': 'tfgm...'REAL MANCHESTER DATA'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error | rejected as expected: ValidationError: 1 validation error for SnapshotRegistration\n  Value error, evidence standing inflation is not permitted [type=value_error, input_value={'registration_id': 'nh_i...'REAL MANCHESTER DATA'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "id": "02",
+      "mutation": "TFGM/NH inflation via SnapshotRegistration",
+      "status": "PASS",
+      "title": "Source-standing inflation is rejected via frozen definition; valid historical remains accepted"
+    },
+    {
+      "detail": "accepted as expected: SnapshotRegistration | rejected as expected: ValidationError: 1 validation error for SnapshotRegistration\n  Value error, BODS is bus-only; coverage must reference bus [type=value_error, input_value={'registration_id': 'bods...'REAL MANCHESTER DATA'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error | rejected as expected: ValidationError: 1 validation error for SnapshotRegistration\n  Value error, BODS is bus-only; coverage must reference bus [type=value_error, input_value={'registration_id': 'bods...'REAL MANCHESTER DATA'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "id": "03",
+      "mutation": "bus-only check via SnapshotRegistration coverage_summary",
+      "status": "PASS",
+      "title": "BODS bus-only labeling enforced; relabel to general traffic rejected"
+    },
+    {
+      "detail": "accepted as expected: MapMatchWorkflowResult | rejected as expected: ValidationError: 1 validation error for MapMatchObservationProjection\n  Value error, AUTO_ACCEPTED requires owner_policy_accepted_candidate [type=value_error, input_value={'schema_version': '1.0',...ction_performed': False}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "id": "04",
+      "mutation": "honest UNRESOLVED vs forged AUTO_ACCEPTED via map_match_workflow (semantic invariant)",
+      "status": "PASS",
+      "title": "Unresolved map match correctly remains UNRESOLVED; forged AUTO_ACCEPTED rejected; distance alone never accepts"
+    },
+    {
+      "detail": "accepted as expected: ManchesterClosedLoopJourney | rejected as expected: ValidationError: 1 validation error for ManchesterClosedLoopJourney\n  Value error, SCIENTIFICALLY_ACCEPTED_BASELINE requires scientific present [type=value_error, input_value={'schema_version': '1.0',...0000000000000000000000'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "id": "05",
+      "mutation": "synthetic journey vs forged scientific via closed_loop_journey (tuple stages, semantic invariant)",
+      "status": "PASS",
+      "title": "Scientifically unaccepted baseline correctly not marked accepted; forged acceptance rejected for the semantic invariant"
+    },
+    {
+      "detail": "incompatible correctly REFUSED_INCOMPATIBLE blocker=SCOPE_MISMATCH standing=REFUSED_INCOMPATIBLE scope_mismatch=other_zone vs synthetic_zone | accepted as expected: ManchesterComparisonWorkflowResult | accepted as expected: ManchesterComparisonWorkflowResult",
+      "id": "06",
+      "mutation": "compatible vs incompatible scope via comparison_workflow (SCOPE_MISMATCH)",
+      "status": "PASS",
+      "title": "Incompatible metric comparison is refused; compatible vehicle_count comparison succeeds"
+    },
+    {
+      "detail": "accepted as expected: ResearchStudyRecord | rejected as expected: ValidationError: 1 validation error for ResearchStudyRecord\n  Value error, evidence/admission requires exact 40-hex code_sha and 64-hex manifest_hash [type=value_error, input_value={'study': 'E2c', 'version..., 'product_links': None}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error | rejected as expected: ValidationError: 1 validation error for ResearchStudyRecord\ncode_sha\n  String should have at least 40 characters [type=string_too_short, input_value='not-hex', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_too_short",
+      "id": "07",
+      "mutation": "missing SHA via ResearchStudyRecord",
+      "status": "PASS",
+      "title": "Admitted study requires exact 40-hex code SHA; missing/malformed rejected"
+    },
+    {
+      "detail": "accepted as expected: RegistrySnapshot | fake E3 package de18f945… structurally valid but rejected by authoritative E2 allowlist: rejected as expected: ResearchIngestionError: package record E3:9.9 not in admission allowlist (code_sha='ffffffffffffffffffffffffffffffffffffffff', manifest='eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', pkg_fp=de18f945…); before 3 records, after 3 records, fingerprint unchanged cc4c801f…, no E3 admitted",
+      "id": "08",
+      "mutation": "future E3 via ResearchStudyPackage + RegistryService.ingest_package with authoritative E2 policy (allowlist rejection, snapshot unchanged)",
+      "status": "PASS",
+      "title": "Future E3 package correctly rejected by fail-closed current-policy ingestion; snapshot unchanged/no E3 admitted (future-generic contract preserved)"
+    },
+    {
+      "detail": "accepted as expected: SourceCapabilityManifest | rejected as expected: ValidationError: 1 validation error for ReplayEventStream\n  Value error, event type is not declared by the source capability manifest [type=value_error, input_value={'schema_version': '1.0',...ns': ('replay stream',)}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error | rejected as expected: ValidationError: 1 validation error for ReplayEventStream\n  Value error, aggregate-only sources cannot be adapted into replay events [type=value_error, input_value={'schema_version': '1.0',...: ('aggregate replay',)}, input_type=dict]\n    For further information visit https://errors.pyda",
+      "id": "09",
+      "mutation": "event not in available_event_types via ReplayEventStream",
+      "status": "PASS",
+      "title": "Invented replay event correctly rejected via capability manifest; aggregate-only also rejected"
+    },
+    {
+      "detail": "accepted as expected: ReplayEventStream | rejected as expected: ValidationError: 1 validation error for SimulationTimeEvent\n  Value error, event provenance fingerprint must match source artifact identity [type=value_error, input_value={'event_id': 'evt-broken-...mePayload(step_index=0)}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error | rejected as expected: ValidationError: 1 validation error for SnapshotRegistration\n  Value error, provenance and validation receipt fingerprints must be distinct [type=value_error, input_value={'registration_id': 'prov...'REAL MANCHESTER DATA'>}, input_type=dict]\n    For further information visit https://error",
+      "id": "10",
+      "mutation": "sha mismatch + provenance==receipt via public models",
+      "status": "PASS",
+      "title": "Broken provenance/identity binding correctly rejected"
+    },
+    {
+      "detail": "accepted as expected: SnapshotRegistration | rejected as expected: ValidationError: rejected (sanitized) | rejected as expected: ValidationError: rejected (sanitized) | E2 export contains no absolute path",
+      "id": "11",
+      "mutation": "private path via SnapshotRegistration + E2 export scan",
+      "status": "PASS",
+      "title": "Portable artifact private path correctly rejected; E2 export clean"
+    },
+    {
+      "detail": "accepted as expected: SnapshotRegistration | rejected as expected: ValidationError: 1 validation error for SnapshotRegistration\n  Value error, snapshot registry metadata must not contain a credential or secret value [type=value_error, input_value={'registration_id': 'cred...'REAL MANCHESTER DATA'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error | rejected as expected: ValidationError: rejected (sanitized)",
+      "id": "12",
+      "mutation": "secret leakage via SnapshotRegistration",
+      "status": "PASS",
+      "title": "Credential/secret leakage correctly rejected via typed validators"
+    }
+  ],
+  "deterministic": true,
+  "evidence_boundary": "TrafficTwin Expansion V1 validator: deterministic, non-networked, fail-closed proof of the integrated release.",
+  "expansion_method": "expansion-v1",
+  "integration_provenance": {
+    "e2_admitted_count": 3,
+    "expansion_routes": [
+      {
+        "group": "Source evidence",
+        "script": "app_pages/manchester_source_operations.py",
+        "title": "Manchester Source Operations",
+        "url_path": "manchester-source-operations"
+      },
+      {
+        "group": "Source evidence",
+        "script": "app_pages/manchester_twin.py",
+        "title": "Manchester Twin",
+        "url_path": "manchester-twin"
+      },
+      {
+        "group": "Source evidence",
+        "script": "app_pages/replay_observatory.py",
+        "title": "Replay Observatory",
+        "url_path": "replay-observatory"
+      },
+      {
+        "group": "Evidence & reports",
+        "script": "app_pages/research_registry.py",
+        "title": "Research Registry",
+        "url_path": "research-registry"
+      }
+    ],
+    "navigation_groups": [
+      "Overview",
+      "Build & run",
+      "Results",
+      "Compare & test",
+      "Source evidence",
+      "Evidence & reports",
+      "Advanced",
+      "Platform"
+    ],
+    "normative_inventory": 54,
+    "provenance_blockers": [],
+    "provenance_standing": "PASS",
+    "provider_blocked_truthful": true,
+    "replay_deterministic": true,
+    "synthetic_execution_available": true
+  },
+  "limitations": [
+    "Validator is software acceptance only — no research workloads, no Manchester/E3 experiments, no provider retrieval.",
+    "BLOCKED/PROVIDER_DATA_REQUIRED states are truthful; synthetic engineering execution remains available.",
+    "Inferences from aggregate evidence, visual sync, distance alone, or convergence to realism are never made.",
+    "E3 is absent by design; validator does not fabricate E3.",
+    "All checks are deterministic, non-networked, via public typed construction paths."
+  ],
+  "method_version": "traffictwin-expansion-v1-validator-1.0",
+  "overall_result": "PASS",
+  "provenance_blockers": [],
+  "provenance_standing": "PASS",
+  "receipt_fingerprint": "8699b9d5cf05e2e7a2fc696b2af6c75b251a529253f0e5eae93ded5bf2408abe",
+  "schema_version": "1.0",
+  "summary": {
+    "failed": 0,
+    "passed": 12,
+    "total": 12
+  },
+  "validator_fingerprint": "d452734bea355281e24ddfa0ad7944f31babc1e6cb50e92b2a2ef497f2c27b03",
+  "validator_version": "1.0"
+}
