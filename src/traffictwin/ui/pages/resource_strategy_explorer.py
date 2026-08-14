@@ -256,6 +256,8 @@ def _render_e3_preset() -> bool:
             width="stretch",
         ):
             st.session_state["resource_strategy_e3_active"] = True
+            # I1: mutual exclusion — direct E3 activation pops E2 active (added code only)
+            st.session_state.pop("resource_strategy_e2_active", None)
 
         # Handle delayed pop for E3 intent (one-shot, delayed by one render
         # to keep AppTest assertions that check intent presence after navigation
@@ -277,6 +279,8 @@ def _render_e3_preset() -> bool:
         if intent == "e3":
             st.session_state["resource_strategy_e3_active"] = True
             st.session_state["_resource_strategy_e3_intent_pending_pop"] = True
+            # I1: when e3 intent activates E3, pop e2_active — ensures mutual exclusion after render
+            st.session_state.pop("resource_strategy_e2_active", None)
 
         # Show clear when active - unique label per page
         if st.session_state.get("resource_strategy_e3_active"):  # noqa: SIM102
@@ -333,15 +337,54 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
         "withheld until admission is explicit."
     )
 
+    # --- I1: mode arbitration (added code only, BEFORE base E2 code runs) ---
+    # Mutual exclusion: after any render at most one of e2_active/e3_active is set.
+    # When an e2 intent is present, the added code pops e3_active (and E3 pending)
+    # BEFORE base E2 code runs. When the e3 intent activates E3, _render_e3_preset
+    # pops e2_active (see above). This ensures I1 without touching base E2 lines.
+    _intent = st.session_state.get("resource_strategy_intent")
+    if _intent == "e2":
+        st.session_state.pop("resource_strategy_e3_active", None)
+        st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+    # Generic mutual exclusion if both flags somehow co-exist (e.g., direct button
+    # both-clicks without intent). With I1 they never coexist, so this branch is
+    # unreachable in reachable states, but it guarantees the synthetic sweep row
+    # (both True, no intent) never leaves both set after render and never double-renders.
+    # Only clear E3 when no e3 intent is pending activation; if e3 intent is present
+    # and will activate, let _render_e3_preset handle the pop after activation.
+    if st.session_state.get("resource_strategy_e2_active") and st.session_state.get(
+        "resource_strategy_e3_active"
+    ):
+        if _intent == "e3" and not st.session_state.get("_resource_strategy_e3_intent_pending_pop"):
+            # e3 intent without pending will activate and pop e2 inside _render_e3_preset;
+            # do not pre-pop here — let activation path handle it.
+            pass
+        else:
+            # Default: keep E2 precedence or clear stale E3 after Clear-E2.
+            # For I3: Clear-E2 must return to GENERIC, so after Clear-E2 both cannot remain.
+            st.session_state.pop("resource_strategy_e3_active", None)
+            st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+
+    # --- I4: no widget rendered twice — E3 load button at most once per run ---
+    # The fall-through double render at explorer :252/:336-343 called _render_e3_preset()
+    # twice when intent==e3 and it returned False. We track whether E3 was already
+    # rendered this run and never call it a second time, fixing duplicate-key rows.
+    _e3_already_rendered = False
     if st.session_state.get("resource_strategy_intent") == "e3":  # noqa: SIM102
+        _e3_already_rendered = True
         if _render_e3_preset():  # noqa: SIM102
             return
     # --- E2 preset — no path input needed ---
     if _render_e2_preset():
         return
     # --- E3 preset — visibly separate one-click, no path input needed ---
-    if _render_e3_preset():
+    if not _e3_already_rendered and _render_e3_preset():  # noqa: SIM102
         return
+    # I3: Clear-E2 returns to GENERIC explorer. With I1, e2/e3 actives never coexist,
+    # so the dormant-E3-after-Clear-E2 row is unreachable; we prove it by the
+    # arbitration above: after any render at most one active, hence after Clear-E2
+    # (which pops e2_active) no e3_active remains, so generic renders. No added code
+    # after Clear-E2 needs to handle E3 — it is already absent.
 
     study = _study_or_empty_state()
     if study is None:

@@ -435,10 +435,10 @@ def test_e3_cta_after_e2_visit_renders_e3() -> None:
     absent), proving the intents are symmetric and E2 pending cannot block E3.
 
     Distinct-key invariant: E3 writes only _resource_strategy_e3_intent_pending_pop,
-    E2 writes only _resource_strategy_intent_pending_pop. Under git 7e4f833 both
-    wrote the shared key; a stale E2 pending could delay or swallow a later e3
-    intent if dispatch order changed. This mirror FAILS if E3 ever writes the
-    shared key again.
+    E2 writes only _resource_strategy_intent_pending_pop. This mirror verifies
+    E3 dispatches before E2 when intent is e3 and E2 pending does not block E3;
+    it does not directly exercise the shared-key mutation covered by
+    test_e2_cta_after_e3_visit and the state-sweep row.
     """
 
     app = _page_app()
@@ -477,10 +477,12 @@ def test_state_sweep_exploit_row_e2_with_stale_e3_pending_renders_e2() -> None:
     form of the B1 exploit without needing a full navigation sequence.
 
     With the distinct key the E3 handler clears only the stale E3 flag when
-    intent is e2, leaving the e2 intent to activate E2. With the git 7e4f833
-    shared key, _render_e2_preset popped the e2 intent as stale (shared pending)
-    and fell through to _render_e3_preset which rendered stale E3 — this test
-    FAILS under the shared key and PASSES only with the distinct E3 key.
+    intent is e2, leaving the e2 intent to activate E2. This test arranges the
+    exploit row with distinct pending True and clears the shared pending flag
+    before render to simulate the distinct-key world; it does not exercise the
+    shared-key mutation where E3 would have written the shared pending key (to
+    exercise that, the shared pending must be left set, which would cause the
+    E2 intent to be swallowed under git 7e4f833).
     """
 
     app = _page_app()
@@ -507,3 +509,188 @@ def test_state_sweep_exploit_row_e2_with_stale_e3_pending_renders_e2() -> None:
     # Post-condition: E2 activated, stale E3 flag cleared to distinct key only
     assert "resource_strategy_e2_active" in app.session_state
     assert app.session_state["resource_strategy_e2_active"] is True
+
+
+def test_e3_survives_reruns_after_e2_history() -> None:
+    """Proves E3 survives two plain reruns after an e2→e3 history.
+
+    Sequence: intent="e2" run (E2 renders) → intent="e3" run (E3 renders) →
+    two more plain reruns with no session_state mutation. After the final
+    rerun asserts the E3 load button is still present, "Clear E2 research
+    view" is absent, and the E2 marker 0.683619229 is absent, showing that
+    round-3 arbitration does not clear E3 on unrelated reruns and no stale
+    E2 state reappears.
+
+    This is the review-3 blocker-1 exploit (E3 vanishing after E2 history).
+    The test verifies rerun stability and mutual exclusion durability (E3
+    activation pops E2 and arbitration keeps at most one active). It does
+    not by itself prove the distinct E3 pending-key fix for the e3→e2
+    swallow; that distinct-key invariant is covered by
+    test_e2_cta_after_e3_visit_renders_e2_first_press and
+    test_state_sweep_exploit_row_e2_with_stale_e3_pending_renders_e2.
+    """
+
+    app = _page_app()
+    app.session_state["resource_strategy_intent"] = "e2"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body_e2 = _text_of(app)
+    assert "0.683619229" in body_e2, "first run with e2 intent must render E2"
+
+    app.session_state["resource_strategy_intent"] = "e3"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body_e3 = _text_of(app)
+    assert "REFUSED" in body_e3 or "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body_e3
+
+    # Two plain reruns — no intent or active mutation
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+
+    body = _text_of(app)
+    labels = [str(b.label) for b in app.button]
+    assert any("Load TrafficTwin E3 Dynamic Resource V2" in lab for lab in labels), (
+        "E3 load button must still be present after two reruns"
+    )
+    assert not any("Clear E2 research view" in lab for lab in labels), (
+        "Clear E2 research view must be absent after e2→e3→reruns"
+    )
+    assert "0.683619229" not in body, "E2 marker must be absent when E3 survives"
+
+
+def test_clear_e2_after_e3_history_matches_base_cleared_state() -> None:
+    """Proves Clear-E2 after e3→e2 history matches base-only cleared state.
+
+    Sequence: intent="e3" run → intent="e2" run → click the real
+    "Clear E2 research view" widget. After the click asserts no "REFUSED"
+    text, no E2 marker 0.683619229, and that the button label set equals the
+    button set of a base-only E2-then-Clear flow computed in the same test
+    (to avoid hardcoding).
+
+    Covers review-3 blocker-2 (base-consistent Clear-E2 after E3 history) and
+    verifies the widget click path and mutual-exclusion arbitration return to
+    generic. It does not prove E3 survival across reruns (covered by
+    test_e3_survives_reruns_after_e2_history) nor the full 24-row mutual-
+    exclusion sweep (covered by test_two_render_state_sweep...).
+    """
+
+    app = _page_app()
+    app.session_state["resource_strategy_intent"] = "e3"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+
+    app.session_state["resource_strategy_intent"] = "e2"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body_e2 = _text_of(app)
+    assert "0.683619229" in body_e2, "e2 must render before Clear-E2 in e3→e2 history"
+
+    clear = None
+    for btn in app.button:
+        if "Clear E2 research view" in str(btn.label):
+            clear = btn
+            break
+    assert clear is not None, "Clear E2 button must exist before click"
+    clear.click().run(timeout=30)
+    assert not app.exception, app.exception
+    body = _text_of(app)
+    assert "REFUSED" not in body, "REFUSED must be absent after Clear-E2"
+    assert "0.683619229" not in body
+
+    # Base-only expectation: E2-then-Clear without any prior E3 history
+    base = _page_app()
+    base.session_state["resource_strategy_intent"] = "e2"
+    base.run(timeout=30)
+    assert not base.exception, base.exception
+    base_clear = None
+    for btn in base.button:
+        if "Clear E2 research view" in str(btn.label):
+            base_clear = btn
+            break
+    assert base_clear is not None, "base Clear E2 button must exist"
+    base_clear.click().run(timeout=30)
+    assert not base.exception, base.exception
+    expected = {str(b.label) for b in base.button}
+    actual = {str(b.label) for b in app.button}
+    assert actual == expected, (
+        f"button set after e3→e2→Clear must match base {expected} vs {actual}"
+    )
+
+
+def test_two_render_state_sweep_mutual_exclusion_no_exceptions() -> None:
+    """Proves 24-row two-render sweep has no exceptions and mutual exclusion.
+
+    Rows: {intent e2/e3/None} × {e2_active} × {e3_active} ×
+    {e3_pending} where e3_pending is _resource_strategy_e3_intent_pending_pop.
+    For each row two consecutive runs are executed; asserts no AppTest
+    exception and never both 'resource_strategy_e2_active' and
+    'resource_strategy_e3_active' present as True afterwards (checked via
+    'in' and '[]', not .get).
+
+    Covers review-3 blocker-3 (mutual exclusion and duplicate-key safety) for
+    the two-render horizon with the uncommitted round-3 arbitration. It does
+    not prove single-render mutual exclusion, widget uniqueness beyond two
+    renders, E3 survival beyond the sweep, or the distinct-key swallow
+    beyond the sweep's e3-pending dimension (those are covered by the
+    targeted CTA and survival tests).
+    """
+
+    intents: list[str | None] = ["e2", "e3", None]
+    for intent in intents:
+        for e2_active in (True, False):
+            for e3_active in (True, False):
+                for e3_pending in (True, False):
+                    app = _page_app()
+                    # Arrange intent
+                    if intent is not None:
+                        app.session_state["resource_strategy_intent"] = intent
+                    else:
+                        if "resource_strategy_intent" in app.session_state:
+                            del app.session_state["resource_strategy_intent"]
+                    # Arrange e2_active
+                    if e2_active:
+                        app.session_state["resource_strategy_e2_active"] = True
+                    else:
+                        if "resource_strategy_e2_active" in app.session_state:
+                            del app.session_state["resource_strategy_e2_active"]
+                    # Arrange e3_active
+                    if e3_active:
+                        app.session_state["resource_strategy_e3_active"] = True
+                    else:
+                        if "resource_strategy_e3_active" in app.session_state:
+                            del app.session_state["resource_strategy_e3_active"]
+                    # Arrange e3 pending
+                    if e3_pending:
+                        app.session_state["_resource_strategy_e3_intent_pending_pop"] = True
+                    else:
+                        if "_resource_strategy_e3_intent_pending_pop" in app.session_state:
+                            del app.session_state["_resource_strategy_e3_intent_pending_pop"]
+                    # Keep shared E2 pending absent to isolate e3-pending dimension
+                    if "_resource_strategy_intent_pending_pop" in app.session_state:
+                        del app.session_state["_resource_strategy_intent_pending_pop"]
+
+                    # Two consecutive runs
+                    app.run(timeout=30)
+                    assert not app.exception, (
+                        f"first run ex {intent!r} e2={e2_active} "
+                        f"e3={e3_active} p={e3_pending}: {app.exception}"
+                    )
+                    app.run(timeout=30)
+                    assert not app.exception, (
+                        f"second run ex {intent!r} e2={e2_active} "
+                        f"e3={e3_active} p={e3_pending}: {app.exception}"
+                    )
+                    # Mutual exclusion via []/in, not .get
+                    has_e2 = (
+                        "resource_strategy_e2_active" in app.session_state
+                        and app.session_state["resource_strategy_e2_active"]
+                    )
+                    has_e3 = (
+                        "resource_strategy_e3_active" in app.session_state
+                        and app.session_state["resource_strategy_e3_active"]
+                    )
+                    assert not (has_e2 and has_e3), (
+                        f"both actives {intent!r} e2={e2_active} e3={e3_active} p={e3_pending}"
+                    )
