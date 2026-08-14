@@ -184,7 +184,7 @@ def test_load_rejects_mismatched_source_identity() -> None:
     )
     data = _valid_stream_dict(source=src, present=["simulation_time"])
     data["events"][0]["source"] = other_src.model_dump(mode="json")
-    data["events"][0]["provenance"]["source_artifact_sha256"] = ARTIFACT2  # type: ignore[index]
+    data["events"][0]["provenance"]["source_artifact_sha256"] = ARTIFACT2
     raw = json.dumps(data)
     with pytest.raises(ReplayImportError, match="SCHEMA_REFUSED"):
         load_event_stream_json(raw)
@@ -193,7 +193,7 @@ def test_load_rejects_mismatched_source_identity() -> None:
 def test_load_rejects_mismatched_provenance_fingerprint() -> None:
     src = _source(artifact=ARTIFACT)
     data = _valid_stream_dict(source=src, present=["simulation_time"])
-    data["events"][0]["provenance"]["source_artifact_sha256"] = ARTIFACT2  # type: ignore[index]
+    data["events"][0]["provenance"]["source_artifact_sha256"] = ARTIFACT2
     raw = json.dumps(data)
     with pytest.raises(ReplayImportError, match="SCHEMA_REFUSED"):
         load_event_stream_json(raw)
@@ -231,7 +231,7 @@ def test_load_rejects_deep_nesting() -> None:
     for _ in range(35):
         nxt: dict[str, Any] = {"a": {}}
         cur["a"] = nxt
-        cur = nxt  # type: ignore[assignment]
+        cur = nxt
     src = _source()
     data = _valid_stream_dict(source=src, present=["simulation_time"])
     raw = json.dumps(
@@ -454,7 +454,7 @@ def test_load_rejects_non_object_root() -> None:
 def test_load_rejects_events_not_array() -> None:
     src = _source()
     data = _valid_stream_dict(source=src, present=["simulation_time"])
-    data["events"] = {"not": "array"}  # type: ignore[assignment]
+    data["events"] = {"not": "array"}
     raw = json.dumps(data)
     with pytest.raises(ReplayImportError, match="INVALID_DOCUMENT"):
         load_event_stream_json(raw)
@@ -497,7 +497,7 @@ def test_load_scale_action_generic_allowed() -> None:
     raw = json.dumps(data)
     stream = load_event_stream_json(raw)
     assert stream.events[0].event_type == EventType.SCALE_ACTION
-    payload = stream.events[0].payload  # type: ignore[union-attr]
+    payload = stream.events[0].payload
     assert hasattr(payload, "source_declared_action")
     assert not hasattr(payload, "e3_policy")
 
