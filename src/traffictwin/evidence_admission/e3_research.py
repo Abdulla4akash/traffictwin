@@ -47,19 +47,18 @@ from traffictwin.experiments.e3_research_evidence import (
     VEC_CORE_SHA,
     VEC_PROMOTION_SHA,
     E3ResearchEvidencePackage,
-    _contains_affirming_forbidden_any,
-    _contains_private_path,
+    _scan_forbidden_recursive,
 )
 
 STANDING_REFUSED: Final[Literal["E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"]] = (
-    E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED  # type: ignore[assignment]
+    E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED
 )
-EVIDENCE_STATE: Final[Literal["NOT_EXECUTED"]] = NOT_EXECUTED  # type: ignore[assignment]
+EVIDENCE_STATE: Final[Literal["NOT_EXECUTED"]] = NOT_EXECUTED
 RESULT_AVAILABILITY: Final[Literal["NO_E3_RESEARCH_RESULTS_AVAILABLE"]] = (
-    NO_E3_RESEARCH_RESULTS_AVAILABLE  # type: ignore[assignment]
+    NO_E3_RESEARCH_RESULTS_AVAILABLE
 )
-LANE_09_HOLD: Final[Literal["BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"]] = LANE_09  # type: ignore[assignment]
-RESEARCH_WORKLOADS: Final[Literal[0]] = RESEARCH_WORKLOADS_LAUNCHED  # type: ignore[assignment]
+LANE_09_HOLD: Final[Literal["BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"]] = LANE_09
+RESEARCH_WORKLOADS: Final[Literal[0]] = RESEARCH_WORKLOADS_LAUNCHED
 
 # Expected package fingerprint does not yet exist — future Lane 09 package required.
 # No current 64-hex value satisfies this; admission therefore always refuses.
@@ -82,44 +81,6 @@ def _validate_hex64_strict(value: str, field_name: str) -> str:
     if not _HEX64_RE.fullmatch(s):
         raise ValueError(f"{field_name} must be 64-char lower-case hex")
     return s
-
-
-def _scan_forbidden_recursive(obj: Any, path: str = "$") -> list[str]:
-    errs: list[str] = []
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            low_k = str(k).lower()
-            if low_k.endswith("_authorized") and v is True:
-                errs.append(f"true _authorized capability {k!r} at {path}")
-            if low_k.endswith("_authorized") and not isinstance(v, bool):
-                # also strict bool violation
-                pass
-            forb_k = _contains_affirming_forbidden_any(str(k))
-            if forb_k is not None:
-                errs.append(f"forbidden substring {forb_k!r} in key {k!r} at {path}")
-            if isinstance(v, str):
-                if _contains_private_path(v):
-                    errs.append(f"private path at {path}.{k}: {v!r}")
-                forb_v = _contains_affirming_forbidden_any(v)
-                if forb_v is not None:
-                    errs.append(f"forbidden claim {forb_v!r} at {path}.{k}")
-            errs.extend(_scan_forbidden_recursive(v, f"{path}.{k}"))
-    elif isinstance(obj, list):
-        for i, item in enumerate(obj):
-            if isinstance(item, str):
-                if _contains_private_path(item):
-                    errs.append(f"private path at {path}[{i}]: {item!r}")
-                forb = _contains_affirming_forbidden_any(item)
-                if forb is not None:
-                    errs.append(f"forbidden claim {forb!r} at {path}[{i}]")
-            errs.extend(_scan_forbidden_recursive(item, f"{path}[{i}]"))
-    elif isinstance(obj, str):
-        forb = _contains_affirming_forbidden_any(obj)
-        if forb is not None:
-            errs.append(f"forbidden claim {forb!r} at {path}")
-        if _contains_private_path(obj):
-            errs.append(f"private path string at {path}: {obj!r}")
-    return errs
 
 
 class StrictBase(BaseModel):

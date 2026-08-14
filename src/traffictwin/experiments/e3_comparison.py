@@ -121,9 +121,9 @@ class NoResultsComparisonView(BaseModel):
     tasks_are_not_replicates: Literal[True] = True
     manchester_wide_inference_forbidden: Literal[True] = True
     universal_superiority_forbidden: Literal[True] = True
-    evidence_state: Literal["NOT_EXECUTED"] = NOT_EXECUTED  # type: ignore[assignment]
+    evidence_state: Literal["NOT_EXECUTED"] = NOT_EXECUTED
     result_availability: Literal["NO_E3_RESEARCH_RESULTS_AVAILABLE"] = (
-        NO_E3_RESEARCH_RESULTS_AVAILABLE  # type: ignore[assignment]
+        NO_E3_RESEARCH_RESULTS_AVAILABLE
     )
     unavailable_reason: str = Field(min_length=1)
 
@@ -134,9 +134,9 @@ class E3ResearchComparisonView(BaseModel):
     e3a: NoResultsComparisonView
     e3b: NoResultsComparisonView
     e3c: NoResultsComparisonView
-    lane_09: Literal["BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"] = LANE_09  # type: ignore[assignment]
+    lane_09: Literal["BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"] = LANE_09
     status: Literal["E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"] = (
-        E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED  # type: ignore[assignment]
+        E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED
     )
     scenario: str = Field(default=SCENARIO)
 

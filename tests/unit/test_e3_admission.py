@@ -330,3 +330,168 @@ def test_scan_forbidden_recursive_direct() -> None:
     deep = {"a": {"b": {"c": "kubernetes deep direct is true"}}}
     errs = _scan_forbidden_recursive(deep)
     assert any("kubernetes" in e.lower() for e in errs)
+
+
+# --- Review-2 regression: provenance position-independence via admission ---
+_SUPERSEDED_SHA_ADM = "ac8e410f7708188a9dd6e13e1c0311297176839d"
+_PROVENANCE_SHAPES_ADM = [
+    f"{_SUPERSEDED_SHA_ADM} promotion commit for the research merge",
+    "promotion commit " + "x" * 25 + f" {_SUPERSEDED_SHA_ADM}",
+    f"promotion commit for the research merge is {_SUPERSEDED_SHA_ADM}",
+    f"runner build {_SUPERSEDED_SHA_ADM}",
+    f"signed off by reviewer, runner SHA {_SUPERSEDED_SHA_ADM}",
+]
+
+
+def test_provenance_position_independence_via_admission() -> None:
+    for note in _PROVENANCE_SHAPES_ADM:
+        data = json.loads(builtin_e3_research_json())
+        data["provenance"][0]["note"] = note
+        errs = validate_e3_package_for_admission(data)
+        assert len(errs) > 0, f"expected rejection for note {note!r}, got {errs}"
+        assert any(
+            "provenance" in e.lower() or "mismatch" in e.lower() or "prefix" in e.lower()
+            for e in errs
+        ), errs
+        result = admit_e3_research(data)
+        assert result.admitted is False
+        assert "REFUSED" in result.reason_code
+
+
+def test_provenance_shipped_still_passes_via_admission() -> None:
+    pkg = load_builtin_e3_research()
+    errs = validate_e3_package_for_admission(pkg)
+    assert errs == []
+    result = admit_e3_research(pkg)
+    # still refused for missing future artifact, but not for provenance mismatch
+    assert result.reason_code == "REFUSED_MISSING_FUTURE_ARTIFACT"
+    assert (
+        "forbidden" not in result.reason_detail.lower()
+        or "provenance" not in result.reason_detail.lower()
+    )
+
+
+# --- Review-2 regression: forbidden families via admission (top-level + deep via package object) ---
+_FORBIDDEN_FAMILIES_ADM = [
+    "the k8s cluster is live",
+    "K8S deployment is running in production",
+    "we have supervisor approval",
+    "approved by the supervisor",
+    "Randy approved",
+    "universally superior",
+    "N is the number of tasks, task-level replication used",
+    "results generalize across all of Manchester",
+    "42 dollars per hour",
+    "£3,000 GBP billing for compute",
+    "the actor chooses the execution RSU based on load",
+]
+
+
+def test_forbidden_families_top_level_via_admission_dict() -> None:
+    for phrase in _FORBIDDEN_FAMILIES_ADM:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = phrase
+        errs = validate_e3_package_for_admission(data)
+        assert len(errs) > 0
+        assert any("forbidden" in e.lower() for e in errs), (
+            f"phrase {phrase!r} not flagged as forbidden: {errs}"
+        )
+        result = admit_e3_research(data)
+        assert result.admitted is False
+        assert "REFUSED" in result.reason_code
+
+
+def test_forbidden_families_deep_nested_via_admission_package_object() -> None:
+    for phrase in _FORBIDDEN_FAMILIES_ADM:
+        pkg = load_builtin_e3_research()
+        new_factors = dict(pkg.factors)
+        new_factors["deep_adm"] = {"inner": {"deepest": phrase}}  # type: ignore[assignment]
+        forged = pkg.model_copy(update={"factors": new_factors})
+        errs = validate_e3_package_for_admission(forged)
+        assert len(errs) > 0
+        assert any("forbidden" in e.lower() for e in errs), (
+            f"deep phrase {phrase!r} not flagged: {errs}"
+        )
+        result = admit_e3_research(forged)
+        assert result.admitted is False
+
+
+# --- Review-2 regression: Unicode normalization via admission ---
+_UNICODE_VARIANTS_ADM = [
+    "kub\u0435rnetes",
+    "kub\u200bernetes",
+    "Ｋｕｂｅｒｎｅｔｅｓ",
+]
+
+
+def test_unicode_variants_rejected_via_admission() -> None:
+    for variant in _UNICODE_VARIANTS_ADM:
+        data = json.loads(builtin_e3_research_json())
+        payload = f"test {variant} cluster"
+        data["limitations"][0] = payload
+        errs = validate_e3_package_for_admission(data)
+        assert len(errs) > 0
+        assert any("forbidden" in e.lower() for e in errs)
+        # also via package object deep
+        pkg = load_builtin_e3_research()
+        new_factors = dict(pkg.factors)
+        new_factors["deep_unicode"] = {"a": {"b": payload}}  # type: ignore[assignment]
+        forged = pkg.model_copy(update={"factors": new_factors})
+        errs2 = validate_e3_package_for_admission(forged)
+        assert len(errs2) > 0
+
+
+# --- Review-2 regression: negation phrasing via admission ---
+_NEGATION_PHRASES_ADM = [
+    "there is no doubt kubernetes cluster is live",
+    "never in doubt: supervisor approved this",
+]
+
+
+def test_negation_phrasing_rejected_via_admission() -> None:
+    for phrase in _NEGATION_PHRASES_ADM:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = phrase
+        errs = validate_e3_package_for_admission(data)
+        assert len(errs) > 0
+        assert any("forbidden" in e.lower() for e in errs)
+        result = admit_e3_research(data)
+        assert result.admitted is False
+
+
+# --- Review-2 regression: allowlist integrity via admission ---
+def test_allowlist_integrity_via_admission() -> None:
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+    for dis in ALLOWLISTED_DISCLAIMERS:
+        data = json.loads(builtin_e3_research_json())
+        data["non_claims"][1] = dis
+        errs = validate_e3_package_for_admission(data)
+        # allowlisted exact should not produce forbidden errors
+        assert not any("forbidden" in e.lower() for e in errs), (
+            f"allowlist incorrectly flagged: {dis!r} {errs}"
+        )
+        # appended should be rejected
+        data2 = json.loads(builtin_e3_research_json())
+        data2["limitations"][0] = dis + " kubernetes is live"
+        errs2 = validate_e3_package_for_admission(data2)
+        assert len(errs2) > 0
+        assert any("forbidden" in e.lower() for e in errs2)
+
+
+# --- Review-2 regression: neutering coverage for admission scanner ---
+def test_admission_scan_alias_is_canonical() -> None:
+    from traffictwin.evidence_admission.e3_research import _scan_forbidden_recursive as adm_scan
+    from traffictwin.experiments.e3_research_evidence import _scan_forbidden_recursive as canon_scan
+
+    assert adm_scan is canon_scan
+    # direct check that it still detects
+    errs = adm_scan({"a": "kubernetes test"})
+    assert any("kubernetes" in e.lower() for e in errs)
+
+
+def test_admission_contains_affirming_still_guards() -> None:
+    from traffictwin.experiments.e3_research_evidence import _contains_affirming_forbidden_any
+
+    assert _contains_affirming_forbidden_any("the k8s cluster is live") is not None
+    assert _contains_affirming_forbidden_any("approved by the supervisor") is not None

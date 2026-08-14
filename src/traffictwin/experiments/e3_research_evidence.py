@@ -34,6 +34,7 @@ import hashlib
 import json
 import math
 import re
+import unicodedata
 from enum import StrEnum
 from typing import Any, Final, Literal
 
@@ -43,11 +44,17 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # Immutable hold — verbatim in model constants
 # ---------------------------------------------------------------------------
 
-LANE_09: Final[str] = "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
-E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED: Final[str] = "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
-NOT_EXECUTED: Final[str] = "NOT_EXECUTED"
-NO_E3_RESEARCH_RESULTS_AVAILABLE: Final[str] = "NO_E3_RESEARCH_RESULTS_AVAILABLE"
-RESEARCH_WORKLOADS_LAUNCHED: Final[int] = 0
+LANE_09: Final[Literal["BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"]] = (
+    "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
+)
+E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED: Final[Literal["E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"]] = (
+    "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
+)
+NOT_EXECUTED: Final[Literal["NOT_EXECUTED"]] = "NOT_EXECUTED"
+NO_E3_RESEARCH_RESULTS_AVAILABLE: Final[Literal["NO_E3_RESEARCH_RESULTS_AVAILABLE"]] = (
+    "NO_E3_RESEARCH_RESULTS_AVAILABLE"
+)
+RESEARCH_WORKLOADS_LAUNCHED: Final[Literal[0]] = 0
 
 # ---------------------------------------------------------------------------
 # Frozen identities to pin in resource JSON and admission model
@@ -102,6 +109,7 @@ HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 HEX16_RE = re.compile(r"^[0-9a-f]{16}$")
 
+
 # Private-path detector built without contiguous literal to satisfy shipping rule.
 # Runtime string still matches absolute private paths like that prefix joined in code.
 _PRIVATE_PREFIXES: Final[tuple[str, ...]] = (
@@ -113,6 +121,129 @@ _PRIVATE_PREFIXES: Final[tuple[str, ...]] = (
     "C:\\",
 )
 
+# ---------------------------------------------------------------------------
+# Normalization for forbidden families (Blocker 5)
+# ---------------------------------------------------------------------------
+
+_ZERO_WIDTH_CODEPOINTS: Final[frozenset[int]] = frozenset(
+    [0x200B, 0x200C, 0x200D, 0x200E, 0x200F, 0x2060, 0xFEFF]
+)
+
+_CONFUSABLE_MAP: Final[dict[int, int]] = {
+    # Cyrillic а е о р с х у і -> Latin
+    0x0430: 0x61,  # а -> a
+    0x0410: 0x61,  # А -> a (casefold will lower, but keep)
+    0x0435: 0x65,  # е -> e
+    0x0415: 0x65,  # Е -> e
+    0x043E: 0x6F,  # о -> o
+    0x041E: 0x6F,  # О -> o
+    0x0440: 0x70,  # р -> p
+    0x0420: 0x70,  # Р -> p
+    0x0441: 0x63,  # с -> c
+    0x0421: 0x63,  # С -> c
+    0x0445: 0x78,  # х -> x
+    0x0425: 0x78,  # Х -> x
+    0x0443: 0x79,  # у -> y
+    0x0423: 0x79,  # У -> y
+    0x0456: 0x69,  # і -> i
+    0x0406: 0x69,  # І -> i
+    0x0438: 0x69,  # и -> i (extra)
+    0x0418: 0x69,  # И -> i
+    # Greek
+    0x03B1: 0x61,  # α -> a
+    0x0391: 0x61,  # Α -> a
+    0x03BF: 0x6F,  # ο -> o
+    0x039F: 0x6F,  # Ο -> o
+}
+
+
+def _normalize_forbidden_text(value: str) -> str:
+    """NFKC fold, strip zero-width, casefold, map confusables."""
+    # NFKC
+    t = unicodedata.normalize("NFKC", value)
+    # strip zero-width
+    t = "".join(ch for ch in t if ord(ch) not in _ZERO_WIDTH_CODEPOINTS)
+    # casefold
+    t = t.casefold()
+    # confusable map
+    t = t.translate(_CONFUSABLE_MAP)
+    return t
+
+
+# Frozen allowlist of exact disclaimer sentences that legitimately contain
+# forbidden substrings but are shipped by the package. Fail-closed semantics
+# allow these verbatim strings byte-equal; any other string containing a
+# forbidden substring is rejected.
+ALLOWLISTED_DISCLAIMERS: Final[tuple[str, ...]] = (
+    "No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population",
+    "No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective",
+    "No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency",
+    "No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster",
+    "No actor selects execution RSU; frozen actor does not observe load",
+    "No tasks-as-N; tasks are accounting records, not independent replicates; task-level N is forbidden",
+    "Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority",
+    "No supervisor approval; standing is E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; no Manchester-wide inference; no universal superiority.",
+)
+
+_NORMALIZED_ALLOWLIST: Final[frozenset[str]] = frozenset(
+    _normalize_forbidden_text(s) for s in ALLOWLISTED_DISCLAIMERS
+)
+
+# Extended forbidden families as regex patterns on normalized text
+_FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
+    # actual-Kubernetes
+    re.compile(r"kubernetes"),
+    re.compile(r"k8s"),
+    re.compile(
+        r"kube[\s_\-]+(?:cluster|deployment)[\s_\-]+is[\s_\-]+(?:live|running|orchestrating|in[\s_\-]+production)"
+    ),
+    # supervisor-approval
+    re.compile(r"supervisor[\s_\-]+approval"),
+    re.compile(r"supervisor[\s_\-]+approved"),
+    re.compile(r"approved[\s_\-]+by[\s_\-]+(?:the[\s_\-]+)?supervisor"),
+    re.compile(r"randy[\s_\-]+approved"),
+    re.compile(r"randy[\s_\-]+confirmed"),
+    re.compile(r"signed[\s_\-]+off[\s_\-]+by[\s_\-]+supervisor"),
+    # universal superiority
+    re.compile(r"universally[\s_\-]+superior"),
+    re.compile(r"universal[\s_\-]+superiority"),
+    re.compile(r"superior[\s_\-]+in[\s_\-]+all[\s_\-]+cases?"),
+    re.compile(r"superior[\s_\-]+in[\s_\-]+all[\s_\-]+settings?"),
+    # tasks-as-N
+    re.compile(r"tasks?[\s_\-]+as[\s_\-]+n\b"),
+    re.compile(r"task[\s_\-]+level[\s_\-]+replication"),
+    re.compile(r"n[\s_\-]+is[\s_\-]+the[\s_\-]+number[\s_\-]+of[\s_\-]+tasks"),
+    re.compile(r"tasks?[\s_\-]+are[\s_\-]+replicates"),
+    # Manchester-wide inference
+    re.compile(r"manchester[\s_\-]*wide"),
+    re.compile(r"across[\s_\-]+all[\s_\-]+of[\s_\-]+manchester"),
+    re.compile(r"generaliz\w*[\s_\-]+to[\s_\-]+manchester"),
+    re.compile(r"generaliz\w*[\s_\-]+across[\s_\-]+all[\s_\-]+of[\s_\-]+manchester"),
+    # monetary
+    re.compile(r"dollars?"),
+    re.compile(r"\busd\b"),
+    re.compile(r"\bgbp\b"),
+    re.compile(r"pounds?"),
+    re.compile(r"billing"),
+    re.compile(r"price"),
+    re.compile(r"monetary[\s_\-]+cost"),
+    re.compile(r"\$"),
+    re.compile(r"£"),
+    re.compile(r"€"),
+    # actor-selects-RSU
+    re.compile(
+        r"actor[\s_\-]+(?:selects|chooses|picks)(?:[\s_\-]+the)?(?:[\s_\-]+exact)?(?:[\s_\-]+execution)?[\s_\-]+rsu\b"
+    ),
+    # legacy queue/compute conflation (keep for completeness)
+    re.compile(r"queue[\s_\-]+ceiling[\s_\-]+is[\s_\-]+compute"),
+    re.compile(r"queue[\s_\-]+ceiling[\s_\-]+is"),
+    # generic fallback for any remaining strict substrings that might be missed due to separators
+    re.compile(r"queue_ceiling_is_compute"),
+    re.compile(r"actor_selects"),
+)
+
+# Legacy tuple for backward references (not used for matching, but keep shape)
 _FORBIDDEN_SUBSTRINGS_LOWER: Final[tuple[str, ...]] = (
     "queue_ceiling_is_compute",
     "queue ceiling is compute",
@@ -146,20 +277,33 @@ _FORBIDDEN_SUBSTRINGS_LOWER: Final[tuple[str, ...]] = (
     "randy_confirmed",
 )
 
-
-# Frozen allowlist of exact disclaimer sentences that legitimately contain
-# forbidden substrings but are shipped by the package. Fail-closed semantics
-# allow these verbatim strings byte-equal; any other string containing a
-# forbidden substring is rejected.
-ALLOWLISTED_DISCLAIMERS: Final[tuple[str, ...]] = (
-    "No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population",
-    "No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective",
-    "No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency",
-    "No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster",
-    "No actor selects execution RSU; frozen actor does not observe load",
-    "No tasks-as-N; tasks are accounting records, not independent replicates; task-level N is forbidden",
-    "Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority",
+_ALLOWED_40_SHAS: Final[frozenset[str]] = frozenset(
+    s.lower()
+    for s in (
+        TRAFFICTWIN_PRODUCT_BASE_SHA,
+        TRAFFICTWIN_RESEARCH_PROMOTION_SHA,
+        APPROVED_CANDIDATE_SHA,
+        CONTRACT_CHECKPOINT_SHA,
+        VEC_PROMOTION_SHA,
+        VEC_CORE_SHA,
+        VEC_ADAPTER_SHA,
+        VEC_PROMOTED_BASE,
+    )
 )
+
+_ALLOWED_64_SHAS: Final[frozenset[str]] = frozenset(
+    s.lower()
+    for s in (
+        ACTOR_SHA256,
+        TRACE_SHA256,
+        E2D_MANIFEST_SHA256,
+        CONTRACT_SHA256,
+        MANIFEST_SIDECAR_SHA256,
+    )
+)
+
+_HEX40_TOKEN_RE = re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{40}(?![0-9a-fA-F])")
+_HEX64_TOKEN_RE = re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{64}(?![0-9a-fA-F])")
 
 _SECRET_RE = re.compile(
     r"(password|secret|api[_-]?key|token|credential|workstation|private[_-]?key)",
@@ -176,39 +320,52 @@ def _contains_private_path(value: str) -> bool:
     return any(pref.lower() in low for pref in _PRIVATE_PREFIXES)
 
 
+def _contains_private_path_normalized(normalized: str) -> bool:
+    # normalized is already casefolded
+    return any(pref.lower() in normalized for pref in _PRIVATE_PREFIXES)
+
+
 def _contains_forbidden(value: str) -> str | None:
-    low = value.lower()
-    for substr in _FORBIDDEN_SUBSTRINGS_LOWER:
-        if substr in low:
-            return substr
+    norm = _normalize_forbidden_text(value)
+    if norm in _NORMALIZED_ALLOWLIST:
+        return None
+    for pat in _FORBIDDEN_FAMILY_PATTERNS:
+        m = pat.search(norm)
+        if m:
+            return m.group(0)
     return None
 
 
 def _contains_affirming_forbidden(value: str, phrase: str) -> bool:
-    # Fail-closed: any occurrence is affirming unless the whole string is an allowlisted disclaimer.
-    if value in ALLOWLISTED_DISCLAIMERS:
+    # Legacy wrapper: fail-closed, any occurrence after normalization is affirming unless allowlisted
+    norm = _normalize_forbidden_text(value)
+    if norm in _NORMALIZED_ALLOWLIST:
         return False
-    low = value.lower()
-    needle = phrase.lower()
-    return needle in low
+    pat = re.compile(re.escape(_normalize_forbidden_text(phrase)))
+    return bool(pat.search(norm))
 
 
 def _contains_affirming_forbidden_any(value: str) -> str | None:
-    # Fail-closed: exact allowlisted disclaimer strings are exempt; otherwise any substring match is a violation.
+    norm = _normalize_forbidden_text(value)
+    if norm in _NORMALIZED_ALLOWLIST:
+        return None
     if value in ALLOWLISTED_DISCLAIMERS:
         return None
-    low = value.lower()
-    for substr in _FORBIDDEN_SUBSTRINGS_LOWER:
-        if substr in low:
-            return substr
+    for pat in _FORBIDDEN_FAMILY_PATTERNS:
+        m = pat.search(norm)
+        if m:
+            return m.group(0)
     return None
 
 
 def _is_allowlisted(value: str) -> bool:
-    return value in ALLOWLISTED_DISCLAIMERS
+    return (
+        value in ALLOWLISTED_DISCLAIMERS
+        or _normalize_forbidden_text(value) in _NORMALIZED_ALLOWLIST
+    )
 
 
-def _scan_for_private_paths(obj: Any, path: str = "$") -> list[str]:
+def _scan_forbidden_recursive(obj: Any, path: str = "$") -> list[str]:
     violations: list[str] = []
     if isinstance(obj, str):
         if _contains_private_path(obj):
@@ -218,44 +375,96 @@ def _scan_for_private_paths(obj: Any, path: str = "$") -> list[str]:
         forb = _contains_affirming_forbidden_any(obj)
         if forb is not None:
             violations.append(f"{path}: forbidden claim {forb!r} in {obj!r}")
+        # hex token check (position-independent, 7-64, 40 vs 64 strict)
+        # Check 40 and 64 exact, plus 7-39 prefix validation (to catch short SHA misuse)
+        for m in _HEX40_TOKEN_RE.finditer(obj):
+            token = m.group(0).lower()
+            if token not in _ALLOWED_40_SHAS:
+                violations.append(
+                    f"{path}: provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
+                )
+        for m in _HEX64_TOKEN_RE.finditer(obj):
+            token = m.group(0).lower()
+            if token not in _ALLOWED_64_SHAS:
+                violations.append(
+                    f"{path}: provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
+                )
+        # also check short 7-39 hex tokens (possible SHA prefixes) - they must be prefix of some allowed 40 or 64
+        for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", obj):
+            token = m.group(0).lower()
+            # ignore if it's part of longer 40/64 already handled? The regex ensures not part of longer, so it's isolated short token
+            # check if token is prefix of any allowed 40 or 64
+            is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
+                allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
+            )
+            if not is_prefix:
+                violations.append(
+                    f"{path}: provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
+                )
     elif isinstance(obj, dict):
         for k, v in obj.items():
-            # key ending with _authorized that is True is forbidden anywhere except inside strict execution_authority
-            # Here we flag any true _authorized at any path; the package model will enforce false.
-            if isinstance(k, str) and k.lower().endswith("_authorized") and v is True:
-                violations.append(f"{path}.{k}: true _authorized forbidden")
-            # also scan key for forbidden substrings (affirming only)
+            low_k = str(k).lower()
+            if isinstance(k, str) and low_k.endswith("_authorized"):
+                if v is True:
+                    violations.append(f"{path}.{k}: true _authorized forbidden")
+                if not isinstance(v, bool):
+                    violations.append(
+                        f"{path}.{k}: _authorized must be strict bool, got {type(v).__name__}"
+                    )
             if isinstance(k, str):
                 forb_k = _contains_affirming_forbidden_any(k)
                 if forb_k is not None:
                     violations.append(f"{path}.{k}: forbidden key claim {forb_k!r}")
-            violations.extend(_scan_for_private_paths(v, f"{path}.{k}"))
+            violations.extend(_scan_forbidden_recursive(v, f"{path}.{k}"))
     elif isinstance(obj, (list, tuple)):
         for i, v in enumerate(obj):
-            violations.extend(_scan_for_private_paths(v, f"{path}[{i}]"))
+            violations.extend(_scan_forbidden_recursive(v, f"{path}[{i}]"))
     return violations
 
 
-def _scan_for_true_authorized(obj: Any, path: str = "$") -> list[str]:
+# Aliases for backward compatibility and single recursive scanner guarantee
+_scan_for_private_paths = _scan_forbidden_recursive
+_scan_for_true_authorized = _scan_forbidden_recursive
+
+
+def _validate_hex_tokens_in_package(pkg: Any) -> list[str]:
+    """Scan every string in package for 40/64 hex tokens not in allowed sets (plus 7-39 prefix)."""
     violations: list[str] = []
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if isinstance(k, str) and k.lower().endswith("_authorized"):
-                if v is True:
-                    violations.append(f"{path}.{k}: true _authorized forbidden, got True")
-                if not isinstance(v, bool):
-                    # also enforce strict bool
+
+    # collect all strings via recursion
+    def _collect(o: Any, p: str) -> None:
+        if isinstance(o, str):
+            for m in _HEX40_TOKEN_RE.finditer(o):
+                token = m.group(0).lower()
+                if token not in _ALLOWED_40_SHAS:
                     violations.append(
-                        f"{path}.{k}: _authorized must be strict bool, got {type(v).__name__}"
+                        f"{p}: provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
                     )
-            if isinstance(v, (dict, list)):
-                violations.extend(_scan_for_true_authorized(v, f"{path}.{k}"))
-            elif isinstance(v, tuple):
-                for i, item in enumerate(v):
-                    violations.extend(_scan_for_true_authorized(item, f"{path}.{k}[{i}]"))
-    elif isinstance(obj, list):
-        for i, v in enumerate(obj):
-            violations.extend(_scan_for_true_authorized(v, f"{path}[{i}]"))
+            for m in _HEX64_TOKEN_RE.finditer(o):
+                token = m.group(0).lower()
+                if token not in _ALLOWED_64_SHAS:
+                    violations.append(
+                        f"{p}: provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
+                    )
+            for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", o):
+                token = m.group(0).lower()
+                is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
+                    allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
+                )
+                if not is_prefix:
+                    violations.append(
+                        f"{p}: provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
+                    )
+        elif isinstance(o, dict):
+            for kk, vv in o.items():
+                _collect(vv, f"{p}.{kk}")
+                if isinstance(kk, str):
+                    _collect(kk, f"{p}.{kk}[key]")
+        elif isinstance(o, (list, tuple)):
+            for idx, vv in enumerate(o):
+                _collect(vv, f"{p}[{idx}]")
+
+    _collect(pkg, "$")
     return violations
 
 
@@ -906,47 +1115,28 @@ class ProvenanceEntry(StrictBase):
     @field_validator("note")
     @classmethod
     def validate_provenance_hex(cls, v: str) -> str:
-        # Any hex adjacent to approval/promotion language must equal the declared identity.
-        # Find hex substrings 7-40 chars and check preceding window (short) for language.
-        for m in re.finditer(r"[0-9a-f]{7,40}", v, re.IGNORECASE):
-            hex_str = m.group(0).lower()
-            start = m.start()
-            window = v[max(0, start - 20) : start].lower()
-            if "approv" in window or "candidate" in window:
-                expected = APPROVED_CANDIDATE_SHA.lower()
-                if len(hex_str) == 40:
-                    if hex_str != expected:
-                        raise ValueError(
-                            f"provenance approval SHA mismatch: {hex_str!r} != approved {expected!r}"
-                        )
-                else:
-                    if not expected.startswith(hex_str):
-                        raise ValueError(
-                            f"provenance approval SHA prefix mismatch: {hex_str!r} not prefix of {expected!r}"
-                        )
-            if "promot" in window:
-                # Distinguish vec promotion vs research promotion via vec keyword
-                if "vec" in window:
-                    expected_options = [VEC_PROMOTION_SHA.lower()]
-                else:
-                    expected_options = [
-                        TRAFFICTWIN_RESEARCH_PROMOTION_SHA.lower(),
-                        VEC_PROMOTION_SHA.lower(),
-                    ]
-                matched = False
-                for expected in expected_options:
-                    if len(hex_str) == 40:
-                        if hex_str == expected:
-                            matched = True
-                            break
-                    else:
-                        if expected.startswith(hex_str):
-                            matched = True
-                            break
-                if not matched:
-                    raise ValueError(
-                        f"provenance promotion SHA mismatch: {hex_str!r} not prefix of any expected promotion {[e[:7] for e in expected_options]!r}"
-                    )
+        # Position-independent: every 40/64 hex token must be declared, 7-39 must be valid prefix
+        for m in _HEX40_TOKEN_RE.finditer(v):
+            token = m.group(0).lower()
+            if token not in _ALLOWED_40_SHAS:
+                raise ValueError(
+                    f"provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
+                )
+        for m in _HEX64_TOKEN_RE.finditer(v):
+            token = m.group(0).lower()
+            if token not in _ALLOWED_64_SHAS:
+                raise ValueError(
+                    f"provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
+                )
+        for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", v):
+            token = m.group(0).lower()
+            is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
+                allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
+            )
+            if not is_prefix:
+                raise ValueError(
+                    f"provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
+                )
         return v
 
 
@@ -1248,15 +1438,14 @@ class E3ResearchEvidencePackage(StrictBase):
         if "fleet_draw" not in joined_nc and "fleet draw" not in joined_nc:
             raise ValueError("non_claims must mention fleet_draw bounded replication")
 
-        # scan entire payload for forbidden patterns
-        violations = _scan_for_private_paths(self.model_dump(mode="json"))
+        # scan entire payload for forbidden patterns (single canonical scanner includes private/secret/forbidden/_authorized/hex)
+        violations = _scan_forbidden_recursive(self.model_dump(mode="json"))
         if violations:
             raise ValueError(f"forbidden path/claim detected: {violations[:2]}")
-        auth_violations = _scan_for_true_authorized(self.model_dump(mode="json"))
-        # Filter to allow exception: inside execution_authority, *_authorized is already forced false, so any true is violation
-        # Already _scan_for_private_paths catches true _authorized; double-check
-        if auth_violations:
-            raise ValueError(f"true _authorized forbidden: {auth_violations[:2]}")
+        # explicit hex token scan across all free-text fields (position-independent, 40 vs 64)
+        hex_violations = _validate_hex_tokens_in_package(self.model_dump(mode="json"))
+        if hex_violations:
+            raise ValueError(f"forbidden hex token detected: {hex_violations[:2]}")
 
         return self
 
@@ -1309,20 +1498,14 @@ def load_e3_research_evidence_json(text: str) -> E3ResearchEvidencePackage:
     secret_assign_re = re.compile(r"(password|secret|api_key|token)\s*[:=]", re.IGNORECASE)
     if secret_assign_re.search(text):
         raise ValueError("payload contains secret/credential assignment")
-    low = text.lower()
-    for substr in _FORBIDDEN_SUBSTRINGS_LOWER:
-        # only reject if the substring appears as a claim outside quoted detection?
-        # we already scan parsed, but early reject for obvious monetary/kubernetes in raw
-        if substr in low and substr in ("kubernetes", "cost_dollars", "cost_currency"):
-            # allow if inside a field name that is being negated? For now warn via parsed scan
-            pass
+    # (dead pass-only loop removed — canonical scanner handles all forbidden checks)
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
         raise ValueError(f"invalid JSON: {exc}") from exc
     if not isinstance(data, dict):
         raise ValueError("top-level JSON must be object")
-    violations = _scan_for_private_paths(data)
+    violations = _scan_forbidden_recursive(data)
     if violations:
         raise ValueError(f"private path/forbidden claim in payload: {violations[0]}")
     return E3ResearchEvidencePackage.model_validate(data)

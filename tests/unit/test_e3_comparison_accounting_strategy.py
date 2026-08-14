@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 
 from traffictwin.experiments.e3_comparison import build_e3_comparison_view
@@ -181,3 +182,130 @@ def test_e3a_b_c_stage_counts_match_package() -> None:
     assert pkg.staged_design.e3c.stale_variant_cells_max == 32
     # comparison view should reflect same dormancy
     assert pkg.staged_design.maximum_candidate_unique_cells == 56
+
+
+# --- Review-2 regression: negation phrasing via E3StrategySemantics (dataclasses.replace) ---
+
+
+def test_negation_phrasing_rejected_via_strategy_semantics() -> None:
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    phrases = [
+        "there is no doubt kubernetes cluster is live",
+        "never in doubt: supervisor approved this",
+    ]
+    fields = ["admission", "forwarding", "execution_placement"]
+    for phrase in phrases:
+        for field in fields:
+            try:
+                dataclasses.replace(canon, **{field: phrase})  # type: ignore[arg-type]
+                raise AssertionError(f"expected ValueError for {field} with phrase {phrase!r}")
+            except ValueError as exc:
+                msg = str(exc).lower()
+                assert (
+                    "forbidden" in msg
+                    or "claim" in msg
+                    or "kubernetes" in msg
+                    or "supervisor" in msg
+                )
+            except Exception as exc:  # pragma: no cover
+                raise AssertionError(f"wrong exception for {field}: {exc}") from exc
+
+
+def test_forbidden_families_rejected_via_strategy_semantics() -> None:
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    families = [
+        "the k8s cluster is live",
+        "K8S deployment is running in production",
+        "we have supervisor approval",
+        "approved by the supervisor",
+        "Randy approved",
+        "universally superior",
+        "N is the number of tasks, task-level replication used",
+        "results generalize across all of Manchester",
+        "42 dollars per hour",
+        "£3,000 GBP billing for compute",
+        "the actor chooses the execution RSU based on load",
+    ]
+    for phrase in families:
+        for field in ["admission", "forwarding", "execution_placement"]:
+            try:
+                dataclasses.replace(canon, **{field: phrase})  # type: ignore[arg-type]
+                raise AssertionError(f"expected rejection for {phrase!r} in {field}")
+            except ValueError as exc:
+                assert "forbidden" in str(exc).lower() or "claim" in str(exc).lower()
+
+
+def test_unicode_variants_rejected_via_strategy_semantics() -> None:
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    variants = [
+        "kub\u0435rnetes",  # Cyrillic
+        "kub\u200bernetes",  # zero-width
+        "Ｋｕｂｅｒｎｅｔｅｓ",  # fullwidth
+    ]
+    for variant in variants:
+        payload = f"test {variant} deployment"
+        for field in ["admission", "execution_placement", "forwarding"]:
+            try:
+                dataclasses.replace(canon, **{field: payload})  # type: ignore[arg-type]
+                raise AssertionError(f"expected rejection for unicode {variant!r}")
+            except ValueError as exc:
+                assert "forbidden" in str(exc).lower() or "claim" in str(exc).lower()
+
+
+def test_allowlist_in_strategy_semantics_still_needs_explicit_check() -> None:
+    # Strategy semantics should still reject allowlist+appended (allowlist only exempt in evidence package)
+    # But we test that exact allowlist with appended is rejected
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    # allowlisted disclaimer appended with kubernetes should be rejected even in strategy semantics (since strategy uses same forbidden scanner)
+    dis = ALLOWLISTED_DISCLAIMERS[0] + " kubernetes"
+    for field in ["admission", "forwarding", "execution_placement"]:
+        try:
+            dataclasses.replace(canon, **{field: dis})  # type: ignore[arg-type]
+            raise AssertionError("expected rejection for allowlist+appended in strategy")
+        except ValueError:
+            pass
+
+
+def test_strategy_semantics_canonical_import() -> None:
+    import pathlib
+
+    text = pathlib.Path("src/traffictwin/experiments/e3_strategy_semantics.py").read_text(
+        encoding="utf-8"
+    )
+    assert "from traffictwin.experiments.e3_research_evidence import" in text
+    assert "_scan_forbidden_recursive" in text
+    assert "_contains_affirming_forbidden_any" in text
+    assert "def _scan_forbidden_recursive" not in text
+    assert "def _scan_for_private_paths" not in text
+    assert "def _scan_for_true_authorized" not in text
+
+
+def test_strategy_semantics_neutering_still_fails() -> None:
+    from traffictwin.experiments.e3_research_evidence import (
+        _contains_affirming_forbidden_any,
+        _scan_forbidden_recursive,
+    )
+
+    # direct checks that would fail if neutered
+    assert _contains_affirming_forbidden_any("kubernetes") is not None
+    assert _scan_forbidden_recursive({"a": "kubernetes"}) != []
+    # also via strategy semantics construction with clean data should still pass
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    sem = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    assert sem.placement_id == "per_task_dla"
+    # and that a forbidden via strategy still raises
+    try:
+        dataclasses.replace(sem, **{"admission": "kubernetes is live"})  # type: ignore[arg-type]
+        raise AssertionError("should have raised")
+    except ValueError:
+        pass

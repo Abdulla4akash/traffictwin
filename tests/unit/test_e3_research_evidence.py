@@ -571,3 +571,294 @@ def test_assert_no_private_paths_direct() -> None:
         _assert_no_private_paths_or_secrets("prefix /tmp/private is here")
     with pytest.raises((ValidationError, ValueError)):
         _assert_no_private_paths_or_secrets("api_key: secret123")
+
+
+# --- Review-2 regression: provenance position-independence (superseded SHA ac8e410f...) ---
+_SUPERSEDED_SHA = "ac8e410f7708188a9dd6e13e1c0311297176839d"
+
+_PROVENANCE_SHAPES = [
+    # SHA-before-keyword
+    f"{_SUPERSEDED_SHA} promotion commit for the research merge",
+    # keyword more than 20 chars away (25 filler chars)
+    "promotion commit " + "x" * 25 + f" {_SUPERSEDED_SHA}",
+    # exact phrase "promotion commit for the research merge is <sha>"
+    f"promotion commit for the research merge is {_SUPERSEDED_SHA}",
+    # "runner build <sha>"
+    f"runner build {_SUPERSEDED_SHA}",
+    # "signed off by reviewer, runner SHA <sha>"
+    f"signed off by reviewer, runner SHA {_SUPERSEDED_SHA}",
+]
+
+
+@pytest.mark.parametrize("note", _PROVENANCE_SHAPES)
+def test_provenance_superseded_sha_position_independence_rejected(note: str) -> None:
+    data = json.loads(builtin_e3_research_json())
+    # inject into provenance note (first manifest entry) to test position-independent hex validation
+    data["provenance"][0]["note"] = note
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    msg = str(exc.value).lower()
+    assert "provenance" in msg or "mismatch" in msg or "prefix" in msg or "approval" in msg
+
+
+def test_provenance_superseded_sha_end_to_end_via_artifact_and_admission() -> None:
+    # At least one shape end-to-end through artifact validation and admission
+    from traffictwin.evidence_admission.e3_research import (
+        admit_e3_research,
+        validate_e3_package_for_admission,
+    )
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+
+    note = f"signed off by reviewer, runner SHA {_SUPERSEDED_SHA}"
+    data = json.loads(builtin_e3_research_json())
+    data["provenance"][0]["note"] = note
+    text = json.dumps(data)
+    # artifact validation
+    with pytest.raises((ValidationError, ValueError)):
+        validate_e3_research_artifact(text)
+    # loader
+    with pytest.raises((ValidationError, ValueError)):
+        load_e3_research_evidence_json(text)
+    # admission via dict (validate helper)
+    errs = validate_e3_package_for_admission(data)
+    assert len(errs) > 0
+    assert any(
+        "provenance" in e.lower() or "mismatch" in e.lower() or "prefix" in e.lower() for e in errs
+    )
+    result = admit_e3_research(data)
+    assert result.admitted is False
+    assert "REFUSED" in result.reason_code
+
+
+def test_shipped_provenance_notes_still_pass() -> None:
+    # Shipped notes must still validate (no false positive on allowed SHAs)
+    pkg = load_builtin_e3_research()
+    assert len(pkg.provenance) >= 4
+    # each note should not contain superseded SHA and should validate
+    for entry in pkg.provenance:
+        assert _SUPERSEDED_SHA not in entry.note.lower()
+    # full load still passes
+    raw = builtin_e3_research_json()
+    pkg2 = load_e3_research_evidence_json(raw)
+    assert pkg2.product_base_sha == pkg.product_base_sha
+    # also via artifact
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+
+    validated = validate_e3_research_artifact(raw)
+    assert validated.fingerprint() == pkg.fingerprint()
+
+
+# --- Review-2 regression: forbidden-claim families via package loader (11 families) ---
+_FORBIDDEN_FAMILIES = [
+    "the k8s cluster is live",
+    "K8S deployment is running in production",
+    "we have supervisor approval",
+    "approved by the supervisor",
+    "Randy approved",
+    "universally superior",
+    "N is the number of tasks, task-level replication used",
+    "results generalize across all of Manchester",
+    "42 dollars per hour",
+    "£3,000 GBP billing for compute",
+    "the actor chooses the execution RSU based on load",
+]
+
+
+@pytest.mark.parametrize("phrase", _FORBIDDEN_FAMILIES)
+def test_forbidden_families_rejected_top_level_via_loader(phrase: str) -> None:
+    data = json.loads(builtin_e3_research_json())
+    # top-level free-text field: limitations[0]
+    data["limitations"][0] = phrase
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    msg = str(exc.value).lower()
+    assert "forbidden" in msg or "claim" in msg
+
+
+@pytest.mark.parametrize("phrase", _FORBIDDEN_FAMILIES)
+def test_forbidden_families_rejected_deep_nested_via_loader(phrase: str) -> None:
+    data = json.loads(builtin_e3_research_json())
+    # deep-nested under factors (scan occurs before extra keys validator for forbidden content)
+    data["factors"]["deep_nested"] = {"level2": {"level3": phrase}}  # type: ignore[assignment]
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    msg = str(exc.value).lower()
+    # should mention forbidden claim (scan) rather than extra keys
+    assert "forbidden" in msg or "claim" in msg
+
+
+# --- Review-2 regression: Unicode normalization (Cyrillic, zero-width, fullwidth) ---
+_UNICODE_VARIANTS = [
+    ("cyrillic-e kubеrnetes", "kub\u0435rnetes"),  # Cyrillic е U+0435
+    ("zero-width kub\u200bernetes", "kub\u200bernetes"),  # ZERO WIDTH SPACE U+200B
+    ("fullwidth Ｋｕｂｅｒｎｅｔｅｓ", "Ｋｕｂｅｒｎｅｔｅｓ"),
+]
+
+
+@pytest.mark.parametrize("label,phrase", _UNICODE_VARIANTS)
+def test_unicode_normalization_variants_rejected(label: str, phrase: str) -> None:  # noqa: ARG001
+    data = json.loads(builtin_e3_research_json())
+    # Embed variant inside a sentence to ensure pattern still matches after normalization
+    payload = f"this is {phrase} cluster live"
+    data["limitations"][0] = payload
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    msg = str(exc.value).lower()
+    assert "forbidden" in msg or "claim" in msg or "kubernetes" in msg
+
+
+# --- Review-2 regression: negation phrasing via loader ---
+_NEGATION_PHRASES = [
+    "there is no doubt kubernetes cluster is live",
+    "never in doubt: supervisor approved this",
+]
+
+
+@pytest.mark.parametrize("phrase", _NEGATION_PHRASES)
+def test_negation_phrasing_rejected_via_loader(phrase: str) -> None:
+    data = json.loads(builtin_e3_research_json())
+    data["limitations"][0] = phrase
+    with pytest.raises((ValidationError, ValueError)):
+        load_e3_research_evidence_json(json.dumps(data))
+
+
+# --- Review-2 regression: allowlist integrity ---
+def test_allowlist_exact_still_passes_and_appended_rejected() -> None:
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+    # exact pass: each allowlisted disclaimer as a whole non_claim entry
+    for dis in ALLOWLISTED_DISCLAIMERS:
+        data = json.loads(builtin_e3_research_json())
+        data["non_claims"][1] = dis
+        pkg = load_e3_research_evidence_json(json.dumps(data))
+        assert pkg is not None
+
+    # appended claim should be rejected (exact allowlist is byte-equal exempt only)
+    for dis in ALLOWLISTED_DISCLAIMERS:
+        data = json.loads(builtin_e3_research_json())
+        # append a forbidden claim to the allowlisted disclaimer
+        data["limitations"][0] = dis + " kubernetes is live"
+        with pytest.raises((ValidationError, ValueError)):
+            load_e3_research_evidence_json(json.dumps(data))
+        # also test via non_claims appended
+        data2 = json.loads(builtin_e3_research_json())
+        data2["non_claims"][1] = dis + " supervisor approved"
+        with pytest.raises((ValidationError, ValueError)):
+            load_e3_research_evidence_json(json.dumps(data2))
+
+
+# --- Review-2 regression: consolidation structure (single scanner) ---
+def test_consolidation_single_recursive_scanner_and_canonical_imports() -> None:
+    import pathlib
+
+    lane_files = [
+        "src/traffictwin/experiments/e3_research_evidence.py",
+        "src/traffictwin/experiments/e3_research_artifact.py",
+        "src/traffictwin/experiments/e3_strategy_semantics.py",
+        "src/traffictwin/evidence_admission/e3_research.py",
+        "src/traffictwin/experiments/e3_comparison.py",
+        "src/traffictwin/experiments/e3_task_accounting.py",
+    ]
+    total_defs = 0
+    for rel in lane_files:
+        text = pathlib.Path(rel).read_text(encoding="utf-8")
+        # count definitions of the canonical recursive scanner
+        count = text.count("def _scan_forbidden_recursive")
+        total_defs += count
+    assert total_defs == 1, (
+        f"expected exactly one def _scan_forbidden_recursive across lane files, got {total_defs}"
+    )
+
+    # e3_strategy_semantics and evidence_admission must reference canonical, not define own
+    for rel in [
+        "src/traffictwin/experiments/e3_strategy_semantics.py",
+        "src/traffictwin/evidence_admission/e3_research.py",
+    ]:
+        text = pathlib.Path(rel).read_text(encoding="utf-8")
+        assert "def _scan_forbidden_recursive" not in text, f"{rel} should not define scanner"
+        assert "from traffictwin.experiments.e3_research_evidence import" in text
+        assert "_scan_forbidden_recursive" in text
+
+    # also ensure artifact file does not define scanner but defines _assert_no_private_paths
+    art_text = pathlib.Path("src/traffictwin/experiments/e3_research_artifact.py").read_text(
+        encoding="utf-8"
+    )
+    assert "def _scan_forbidden_recursive" not in art_text
+    assert "_assert_no_private_paths_or_secrets" in art_text
+
+
+# --- Review-2 regression: neutering coverage (canonical functions) ---
+def test_scan_forbidden_recursive_direct_canonical() -> None:
+    from traffictwin.experiments.e3_research_evidence import _scan_forbidden_recursive
+
+    payload = {"a": {"b": "kubernetes is live direct"}}
+    violations = _scan_forbidden_recursive(payload)
+    assert any("kubernetes" in v.lower() for v in violations)
+    # private path
+    payload2 = {"x": "/tmp/neuter_test"}  # noqa: S108
+    violations2 = _scan_forbidden_recursive(payload2)
+    assert any("private" in v.lower() for v in violations2)
+    # _authorized true
+    payload3 = {"deep": {"my_authorized": True}}
+    violations3 = _scan_forbidden_recursive(payload3)
+    assert any("_authorized" in v.lower() for v in violations3)
+    # hex mismatch
+    payload4 = {"note": f"note with {_SUPERSEDED_SHA}"}
+    violations4 = _scan_forbidden_recursive(payload4)
+    assert any("provenance" in v.lower() or "mismatch" in v.lower() for v in violations4)
+
+
+def test_contains_affirming_forbidden_any_direct() -> None:
+    from traffictwin.experiments.e3_research_evidence import (
+        ALLOWLISTED_DISCLAIMERS,
+        _contains_affirming_forbidden_any,
+    )
+
+    # forbidden should return non-None
+    assert _contains_affirming_forbidden_any("kubernetes is live") is not None
+    assert _contains_affirming_forbidden_any("supervisor approved") is not None
+    assert _contains_affirming_forbidden_any("42 dollars per hour") is not None
+    # allowlisted exact should return None
+    for dis in ALLOWLISTED_DISCLAIMERS:
+        assert _contains_affirming_forbidden_any(dis) is None
+    # allowlisted with extra should be flagged
+    assert _contains_affirming_forbidden_any(ALLOWLISTED_DISCLAIMERS[0] + " kubernetes") is not None
+    # unicode normalized should be flagged
+    assert _contains_affirming_forbidden_any("kub\u0435rnetes") is not None
+    assert _contains_affirming_forbidden_any("kub\u200bernetes") is not None
+    assert _contains_affirming_forbidden_any("Ｋｕｂｅｒｎｅｔｅｓ") is not None
+
+
+def test_scan_for_private_paths_alias_is_canonical() -> None:
+    from traffictwin.experiments.e3_research_evidence import (
+        _scan_for_private_paths,
+        _scan_forbidden_recursive,
+    )
+
+    # alias should be same object as canonical after consolidation
+    assert _scan_for_private_paths is _scan_forbidden_recursive
+    # still detects
+    violations = _scan_for_private_paths({"a": "/tmp/alias_test"})  # noqa: S108
+    assert any("private" in v.lower() for v in violations)
+
+
+def test_scan_for_true_authorized_alias_is_canonical() -> None:
+    from traffictwin.experiments.e3_research_evidence import (
+        _scan_for_true_authorized,
+        _scan_forbidden_recursive,
+    )
+
+    assert _scan_for_true_authorized is _scan_forbidden_recursive
+    violations = _scan_for_true_authorized({"a": {"my_authorized": True}})
+    assert any("_authorized" in v.lower() for v in violations)
+
+
+def test_assert_no_private_paths_or_secrets_direct_still_guards() -> None:
+    from traffictwin.experiments.e3_research_artifact import _assert_no_private_paths_or_secrets
+
+    with pytest.raises((ValidationError, ValueError)):
+        _assert_no_private_paths_or_secrets("/tmp/private_still_caught")  # noqa: S108
+    with pytest.raises((ValidationError, ValueError)):
+        _assert_no_private_paths_or_secrets("token: secret assignment test api_key: xyz")
+    # clean text should not raise
+    _assert_no_private_paths_or_secrets("this is a clean artifact text with no secrets")
