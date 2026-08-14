@@ -405,3 +405,38 @@ def test_expansion_additive_pages_smoke_render() -> None:
         assert not app.exception, f"expansion page {spec.title} failed: {app.exception}"
         # Page must render a title or meaningful marker.
         assert any(len(x) >= 1 for x in (app.title, app.markdown, app.caption))
+
+
+def test_navigation_expansion_import_is_not_swallowed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Lane 16 remediation: expansion import/defect must not be swallowed as empty."""
+    import sys
+
+    import traffictwin.ui.expansion_routes as er
+    import traffictwin.ui.navigation_v07 as nav
+
+    original = er.EXPANSION_PAGE_SPECS
+    # Empty via safe monkeypatch — must raise, not validate as empty
+    monkeypatch.setattr(er, "EXPANSION_PAGE_SPECS", (), raising=False)
+    with pytest.raises(ValueError, match="expansion routes must contain exactly 4"):
+        nav.validate_v07_page_specs()
+    with pytest.raises(ValueError, match="expansion routes must contain exactly 4"):
+        nav.v07_navigation_pages()
+    # Restore and prove honest PASS
+    monkeypatch.setattr(er, "EXPANSION_PAGE_SPECS", original, raising=False)
+    nav.validate_v07_page_specs()
+    pages = nav.v07_navigation_pages()
+    assert len(pages["Source evidence"]) == 11
+    assert len(pages["Evidence & reports"]) == 10
+
+    # Import failure via sys.modules — must propagate, not fallback to empty
+    class _BrokenModule:
+        pass
+
+    monkeypatch.setitem(sys.modules, "traffictwin.ui.expansion_routes", _BrokenModule())
+    with pytest.raises((ImportError, AttributeError)):
+        nav.validate_v07_page_specs()
+    with pytest.raises((ImportError, AttributeError)):
+        nav.v07_navigation_pages()
+    # Restore sets back
+    monkeypatch.setitem(sys.modules, "traffictwin.ui.expansion_routes", er)
+    nav.validate_v07_page_specs()

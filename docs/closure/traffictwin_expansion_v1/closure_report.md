@@ -23,7 +23,7 @@ Lane 16 proves the integrated release assembled from Lanes 01–14 at `d83bc92` 
 
 - Owned additive file: `src/traffictwin/ui/expansion_routes.py` — 4× `V07AdditivePageSpec`, `EXPANSION_GROUPING`, `NAVIGATION_OVERLAP_NOTE`.
 - Owned composition file: `src/traffictwin/ui/navigation_v07.py` — lazy import in `validate_v07_page_specs()` and `v07_navigation_pages()`, collision-checked against normative 54-page `V07_PAGE_SPECS` plus 15 existing additive specs plus 4 expansion specs (total 73 pages plus hidden root = 74; Platform appended after seven normative groups).
-- Result: `Source evidence = 11`, `Evidence & reports = 10`. Asserted in `tests/ui/test_navigation_v07.py` (now 69 tests, +7 for expansion).
+- Result: `Source evidence = 11`, `Evidence & reports = 10`. Asserted in `tests/ui/test_navigation_v07.py` (now 70 tests, +7 for expansion plus 1 remediation).
 - No `Resource Strategy Explorer`, `app_pages/resource_strategy_explorer.py`, `Home`, `Guided Demo`, or any `Dynamic Resource/E3` file touched. Diff scope below confirms only the 10 allowlisted paths.
 
 ### Overlap honesty (navigation)
@@ -39,9 +39,9 @@ Carried verbatim in `expansion_routes.NAVIGATION_OVERLAP_NOTE` and `docs/traffic
 ### Deterministic receipt
 
 ```
-Overall: PASS  12/12
-validator_fingerprint: 664fb4ae304633c130159eec7aedff6498cba4ddd2aac2d5e787501052a04823
-receipt_fingerprint:   11bdaec2454fee2a26f3e239c90da47bf6c9859f94add5958a9d51814019c1ed
+Overall: PASS  12/12 plus integration provenance PASS
+validator_fingerprint: d452734bea355281e24ddfa0ad7944f31babc1e6cb50e92b2a2ef497f2c27b03
+receipt_fingerprint:   8699b9d5cf05e2e7a2fc696b2af6c75b251a529253f0e5eae93ded5bf2408abe
 schema_version:        1.0
 method_version:        traffictwin-expansion-v1-validator-1.0
 integration_provenance:
@@ -52,9 +52,11 @@ integration_provenance:
   replay_deterministic: true
   expansion_routes: 4
   navigation_groups: 8
+  provenance_blockers: []   # deterministic explicit blockers; overall PASS only when 12 checks PASS and provenance PASS
+  provenance_standing: PASS
 ```
 
-Determinism: canonical JSON (`sort_keys`, `separators (,) (:)`, `allow_nan=False`, `utf-8`) SHA-256 over the payload without fingerprints, plus receipt = SHA256(`fingerprint:overall:total`). Twice-run output is byte-identical (no temporary files):
+Determinism: canonical JSON (`sort_keys`, `separators (,) (:)`, `allow_nan=False`, `utf-8`) SHA-256 over the payload without fingerprints, plus receipt = SHA256(`fingerprint:overall:total`). Twice-run output is byte-identical (no temporary files). Overall PASS requires 12/12 checks PASS **and** all integration provenance invariants PASS (4 expansion routes, 8 navigation groups, 54 normative inventory, provider-blocked truth, synthetic available, ≥3 E2 admitted, replay deterministic) with deterministic `provenance_blockers`/`provenance_standing` inspectable in receipt; `main()` returns nonzero on provenance failure:
 
 ```
 PYTHONPATH=src uv run python scripts/validate_traffictwin_expansion_v1.py --json | tee validator_run_a.json
@@ -94,7 +96,7 @@ No forbidden inference: task-level replay from aggregate, causal from sync, trut
 
 ## 5. Cross-epic journey
 
-`Home/navigation` (69 nav tests) → `Manchester Source Operations` (8-family catalogue, AppTest render) → `accepted or PROVIDER_DATA_REQUIRED` → `Manchester Twin/SUMO` (`PROVIDER_DATA_REQUIRED` empty vs `SOFTWARE_VALID_SYNTHETIC_AVAILABLE` with synthetic output) → `compatible observed/simulated comparison` (`vehicle_count`, `none`, `exclude_unpaired_never_zero`) → `Replay Observatory` (deterministic engine, 3 disclaimers) → `Research Registry` (≥3 admitted E2, 0 admitted E3, 40/64-hex fingerprints) → `provenance/report identities` (portable, secret-free).
+`Home/navigation` (70 nav tests: 69 plus 1 provenance/non-swallow remediation) → `Manchester Source Operations` (8-family catalogue, AppTest render) → `accepted or PROVIDER_DATA_REQUIRED` → `Manchester Twin/SUMO` (`PROVIDER_DATA_REQUIRED` empty vs `SOFTWARE_VALID_SYNTHETIC_AVAILABLE` with synthetic output) → `compatible observed/simulated comparison` (`vehicle_count`, `none`, `exclude_unpaired_never_zero`) → `Replay Observatory` (deterministic engine, 3 disclaimers) → `Research Registry` (≥3 admitted E2, 0 admitted E3, 40/64-hex fingerprints) → `provenance/report identities` (portable, secret-free).
 
 AppTests require no SUMO binary, no network, no credentials, no private observations. Bounded synthetic fixtures only, labelled exactly.
 
@@ -103,13 +105,13 @@ AppTests require no SUMO binary, no network, no credentials, no private observat
 Focused owned tests:
 
 ```
-tests/ui/test_navigation_v07.py                          69 passed
-tests/integration/test_traffictwin_expansion_v1_acceptance.py  11 passed
+tests/ui/test_navigation_v07.py                          70 passed
+tests/integration/test_traffictwin_expansion_v1_acceptance.py  12 passed
 tests/integration/test_expansion_replay_truthfulness.py         7 passed
 tests/integration/test_expansion_journey_ui.py                  9 passed
 ---
-Focused owned: 96 passed (27 new acceptance + journey + replay + 69 navigation; 11+7+9=27 new)
-Full owned verification: 96 passed; full relevant adjacent sweep not claimed as executed in this lane (provider workloads remain zero)
+Focused owned: 98 passed (28 new acceptance + journey + replay + 70 navigation; 12+7+9=28 new)
+Full owned verification: 98 passed; full relevant adjacent sweep not claimed as executed in this lane (provider workloads remain zero)
 ```
 
 Ruff/format/mypy (strict, per `pyproject.toml`):
@@ -158,7 +160,7 @@ Dynamic/E3 touch:
 - No causal inference from visual synchronisation (`synchronization is not evidence of causality`, `replay is deterministic; no causality implied`).
 - No map-match truth from distance alone — requires explicit policy and manual review.
 - No optimiser-convergence realism — calibration remains explicit.
-- **Lane-local software gates pass** — 12/12 mutations PASS, validator deterministic (byte-identical twice), 96 focused tests PASS, Ruff/format/mypy clean, scope/leak/Dynamic-E3 clean, journey AppTests render without binary/network/credentials, Resource Strategy untouched and overlap recorded. **Bounded truth:** fresh exact-SHA Opus approval, promotion, and final global gates remain pending and are not claimed.
+- **Lane-local software gates pass** — 12/12 mutations PASS, validator deterministic (byte-identical twice), 98 focused tests PASS, Ruff/format/mypy clean, scope/leak/Dynamic-E3 clean, journey AppTests render without binary/network/credentials, Resource Strategy untouched and overlap recorded. **Bounded truth:** fresh exact-SHA Opus approval, promotion, and final global gates remain pending and are not claimed.
 
 ## 9. How to reproduce
 

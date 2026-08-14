@@ -1952,33 +1952,78 @@ def build_validator_receipt(check_results: list[CheckResult]) -> dict[str, Any]:
         }
         for r in sorted_results
     ]
-    overall = "PASS" if all(r.status == "PASS" for r in sorted_results) else "FAIL"
+    checks_pass = all(r.status == "PASS" for r in sorted_results)
+    # Integration provenance — built through real typed services, no silent fallbacks
+    # Any construction/import error becomes a provenance blocker and overall FAIL
+    provenance_blockers: list[str] = []
+    expansion_routes: list[dict[str, str]] = []
+    navigation_groups: list[str] = []
+    normative_inventory: int = 0
+    synthetic_available: bool = False
+    provider_blocked_truthful: bool = False
+    e2_admitted_count: int = 0
+    replay_deterministic: bool = False
+    _EXPECTED_EXPANSION_TITLES = sorted(
+        [
+            "Manchester Source Operations",
+            "Manchester Twin",
+            "Replay Observatory",
+            "Research Registry",
+        ]
+    )
+    _EXPECTED_NAVIGATION_GROUPS = [
+        "Overview",
+        "Build & run",
+        "Results",
+        "Compare & test",
+        "Source evidence",
+        "Evidence & reports",
+        "Advanced",
+        "Platform",
+    ]
+    _EXPECTED_NORMATIVE_INVENTORY = 54
+    _EXPECTED_E2_MIN = 3
+    # Expansion routes — required, validated via real service
     try:
-        from traffictwin.ui.expansion_routes import EXPANSION_PAGE_SPECS
+        from traffictwin.ui.expansion_routes import EXPANSION_PAGE_SPECS, validate_expansion_routes
 
+        validate_expansion_routes()
         expansion_routes = [
             {"title": s.title, "group": s.group, "url_path": s.url_path, "script": s.script}
             for s in sorted(EXPANSION_PAGE_SPECS, key=lambda x: x.title)
         ]
-    except Exception:
+    except Exception as exc:  # noqa: BLE001
+        msg = str(exc)[:400]
+        if _PRIVATE_PATH_RE.search(msg) or _SECRET_VALUE_RE.search(msg):
+            msg = "rejected (sanitized)"
+        provenance_blockers.append(
+            f"PROVENANCE_CONSTRUCTION_FAILED: expansion_routes: {exc.__class__.__name__}: {msg}"
+        )
         expansion_routes = []
+    # Navigation groups and normative inventory — required, validated via real service
     try:
         from traffictwin.ui.navigation_v07 import (
             V07_NAVIGATION_GROUPS,
             V07_PAGE_SPECS,
+            validate_v07_page_specs,
         )
 
+        validate_v07_page_specs()
         navigation_groups = list(V07_NAVIGATION_GROUPS)
         normative_inventory = len(V07_PAGE_SPECS)
-    except Exception:
+    except Exception as exc:  # noqa: BLE001
+        msg = str(exc)[:400]
+        if _PRIVATE_PATH_RE.search(msg) or _SECRET_VALUE_RE.search(msg):
+            msg = "rejected (sanitized)"
+        provenance_blockers.append(
+            f"PROVENANCE_CONSTRUCTION_FAILED: navigation: {exc.__class__.__name__}: {msg}"
+        )
         navigation_groups = []
         normative_inventory = 0
-    synthetic_available = False
-    provider_blocked_truthful = False
+    # Provider-blocked and synthetic — built via typed journey + synthetic output pipeline
     try:
         from traffictwin.integration.manchester.closed_loop_journey import build_closed_loop_journey
 
-        # Truthful provider-blocked (no data) must be PROVIDER_DATA_REQUIRED and synthetic false.
         j_blocked = build_closed_loop_journey(
             journey_id="validator-blocked-check",
             source_provider_available=False,
@@ -2000,108 +2045,116 @@ def build_validator_receipt(check_results: list[CheckResult]) -> dict[str, Any]:
             comparison_result=None,
         )
         provider_blocked_truthful = j_blocked.overall_standing == "PROVIDER_DATA_REQUIRED"
-        # Synthetic engineering remains available even when provider blocked, via synthetic output.
-        # This yields SOFTWARE_VALID_SYNTHETIC_AVAILABLE and synthetic true.
-        try:
-            from traffictwin.integration.manchester.models import sha256_hex as _sha256_hex_v
-            from traffictwin.integration.manchester.sumo_output_pipeline import (
-                SumoOutputFileDeclaration,
-                SumoOutputNetworkIdentity,
-                SumoOutputProvenance,
-                SumoOutputTimeBasis,
-                SumoOutputToolIdentity,
-                build_sumo_output_request,
-                import_sumo_outputs,
-            )
+        from traffictwin.integration.manchester.models import sha256_hex as _sha256_hex_v
+        from traffictwin.integration.manchester.sumo_output_pipeline import (
+            SumoOutputFileDeclaration,
+            SumoOutputNetworkIdentity,
+            SumoOutputProvenance,
+            SumoOutputTimeBasis,
+            SumoOutputToolIdentity,
+            build_sumo_output_request,
+            import_sumo_outputs,
+        )
 
-            _trip = b'<tripinfos><tripinfo id="v0" depart="0.0" /></tripinfos>'
-            _summ = b'<summary><step time="0.0" running="1" /></summary>'
-            _tool = SumoOutputToolIdentity(reported_version="1.27.0", executable_sha256="a" * 64)
-            _net = SumoOutputNetworkIdentity(
-                network_sha256="b" * 64,
-                demand_sha256="c" * 64,
-                config_sha256="d" * 64,
-                network_file="net.xml",
-                demand_file="routes.xml",
-                config_file="sumo.sumocfg",
-            )
-            _tb = SumoOutputTimeBasis(
-                window_start_s=0,
-                window_end_s=3600,
-                step_length_s=1,
-                time_basis_label="synthetic_utc_hour",
-                time_basis_fingerprint="e" * 64,
-            )
-            _decls = [
-                SumoOutputFileDeclaration(
-                    relative_path="tripinfo.xml",
-                    sha256=_sha256_hex_v(_trip),
-                    size_bytes=len(_trip),
-                    required=True,
-                    media_type="application/xml",
-                ),
-                SumoOutputFileDeclaration(
-                    relative_path="summary.xml",
-                    sha256=_sha256_hex_v(_summ),
-                    size_bytes=len(_summ),
-                    required=True,
-                    media_type="application/xml",
-                ),
-            ]
-            _req = build_sumo_output_request(
-                request_id="validator-req-01",
-                run_id="validator-run-01",
-                tool=_tool,
-                network=_net,
-                time_basis=_tb,
-                files=_decls,
-            )
-            _pkg = import_sumo_outputs(
-                _req,
-                {"tripinfo.xml": _trip, "summary.xml": _summ},
-                provenance=SumoOutputProvenance(
-                    created_at_utc="2026-01-01T00:00:00Z",
-                    created_by="validator",
-                    parent_fingerprints=(),
-                ),
-            )
-            j_synth = build_closed_loop_journey(
-                journey_id="validator-synthetic-check",
-                source_provider_available=False,
-                source_snapshot_id=None,
-                baseline_package=None,
-                baseline_decision=None,
-                baseline_software_validation=None,
-                map_workflow=None,
-                demand_result=None,
-                demand_receipt=None,
-                demand_decision=None,
-                calibration_result=None,
-                calibration_decision=None,
-                calibration_receipt=None,
-                sumo_request=None,
-                sumo_receipt=None,
-                output_package=_pkg,
-                output_receipt=None,
-                comparison_result=None,
-            )
-            synthetic_available = (
-                j_synth.synthetic_execution_available is True
-                and j_synth.overall_standing == "SOFTWARE_VALID_SYNTHETIC_AVAILABLE"
-            )
-        except Exception:
-            synthetic_available = False
-    except Exception:
-        pass
-    e2_admitted_count = 0
+        _trip = b'<tripinfos><tripinfo id="v0" depart="0.0" /></tripinfos>'
+        _summ = b'<summary><step time="0.0" running="1" /></summary>'
+        _tool = SumoOutputToolIdentity(reported_version="1.27.0", executable_sha256="a" * 64)
+        _net = SumoOutputNetworkIdentity(
+            network_sha256="b" * 64,
+            demand_sha256="c" * 64,
+            config_sha256="d" * 64,
+            network_file="net.xml",
+            demand_file="routes.xml",
+            config_file="sumo.sumocfg",
+        )
+        _tb = SumoOutputTimeBasis(
+            window_start_s=0,
+            window_end_s=3600,
+            step_length_s=1,
+            time_basis_label="synthetic_utc_hour",
+            time_basis_fingerprint="e" * 64,
+        )
+        _decls = [
+            SumoOutputFileDeclaration(
+                relative_path="tripinfo.xml",
+                sha256=_sha256_hex_v(_trip),
+                size_bytes=len(_trip),
+                required=True,
+                media_type="application/xml",
+            ),
+            SumoOutputFileDeclaration(
+                relative_path="summary.xml",
+                sha256=_sha256_hex_v(_summ),
+                size_bytes=len(_summ),
+                required=True,
+                media_type="application/xml",
+            ),
+        ]
+        _req = build_sumo_output_request(
+            request_id="validator-req-01",
+            run_id="validator-run-01",
+            tool=_tool,
+            network=_net,
+            time_basis=_tb,
+            files=_decls,
+        )
+        _pkg = import_sumo_outputs(
+            _req,
+            {"tripinfo.xml": _trip, "summary.xml": _summ},
+            provenance=SumoOutputProvenance(
+                created_at_utc="2026-01-01T00:00:00Z",
+                created_by="validator",
+                parent_fingerprints=(),
+            ),
+        )
+        j_synth = build_closed_loop_journey(
+            journey_id="validator-synthetic-check",
+            source_provider_available=False,
+            source_snapshot_id=None,
+            baseline_package=None,
+            baseline_decision=None,
+            baseline_software_validation=None,
+            map_workflow=None,
+            demand_result=None,
+            demand_receipt=None,
+            demand_decision=None,
+            calibration_result=None,
+            calibration_decision=None,
+            calibration_receipt=None,
+            sumo_request=None,
+            sumo_receipt=None,
+            output_package=_pkg,
+            output_receipt=None,
+            comparison_result=None,
+        )
+        synthetic_available = (
+            j_synth.synthetic_execution_available is True
+            and j_synth.overall_standing == "SOFTWARE_VALID_SYNTHETIC_AVAILABLE"
+        )
+    except Exception as exc:  # noqa: BLE001
+        msg = str(exc)[:400]
+        if _PRIVATE_PATH_RE.search(msg) or _SECRET_VALUE_RE.search(msg):
+            msg = "rejected (sanitized)"
+        provenance_blockers.append(
+            f"PROVENANCE_CONSTRUCTION_FAILED: journey: {exc.__class__.__name__}: {msg}"
+        )
+        provider_blocked_truthful = False
+        synthetic_available = False
+    # E2 registry — via real typed service
     try:
         from traffictwin.research_registry.service import RegistryService
 
         snap = RegistryService.with_default_e2().snapshot()
         e2_admitted_count = len([r for r in snap.records if r.study.startswith("E2")])
-    except Exception:
-        pass
-    replay_deterministic = False
+    except Exception as exc:  # noqa: BLE001
+        msg = str(exc)[:400]
+        if _PRIVATE_PATH_RE.search(msg) or _SECRET_VALUE_RE.search(msg):
+            msg = "rejected (sanitized)"
+        provenance_blockers.append(
+            f"PROVENANCE_CONSTRUCTION_FAILED: e2_registry: {exc.__class__.__name__}: {msg}"
+        )
+        e2_admitted_count = 0
+    # Replay determinism — via real typed service
     try:
         from traffictwin.ui.replay_observatory_service import (
             build_synthetic_engineering_stream,
@@ -2111,13 +2164,52 @@ def build_validator_receipt(check_results: list[CheckResult]) -> dict[str, Any]:
         s1 = build_synthetic_engineering_stream()
         s2 = build_synthetic_engineering_stream()
         e1 = create_engine(s1)
-        e2 = create_engine(s2)
+        e2e = create_engine(s2)
         replay_deterministic = (
-            e1.state().playhead_time_s == e2.state().playhead_time_s
-            and e1.stream.stream_id == e2.stream.stream_id
+            e1.state().playhead_time_s == e2e.state().playhead_time_s
+            and e1.stream.stream_id == e2e.stream.stream_id
         )
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        msg = str(exc)[:400]
+        if _PRIVATE_PATH_RE.search(msg) or _SECRET_VALUE_RE.search(msg):
+            msg = "rejected (sanitized)"
+        provenance_blockers.append(
+            f"PROVENANCE_CONSTRUCTION_FAILED: replay: {exc.__class__.__name__}: {msg}"
+        )
+        replay_deterministic = False
+    # Deterministic explicit provenance blockers — invariants
+    if len(expansion_routes) != 4:
+        provenance_blockers.append(
+            f"EXPANSION_ROUTES_INVALID: expected 4 got {len(expansion_routes)}"
+        )
+    else:
+        titles = sorted([r["title"] for r in expansion_routes])
+        if titles != _EXPECTED_EXPANSION_TITLES:
+            provenance_blockers.append(f"EXPANSION_ROUTES_TITLES_MISMATCH: got {titles}")
+        groups = {r["group"] for r in expansion_routes}
+        if groups != {"Source evidence", "Evidence & reports"}:
+            provenance_blockers.append(f"EXPANSION_ROUTES_GROUPS_MISMATCH: got {sorted(groups)}")
+    if not navigation_groups or navigation_groups != _EXPECTED_NAVIGATION_GROUPS:
+        provenance_blockers.append(
+            f"NAVIGATION_GROUPS_INVALID: expected {_EXPECTED_NAVIGATION_GROUPS} got {navigation_groups}"
+        )
+    if normative_inventory != _EXPECTED_NORMATIVE_INVENTORY:
+        provenance_blockers.append(
+            f"NORMATIVE_INVENTORY_INVALID: expected {_EXPECTED_NORMATIVE_INVENTORY} got {normative_inventory}"
+        )
+    if provider_blocked_truthful is not True:
+        provenance_blockers.append("PROVIDER_BLOCKED_UNTRUTHFUL: expected True")
+    if synthetic_available is not True:
+        provenance_blockers.append("SYNTHETIC_ENGINEERING_UNAVAILABLE: expected True")
+    if e2_admitted_count < _EXPECTED_E2_MIN:
+        provenance_blockers.append(
+            f"E2_ADMITTED_COUNT_INSUFFICIENT: expected >={_EXPECTED_E2_MIN} got {e2_admitted_count}"
+        )
+    if replay_deterministic is not True:
+        provenance_blockers.append("REPLAY_NONDETERMINISTIC: expected True")
+    provenance_blockers = sorted(set(provenance_blockers))
+    provenance_pass = len(provenance_blockers) == 0
+    overall = "PASS" if (checks_pass and provenance_pass) else "FAIL"
     payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "method_version": METHOD_VERSION,
@@ -2138,7 +2230,11 @@ def build_validator_receipt(check_results: list[CheckResult]) -> dict[str, Any]:
             "provider_blocked_truthful": provider_blocked_truthful,
             "e2_admitted_count": e2_admitted_count,
             "replay_deterministic": replay_deterministic,
+            "provenance_blockers": provenance_blockers,
+            "provenance_standing": "PASS" if provenance_pass else "FAIL",
         },
+        "provenance_blockers": provenance_blockers,
+        "provenance_standing": "PASS" if provenance_pass else "FAIL",
         "limitations": [
             "Validator is software acceptance only — no research workloads, no Manchester/E3 experiments, no provider retrieval.",
             "BLOCKED/PROVIDER_DATA_REQUIRED states are truthful; synthetic engineering execution remains available.",

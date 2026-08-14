@@ -127,6 +127,8 @@
       "Platform"
     ],
     "normative_inventory": 54,
+    "provenance_blockers": [],
+    "provenance_standing": "PASS",
     "provider_blocked_truthful": true,
     "replay_deterministic": true,
     "synthetic_execution_available": true
@@ -140,13 +142,15 @@
   ],
   "method_version": "traffictwin-expansion-v1-validator-1.0",
   "overall_result": "PASS",
-  "receipt_fingerprint": "11bdaec2454fee2a26f3e239c90da47bf6c9859f94add5958a9d51814019c1ed",
+  "provenance_blockers": [],
+  "provenance_standing": "PASS",
+  "receipt_fingerprint": "8699b9d5cf05e2e7a2fc696b2af6c75b251a529253f0e5eae93ded5bf2408abe",
   "schema_version": "1.0",
   "summary": {
     "failed": 0,
     "passed": 12,
     "total": 12
   },
-  "validator_fingerprint": "664fb4ae304633c130159eec7aedff6498cba4ddd2aac2d5e787501052a04823",
+  "validator_fingerprint": "d452734bea355281e24ddfa0ad7944f31babc1e6cb50e92b2a2ef497f2c27b03",
   "validator_version": "1.0"
 }

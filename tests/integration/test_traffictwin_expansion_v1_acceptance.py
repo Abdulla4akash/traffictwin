@@ -17,6 +17,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from traffictwin.ui.expansion_routes import EXPANSION_PAGE_SPECS, validate_expansion_routes
 from traffictwin.ui.navigation_v07 import v07_navigation_pages, validate_v07_page_specs
 
@@ -629,3 +631,64 @@ def test_portable_artifacts_contain_no_absolute_paths() -> None:
         assert "/tmp/" not in json.dumps(portable)
         assert tmp not in json.dumps(portable)
         assert str(ws) not in json.dumps(portable)
+
+
+def test_validator_provenance_is_bound_to_verdict_and_navigation_not_swallowed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Remediation: provenance binds to verdict; empty expansion fails visibly."""
+    from scripts.validate_traffictwin_expansion_v1 import build_validator_receipt, run_all_checks
+
+    import traffictwin.ui.expansion_routes as er
+    import traffictwin.ui.navigation_v07 as nav
+
+    original = er.EXPANSION_PAGE_SPECS
+    # Make provenance invalid via safe monkeypatch — empty expansion
+    monkeypatch.setattr(er, "EXPANSION_PAGE_SPECS", (), raising=False)
+    receipt_fail = build_validator_receipt(run_all_checks())
+    assert receipt_fail["overall_result"] == "FAIL"
+    assert receipt_fail["provenance_standing"] == "FAIL"
+    # Exact blocker for empty expansion
+    assert any("EXPANSION_ROUTES_INVALID" in b for b in receipt_fail["provenance_blockers"])
+    assert any(
+        "EXPANSION_ROUTES_INVALID" in b
+        for b in receipt_fail["integration_provenance"]["provenance_blockers"]
+    )
+    # Navigation validation must not swallow — should raise ValueError, not pass
+    with pytest.raises(ValueError, match="expansion routes must contain exactly 4"):
+        nav.validate_v07_page_specs()
+    with pytest.raises(ValueError, match="expansion routes must contain exactly 4"):
+        nav.v07_navigation_pages()
+    # Restore and prove honest PASS with no blockers
+    monkeypatch.setattr(er, "EXPANSION_PAGE_SPECS", original, raising=False)
+    receipt_pass = build_validator_receipt(run_all_checks())
+    assert receipt_pass["overall_result"] == "PASS"
+    assert receipt_pass["provenance_standing"] == "PASS"
+    assert receipt_pass["provenance_blockers"] == []
+    assert receipt_pass["integration_provenance"]["provenance_blockers"] == []
+    assert receipt_pass["integration_provenance"]["provenance_standing"] == "PASS"
+    # Honest provenance invariants
+    assert len(receipt_pass["integration_provenance"]["expansion_routes"]) == 4
+    assert receipt_pass["integration_provenance"]["normative_inventory"] == 54
+    assert receipt_pass["integration_provenance"]["navigation_groups"] == [
+        "Overview",
+        "Build & run",
+        "Results",
+        "Compare & test",
+        "Source evidence",
+        "Evidence & reports",
+        "Advanced",
+        "Platform",
+    ]
+    assert receipt_pass["integration_provenance"]["provider_blocked_truthful"] is True
+    assert receipt_pass["integration_provenance"]["synthetic_execution_available"] is True
+    assert receipt_pass["integration_provenance"]["e2_admitted_count"] >= 3
+    assert receipt_pass["integration_provenance"]["replay_deterministic"] is True
+    # Deterministic fingerprints restore
+    receipt_again = build_validator_receipt(run_all_checks())
+    assert receipt_again["validator_fingerprint"] == receipt_pass["validator_fingerprint"]
+    assert receipt_again["receipt_fingerprint"] == receipt_pass["receipt_fingerprint"]
+    # Navigation also restores
+    nav.validate_v07_page_specs()
+    pages = nav.v07_navigation_pages()
+    assert len(pages["Source evidence"]) == 11
