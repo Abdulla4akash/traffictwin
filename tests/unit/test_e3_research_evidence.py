@@ -541,26 +541,26 @@ def test_manifest_sidecar_mismatch_rejected() -> None:
 
 # --- Blocker 3 direct scan unit tests ---
 def test_scan_for_private_paths_direct() -> None:
-    from traffictwin.experiments.e3_research_evidence import _scan_for_private_paths
+    from traffictwin.experiments.e3_research_evidence import _scan_forbidden_recursive
 
     deep = {"a": {"b": {"c": "/tmp/direct_private"}}}  # noqa: S108
-    violations = _scan_for_private_paths(deep)
+    violations = _scan_forbidden_recursive(deep)
     assert any("private path" in v.lower() for v in violations)
     # Secret via password keyword (no assignment) should be caught only by this scan
     deep_secret = {"x": {"y": "my password is foo"}}
-    violations2 = _scan_for_private_paths(deep_secret)
+    violations2 = _scan_forbidden_recursive(deep_secret)
     assert any("secret" in v.lower() for v in violations2)
 
 
 def test_scan_for_true_authorized_direct() -> None:
-    from traffictwin.experiments.e3_research_evidence import _scan_for_true_authorized
+    from traffictwin.experiments.e3_research_evidence import _scan_forbidden_recursive
 
     deep_true = {"a": {"b": {"my_authorized": True}}}
-    violations = _scan_for_true_authorized(deep_true)
+    violations = _scan_forbidden_recursive(deep_true)
     assert any("_authorized" in v.lower() for v in violations)
     # Non-bool authorized should also be caught only by this scan
     deep_nobool = {"a": {"b": {"other_authorized": "yes"}}}
-    violations2 = _scan_for_true_authorized(deep_nobool)
+    violations2 = _scan_forbidden_recursive(deep_nobool)
     assert any("_authorized" in v.lower() for v in violations2)
 
 
@@ -830,26 +830,18 @@ def test_contains_affirming_forbidden_any_direct() -> None:
 
 
 def test_scan_for_private_paths_alias_is_canonical() -> None:
-    from traffictwin.experiments.e3_research_evidence import (
-        _scan_for_private_paths,
-        _scan_forbidden_recursive,
-    )
+    # Alias was deleted as dead code; canonical is _scan_forbidden_recursive
+    from traffictwin.experiments.e3_research_evidence import _scan_forbidden_recursive
 
-    # alias should be same object as canonical after consolidation
-    assert _scan_for_private_paths is _scan_forbidden_recursive
-    # still detects
-    violations = _scan_for_private_paths({"a": "/tmp/alias_test"})  # noqa: S108
+    violations = _scan_forbidden_recursive({"a": "/tmp/alias_test"})  # noqa: S108
     assert any("private" in v.lower() for v in violations)
 
 
 def test_scan_for_true_authorized_alias_is_canonical() -> None:
-    from traffictwin.experiments.e3_research_evidence import (
-        _scan_for_true_authorized,
-        _scan_forbidden_recursive,
-    )
+    # Alias was deleted as dead code; canonical is _scan_forbidden_recursive
+    from traffictwin.experiments.e3_research_evidence import _scan_forbidden_recursive
 
-    assert _scan_for_true_authorized is _scan_forbidden_recursive
-    violations = _scan_for_true_authorized({"a": {"my_authorized": True}})
+    violations = _scan_forbidden_recursive({"a": {"my_authorized": True}})
     assert any("_authorized" in v.lower() for v in violations)
 
 
@@ -874,10 +866,10 @@ _REVIEW3_BYPASSES = [
 
 # Four NEW single-substitution variants using characters NOT mapped explicitly (proving backstop e.g. Coptic/Armenian)
 _NEW_BACKSTOP_VARIANTS = [
-    "kubernetes with kuber\u2c81etes coptic",  # Coptic Alfa U+2C81 looks like a
-    "supervisor with super\u0561visor Armenian",  # Armenian AYB U+0561
-    "kubernetes with kuber\u03f2etes Greek lunate",  # Greek Lunate Sigma U+03F2 not in map
-    "actor \u13daelects Cherokee",  # Cherokee Letter Du U+13DA
+    "kuber\u2c81etes cluster is live",  # Coptic Alfa U+2C81 not in map - no literal kubernetes
+    "super\u0561visor approval was granted",  # Armenian AYB U+0561 - no literal supervisor
+    "kuber\u03f2etes cluster is live",  # Greek Lunate Sigma U+03F2 not in map - no literal
+    "\u13daelects the execution RSU",  # Cherokee Letter Du U+13DA - no literal actor
 ]
 
 
@@ -984,15 +976,16 @@ def test_shipped_json_semantics_disclaimers_still_load() -> None:
 
     for sem in e3_strategy_semantics():
         assert sem.placement_id in ("ingress_dla", "per_task_dla", "p2c_dla")
-    # disclaimers are pure Latin, not mixed
+    # disclaimers are pure ASCII, not mixed (fold-to-ASCII-or-reject)
     for dis in ALLOWLISTED_DISCLAIMERS:
         from traffictwin.experiments.e3_research_evidence import (
             _contains_affirming_forbidden_any,
-            _has_mixed_script,
+            _fold_to_ascii_or_reject,
         )
 
         assert _contains_affirming_forbidden_any(dis) is None
-        assert _has_mixed_script(dis) is False
+        # Fold should not raise for allowlisted disclaimers (they are pure ASCII)
+        assert _fold_to_ascii_or_reject(dis) is not None
 
 
 # --- Blocker B+C: one hex validator and mutation coverage for _contains_forbidden and hex ---
@@ -1010,6 +1003,378 @@ def test_contains_forbidden_rejected_via_dormant_arm_public_surface() -> None:
             state_age_ms=0,
         )
     assert "forbidden" in str(exc.value).lower()
+
+
+def test_remaining_validators_direct_wiring() -> None:
+    """Direct wiring to cover remaining validators that were survivors in sweep."""
+    from traffictwin.experiments.e3_research_evidence import (
+        ContractIdentity,
+        DormantArm,
+        DormantConfig,
+        E3aDesign,
+        E3bDesign,
+        E3cContrastSpec,
+        E3cDesign,
+        ReplicationSpec,
+        ResourceCostSpec,
+        ScalingReceiptSpec,
+        SoftwareIdentity,
+        TaskAccountingSpec,
+        TraffictwinRuntime,
+        VecRuntime,
+    )
+
+    # VecRuntime
+    with pytest.raises(ValidationError):
+        VecRuntime(
+            promotion_commit="0" * 40,
+            core_candidate="53e34db6146da40118a6c816f6a1ffaa2596ddf3",
+            adapter_candidate="c37f97ea66b236dfc662bfdd6bee7eab1a775bbc",
+        )
+    with pytest.raises(ValidationError):
+        VecRuntime(
+            promotion_commit="dc606770059f0c4a413bac2217d7f38600b74fff",
+            core_candidate="nothex",
+            adapter_candidate="c37f97ea66b236dfc662bfdd6bee7eab1a775bbc",
+        )
+    # TraffictwinRuntime
+    with pytest.raises(ValidationError):
+        TraffictwinRuntime(base_commit="0" * 40)
+    with pytest.raises(ValidationError):
+        TraffictwinRuntime(base_commit="nothex")
+    # ContractIdentity path
+    with pytest.raises(ValidationError):
+        ContractIdentity(
+            schema_version="e3_dynamic_resource_v2_contract_v2",
+            sha256="f0d6eb913df6c2165a63ddcb0fd4980368e9bb80bbd38db964273ba3925f4870",
+            path="wrong/path.json",
+        )
+    # SoftwareIdentity
+    with pytest.raises(ValidationError):
+        SoftwareIdentity(
+            actor_sha256="0" * 64,
+            trace_sha256="e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+            e2d_manifest_sha256="f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+            vec_promoted_base="b2abcee2b4c2628e604fff0811110b8c61a22b23",
+            traffictwin_contract_head="211a6662151ccad43187f8a2ce3f75a57515408d",
+            vec_core_candidate_sha="53e34db6146da40118a6c816f6a1ffaa2596ddf3",
+        )
+    with pytest.raises(ValidationError):
+        SoftwareIdentity(
+            actor_sha256="93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+            trace_sha256="e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+            e2d_manifest_sha256="f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+            vec_promoted_base="nothex",
+            traffictwin_contract_head="211a6662151ccad43187f8a2ce3f75a57515408d",
+            vec_core_candidate_sha="53e34db6146da40118a6c816f6a1ffaa2596ddf3",
+        )
+    # DormantArm
+    with pytest.raises(ValidationError):
+        DormantArm(
+            arm_id="ingress_dla__fixed_1x__age_999ms",
+            placement="ingress_dla",
+            scaling="fixed_1x",
+            state_age_ms=999,
+        )
+    with pytest.raises(ValidationError):
+        DormantArm(arm_id="bad", placement="ingress_dla", scaling="fixed_1x", state_age_ms=0)
+    with pytest.raises(ValidationError):
+        DormantArm(
+            arm_id="ingress_dla__fixed_1x__age_0ms",
+            placement="per_task_dla",
+            scaling="fixed_1x",
+            state_age_ms=0,
+        )
+    # DormantConfig
+    with pytest.raises(ValidationError):
+        DormantConfig(
+            config_id="per_task_dla__fixed_1x__age_0ms__eval_0__fleet_1__rsus_10",
+            arm_id="per_task_dla__fixed_1x__age_0ms",
+            placement="per_task_dla",
+            scaling="fixed_1x",
+            state_age_ms=999,
+            evaluator_seed=0,
+            fleet_seed=1,
+            num_rsus=10,
+        )
+    with pytest.raises(ValidationError):
+        DormantConfig(
+            config_id="per_task_dla__fixed_1x__age_0ms__eval_0__fleet_99__rsus_10",
+            arm_id="per_task_dla__fixed_1x__age_0ms",
+            placement="per_task_dla",
+            scaling="fixed_1x",
+            state_age_ms=0,
+            evaluator_seed=0,
+            fleet_seed=99,
+            num_rsus=10,
+        )
+    with pytest.raises(ValidationError):
+        DormantConfig(
+            config_id="bad",
+            arm_id="per_task_dla__fixed_1x__age_0ms",
+            placement="per_task_dla",
+            scaling="fixed_1x",
+            state_age_ms=0,
+            evaluator_seed=0,
+            fleet_seed=1,
+            num_rsus=10,
+        )
+    # E3a
+    with pytest.raises(ValidationError):
+        E3aDesign(
+            stage="E3a",
+            placement=["ingress_dla"],
+            scaling=["fixed_1x"],
+            state_age_ms=[999],
+            fleet_seeds=[1, 2, 3, 4],
+            evaluator_seed=0,
+            replication_unit="fleet_draw",
+            n=4,
+            stage_listed_cells=12,
+            unique_cells=12,
+            equation="x",
+        )
+    with pytest.raises(ValidationError):
+        E3aDesign(
+            stage="E3a",
+            placement=["ingress_dla", "per_task_dla", "p2c_dla"],
+            scaling=["fixed_1x"],
+            state_age_ms=[0],
+            fleet_seeds=[1, 2, 3],
+            evaluator_seed=0,
+            replication_unit="fleet_draw",
+            n=4,
+            stage_listed_cells=12,
+            unique_cells=12,
+            equation="x",
+        )
+    with pytest.raises(ValidationError):
+        E3aDesign(
+            stage="E3a",
+            placement=["bad"],
+            scaling=["fixed_1x"],
+            state_age_ms=[0],
+            fleet_seeds=[1, 2, 3, 4],
+            evaluator_seed=0,
+            replication_unit="fleet_draw",
+            n=4,
+            stage_listed_cells=12,
+            unique_cells=12,
+            equation="x",
+        )
+    # E3b
+    with pytest.raises(ValidationError):
+        E3bDesign(
+            stage="E3b",
+            placement=["per_task_dla"],
+            scaling=["fixed_1x"],
+            state_age_ms=[999],
+            fleet_seeds=[1, 2, 3, 4],
+            evaluator_seed=0,
+            replication_unit="fleet_draw",
+            n=4,
+            stage_listed_cells=16,
+            unique_cells=12,
+            unique_additional=12,
+            overlap_with_e3a=4,
+            equation="x",
+        )
+    with pytest.raises(ValidationError):
+        E3bDesign(
+            stage="E3b",
+            placement=["per_task_dla"],
+            scaling=["fixed_1x"],
+            state_age_ms=[0],
+            fleet_seeds=[1, 2, 3],
+            evaluator_seed=0,
+            replication_unit="fleet_draw",
+            n=4,
+            stage_listed_cells=16,
+            unique_cells=12,
+            unique_additional=12,
+            overlap_with_e3a=4,
+            equation="x",
+        )
+    # E3c
+    with pytest.raises(ValidationError):
+        E3cContrastSpec(comparison="x", over_stale_ms=[999], fixed="y", fixed_placement=None)
+    with pytest.raises(ValidationError):
+        E3cDesign(
+            stage="E3c",
+            contrasts=[
+                E3cContrastSpec(
+                    comparison="x", over_stale_ms=[0, 1000, 3000], fixed="y", fixed_placement=None
+                )
+            ],
+            state_age_ms_values=[999],
+            stale_variant_cells_max=32,
+            total_contrast_observations=48,
+            fresh_observations_reused=16,
+            state_is_view_parameter=True,
+            reuses_identical_fresh_cells=True,
+        )
+    with pytest.raises(ValidationError):
+        E3cDesign(
+            stage="E3c",
+            contrasts=[
+                E3cContrastSpec(
+                    comparison="x", over_stale_ms=[0, 1000, 3000], fixed="y", fixed_placement=None
+                )
+            ],
+            state_age_ms_values=[0, 1000, 3000],
+            stale_variant_cells_max=32,
+            total_contrast_observations=48,
+            fresh_observations_reused=16,
+            state_is_view_parameter=True,
+            reuses_identical_fresh_cells=True,
+        )
+    # ReplicationSpec
+    with pytest.raises(ValidationError):
+        ReplicationSpec(
+            replication_unit="fleet_draw",
+            fleet_seeds=[1, 2, 3],
+            evaluator_seed=0,
+            n=4,
+            replication_key="fleet_seed",
+            tasks_are_not_replicates=True,
+            seed_0_in_primary=False,
+            interval="Student-t 95% interval, df=3, t=3.182",
+            method="two-sided Student-t 95% interval",
+            degrees_of_freedom=3,
+            critical_value=3.182,
+        )
+    with pytest.raises(ValidationError):
+        ReplicationSpec(
+            replication_unit="fleet_draw",
+            fleet_seeds=[1, 2, 3, 4],
+            evaluator_seed=0,
+            n=4,
+            replication_key="fleet_seed",
+            tasks_are_not_replicates=True,
+            seed_0_in_primary=False,
+            interval="bad interval",
+            method="bad method",
+            degrees_of_freedom=3,
+            critical_value=3.182,
+        )
+    # Queue, Compute, Resource, Scaling, Task, Provenance
+    from traffictwin.experiments.e3_research_evidence import (
+        ComputeCapacitySpec,
+        ProvenanceEntry,
+        QueueCapacitySpec,
+    )
+
+    with pytest.raises(ValidationError):
+        QueueCapacitySpec(
+            unit="waiting_room_task_slots", capacity_per_rsu=0, is_queue_not_compute=True
+        )
+    with pytest.raises(ValidationError):
+        QueueCapacitySpec(
+            unit="waiting_room_task_slots", capacity_per_rsu="notint", is_queue_not_compute=True
+        )  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        ComputeCapacitySpec(
+            unit="compute_unit",
+            min_units=1,
+            max_units=3,
+            active_units_per_rsu_range=[99],
+            is_compute_not_queue=True,
+            max_pending_actions=1,
+        )
+    with pytest.raises(ValidationError):
+        ResourceCostSpec(
+            metric="resource_unit_seconds",
+            formula="bad",
+            monetary=False,
+            unit="resource_unit_seconds",
+            interval_seconds=1,
+        )
+    with pytest.raises(ValidationError):
+        ScalingReceiptSpec(
+            has_receipts_when_executed=False, receipts_when_not_executed_null_reason=""
+        )
+    with pytest.raises(ValidationError):
+        ScalingReceiptSpec(
+            has_receipts_when_executed=False,
+            receipts_when_not_executed_null_reason="kubernetes is live",
+        )
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(
+            unavailable_reasons={
+                "started": "reason",
+                "compute_completed": "reason",
+                "returned": "reason",
+                "dropped": "reason",
+            },
+            conservation_reason="reason",
+            genuine_rejection_classes=["wrong"],
+        )
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(
+            unavailable_reasons={
+                "started": "UNAVAILABLE reason",
+                "compute_completed": "reason",
+                "returned": "reason",
+                "dropped": "reason",
+            },
+            conservation_reason="reason",
+            genuine_rejection_classes=[
+                "v2i_gate_rejected",
+                "v2i_cap_rejected",
+                "local_mqd_rejected",
+                "v2v_mqd_rejected",
+                "v2i_unavailable",
+                "v2v_unavailable",
+            ],
+            offered=1,
+        )
+    with pytest.raises(ValidationError):
+        ProvenanceEntry(artifact="a", kind="b", note="/tmp/private")  # noqa: S108
+    with pytest.raises(ValidationError):
+        ProvenanceEntry(
+            artifact="a", kind="b", note="bad sha 0000000000000000000000000000000000000000"
+        )
+
+
+def test_e3_package_cross_swapped_shas_and_unsorted_rejected() -> None:
+    """Cross-field consistency only caught by E3ResearchEvidencePackage.validate_cross."""
+    # Swapped SHAs: both values are in allowed set, so hex scanner passes, only cross catches misassignment
+    data = json.loads(builtin_e3_research_json())
+    data["product_base_sha"], data["research_promotion_sha"] = (
+        data["research_promotion_sha"],
+        data["product_base_sha"],
+    )
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    assert "product_base_sha" in str(exc.value).lower() or "mismatch" in str(exc.value).lower()
+
+    # Unsorted dormant_arms: field validators allow any order, only cross enforces sorted
+    data2 = json.loads(builtin_e3_research_json())
+    data2["dormant_arms"] = list(reversed(data2["dormant_arms"]))
+    with pytest.raises((ValidationError, ValueError)) as exc2:
+        load_e3_research_evidence_json(json.dumps(data2))
+    assert "sorted" in str(exc2.value).lower() or "arm_id" in str(exc2.value).lower()
+
+    # Limitations without NOT_EXECUTED magic words: field validator only checks non-empty/forbidden, cross checks hold mention
+    data3 = json.loads(builtin_e3_research_json())
+    data3["limitations"] = ["just a generic limitation without the required hold phrases"]
+    with pytest.raises((ValidationError, ValueError)) as exc3:
+        load_e3_research_evidence_json(json.dumps(data3))
+    assert "limitations" in str(exc3.value).lower() or "not_executed" in str(exc3.value).lower()
+
+    # Also via artifact and admission surfaces
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+
+    data4 = json.loads(builtin_e3_research_json())
+    data4["product_base_sha"], data4["research_promotion_sha"] = (
+        data4["research_promotion_sha"],
+        data4["product_base_sha"],
+    )
+    with pytest.raises((ValidationError, ValueError)):
+        validate_e3_research_artifact(json.dumps(data4))
+    errs = validate_e3_package_for_admission(data4)
+    assert len(errs) > 0
 
 
 def test_hex_validator_consolidated_single_function() -> None:
@@ -1096,3 +1461,277 @@ def test_validate_hex_tokens_in_package_is_load_bearing() -> None:
 
     # Also test via package-level string that _validate is used in model_validator: inject bad hex via provenance note prefix?
     # Already covered by loader, but this ensures package scanner works
+
+
+# Template for new tests - will be appended
+
+
+def test_lane10_e3c_over_stale_ms_rejected_via_all_surfaces() -> None:
+    """Regression for E3cContrastSpec.validate_age_list (survivor at :765) - must fail when neutered to return v."""
+    import json
+
+    import pytest
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import (
+        E3cContrastSpec,
+        E3cDesign,
+        load_e3_research_evidence_json,
+    )
+
+    # Direct semantics construction: bad over_stale_ms [999] rejected only by this validator (typing accepts [999])
+    with pytest.raises(ValidationError):
+        E3cContrastSpec(
+            comparison="per_task_dla vs p2c_dla",
+            over_stale_ms=[999],
+            fixed="x",
+            fixed_placement=None,
+        )
+    with pytest.raises(ValidationError):
+        E3cContrastSpec(
+            comparison="x", over_stale_ms=[0, 1000], fixed="y", fixed_placement=None
+        )  # missing 3000
+    with pytest.raises(ValidationError):
+        E3cContrastSpec(
+            comparison="x", over_stale_ms=[0, 1000, 3000, 3000], fixed="y", fixed_placement=None
+        )  # duplicate
+    # Valid still passes
+    E3cContrastSpec(
+        comparison="per_task_dla vs p2c_dla",
+        over_stale_ms=[0, 1000, 3000],
+        fixed="x",
+        fixed_placement=None,
+    )
+    # Also via E3cDesign
+    with pytest.raises(ValidationError):
+        E3cDesign(
+            stage="E3c",
+            contrasts=[
+                E3cContrastSpec(
+                    comparison="per_task_dla vs p2c_dla",
+                    over_stale_ms=[999],
+                    fixed="x",
+                    fixed_placement=None,
+                )
+            ],
+            state_age_ms_values=[0, 1000, 3000],
+            stale_variant_cells_max=32,
+            total_contrast_observations=48,
+            fresh_observations_reused=16,
+            state_is_view_parameter=True,
+            reuses_identical_fresh_cells=True,
+        )
+
+    # Via package loader - modify staged_design.e3c.contrasts[0].over_stale_ms
+    data = json.loads(builtin_e3_research_json())
+    data["staged_design"]["e3c"]["contrasts"][0]["over_stale_ms"] = [999]
+    with pytest.raises((ValidationError, ValueError)):
+        load_e3_research_evidence_json(json.dumps(data))
+    with pytest.raises((ValidationError, ValueError)):
+        validate_e3_research_artifact(json.dumps(data))
+    errs = validate_e3_package_for_admission(data)
+    assert len(errs) > 0
+
+
+def test_lane10_queue_capacity_int_strict_via_all_surfaces() -> None:
+    """Regression for QueueCapacitySpec.validate_int_strict (survivor at :857) - strict int before coercion."""
+    import json
+
+    import pytest
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import (
+        QueueCapacitySpec,
+        load_e3_research_evidence_json,
+    )
+
+    # Direct semantics: True and "5" are only caught by validator (typing would coerce/accept)
+    with pytest.raises(ValidationError):
+        QueueCapacitySpec(
+            unit="waiting_room_task_slots", capacity_per_rsu=True, is_queue_not_compute=True
+        )  # bool must be rejected
+    with pytest.raises(ValidationError):
+        QueueCapacitySpec(
+            unit="waiting_room_task_slots", capacity_per_rsu="5", is_queue_not_compute=True
+        )  # type: ignore[arg-type]  # string must be rejected before coercion
+    with pytest.raises(ValidationError):
+        QueueCapacitySpec(
+            unit="waiting_room_task_slots", capacity_per_rsu=0, is_queue_not_compute=True
+        )
+    with pytest.raises(ValidationError):
+        QueueCapacitySpec(
+            unit="waiting_room_task_slots", capacity_per_rsu=3.5, is_queue_not_compute=True
+        )  # type: ignore[arg-type]
+
+    # Valid passes
+    QueueCapacitySpec(unit="waiting_room_task_slots", capacity_per_rsu=1, is_queue_not_compute=True)
+    QueueCapacitySpec(
+        unit="waiting_room_task_slots", capacity_per_rsu=10, is_queue_not_compute=True
+    )
+
+    # Via package loader surfaces - use True (bool) and string
+    for bad_val in [True, "5"]:
+        data = json.loads(builtin_e3_research_json())
+        data["queue_capacity"]["capacity_per_rsu"] = bad_val
+        with pytest.raises((ValidationError, ValueError)):
+            load_e3_research_evidence_json(json.dumps(data))
+        with pytest.raises((ValidationError, ValueError)):
+            validate_e3_research_artifact(json.dumps(data))
+        errs = validate_e3_package_for_admission(data)
+        assert len(errs) > 0
+
+
+def test_lane10_task_accounting_reasons_via_all_surfaces() -> None:
+    """Regression for TaskAccountingSpec.validate_reasons (survivor at :950)."""
+    import json
+
+    import pytest
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import (
+        REJECTION_CLASSES,
+        TaskAccountingSpec,
+        load_e3_research_evidence_json,
+    )
+
+    base_kwargs = {
+        "conservation_reason": "not executed - no workloads launched",
+        "genuine_rejection_classes": list(REJECTION_CLASSES),
+    }
+    # Missing required key
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(unavailable_reasons={"started": "r"}, **base_kwargs)  # type: ignore[arg-type]
+    # Empty reason
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(
+            unavailable_reasons={
+                "started": "",
+                "compute_completed": "r",
+                "returned": "r",
+                "dropped": "r",
+            },
+            **base_kwargs,
+        )
+    # Zero coercion
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(
+            unavailable_reasons={
+                "started": "0",
+                "compute_completed": "r",
+                "returned": "r",
+                "dropped": "r",
+            },
+            **base_kwargs,
+        )
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(
+            unavailable_reasons={
+                "started": "zero",
+                "compute_completed": "r",
+                "returned": "r",
+                "dropped": "r",
+            },
+            **base_kwargs,
+        )
+    # Forbidden claim
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(
+            unavailable_reasons={
+                "started": "kubernetes is live",
+                "compute_completed": "r",
+                "returned": "r",
+                "dropped": "r",
+            },
+            **base_kwargs,
+        )
+
+    # Valid passes
+    TaskAccountingSpec(
+        unavailable_reasons={
+            "started": "r1",
+            "compute_completed": "r2",
+            "returned": "r3",
+            "dropped": "r4",
+        },
+        **base_kwargs,
+    )
+
+    # Via package loader
+    data = json.loads(builtin_e3_research_json())
+    data["task_accounting"]["unavailable_reasons"]["started"] = "0"
+    with pytest.raises((ValidationError, ValueError)):
+        load_e3_research_evidence_json(json.dumps(data))
+    with pytest.raises((ValidationError, ValueError)):
+        validate_e3_research_artifact(json.dumps(data))
+    errs = validate_e3_package_for_admission(data)
+    assert len(errs) > 0
+
+    data2 = json.loads(builtin_e3_research_json())
+    data2["task_accounting"]["unavailable_reasons"] = {"started": "r"}  # missing
+    with pytest.raises((ValidationError, ValueError)):
+        load_e3_research_evidence_json(json.dumps(data2))
+
+
+def test_lane10_task_accounting_nulls_via_all_surfaces() -> None:
+    """Regression for TaskAccountingSpec.validate_nulls (survivor at :965) - unexpected key isolates validator from typed None."""
+    import json
+
+    import pytest
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import (
+        REJECTION_CLASSES,
+        TaskAccountingSpec,
+        load_e3_research_evidence_json,
+    )
+
+    base_unavailable = {"started": "r", "compute_completed": "r", "returned": "r", "dropped": "r"}
+    base_kwargs = {
+        "unavailable_reasons": base_unavailable,
+        "conservation_reason": "not executed",
+        "genuine_rejection_classes": list(REJECTION_CLASSES),
+    }
+    # Unexpected rejection class key - typing dict[str, None] accepts any string, only validator rejects
+    with pytest.raises(ValidationError) as exc:
+        TaskAccountingSpec(rejected_by_class={"unexpected_key": None}, **base_kwargs)  # type: ignore[arg-type]
+    assert "unexpected" in str(exc.value).lower() or "rejection" in str(exc.value).lower()
+
+    with pytest.raises(ValidationError):
+        TaskAccountingSpec(
+            rejected_by_class={"v2i_gate_rejected": None, "bogus": None}, **base_kwargs
+        )  # type: ignore[arg-type]
+
+    # Valid with None still passes
+    TaskAccountingSpec(rejected_by_class=None, **base_kwargs)
+    TaskAccountingSpec(rejected_by_class={"v2i_gate_rejected": None}, **base_kwargs)
+
+    # Via package loader - unexpected key in task_accounting.rejected_by_class
+    data = json.loads(builtin_e3_research_json())
+    # Ensure rejected_by_class exists; if None in shipped json, set to dict with unexpected
+    data["task_accounting"]["rejected_by_class"] = {"unexpected_key": None}
+    with pytest.raises((ValidationError, ValueError)):
+        load_e3_research_evidence_json(json.dumps(data))
+    with pytest.raises((ValidationError, ValueError)):
+        validate_e3_research_artifact(json.dumps(data))
+    errs = validate_e3_package_for_admission(data)
+    assert len(errs) > 0

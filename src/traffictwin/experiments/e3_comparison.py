@@ -1,5 +1,5 @@
 # ruff: noqa: E501, ANN401
-"""Matched-draw uncertainty service for E3a / E3b / E3c — no results.
+"""Matched-draw uncertainty service for E3a / E3b / E3c - no results.
 
 Strict typed view built directly from the admitted E3ResearchEvidencePackage in
 NOT_EXECUTED state. No optional package, no Any, no guessed shapes. Any

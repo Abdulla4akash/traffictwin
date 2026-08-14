@@ -1,5 +1,5 @@
 # ruff: noqa: E501, ANN401
-"""Strict Pydantic production model for dedicated E3 package — no results truth.
+"""Strict Pydantic production model for dedicated E3 package - no results truth.
 
 Covers staged designs E3a/E3b/E3c with predeclared factor sets, replication unit
 fleet_draw with exact N=4 matched draws 1-4, paired differences with bounded 95%
@@ -32,7 +32,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 import re
 import unicodedata
 from enum import StrEnum
@@ -41,7 +40,7 @@ from typing import Any, Final, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # ---------------------------------------------------------------------------
-# Immutable hold — verbatim in model constants
+# Immutable hold - verbatim in model constants
 # ---------------------------------------------------------------------------
 
 LANE_09: Final[Literal["BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"]] = (
@@ -90,8 +89,6 @@ VALID_SCALINGS: Final[tuple[str, ...]] = (
 VALID_STATE_AGE_MS: Final[tuple[int, ...]] = (0, 1000, 3000)
 FLEET_SEEDS: Final[tuple[int, ...]] = (1, 2, 3, 4)
 EVALUATOR_SEED: Final[int] = 0
-SCENARIO_RSUS: Final[int] = 10
-
 REJECTION_CLASSES: Final[tuple[str, ...]] = (
     "v2i_gate_rejected",
     "v2i_cap_rejected",
@@ -121,12 +118,8 @@ _PRIVATE_PREFIXES: Final[tuple[str, ...]] = (
 )
 
 # ---------------------------------------------------------------------------
-# Normalization for forbidden families (Blocker 5)
+# Normalization for forbidden families - fold-to-ASCII-or-reject (Blocker 1)
 # ---------------------------------------------------------------------------
-
-_ZERO_WIDTH_CODEPOINTS: Final[frozenset[int]] = frozenset(
-    [0x200B, 0x200C, 0x200D, 0x200E, 0x200F, 0x2060, 0xFEFF]
-)
 
 _CONFUSABLE_MAP: Final[dict[int, int]] = {
     0x0430: 0x61,  # а -> a
@@ -194,79 +187,6 @@ _CONFUSABLE_MAP: Final[dict[int, int]] = {
     0x03A7: 0x78,  # Χ -> x
 }
 
-
-def _normalize_forbidden_text(value: str) -> str:
-    """NFKC fold, strip zero-width, casefold, map confusables."""
-    # NFKC
-    t = unicodedata.normalize("NFKC", value)
-    # strip zero-width
-    t = "".join(ch for ch in t if ord(ch) not in _ZERO_WIDTH_CODEPOINTS)
-    # casefold
-    t = t.casefold()
-    # confusable map
-    t = t.translate(_CONFUSABLE_MAP)
-    return t
-
-
-def _get_script(ch: str) -> str:
-    try:
-        return unicodedata.name(ch).split()[0]
-    except ValueError:
-        return "UNKNOWN"
-
-
-def _has_mixed_script(value: str) -> bool:
-    # Byte-equal allowlist exempt — only exact shipped disclaimers
-    if value in ALLOWLISTED_DISCLAIMERS:
-        return False
-    norm = _normalize_forbidden_text(value)
-    words: list[str] = []
-    cur = ""
-    for ch in norm:
-        if unicodedata.category(ch).startswith("L"):
-            cur += ch
-        else:
-            if cur:
-                words.append(cur)
-                cur = ""
-    if cur:
-        words.append(cur)
-    for w in words:
-        scripts: set[str] = set()
-        for ch in w:
-            if unicodedata.category(ch).startswith("L"):
-                scripts.add(_get_script(ch))
-        if len(scripts) > 1:
-            return True
-    return False
-
-
-def _hex_violations_for_string(value: str, path: str) -> list[str]:
-    violations: list[str] = []
-    for m in _HEX40_TOKEN_RE.finditer(value):
-        token = m.group(0).lower()
-        if token not in _ALLOWED_40_SHAS:
-            violations.append(
-                f"{path}: provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
-            )
-    for m in _HEX64_TOKEN_RE.finditer(value):
-        token = m.group(0).lower()
-        if token not in _ALLOWED_64_SHAS:
-            violations.append(
-                f"{path}: provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
-            )
-    for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", value):
-        token = m.group(0).lower()
-        is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
-            allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
-        )
-        if not is_prefix:
-            violations.append(
-                f"{path}: provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
-            )
-    return violations
-
-
 # Frozen allowlist of exact disclaimer sentences that legitimately contain
 # forbidden substrings but are shipped by the package. Fail-closed semantics
 # allow these verbatim strings byte-equal; any other string containing a
@@ -283,9 +203,6 @@ ALLOWLISTED_DISCLAIMERS: Final[tuple[str, ...]] = (
     "Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; no Manchester-wide inference; no universal superiority.",
 )
 
-_NORMALIZED_ALLOWLIST: Final[frozenset[str]] = frozenset(
-    _normalize_forbidden_text(s) for s in ALLOWLISTED_DISCLAIMERS
-)
 
 # Extended forbidden families as regex patterns on normalized text
 _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
@@ -343,6 +260,80 @@ _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
 )
 
 
+def _fold_to_ascii_or_reject(value: str) -> str:
+    """Fold-to-ASCII-or-reject pipeline (spec Blocker 1 steps 1-4).
+
+    1. NFKD-normalize; strip all combining marks (category Mn).
+    2. Strip Cf (soft hyphen, ZWJ/ZWNJ, BOM, ...); reject surrogates (Cs), unassigned (Cn), private-use (Co).
+    3. Apply confusable fold, then casefold, then NFKC.
+    4. Final gate: if result still contains any non-ASCII letter (ord >=128 in L*), reject unless original is allowlisted byte-equal.
+    Non-letter non-ASCII (e.g., currency symbols) may survive to matching.
+    """
+    # Step 1: NFKD + strip Mn
+    t = unicodedata.normalize("NFKD", value)
+    t = "".join(ch for ch in t if unicodedata.category(ch) != "Mn")
+    # Step 2: Cf stripped, Cn/Co/Cs rejected
+    parts: list[str] = []
+    for ch in t:
+        cat = unicodedata.category(ch)
+        if cat == "Cf":
+            continue
+        if cat in ("Cn", "Co", "Cs"):
+            raise ValueError(
+                f"forbidden invalid_text: unassigned/private/surrogate codepoint U+{ord(ch):04X} category {cat} in {value!r}"
+            )
+        parts.append(ch)
+    t = "".join(parts)
+    # Step 3: confusable fold, casefold, NFKC
+    t = t.translate(_CONFUSABLE_MAP)
+    t = t.casefold()
+    t = unicodedata.normalize("NFKC", t)
+    # Step 4: final gate
+    if value in ALLOWLISTED_DISCLAIMERS:
+        return t
+    for ch in t:
+        if ord(ch) >= 128 and unicodedata.category(ch).startswith("L"):
+            raise ValueError(
+                f"forbidden invalid_text: non-ASCII letter U+{ord(ch):04X} remains after fold in {value!r} -> {t!r}"
+            )
+    return t
+
+
+_normalize_forbidden_text = (
+    _fold_to_ascii_or_reject  # back-compat alias; canonical is _fold_to_ascii_or_reject
+)
+
+
+def _hex_violations_for_string(value: str, path: str) -> list[str]:
+    violations: list[str] = []
+    for m in _HEX40_TOKEN_RE.finditer(value):
+        token = m.group(0).lower()
+        if token not in _ALLOWED_40_SHAS:
+            violations.append(
+                f"{path}: provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
+            )
+    for m in _HEX64_TOKEN_RE.finditer(value):
+        token = m.group(0).lower()
+        if token not in _ALLOWED_64_SHAS:
+            violations.append(
+                f"{path}: provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
+            )
+    for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", value):
+        token = m.group(0).lower()
+        is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
+            allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
+        )
+        if not is_prefix:
+            violations.append(
+                f"{path}: provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
+            )
+    return violations
+
+
+# Frozen allowlist of exact disclaimer sentences that legitimately contain
+# forbidden substrings but are shipped by the package. Fail-closed semantics
+# allow these verbatim strings byte-equal; any other string containing a
+# forbidden substring is rejected.
 _ALLOWED_40_SHAS: Final[frozenset[str]] = frozenset(
     s.lower()
     for s in (
@@ -377,8 +368,7 @@ _SECRET_RE = re.compile(
 )
 
 
-def _is_finite(v: float) -> bool:
-    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(float(v))
+# _is_finite removed: finiteness enforced by ReplicationSpec.validate_interval range check 3.18 < critical_value < 3.19
 
 
 def _contains_private_path(value: str) -> bool:
@@ -386,34 +376,24 @@ def _contains_private_path(value: str) -> bool:
     return any(pref.lower() in low for pref in _PRIVATE_PREFIXES)
 
 
-def _contains_forbidden(value: str) -> str | None:
-    norm = _normalize_forbidden_text(value)
-    if norm in _NORMALIZED_ALLOWLIST:
-        return None
-    if value in ALLOWLISTED_DISCLAIMERS:
-        return None
-    for pat in _FORBIDDEN_FAMILY_PATTERNS:
-        m = pat.search(norm)
-        if m:
-            return m.group(0)
-    if _has_mixed_script(value):
-        return "mixed_script"
-    return None
-
-
 def _contains_affirming_forbidden_any(value: str) -> str | None:
-    norm = _normalize_forbidden_text(value)
-    if norm in _NORMALIZED_ALLOWLIST:
-        return None
+    """Fold-to-ASCII-or-reject then match forbidden families on folded ASCII."""
     if value in ALLOWLISTED_DISCLAIMERS:
         return None
+    try:
+        norm = _fold_to_ascii_or_reject(value)
+    except ValueError as exc:
+        # Typed rejection from fold pipeline (invalid_text / non-ASCII letter / Cn/Co/Cs)
+        return str(exc)
     for pat in _FORBIDDEN_FAMILY_PATTERNS:
         m = pat.search(norm)
         if m:
             return m.group(0)
-    if _has_mixed_script(value):
-        return "mixed_script"
     return None
+
+
+# Backward compat alias (duplicate was byte-identical); canonical is _contains_affirming_forbidden_any
+_contains_forbidden = _contains_affirming_forbidden_any
 
 
 def _scan_forbidden_recursive(obj: Any, path: str = "$") -> list[str]:
@@ -449,10 +429,6 @@ def _scan_forbidden_recursive(obj: Any, path: str = "$") -> list[str]:
 
 
 # Aliases for backward compatibility and single recursive scanner guarantee
-_scan_for_private_paths = _scan_forbidden_recursive
-_scan_for_true_authorized = _scan_forbidden_recursive
-
-
 def _validate_hex_tokens_in_package(pkg: Any) -> list[str]:
     """Scan every string in package for 40/64 hex tokens not in allowed sets (plus 7-39 prefix)."""
     violations: list[str] = []
@@ -492,14 +468,6 @@ class Scaling(StrEnum):
     proactive = "proactive"
 
 
-class EvidenceState(StrEnum):
-    NOT_EXECUTED = "NOT_EXECUTED"
-
-
-class ResultAvailability(StrEnum):
-    NO_E3_RESEARCH_RESULTS_AVAILABLE = "NO_E3_RESEARCH_RESULTS_AVAILABLE"
-
-
 # ---------------------------------------------------------------------------
 # Sub-models
 # ---------------------------------------------------------------------------
@@ -514,12 +482,7 @@ class VecRuntime(StrictBase):
     core_candidate: str = Field(description="vec core 40 hex")
     adapter_candidate: str = Field(description="vec adapter 40 hex")
 
-    @field_validator("promotion_commit", "core_candidate", "adapter_candidate")
-    @classmethod
-    def validate_hex40(cls, v: str) -> str:
-        if not HEX40_RE.match(v):
-            raise ValueError(f"commit must be 40 hex chars, got {v!r}")
-        return v
+    # 40-hex format enforced by exact SHA check below (exact value is 40 hex); no separate format validator needed.
 
     @model_validator(mode="after")
     def validate_exact(self) -> VecRuntime:
@@ -583,19 +546,7 @@ class SoftwareIdentity(StrictBase):
     traffictwin_contract_head: str = Field(description="contract checkpoint 40 hex")
     vec_core_candidate_sha: str = Field(description="vec core 40 hex")
 
-    @field_validator("actor_sha256", "trace_sha256", "e2d_manifest_sha256")
-    @classmethod
-    def validate_hex64(cls, v: str) -> str:
-        if not HEX64_RE.match(v):
-            raise ValueError(f"sha256 must be 64 hex, got {v!r}")
-        return v
-
-    @field_validator("vec_promoted_base", "traffictwin_contract_head", "vec_core_candidate_sha")
-    @classmethod
-    def validate_hex40(cls, v: str) -> str:
-        if not HEX40_RE.match(v):
-            raise ValueError(f"sha must be 40 hex, got {v!r}")
-        return v
+    # 40/64-hex format enforced by exact SHA checks below (exact values are hex); no separate format validators needed.
 
     @model_validator(mode="after")
     def validate_exact(self) -> SoftwareIdentity:
@@ -639,35 +590,7 @@ class ExecutionAuthority(StrictBase):
     empirical_e3_results_authorized: Literal[False] = Field()
     statistical_inference_authorized: Literal[False] = Field()
 
-    @field_validator("status")
-    @classmethod
-    def validate_status(cls, v: str) -> str:
-        if v != E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED:
-            raise ValueError(f"status must be {E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED}, got {v!r}")
-        return v
-
-    @field_validator("lane_09")
-    @classmethod
-    def validate_lane(cls, v: str) -> str:
-        if v != LANE_09:
-            raise ValueError(f"lane_09 must be {LANE_09}, got {v!r}")
-        return v
-
-    @field_validator("evidence_state")
-    @classmethod
-    def validate_evidence(cls, v: str) -> str:
-        if v != NOT_EXECUTED:
-            raise ValueError(f"evidence_state must be {NOT_EXECUTED}, got {v!r}")
-        return v
-
-    @field_validator("result_availability")
-    @classmethod
-    def validate_result(cls, v: str) -> str:
-        if v != NO_E3_RESEARCH_RESULTS_AVAILABLE:
-            raise ValueError(
-                f"result_availability must be {NO_E3_RESEARCH_RESULTS_AVAILABLE}, got {v!r}"
-            )
-        return v
+    # Literal fields above are the enforcement; no extra validators needed (pydantic Literal is fail-closed).
 
 
 class DormantArm(StrictBase):
@@ -685,20 +608,7 @@ class DormantArm(StrictBase):
             raise ValueError(f"state_age_ms must be in {VALID_STATE_AGE_MS}, got {v!r}")
         return v
 
-    @field_validator("arm_id")
-    @classmethod
-    def validate_arm_id(cls, v: str) -> str:
-        if _contains_private_path(v) or _contains_forbidden(v) is not None:
-            raise ValueError(f"arm_id forbidden content: {v!r}")
-        # arm_id must be canonical: placement__scaling__age_Xms
-        if "__" not in v or not v.endswith("ms"):
-            raise ValueError(f"arm_id must be canonical placement__scaling__age_Nms, got {v!r}")
-        # basic check that it contains placement and scaling
-        if not any(p in v for p in VALID_PLACEMENTS):
-            raise ValueError(f"arm_id must contain valid placement, got {v!r}")
-        if not any(s in v for s in VALID_SCALINGS):
-            raise ValueError(f"arm_id must contain valid scaling, got {v!r}")
-        return v
+    # validate_arm_id removed: arm_id canonical enforced by DormantArm.validate_canonical exact equality
 
     @model_validator(mode="after")
     def validate_canonical(self) -> DormantArm:
@@ -736,12 +646,7 @@ class DormantConfig(StrictBase):
             raise ValueError(f"fleet_seed must be in {FLEET_SEEDS}, got {v!r}")
         return v
 
-    @field_validator("config_id", "arm_id")
-    @classmethod
-    def validate_ids(cls, v: str) -> str:
-        if _contains_private_path(v) or _contains_forbidden(v) is not None:
-            raise ValueError(f"id forbidden content: {v!r}")
-        return v
+    # validate_ids removed: ids canonical enforced by DormantConfig.validate_canonical exact equality
 
     @model_validator(mode="after")
     def validate_canonical(self) -> DormantConfig:
@@ -767,15 +672,7 @@ class E3aDesign(StrictBase):
     unique_cells: Literal[12] = Field()
     equation: str = Field(min_length=1)
 
-    @field_validator("state_age_ms")
-    @classmethod
-    def validate_age_list(cls, v: list[int]) -> list[int]:
-        for x in v:
-            if type(x) is not int:
-                raise ValueError(f"state_age_ms must be int, got {type(x).__name__}")
-            if x not in VALID_STATE_AGE_MS:
-                raise ValueError(f"state_age_ms {x!r} not in {VALID_STATE_AGE_MS}")
-        return v
+    # E3a state_age_ms enforced by E3aDesign.validate_exact (must be [0]); no separate age_list validator needed.
 
     @field_validator("fleet_seeds")
     @classmethod
@@ -814,22 +711,7 @@ class E3bDesign(StrictBase):
     overlap_with_e3a: Literal[4] = Field()
     equation: str = Field(min_length=1)
 
-    @field_validator("state_age_ms")
-    @classmethod
-    def validate_age_list(cls, v: list[int]) -> list[int]:
-        for x in v:
-            if type(x) is not int:
-                raise ValueError(f"state_age_ms must be int, got {type(x).__name__}")
-            if x not in VALID_STATE_AGE_MS:
-                raise ValueError(f"state_age_ms {x!r} not in {VALID_STATE_AGE_MS}")
-        return v
-
-    @field_validator("fleet_seeds")
-    @classmethod
-    def validate_fleet_list(cls, v: list[int]) -> list[int]:
-        if v != [1, 2, 3, 4]:
-            raise ValueError(f"E3b fleet_seeds must be [1,2,3,4], got {v!r}")
-        return v
+    # state_age_ms and fleet_seeds enforced by validate_exact; no separate list validators needed.
 
     @model_validator(mode="after")
     def validate_exact(self) -> E3bDesign:
@@ -875,17 +757,7 @@ class E3cDesign(StrictBase):
     state_is_view_parameter: bool = Field()
     reuses_identical_fresh_cells: bool = Field()
 
-    @field_validator("state_age_ms_values")
-    @classmethod
-    def validate_age_list(cls, v: list[int]) -> list[int]:
-        for x in v:
-            if type(x) is not int:
-                raise ValueError(f"state_age_ms must be int, got {type(x).__name__}")
-            if x not in VALID_STATE_AGE_MS:
-                raise ValueError(f"state_age_ms {x!r} not in {VALID_STATE_AGE_MS}")
-        if sorted(v) != [0, 1000, 3000]:
-            raise ValueError(f"E3c state_age_ms_values must be [0,1000,3000], got {v!r}")
-        return v
+    # state_age_ms_values enforced by validate_exact; no separate list validator needed.
 
     @model_validator(mode="after")
     def validate_exact(self) -> E3cDesign:
@@ -912,13 +784,7 @@ class StagedDesign(StrictBase):
     not_double_counted: Literal[True] = Field()
     identical_fresh_cells_reused_not_rerun: Literal[True] = Field()
 
-    @model_validator(mode="after")
-    def validate_totals(self) -> StagedDesign:
-        if self.maximum_candidate_unique_cells != 56:
-            raise ValueError("maximum_candidate_unique_cells must be 56")
-        if self.stage_listed_cells != 60:
-            raise ValueError("stage_listed_cells must be 60")
-        return self
+    # Totals enforced by Literal types (56, 60, True). No extra validator needed.
 
 
 class ReplicationSpec(StrictBase):
@@ -941,12 +807,7 @@ class ReplicationSpec(StrictBase):
             raise ValueError(f"fleet_seeds must be [1,2,3,4], got {v!r}")
         return v
 
-    @field_validator("critical_value")
-    @classmethod
-    def validate_finite(cls, v: float) -> float:
-        if not _is_finite(v):
-            raise ValueError(f"critical_value must be finite, got {v!r}")
-        return float(v)
+    # critical_value finiteness enforced by validate_interval range check 3.18 < critical_value < 3.19 (non-finite fails range).
 
     @model_validator(mode="after")
     def validate_interval(self) -> ReplicationSpec:
@@ -965,9 +826,9 @@ class QueueCapacitySpec(StrictBase):
     is_queue_not_compute: Literal[True] = Field()
     is_compute_units: Literal[False] | None = Field(default=False)
 
-    @field_validator("capacity_per_rsu")
+    @field_validator("capacity_per_rsu", mode="before")
     @classmethod
-    def validate_int_strict(cls, v: int) -> int:
+    def validate_int_strict(cls, v: object) -> object:
         if type(v) is not int:
             raise ValueError(f"capacity_per_rsu must be int, got {type(v).__name__}")
         if v <= 0:
@@ -1012,11 +873,7 @@ class ResourceCostSpec(StrictBase):
             raise ValueError("formula must not contain private path")
         return v
 
-    @model_validator(mode="after")
-    def validate_no_monetary(self) -> ResourceCostSpec:
-        if self.monetary is not False:
-            raise ValueError("monetary must be False, resource cost is normalized usage not money")
-        return self
+    # Literal monetary field is the enforcement (must be False); no extra validator needed.
 
 
 class ScalingReceiptSpec(StrictBase):
@@ -1132,14 +989,8 @@ class MissingnessReason(StrictBase):
     field: str = Field(min_length=1)
     reason: str = Field(min_length=1)
 
-    @field_validator("reason")
-    @classmethod
-    def validate_reason(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("missingness reason must be non-empty")
-        if _contains_affirming_forbidden_any(v) is not None:
-            raise ValueError(f"reason contains forbidden claim: {v!r}")
-        return v
+    # reason non-empty enforced by Field(min_length=1) + StrictBase.str_strip_whitespace=True;
+    # forbidden claims in reason are enforced at package level by E3ResearchEvidencePackage.validate_cross via _scan_forbidden_recursive.
 
 
 # ---------------------------------------------------------------------------
@@ -1247,7 +1098,7 @@ class E3ResearchEvidencePackage(StrictBase):
                         and _contains_affirming_forbidden_any(item) is not None
                     ):
                         raise ValueError(f"factors contains forbidden claim: {item!r}")
-        # Recursive scan for any nested forbidden/private content already handled in model_validator via _scan_for_private_paths,
+        # Recursive scan for any nested forbidden/private content already handled in model_validator via _scan_forbidden_recursive,
         # but also ensure no forbidden claim hidden in any string value of factors (deep)
         for val in v.values():
             if isinstance(val, str) and _contains_affirming_forbidden_any(val) is not None:
@@ -1465,7 +1316,7 @@ def load_e3_research_evidence_json(text: str) -> E3ResearchEvidencePackage:
     secret_assign_re = re.compile(r"(password|secret|api_key|token)\s*[:=]", re.IGNORECASE)
     if secret_assign_re.search(text):
         raise ValueError("payload contains secret/credential assignment")
-    # (dead pass-only loop removed — canonical scanner handles all forbidden checks)
+    # (dead pass-only loop removed - canonical scanner handles all forbidden checks)
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
@@ -1502,12 +1353,9 @@ __all__ = [
     "VALID_STATE_AGE_MS",
     "FLEET_SEEDS",
     "EVALUATOR_SEED",
-    "SCENARIO_RSUS",
     "REJECTION_CLASSES",
     "Placement",
     "Scaling",
-    "EvidenceState",
-    "ResultAvailability",
     "VecRuntime",
     "TraffictwinRuntime",
     "ContractIdentity",

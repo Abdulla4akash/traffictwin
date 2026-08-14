@@ -1,5 +1,5 @@
 # ruff: noqa: E501, ANN401
-"""Canonical portable E3 research artifact — Lane 10 (no-results truth).
+"""Canonical portable E3 research artifact - Lane 10 (no-results truth).
 
 Provides wheel-portable built-in JSON via importlib.resources and a strict
 validator that delegates to the dedicated E3 loader then enforces every pinned
@@ -80,7 +80,7 @@ def load_builtin_e3_research() -> E3ResearchEvidencePackage:
 
 
 def validate_e3_research_artifact(text: str) -> E3ResearchEvidencePackage:
-    """Strict validator — delegates to loader then enforces every pinned identity."""
+    """Strict validator - delegates to loader then enforces every pinned identity."""
     if not isinstance(text, str):
         raise TypeError("text must be str")
     _assert_no_private_paths_or_secrets(text)

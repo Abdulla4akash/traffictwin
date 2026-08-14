@@ -1,5 +1,5 @@
 # ruff: noqa: E501, ANN401
-"""Strategy semantics service for E3 product campaign — Lane 10 (no-inference).
+"""Strategy semantics service for E3 product campaign - Lane 10 (no-inference).
 
 Strict deterministic typed descriptions for ingress_dla, per_task_dla, p2c_dla
 placements and fixed_1x, static_overprovisioned, reactive, proactive scalings,
@@ -165,7 +165,7 @@ class E3StrategySemantics:
 
 
 # ---------------------------------------------------------------------------
-# Canonical instances — 14 arms x 3 placements? We provide examples for the
+# Canonical instances - 14 arms x 3 placements? We provide examples for the
 # core factor combinations, not empirical results. The service enumerates the
 # dormant design without claiming outcomes.
 # ---------------------------------------------------------------------------
@@ -174,7 +174,7 @@ _INGRESS_FIXED_0 = E3StrategySemantics(
     placement_id="ingress_dla",
     scaling_id="fixed_1x",
     state_age_ms=0,
-    human_label="ingress_dla with fixed_1x at state_age 0 ms — strongest-link execution plus deadline gate, 1 compute unit",
+    human_label="ingress_dla with fixed_1x at state_age 0 ms - strongest-link execution plus deadline gate, 1 compute unit",
     radio_ingress="Strongest-link ingress: best_rsu_idx per vehicle determines ingress RSU; radio viability is current, not stale.",
     execution_placement="Strongest-link execution only: selected execution equals ingress RSU, no p2c or per-task recomputation. Deterministic.",
     admission="Deadline-aware gate at ingress: effective_busy_ms[selected] < TASK_DEADLINE_MS, strict backlog-only, stale view plus same-tick reservation overlay where applicable. Execution is -1 for rejected.",
@@ -196,7 +196,7 @@ _PER_TASK_FIXED_0 = E3StrategySemantics(
     placement_id="per_task_dla",
     scaling_id="fixed_1x",
     state_age_ms=0,
-    human_label="per_task_dla with fixed_1x at state_age 0 ms — per-task least-busy plus deadline gate, 1 unit",
+    human_label="per_task_dla with fixed_1x at state_age 0 ms - per-task least-busy plus deadline gate, 1 unit",
     radio_ingress="Strongest-link ingress per vehicle; ingress radio checked post-placement eligibility; current viability not stale.",
     execution_placement="Per-task sequential least-busy: recompute argmin(effective_busy_ms) over 10 RSUs per V2I candidate in deterministic padded-slot order, with immediate reservation overlay. Tie to lowest RSU id.",
     admission="Same deadline gate at per-task selected target; backlog-only, gate-before-cap precedence, rejected work never reserved; -1 execution for rejected.",
@@ -218,7 +218,7 @@ _P2C_FIXED_0 = E3StrategySemantics(
     placement_id="p2c_dla",
     scaling_id="fixed_1x",
     state_age_ms=0,
-    human_label="p2c_dla with fixed_1x at state_age 0 ms — power-of-two-choices feasibility-first plus gate, 1 unit",
+    human_label="p2c_dla with fixed_1x at state_age 0 ms - power-of-two-choices feasibility-first plus gate, 1 unit",
     radio_ingress="Strongest-link ingress per vehicle; candidate feasibility determines the p2c pair eligibility before hash mapping.",
     execution_placement="P2C feasibility-first: two candidate hashes via SplitMix64 over (evaluator_seed, fleet_seed, outer_tick, task_slot, ordinal) mapped to distinct feasible RSUs without replacement, choose lower effective_busy_ms. Inspect only pair, not all RSUs. Uniformity not claimed; modulo bias noted.",
     admission="Deadline gate at p2c-chosen RSU; same strict backlog rule, gate-before-cap, -1 execution for rejected, rejected never drains.",
@@ -240,7 +240,7 @@ _PER_TASK_REACTIVE_0 = E3StrategySemantics(
     placement_id="per_task_dla",
     scaling_id="reactive",
     state_age_ms=0,
-    human_label="per_task_dla with reactive at state_age 0 ms — per-task placement plus workload-reactive scaling",
+    human_label="per_task_dla with reactive at state_age 0 ms - per-task placement plus workload-reactive scaling",
     radio_ingress="Same ingress as per_task_dla; scaling does not change radio.",
     execution_placement="Same per-task least-busy recomputation per candidate.",
     admission="Same deadline gate; scaling applied before tick decision, not retroactively adjusted.",
@@ -262,7 +262,7 @@ _PER_TASK_PROACTIVE_0 = E3StrategySemantics(
     placement_id="per_task_dla",
     scaling_id="proactive",
     state_age_ms=0,
-    human_label="per_task_dla with proactive at state_age 0 ms — per-task placement plus transparent proactive forecast",
+    human_label="per_task_dla with proactive at state_age 0 ms - per-task placement plus transparent proactive forecast",
     radio_ingress="Same ingress; no change.",
     execution_placement="Same per-task placement.",
     admission="Same gate; scaling decisions use only samples at or before observation time, no future leakage.",
@@ -284,7 +284,7 @@ _PER_TASK_STATIC_0 = E3StrategySemantics(
     placement_id="per_task_dla",
     scaling_id="static_overprovisioned",
     state_age_ms=0,
-    human_label="per_task_dla with static_overprovisioned at state_age 0 ms — per-task placement plus 3x compute",
+    human_label="per_task_dla with static_overprovisioned at state_age 0 ms - per-task placement plus 3x compute",
     radio_ingress="Same ingress.",
     execution_placement="Same per-task placement.",
     admission="Same gate; more capacity may admit more but gate still strict backlog check.",
@@ -302,12 +302,12 @@ _PER_TASK_STATIC_0 = E3StrategySemantics(
     limitations="Static 3x is reference overprovision, not claimed efficient; cost trade-off family awaits data.",
 )
 
-# Stale variants — demonstrate typed staleness handling without claiming results
+# Stale variants - demonstrate typed staleness handling without claiming results
 _PER_TASK_FIXED_1000 = E3StrategySemantics(
     placement_id="per_task_dla",
     scaling_id="fixed_1x",
     state_age_ms=1000,
-    human_label="per_task_dla fixed_1x at state_age 1000 ms — delayed view 1 s",
+    human_label="per_task_dla fixed_1x at state_age 1000 ms - delayed view 1 s",
     radio_ingress="Same ingress.",
     execution_placement="Per-task placement uses delayed immutable backlog view aged 1000 ms plus same-tick overlay.",
     admission="Gate uses observed delayed backlog; true latency and success use true state, not stale estimate.",
@@ -329,7 +329,7 @@ _PER_TASK_FIXED_3000 = E3StrategySemantics(
     placement_id="per_task_dla",
     scaling_id="fixed_1x",
     state_age_ms=3000,
-    human_label="per_task_dla fixed_1x at state_age 3000 ms — delayed view 3 s",
+    human_label="per_task_dla fixed_1x at state_age 3000 ms - delayed view 3 s",
     radio_ingress="Same ingress as fresh; radio viability current not stale.",
     execution_placement="Per-task placement uses 3000 ms delayed immutable backlog view plus same-tick overlay.",
     admission="Gate uses 3000 ms delayed backlog; true execution not delayed.",

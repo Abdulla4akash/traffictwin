@@ -5,6 +5,9 @@ from __future__ import annotations
 
 import json
 
+import pytest
+from pydantic import ValidationError
+
 from traffictwin.evidence_admission.e3_research import (
     LANE_09_HOLD,
     STANDING_REFUSED,
@@ -517,10 +520,10 @@ def test_review3_bypasses_rejected_via_admission_all_surfaces() -> None:
 
 def test_backstop_coptic_armenian_rejected_via_admission() -> None:
     for payload in [
-        "kuber\u2c81etes with coptic",
-        "super\u0561visor with Armenian",
-        "kuber\u03f2etes Greek lunate",
-        "actor \u13daelects Cherokee",
+        "kuber\u2c81etes cluster is live",
+        "super\u0561visor approval was granted",
+        "kuber\u03f2etes cluster is live",
+        "\u13daelects the execution RSU",
     ]:
         data = json.loads(builtin_e3_research_json())
         data["limitations"][0] = data["limitations"][0] + " " + payload
@@ -542,6 +545,24 @@ def test_admission_contains_forbidden_guard() -> None:
     assert any("kubernetes" in e.lower() for e in errs)
     result = admit_e3_research(forged)
     assert result.reason_code == "REFUSED_FORBIDDEN_CLAIM"
+
+
+def test_refusal_hex_validators_wiring() -> None:
+    from traffictwin.evidence_admission.e3_research import E3ResearchAdmissionRefusal
+
+    with pytest.raises(ValidationError):
+        E3ResearchAdmissionRefusal(product_base_sha="nothex", reason_code="x", reason_detail="y")
+
+    with pytest.raises(ValidationError):
+        E3ResearchAdmissionRefusal(actor_sha256="nothex", reason_code="x", reason_detail="y")
+
+    # Valid
+    E3ResearchAdmissionRefusal(
+        product_base_sha="2b6d4675658b426f96a79c41ac7f0b8f2a82bc5c",
+        actor_sha256="93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+        reason_code="x",
+        reason_detail="y",
+    )
 
 
 def test_check_package_hold_is_load_bearing() -> None:

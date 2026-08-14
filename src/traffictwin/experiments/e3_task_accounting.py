@@ -1,5 +1,5 @@
 # ruff: noqa: E501, SIM102, ANN401
-"""Strict typed E3 task accounting — Lane 10 (no results, fail-closed).
+"""Strict typed E3 task accounting - Lane 10 (no results, fail-closed).
 
 Frozen source of truth is docs/evaluation/e3/e3_dynamic_resource_v2_contract_v2.json
 and the dormant manifest. All counts are null with reasons in NOT_EXECUTED state;
@@ -18,51 +18,51 @@ from pydantic import BaseModel, ConfigDict, Field
 from traffictwin.experiments.e3_research_evidence import REJECTION_CLASSES
 
 # ---------------------------------------------------------------------------
-# Reasons — explicit unavailable with first-class null
+# Reasons - explicit unavailable with first-class null
 # ---------------------------------------------------------------------------
 
-OFFERED_REASON: str = "UNAVAILABLE — no E3 research workloads launched, research_workloads_launched = 0, evidence_state = NOT_EXECUTED, result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE"
+OFFERED_REASON: str = "UNAVAILABLE - no E3 research workloads launched, research_workloads_launched = 0, evidence_state = NOT_EXECUTED, result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE"
 ADMITTED_REASON: str = (
-    "UNAVAILABLE — no E3 cells executed under hold BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
+    "UNAVAILABLE - no E3 cells executed under hold BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
 )
 REJECTED_TOTAL_REASON: str = (
-    "UNAVAILABLE — genuine rejection classes not yet observed; no synthetic counts"
+    "UNAVAILABLE - genuine rejection classes not yet observed; no synthetic counts"
 )
 FORWARDED_REASON: str = (
-    "UNAVAILABLE — forwarding counts null before execution; not zero, not fabricated"
+    "UNAVAILABLE - forwarding counts null before execution; not zero, not fabricated"
 )
 DEADLINE_SUCCESS_REASON: str = (
-    "UNAVAILABLE — deadline success is simulator outcome, not yet instrumented under hold"
+    "UNAVAILABLE - deadline success is simulator outcome, not yet instrumented under hold"
 )
 
-GATE_REJECTED_REASON: str = "UNAVAILABLE — v2i_gate_rejected split not yet instrumented; not zero"
+GATE_REJECTED_REASON: str = "UNAVAILABLE - v2i_gate_rejected split not yet instrumented; not zero"
 CAPACITY_REJECTED_REASON: str = (
-    "UNAVAILABLE — v2i_cap_rejected split not yet instrumented; not zero"
+    "UNAVAILABLE - v2i_cap_rejected split not yet instrumented; not zero"
 )
-LOCAL_MQD_REASON: str = "UNAVAILABLE — local_mqd_rejected not yet instrumented; not zero"
-V2V_MQD_REASON: str = "UNAVAILABLE — v2v_mqd_rejected not yet instrumented; not zero"
-V2I_UNAVAILABLE_REASON: str = "UNAVAILABLE — v2i_unavailable not yet instrumented; not zero"
-V2V_UNAVAILABLE_REASON: str = "UNAVAILABLE — v2v_unavailable not yet instrumented; not zero"
+LOCAL_MQD_REASON: str = "UNAVAILABLE - local_mqd_rejected not yet instrumented; not zero"
+V2V_MQD_REASON: str = "UNAVAILABLE - v2v_mqd_rejected not yet instrumented; not zero"
+V2I_UNAVAILABLE_REASON: str = "UNAVAILABLE - v2i_unavailable not yet instrumented; not zero"
+V2V_UNAVAILABLE_REASON: str = "UNAVAILABLE - v2v_unavailable not yet instrumented; not zero"
 
 STARTED_REASON: str = (
-    "UNAVAILABLE as an independently instrumented quantity — started not separately emitted"
+    "UNAVAILABLE as an independently instrumented quantity - started not separately emitted"
 )
-COMPUTE_COMPLETED_REASON: str = "UNAVAILABLE — compute completion not distinct from deadline_success in current evaluator; not zero"
-RETURNED_REASON: str = "UNAVAILABLE — physical return not distinct from deadline_success; not zero"
+COMPUTE_COMPLETED_REASON: str = "UNAVAILABLE - compute completion not distinct from deadline_success in current evaluator; not zero"
+RETURNED_REASON: str = "UNAVAILABLE - physical return not distinct from deadline_success; not zero"
 DROPPED_REASON: str = (
-    "UNAVAILABLE — dropped cannot be derived without compute_completed/returned split; not zero"
+    "UNAVAILABLE - dropped cannot be derived without compute_completed/returned split; not zero"
 )
 
 RESOURCE_COST_REASON: str = (
-    "UNAVAILABLE — resource_unit_seconds null before execution; not monetary, not zero"
+    "UNAVAILABLE - resource_unit_seconds null before execution; not monetary, not zero"
 )
-SCALING_RECEIPTS_REASON: str = "UNAVAILABLE — scale-action receipts null before execution; not empty list fabricated as evidence"
-PER_RSU_REASON: str = "UNAVAILABLE — per-RSU summaries null before execution; not zero"
-CAPACITY_LEVELS_REASON: str = "UNAVAILABLE — capacity levels null before execution; not zero"
-STATE_AGE_RECEIPTS_REASON: str = "UNAVAILABLE — state-age receipts null before execution; not zero"
+SCALING_RECEIPTS_REASON: str = "UNAVAILABLE - scale-action receipts null before execution; not empty list fabricated as evidence"
+PER_RSU_REASON: str = "UNAVAILABLE - per-RSU summaries null before execution; not zero"
+CAPACITY_LEVELS_REASON: str = "UNAVAILABLE - capacity levels null before execution; not zero"
+STATE_AGE_RECEIPTS_REASON: str = "UNAVAILABLE - state-age receipts null before execution; not zero"
 
 CONSERVATION_REASON: str = (
-    "UNAVAILABLE — conservation offered == admitted + rejected not yet verified; no E3 cells executed, "
+    "UNAVAILABLE - conservation offered == admitted + rejected not yet verified; no E3 cells executed, "
     "research_workloads_launched = 0, evidence_state = NOT_EXECUTED"
 )
 
@@ -141,7 +141,7 @@ class ScalingReceiptsView(BaseModel):
 
 
 class E3TaskAccountingView(BaseModel):
-    """Typed E3 task accounting in NOT_EXECUTED state — all counts null with reasons.
+    """Typed E3 task accounting in NOT_EXECUTED state - all counts null with reasons.
 
     Conservation and shares are null with reasons before execution; queue and
     compute remain distinct; resource cost is resource_unit_seconds not money.

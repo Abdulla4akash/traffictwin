@@ -1,5 +1,5 @@
 # ruff: noqa: E501, ANN401
-"""Fail-closed source-bound admission for the E3 research package — Lane 10.
+"""Fail-closed source-bound admission for the E3 research package - Lane 10.
 
 Exact admission of a future Lane 09 package fails closed today. The model and
 admission natively represent evidence_state = NOT_EXECUTED and
@@ -57,7 +57,7 @@ RESULT_AVAILABILITY: Final[Literal["NO_E3_RESEARCH_RESULTS_AVAILABLE"]] = (
 LANE_09_HOLD: Final[Literal["BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"]] = LANE_09
 RESEARCH_WORKLOADS: Final[Literal[0]] = RESEARCH_WORKLOADS_LAUNCHED
 
-# Expected package fingerprint does not yet exist — future Lane 09 package required.
+# Expected package fingerprint does not yet exist - future Lane 09 package required.
 # No current 64-hex value satisfies this; admission therefore always refuses.
 EXPECTED_PACKAGE_FINGERPRINT: Final[None] = None
 EXPECTED_ANALYSIS_ARTIFACT_FINGERPRINT: Final[None] = None
@@ -71,7 +71,7 @@ class StrictBase(BaseModel):
 
 
 class E3ResearchAdmissionRefusal(StrictBase):
-    """Typed truthful refusal — no exception, no partial admission."""
+    """Typed truthful refusal - no exception, no partial admission."""
 
     status: Literal["REFUSED"] = Field(default="REFUSED")
     admitted: Literal[False] = Field(default=False)
@@ -281,7 +281,7 @@ def admit_e3_research(
     analysis_artifact_fingerprint: str | None = None,
     package_fingerprint: str | None = None,
 ) -> E3ResearchAdmissionRefusal:
-    """Admit an E3 research package — fail-closed today, typed refusal always.
+    """Admit an E3 research package - fail-closed today, typed refusal always.
 
     For every current input this returns an E3ResearchAdmissionRefusal with
     admitted=False, evidence_state=NOT_EXECUTED,
@@ -387,7 +387,7 @@ def admit_e3_research(
                 received_package_fingerprint=received_pkg_fp,
                 received_analysis_artifact_fingerprint=received_analysis_fp,
             )
-        # Provided fingerprints but expected is None → still mismatch
+        # Provided fingerprints but expected is None -> still mismatch
         return _build_refusal(
             reason_code="REFUSED_FUTURE_ARTIFACT_MISMATCH",
             reason_detail=(
