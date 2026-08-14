@@ -1875,3 +1875,409 @@ def test_currency_symbols_rejected_via_all_four_surfaces() -> None:
     )
     replaced2 = dataclasses.replace(canon, admission=clean_admission)  # type: ignore[arg-type]
     assert replaced2.admission == clean_admission
+
+
+# --- Review-7 pre-NFKD screen regressions (enclosed alphanumerics, Sc currency laundering, decorated letters, neutering guard) ---
+
+_REVIEW7_ENCLOSED_PAYLOADS = [
+    "k\u24b0bernetes cluster is live and orchestrating production traffic",
+    "We treat tasks as \u24a9 for replication purposes",
+    "Results generalize manch\u24a0ster wide across the region",
+    "This run has supervisor \u249capproval from the reviewer",
+    "Total resource cost in d\u24aallars is 4500 per incident hour",
+]
+
+_REVIEW7_RUPEE_PAYLOAD = "resource cost is 4500\u20a8 per incident hour"
+
+_REVIEW7_ENCLOSED_RANGE_SAMPLES = {
+    "U+2100-214F": "\u2100",  # ℀ a/c
+    "U+2460-24FF": "\u2460",  # ①
+    "U+3200-33FF": "\u3200",  # ㈀
+    "U+1F100-1F1FF": "\U0001f100",  # 🄀
+}
+
+_REVIEW7_DECORATED_PAYLOAD = "supervis\u00f6r approval was granted"
+
+
+@pytest.mark.parametrize("payload", _REVIEW7_ENCLOSED_PAYLOADS)
+def test_review7_enclosed_alphanumerics_rejected_at_all_four_surfaces(payload: str) -> None:
+    """Five enclosed-alphanumeric injections rejected at loader, artifact, admission, semantics."""
+    import dataclasses
+    import json
+
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import (
+        admit_e3_research,
+        validate_e3_package_for_admission,
+    )
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import load_e3_research_evidence_json
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    # 1. loader
+    data = json.loads(builtin_e3_research_json())
+    data["limitations"][0] = payload
+    text = json.dumps(data)
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(text)
+    assert "forbidden" in str(exc.value).lower() or "invalid_text" in str(exc.value).lower()
+
+    # 2. artifact validation
+    with pytest.raises((ValidationError, ValueError)) as exc2:
+        validate_e3_research_artifact(text)
+    assert "forbidden" in str(exc2.value).lower() or "invalid_text" in str(exc2.value).lower()
+
+    # 3. admission nonempty pre-errors
+    errs = validate_e3_package_for_admission(data)
+    assert len(errs) > 0, f"expected nonempty pre-errors for {payload!r}, got {errs}"
+    assert any("forbidden" in e.lower() or "invalid_text" in e.lower() for e in errs), f"got {errs}"
+
+    result = admit_e3_research(data)
+    assert result.admitted is False
+    assert "REFUSED" in result.reason_code
+    # diagnostics should contain package_pre_errors with forbidden/invalid_text
+    assert "package_pre_errors" in result.diagnostics
+    assert any(
+        "forbidden" in str(v).lower() or "invalid_text" in str(v).lower()
+        for v in result.diagnostics["package_pre_errors"]
+    )
+
+    # 4. semantics field (human_label, admission, etc.)
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    for field in ["human_label", "admission", "forwarding", "execution_placement"]:
+        try:
+            dataclasses.replace(canon, **{field: payload})  # type: ignore[arg-type]
+            raise AssertionError(
+                f"expected rejection for enclosed payload {payload!r} in field {field}"
+            )
+        except ValueError as exc3:
+            msg = str(exc3).lower()
+            assert "forbidden" in msg or "invalid_text" in msg
+
+
+def test_review7_rupee_sign_rejected_at_all_four_surfaces() -> None:
+    """U+20A8 RUPEE SIGN rejected at loader, artifact, admission, semantics."""
+    import dataclasses
+    import json
+
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import (
+        admit_e3_research,
+        validate_e3_package_for_admission,
+    )
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import load_e3_research_evidence_json
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    payload = _REVIEW7_RUPEE_PAYLOAD
+    data = json.loads(builtin_e3_research_json())
+    data["limitations"][0] = payload
+    text = json.dumps(data)
+
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(text)
+    assert "forbidden" in str(exc.value).lower() or "invalid_text" in str(exc.value).lower()
+    assert "20a8" in str(exc.value).lower() or "sc" in str(exc.value).lower()
+
+    with pytest.raises((ValidationError, ValueError)) as exc2:
+        validate_e3_research_artifact(text)
+    assert "forbidden" in str(exc2.value).lower() or "invalid_text" in str(exc2.value).lower()
+
+    errs = validate_e3_package_for_admission(data)
+    assert len(errs) > 0
+    assert any("forbidden" in e.lower() or "invalid_text" in e.lower() for e in errs)
+    result = admit_e3_research(data)
+    assert result.admitted is False
+    assert "REFUSED" in result.reason_code
+
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    for field in ["human_label", "admission", "forwarding", "execution_placement"]:
+        try:
+            dataclasses.replace(canon, **{field: payload})  # type: ignore[arg-type]
+            raise AssertionError(f"expected rejection for rupee {payload!r} in {field}")
+        except ValueError as exc3:
+            msg = str(exc3).lower()
+            assert "forbidden" in msg or "invalid_text" in msg or "sc" in msg
+
+
+def test_review7_sc_category_sweep_rejected_in_cost_claim() -> None:
+    """Every Sc in U+20A0-U+20CF outside _CURRENCY_RETAIN rejected when carried in cost claim."""
+    import json
+    import unicodedata
+
+    from pydantic import ValidationError
+
+    from traffictwin.experiments.e3_research_artifact import builtin_e3_research_json
+    from traffictwin.experiments.e3_research_evidence import (
+        _CURRENCY_RETAIN,
+        _contains_affirming_forbidden_any,
+        load_e3_research_evidence_json,
+    )
+
+    retain = _CURRENCY_RETAIN
+    for cp in range(0x20A0, 0x20CF + 1):
+        ch = chr(cp)
+        cat = unicodedata.category(ch)
+        if cat != "Sc":
+            continue
+        if cp in retain:
+            continue
+        carrier = f"resource cost is 4500{ch} per incident hour"
+        # direct fold check
+        hit = _contains_affirming_forbidden_any(carrier)
+        assert hit is not None, (
+            f"expected Sc U+{cp:04X} {ch!r} to be rejected, got None for {carrier!r}"
+        )
+        assert "invalid_text" in hit.lower() or "sc" in hit.lower() or "forbidden" in hit.lower()
+        # also via loader (sample a few to avoid too many heavy loads but spec says every)
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = carrier
+        with pytest.raises((ValidationError, ValueError)) as exc:
+            load_e3_research_evidence_json(json.dumps(data))
+        assert "forbidden" in str(exc.value).lower() or "invalid_text" in str(exc.value).lower()
+
+
+def test_review7_enclosed_range_samples_rejected_in_claim_context() -> None:
+    """Sample from each enclosed-alphanumeric range rejected in claim context."""
+    import dataclasses
+    import json
+    import unicodedata
+
+    from pydantic import ValidationError
+
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import (
+        _contains_affirming_forbidden_any,
+        load_e3_research_evidence_json,
+    )
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    for range_name, ch in _REVIEW7_ENCLOSED_RANGE_SAMPLES.items():
+        # craft claim context: embed ch inside a cost/forbidden phrase
+        carriers = [
+            f"resource cost is 4500{ch} per incident hour",
+            f"k{ch}bernetes cluster is live",
+            f"supervisor {ch}approval was granted",
+        ]
+        for carrier in carriers:
+            # direct
+            hit = _contains_affirming_forbidden_any(carrier)
+            assert hit is not None, (
+                f"expected {range_name} sample U+{ord(ch):04X} to be rejected in {carrier!r}"
+            )
+            # loader
+            data = json.loads(builtin_e3_research_json())
+            data["limitations"][0] = carrier
+            with pytest.raises((ValidationError, ValueError)):
+                load_e3_research_evidence_json(json.dumps(data))
+            with pytest.raises((ValidationError, ValueError)):
+                validate_e3_research_artifact(json.dumps(data))
+            errs = validate_e3_package_for_admission(data)
+            assert len(errs) > 0, f"expected pre-errors for {range_name} {carrier!r}"
+            # semantics
+            canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+            try:
+                dataclasses.replace(
+                    canon,
+                    human_label=carrier + " with per_task_dla fixed_1x at state_age 0 ms extended",
+                )  # type: ignore[arg-type]
+                # if carrier is short, ensure length requirement still met
+                if len(carrier) < 10:
+                    # supplement to meet substantive length
+                    carrier_long = (
+                        carrier + " with per_task_dla fixed_1x at state_age 0 ms extended"
+                    )
+                    dataclasses.replace(canon, human_label=carrier_long)  # type: ignore[arg-type]
+                raise AssertionError(f"expected semantics rejection for {range_name} {carrier!r}")
+            except ValueError as exc:
+                assert "forbidden" in str(exc).lower() or "invalid_text" in str(exc).lower()
+            # ensure NFKD is not pure letters (sanity that sample is actually enclosed)
+            nfkd = unicodedata.normalize("NFKD", ch)
+            is_pure = True
+            for nc in nfkd:
+                ncat = unicodedata.category(nc)
+                if ncat == "Mn":
+                    continue
+                if ncat.startswith("L"):
+                    continue
+                is_pure = False
+                break
+            assert not is_pure, (
+                f"sample {range_name} U+{ord(ch):04X} NFKD {nfkd!r} should not be pure letters"
+            )
+
+
+def test_review7_decorated_letter_sanity_and_shipped_still_load() -> None:
+    """Decorated letter folds correctly: supervisör still REJECTED as claim, shipped artifacts still load."""
+    import dataclasses
+    import json
+
+    from pydantic import ValidationError
+
+    from traffictwin.experiments.e3_research_artifact import (
+        builtin_e3_research_json,
+        validate_e3_research_artifact,
+    )
+    from traffictwin.experiments.e3_research_evidence import (
+        ALLOWLISTED_DISCLAIMERS,
+        _contains_affirming_forbidden_any,
+        _fold_to_ascii_or_reject,
+        load_e3_research_evidence_json,
+    )
+    from traffictwin.experiments.e3_strategy_semantics import (
+        e3_semantics_for,
+        e3_strategy_semantics,
+    )
+
+    payload = _REVIEW7_DECORATED_PAYLOAD
+    # fold works: ö -> o
+    folded = _fold_to_ascii_or_reject(payload)
+    assert folded == "supervisor approval was granted"
+    # still rejected as claim (fold finds supervisor approval)
+    hit = _contains_affirming_forbidden_any(payload)
+    assert hit is not None, "expected decorated payload to be flagged, got None"
+    assert "supervisor" in hit.lower()
+
+    # also via loader: should be rejected when injected
+    data = json.loads(builtin_e3_research_json())
+    data["limitations"][0] = payload
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    assert "forbidden" in str(exc.value).lower()
+
+    with pytest.raises((ValidationError, ValueError)):
+        validate_e3_research_artifact(json.dumps(data))
+
+    from traffictwin.evidence_admission.e3_research import validate_e3_package_for_admission
+
+    errs = validate_e3_package_for_admission(data)
+    assert any("forbidden" in e.lower() for e in errs)
+
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    try:
+        dataclasses.replace(
+            canon, human_label=payload + " with per_task_dla fixed_1x at state_age 0 ms"
+        )  # type: ignore[arg-type]
+        raise AssertionError("expected decorated payload to be rejected in semantics")
+    except ValueError as exc2:
+        assert "forbidden" in str(exc2).lower()
+
+    # shipped JSON/semantics/disclaimers still load (no over-rejection of pure decorated letters)
+    raw = builtin_e3_research_json()
+    pkg = load_e3_research_evidence_json(raw)
+    assert pkg.lane_09 == "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
+    pkg2 = validate_e3_research_artifact(raw)
+    assert pkg2.lane_09 == "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
+    for sem in e3_strategy_semantics():
+        assert sem.placement_id in ("ingress_dla", "per_task_dla", "p2c_dla")
+    for dis in ALLOWLISTED_DISCLAIMERS:
+        assert _contains_affirming_forbidden_any(dis) is None
+        assert _fold_to_ascii_or_reject(dis) is not None
+    # benign decorated without forbidden should not be flagged
+    assert _contains_affirming_forbidden_any("café naïve façade") is None
+    assert _fold_to_ascii_or_reject("café") == "cafe"
+
+
+def test_review7_pre_nfkd_screen_neutering_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Neutering guard: if pre-NFKD screen is made no-op, enclosed/rupee must incorrectly pass."""
+    import unicodedata
+
+    import traffictwin.experiments.e3_research_evidence as ev
+
+    original_fold = ev._fold_to_ascii_or_reject
+
+    def _neutered_fold_without_pre_screen(value: str) -> str:
+        """Old logic without PRE-NFKD screen (replicates behavior before review-7)."""
+        if value in ev.ALLOWLISTED_DISCLAIMERS:
+            # allowlisted bypass
+            t = unicodedata.normalize("NFKD", value)
+            t = "".join(ch for ch in t if unicodedata.category(ch) != "Mn")
+            parts: list[str] = []
+            for ch in t:
+                cat = unicodedata.category(ch)
+                if cat == "Cf":
+                    continue
+                if cat in ("Cn", "Co", "Cs"):
+                    raise ValueError(f"forbidden invalid_text: {ch!r}")
+                parts.append(ch)
+            t = "".join(parts)
+            t = t.translate(ev._CONFUSABLE_MAP)
+            t = t.casefold()
+            t = unicodedata.normalize("NFKC", t)
+            return t
+        # No pre-NFKD screen: directly NFKD + strip + confusable etc.
+        t = unicodedata.normalize("NFKD", value)
+        t = "".join(ch for ch in t if unicodedata.category(ch) != "Mn")
+        parts2: list[str] = []
+        for ch in t:
+            cat = unicodedata.category(ch)
+            if cat == "Cf":
+                continue
+            if cat in ("Cn", "Co", "Cs"):
+                raise ValueError(f"forbidden invalid_text: {ch!r}")
+            parts2.append(ch)
+        t = "".join(parts2)
+        t = t.translate(ev._CONFUSABLE_MAP)
+        t = t.casefold()
+        t = unicodedata.normalize("NFKC", t)
+        # post-fold allowlist (without pre-check)
+        if value in ev.ALLOWLISTED_DISCLAIMERS:
+            return t
+        out: list[str] = []
+        for ch in t:
+            cp = ord(ch)
+            if cp < 128:
+                out.append(ch)
+            elif cp in ev._ZS_SPACE_CODEPOINTS:
+                out.append(" ")
+            elif cp in ev._PD_HYPHEN_CODEPOINTS:
+                out.append("-")
+            elif cp in ev._QUOTE_MAP:
+                out.append(ev._QUOTE_MAP[cp])
+            elif cp in ev._CURRENCY_RETAIN:
+                out.append(ch)
+            else:
+                raise ValueError(f"forbidden invalid_text: {ch!r}")
+        return "".join(out)
+
+    # patch
+    monkeypatch.setattr(ev, "_fold_to_ascii_or_reject", _neutered_fold_without_pre_screen)
+
+    # Under neutered, enclosed payload that previously was rejected via invalid_text now folds to "(u)" and does NOT match forbidden pattern
+    # So _contains should return None (incorrectly passes) demonstrating guard is load-bearing
+    from traffictwin.experiments.e3_research_evidence import _contains_affirming_forbidden_any
+
+    payload_enclosed = _REVIEW7_ENCLOSED_PAYLOADS[0]
+    hit_neutered = _contains_affirming_forbidden_any(payload_enclosed)
+    # neutered should NOT detect forbidden (because k(u)bernetes does not match k[\\s_\\-]*u pattern)
+    assert hit_neutered is None, (
+        f"neutered fold should incorrectly allow enclosed payload, got hit {hit_neutered!r}"
+    )
+
+    payload_rupee = _REVIEW7_RUPEE_PAYLOAD
+    hit_rupee_neutered = _contains_affirming_forbidden_any(payload_rupee)
+    # rupee NFKD is Rs, so carrier becomes 'resource cost is 4500Rs per incident hour' which does not match monetary pattern and not Sc
+    assert hit_rupee_neutered is None, (
+        f"neutered should incorrectly allow rupee payload, got {hit_rupee_neutered!r}"
+    )
+
+    # restore and verify original again rejects
+    monkeypatch.setattr(ev, "_fold_to_ascii_or_reject", original_fold)
+    hit_restored = _contains_affirming_forbidden_any(payload_enclosed)
+    assert hit_restored is not None
+    assert "invalid_text" in hit_restored.lower() or "forbidden" in hit_restored.lower()
+    hit_rupee_restored = _contains_affirming_forbidden_any(payload_rupee)
+    assert hit_rupee_restored is not None
+    assert "invalid_text" in hit_rupee_restored.lower() or "sc" in hit_rupee_restored.lower()

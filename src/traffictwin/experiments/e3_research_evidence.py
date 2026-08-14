@@ -316,6 +316,20 @@ _CURRENCY_RETAIN: Final[frozenset[int]] = frozenset(
 def _fold_to_ascii_or_reject(value: str) -> str:
     """Fold-to-ASCII-or-reject pipeline with explicit minimal mapping allowlist (Blocker 1).
 
+    PRE-NFKD screen (Opus review 7): for every non-ASCII codepoint in ORIGINAL
+    text before any normalization:
+    - allow if in declared mapping sets (Zs/braille -> space, Pd/minus -> hyphen,
+      curly quotes), retention set (_CURRENCY_RETAIN), confusable fold domain,
+      Mn (combining) or Cf (format stripped);
+    - else reject any Sc outside _CURRENCY_RETAIN explicitly (currency laundering
+      dead as category);
+    - else if NFKD expansion is PURELY letters with optional Mn: allow
+      (ordinary decorated letters like é, ö, ş fold correctly);
+    - else typed REJECTION (unless byte-equal to allowlisted disclaimer).
+    This blocks enclosed alphanumerics (NFKD injects punctuation/digits),
+    U+20A8 RUPEE (NFKD -> "Rs" multi-letter), and any compatibility trick
+    BEFORE NFKD can launder them.
+
     1. NFKD-normalize; strip all combining marks (category Mn).
     2. Strip Cf (soft hyphen, ZWJ/ZWNJ, BOM, ...); reject surrogates (Cs), unassigned (Cn), private-use (Co).
     3. Apply confusable fold, then casefold, then NFKC.
@@ -327,6 +341,47 @@ def _fold_to_ascii_or_reject(value: str) -> str:
        Mapped separators become ASCII and are handled by family patterns' existing
        -/_/space handling, so supervisor\u2010approval folds to supervisor-approval and matches.
     """
+    # PRE-NFKD screen: typed rejection before NFKD laundering (review-7)
+    if value not in ALLOWLISTED_DISCLAIMERS:
+        for ch in value:
+            cp = ord(ch)
+            if cp < 128:
+                continue
+            cat = unicodedata.category(ch)
+            if (
+                cp in _ZS_SPACE_CODEPOINTS
+                or cp in _PD_HYPHEN_CODEPOINTS
+                or cp in _QUOTE_MAP
+                or cp in _CURRENCY_RETAIN
+                or cp in _CONFUSABLE_MAP
+                or cat in ("Mn", "Cf")
+            ):
+                continue
+            # Explicit Sc outside retain: currency laundering dead as category
+            if cat == "Sc":
+                raise ValueError(
+                    f"forbidden invalid_text: Sc currency U+{cp:04X} category {cat} outside retain in {value!r}"
+                )
+            # NFKD purity: allow only pure letters (with optional Mn)
+            nfkd = unicodedata.normalize("NFKD", ch)
+            if not nfkd:
+                raise ValueError(
+                    f"forbidden invalid_text: non-ASCII codepoint U+{cp:04X} category {cat} with empty NFKD in {value!r}"
+                )
+            is_pure = True
+            for nc in nfkd:
+                ncat = unicodedata.category(nc)
+                if ncat == "Mn":
+                    continue
+                if ncat.startswith("L"):
+                    continue
+                is_pure = False
+                break
+            if is_pure:
+                continue
+            raise ValueError(
+                f"forbidden invalid_text: non-ASCII codepoint U+{cp:04X} category {cat} with compatibility expansion {nfkd!r} not pure letters in {value!r}"
+            )
     # Step 1: NFKD + strip Mn
     t = unicodedata.normalize("NFKD", value)
     t = "".join(ch for ch in t if unicodedata.category(ch) != "Mn")
