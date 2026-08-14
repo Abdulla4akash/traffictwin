@@ -1,0 +1,72 @@
+{
+  "campaign": "e3-dynamic-resource-v2",
+  "checks": [
+    "base_receipt",
+    "e2_preservation",
+    "e3_builtin",
+    "identities",
+    "hold_state",
+    "resource_denominator",
+    "capacity_bounds",
+    "state_age_ms",
+    "forbidden_claims",
+    "unavailable_not_zero",
+    "placeholder_fabricated",
+    "absolute_path_secret",
+    "routes",
+    "exports_mismatch_and_determinism"
+  ],
+  "dormant_counts": {
+    "arms": 14,
+    "configs": 56
+  },
+  "e2_preservation": {
+    "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+    "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",
+    "receipt_fingerprint": "45e8c2782ff40495e472bc0e6de3ba3be1610fdb974f88b7ffd12a754d031ebc"
+  },
+  "error_count": 0,
+  "errors": [],
+  "hold": {
+    "evidence_state": "NOT_EXECUTED",
+    "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "research_workloads_launched": 0,
+    "result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+    "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
+  },
+  "hosted_ci": "HOSTED_CI_UNAVAILABLE",
+  "lanes": {
+    "08": {
+      "approved": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+      "promotion": "342789434233e97cd87ea74e21a759878610ce40"
+    },
+    "10": {
+      "approved": "194941f0dcb1e2f72351fb030d7f58679c001205",
+      "promotion": "8a2f0fffb605fac94ec625f49f80260a54daba6d"
+    },
+    "11": {
+      "approved": "e87b2ed39d1ad2ebd6d98dd0f0a9156158ea166d",
+      "promotion": "6edf8f447244ede8bcc942c4d6a7c03fef45a606"
+    },
+    "12": {
+      "base_integration_sha": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
+      "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b"
+    }
+  },
+  "pass": true,
+  "provenance": {
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "approved_candidate_sha": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+    "contract_checkpoint_sha": "211a6662151ccad43187f8a2ce3f75a57515408d",
+    "contract_sha256": "f0d6eb913df6c2165a63ddcb0fd4980368e9bb80bbd38db964273ba3925f4870",
+    "e3_package_fingerprint": "e5ff1bc0e3410d47520c2e841803c8fa67efb3581b8f52a66e407552457b8e8c",
+    "manifest_sidecar_sha256": "39862882ae34e71260ce5b466fcd4a93d61da783c4dd16fc987be562ea396438",
+    "product_base_sha": "2b6d4675658b426f96a79c41ac7f0b8f2a82bc5c",
+    "research_promotion_sha": "342789434233e97cd87ea74e21a759878610ce40",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "vec_adapter_sha": "c37f97ea66b236dfc662bfdd6bee7eab1a775bbc",
+    "vec_core_sha": "53e34db6146da40118a6c816f6a1ffaa2596ddf3",
+    "vec_promotion_sha": "dc606770059f0c4a413bac2217d7f38600b74fff"
+  },
+  "schema_version": "e3_product_verdict_v1"
+}
