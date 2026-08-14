@@ -21,8 +21,6 @@ Public API:
 
 from __future__ import annotations
 
-import hashlib
-import json
 import re
 from typing import Any, Final, Literal
 
@@ -30,7 +28,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from traffictwin.experiments.e3_research_evidence import (
     ACTOR_SHA256,
-    ALLOWLISTED_DISCLAIMERS,  # noqa: F401  # imported for dedup documentation
     APPROVED_CANDIDATE_SHA,
     CONTRACT_CHECKPOINT_SHA,
     CONTRACT_SHA256,
@@ -67,20 +64,6 @@ EXPECTED_ANALYSIS_ARTIFACT_FINGERPRINT: Final[None] = None
 
 _HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
-
-
-def _validate_hex40_strict(value: str, field_name: str) -> str:
-    s = value.strip().lower()
-    if not _HEX40_RE.fullmatch(s):
-        raise ValueError(f"{field_name} must be 40-char lower-case hex")
-    return s
-
-
-def _validate_hex64_strict(value: str, field_name: str) -> str:
-    s = value.strip().lower()
-    if not _HEX64_RE.fullmatch(s):
-        raise ValueError(f"{field_name} must be 64-char lower-case hex")
-    return s
 
 
 class StrictBase(BaseModel):
@@ -365,7 +348,7 @@ def admit_e3_research(
             code = "REFUSED_IDENTITY_MISMATCH"
         elif "wrong_fingerprint_type" in first:
             code = "REFUSED_WRONG_FINGERPRINT_TYPE"
-        elif "forbidden_claim" in first:
+        elif "forbidden_claim" in first or "forbidden" in first.lower():
             code = "REFUSED_FORBIDDEN_CLAIM"
         elif "missing_package" in first:
             code = "REFUSED_MISSING_PACKAGE"
@@ -434,18 +417,6 @@ def admit_e3_research(
         received_package_fingerprint=received_pkg_fp,
         received_analysis_artifact_fingerprint=received_analysis_fp,
     )
-
-
-def _canonical_receipt_payload(receipt: E3ResearchAdmissionRefusal) -> dict[str, Any]:
-    data: dict[str, Any] = receipt.model_dump(mode="json")
-    return data
-
-
-def receipt_fingerprint(refusal: E3ResearchAdmissionRefusal) -> str:
-    canonical = json.dumps(
-        refusal.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    )
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 __all__ = [

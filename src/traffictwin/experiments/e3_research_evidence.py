@@ -107,7 +107,6 @@ REJECTION_CLASSES: Final[tuple[str, ...]] = (
 
 HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
-HEX16_RE = re.compile(r"^[0-9a-f]{16}$")
 
 
 # Private-path detector built without contiguous literal to satisfy shipping rule.
@@ -130,30 +129,69 @@ _ZERO_WIDTH_CODEPOINTS: Final[frozenset[int]] = frozenset(
 )
 
 _CONFUSABLE_MAP: Final[dict[int, int]] = {
-    # Cyrillic а е о р с х у і -> Latin
     0x0430: 0x61,  # а -> a
-    0x0410: 0x61,  # А -> a (casefold will lower, but keep)
+    0x0432: 0x62,  # в -> b
     0x0435: 0x65,  # е -> e
-    0x0415: 0x65,  # Е -> e
+    0x0451: 0x65,  # ё -> e
+    0x0437: 0x7A,  # з -> z
+    0x043A: 0x6B,  # к -> k
+    0x043C: 0x6D,  # м -> m
+    0x043D: 0x68,  # н -> h
     0x043E: 0x6F,  # о -> o
-    0x041E: 0x6F,  # О -> o
     0x0440: 0x70,  # р -> p
-    0x0420: 0x70,  # Р -> p
     0x0441: 0x63,  # с -> c
-    0x0421: 0x63,  # С -> c
-    0x0445: 0x78,  # х -> x
-    0x0425: 0x78,  # Х -> x
+    0x0455: 0x73,  # ѕ -> s
+    0x0442: 0x74,  # т -> t
     0x0443: 0x79,  # у -> y
-    0x0423: 0x79,  # У -> y
+    0x0445: 0x78,  # х -> x
     0x0456: 0x69,  # і -> i
+    0x0458: 0x6A,  # ј -> j
+    0x0501: 0x64,  # ԁ -> d
+    0x051B: 0x71,  # ԛ -> q
+    0x0461: 0x77,  # ѡ -> w
+    0x0410: 0x61,  # А -> a
+    0x0412: 0x62,  # В -> b
+    0x0415: 0x65,  # Е -> e
+    0x0417: 0x7A,  # З -> z
+    0x041A: 0x6B,  # К -> k
+    0x041C: 0x6D,  # М -> m
+    0x041D: 0x68,  # Н -> h
+    0x041E: 0x6F,  # О -> o
+    0x0420: 0x70,  # Р -> p
+    0x0421: 0x63,  # С -> c
+    0x0405: 0x73,  # Ѕ -> s
+    0x0422: 0x74,  # Т -> t
+    0x0423: 0x79,  # У -> y
+    0x0425: 0x78,  # Х -> x
     0x0406: 0x69,  # І -> i
-    0x0438: 0x69,  # и -> i (extra)
+    0x0408: 0x6A,  # Ј -> j
+    0x0438: 0x69,  # и -> i
     0x0418: 0x69,  # И -> i
-    # Greek
     0x03B1: 0x61,  # α -> a
-    0x0391: 0x61,  # Α -> a
+    0x03B2: 0x62,  # β -> b
+    0x03B5: 0x65,  # ε -> e
+    0x03B7: 0x6E,  # η -> n
+    0x03B9: 0x69,  # ι -> i
+    0x03BA: 0x6B,  # κ -> k
+    0x03BD: 0x76,  # ν -> v
     0x03BF: 0x6F,  # ο -> o
+    0x03C1: 0x70,  # ρ -> p
+    0x03C4: 0x74,  # τ -> t
+    0x03C5: 0x75,  # υ -> u
+    0x03C7: 0x78,  # χ -> x
+    0x03C9: 0x77,  # ω -> w
+    0x0391: 0x61,  # Α -> a
+    0x0392: 0x62,  # Β -> b
+    0x0395: 0x65,  # Ε -> e
+    0x0397: 0x68,  # Η -> h
+    0x0399: 0x69,  # Ι -> i
+    0x039A: 0x6B,  # Κ -> k
+    0x039D: 0x6E,  # Ν -> n
     0x039F: 0x6F,  # Ο -> o
+    0x03A1: 0x70,  # Ρ -> p
+    0x03A4: 0x74,  # Τ -> t
+    0x03A5: 0x79,  # Υ -> y
+    0x03A7: 0x78,  # Χ -> x
 }
 
 
@@ -168,6 +206,65 @@ def _normalize_forbidden_text(value: str) -> str:
     # confusable map
     t = t.translate(_CONFUSABLE_MAP)
     return t
+
+
+def _get_script(ch: str) -> str:
+    try:
+        return unicodedata.name(ch).split()[0]
+    except ValueError:
+        return "UNKNOWN"
+
+
+def _has_mixed_script(value: str) -> bool:
+    # Byte-equal allowlist exempt — only exact shipped disclaimers
+    if value in ALLOWLISTED_DISCLAIMERS:
+        return False
+    norm = _normalize_forbidden_text(value)
+    words: list[str] = []
+    cur = ""
+    for ch in norm:
+        if unicodedata.category(ch).startswith("L"):
+            cur += ch
+        else:
+            if cur:
+                words.append(cur)
+                cur = ""
+    if cur:
+        words.append(cur)
+    for w in words:
+        scripts: set[str] = set()
+        for ch in w:
+            if unicodedata.category(ch).startswith("L"):
+                scripts.add(_get_script(ch))
+        if len(scripts) > 1:
+            return True
+    return False
+
+
+def _hex_violations_for_string(value: str, path: str) -> list[str]:
+    violations: list[str] = []
+    for m in _HEX40_TOKEN_RE.finditer(value):
+        token = m.group(0).lower()
+        if token not in _ALLOWED_40_SHAS:
+            violations.append(
+                f"{path}: provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
+            )
+    for m in _HEX64_TOKEN_RE.finditer(value):
+        token = m.group(0).lower()
+        if token not in _ALLOWED_64_SHAS:
+            violations.append(
+                f"{path}: provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
+            )
+    for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", value):
+        token = m.group(0).lower()
+        is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
+            allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
+        )
+        if not is_prefix:
+            violations.append(
+                f"{path}: provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
+            )
+    return violations
 
 
 # Frozen allowlist of exact disclaimer sentences that legitimately contain
@@ -235,6 +332,8 @@ _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(
         r"actor[\s_\-]+(?:selects|chooses|picks)(?:[\s_\-]+the)?(?:[\s_\-]+exact)?(?:[\s_\-]+execution)?[\s_\-]+rsu\b"
     ),
+    # learned claim (placement/scaling is deterministic, not learned)
+    re.compile(r"learned[\s_\-]+(?:placement|scheduler|jsq)"),
     # legacy queue/compute conflation (keep for completeness)
     re.compile(r"queue[\s_\-]+ceiling[\s_\-]+is[\s_\-]+compute"),
     re.compile(r"queue[\s_\-]+ceiling[\s_\-]+is"),
@@ -243,39 +342,6 @@ _FORBIDDEN_FAMILY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(r"actor_selects"),
 )
 
-# Legacy tuple for backward references (not used for matching, but keep shape)
-_FORBIDDEN_SUBSTRINGS_LOWER: Final[tuple[str, ...]] = (
-    "queue_ceiling_is_compute",
-    "queue ceiling is compute",
-    "queue ceiling is",
-    "actor selects execution",
-    "actor_selects",
-    "actor selects rsu",
-    "actor_selects_rsu",
-    "kubernetes",
-    "k8s_deployment",
-    "cost_dollars",
-    "cost_currency",
-    "cost_billing",
-    "cost_price",
-    "monetary cost",
-    "monetary_cost",
-    "task_as_n",
-    "tasks_as_n",
-    "task as n",
-    "tasks as n",
-    "tasks-as-n",
-    "task-as-n",
-    "manchester-wide inference",
-    "manchester_wide",
-    "manchester-wide",
-    "universal superiority",
-    "universal_superiority",
-    "supervisor approved",
-    "supervisor_approved",
-    "randy confirmed",
-    "randy_confirmed",
-)
 
 _ALLOWED_40_SHAS: Final[frozenset[str]] = frozenset(
     s.lower()
@@ -320,29 +386,19 @@ def _contains_private_path(value: str) -> bool:
     return any(pref.lower() in low for pref in _PRIVATE_PREFIXES)
 
 
-def _contains_private_path_normalized(normalized: str) -> bool:
-    # normalized is already casefolded
-    return any(pref.lower() in normalized for pref in _PRIVATE_PREFIXES)
-
-
 def _contains_forbidden(value: str) -> str | None:
     norm = _normalize_forbidden_text(value)
     if norm in _NORMALIZED_ALLOWLIST:
+        return None
+    if value in ALLOWLISTED_DISCLAIMERS:
         return None
     for pat in _FORBIDDEN_FAMILY_PATTERNS:
         m = pat.search(norm)
         if m:
             return m.group(0)
+    if _has_mixed_script(value):
+        return "mixed_script"
     return None
-
-
-def _contains_affirming_forbidden(value: str, phrase: str) -> bool:
-    # Legacy wrapper: fail-closed, any occurrence after normalization is affirming unless allowlisted
-    norm = _normalize_forbidden_text(value)
-    if norm in _NORMALIZED_ALLOWLIST:
-        return False
-    pat = re.compile(re.escape(_normalize_forbidden_text(phrase)))
-    return bool(pat.search(norm))
 
 
 def _contains_affirming_forbidden_any(value: str) -> str | None:
@@ -355,14 +411,9 @@ def _contains_affirming_forbidden_any(value: str) -> str | None:
         m = pat.search(norm)
         if m:
             return m.group(0)
+    if _has_mixed_script(value):
+        return "mixed_script"
     return None
-
-
-def _is_allowlisted(value: str) -> bool:
-    return (
-        value in ALLOWLISTED_DISCLAIMERS
-        or _normalize_forbidden_text(value) in _NORMALIZED_ALLOWLIST
-    )
 
 
 def _scan_forbidden_recursive(obj: Any, path: str = "$") -> list[str]:
@@ -375,32 +426,7 @@ def _scan_forbidden_recursive(obj: Any, path: str = "$") -> list[str]:
         forb = _contains_affirming_forbidden_any(obj)
         if forb is not None:
             violations.append(f"{path}: forbidden claim {forb!r} in {obj!r}")
-        # hex token check (position-independent, 7-64, 40 vs 64 strict)
-        # Check 40 and 64 exact, plus 7-39 prefix validation (to catch short SHA misuse)
-        for m in _HEX40_TOKEN_RE.finditer(obj):
-            token = m.group(0).lower()
-            if token not in _ALLOWED_40_SHAS:
-                violations.append(
-                    f"{path}: provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
-                )
-        for m in _HEX64_TOKEN_RE.finditer(obj):
-            token = m.group(0).lower()
-            if token not in _ALLOWED_64_SHAS:
-                violations.append(
-                    f"{path}: provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
-                )
-        # also check short 7-39 hex tokens (possible SHA prefixes) - they must be prefix of some allowed 40 or 64
-        for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", obj):
-            token = m.group(0).lower()
-            # ignore if it's part of longer 40/64 already handled? The regex ensures not part of longer, so it's isolated short token
-            # check if token is prefix of any allowed 40 or 64
-            is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
-                allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
-            )
-            if not is_prefix:
-                violations.append(
-                    f"{path}: provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
-                )
+        violations.extend(_hex_violations_for_string(obj, path))
     elif isinstance(obj, dict):
         for k, v in obj.items():
             low_k = str(k).lower()
@@ -434,27 +460,7 @@ def _validate_hex_tokens_in_package(pkg: Any) -> list[str]:
     # collect all strings via recursion
     def _collect(o: Any, p: str) -> None:
         if isinstance(o, str):
-            for m in _HEX40_TOKEN_RE.finditer(o):
-                token = m.group(0).lower()
-                if token not in _ALLOWED_40_SHAS:
-                    violations.append(
-                        f"{p}: provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
-                    )
-            for m in _HEX64_TOKEN_RE.finditer(o):
-                token = m.group(0).lower()
-                if token not in _ALLOWED_64_SHAS:
-                    violations.append(
-                        f"{p}: provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
-                    )
-            for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", o):
-                token = m.group(0).lower()
-                is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
-                    allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
-                )
-                if not is_prefix:
-                    violations.append(
-                        f"{p}: provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
-                    )
+            violations.extend(_hex_violations_for_string(o, p))
         elif isinstance(o, dict):
             for kk, vv in o.items():
                 _collect(vv, f"{p}.{kk}")
@@ -1116,27 +1122,9 @@ class ProvenanceEntry(StrictBase):
     @classmethod
     def validate_provenance_hex(cls, v: str) -> str:
         # Position-independent: every 40/64 hex token must be declared, 7-39 must be valid prefix
-        for m in _HEX40_TOKEN_RE.finditer(v):
-            token = m.group(0).lower()
-            if token not in _ALLOWED_40_SHAS:
-                raise ValueError(
-                    f"provenance approval/promotion SHA mismatch: {token!r} not in declared identities"
-                )
-        for m in _HEX64_TOKEN_RE.finditer(v):
-            token = m.group(0).lower()
-            if token not in _ALLOWED_64_SHAS:
-                raise ValueError(
-                    f"provenance manifest sidecar SHA mismatch: {token!r} not in declared fingerprints"
-                )
-        for m in re.finditer(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,39}(?![0-9a-fA-F])", v):
-            token = m.group(0).lower()
-            is_prefix = any(allowed.startswith(token) for allowed in _ALLOWED_40_SHAS) or any(
-                allowed.startswith(token) for allowed in _ALLOWED_64_SHAS
-            )
-            if not is_prefix:
-                raise ValueError(
-                    f"provenance hex prefix mismatch: {token!r} not prefix of any declared identity"
-                )
+        violations = _hex_violations_for_string(v, "$.provenance.note")
+        if violations:
+            raise ValueError(violations[0])
         return v
 
 
@@ -1151,27 +1139,6 @@ class MissingnessReason(StrictBase):
             raise ValueError("missingness reason must be non-empty")
         if _contains_affirming_forbidden_any(v) is not None:
             raise ValueError(f"reason contains forbidden claim: {v!r}")
-        return v
-
-
-class Limitations(StrictBase):
-    entries: list[str] = Field(min_length=1)
-
-    @field_validator("entries")
-    @classmethod
-    def validate_entries(cls, v: list[str]) -> list[str]:
-        for s in v:
-            if not s.strip():
-                raise ValueError("limitation must be non-empty")
-            if _contains_affirming_forbidden_any(s) is not None:
-                raise ValueError(f"limitation contains forbidden claim: {s!r}")
-            if _contains_private_path(s):
-                raise ValueError(f"limitation must not contain private path: {s!r}")
-        # must contain at least bounded mention
-        joined = " ".join(v).lower()
-        if "not_executed" not in joined and "not executed" not in joined and "no e3" not in joined:
-            # allow but warn — we enforce at package level that limitations mention hold
-            pass
         return v
 
 

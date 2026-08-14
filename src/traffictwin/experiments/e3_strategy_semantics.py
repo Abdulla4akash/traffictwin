@@ -80,15 +80,6 @@ def _validate_text_fields(sem: E3StrategySemantics) -> None:
         raise ValueError(
             f"strategy {sem.placement_id}/{sem.scaling_id}: deterministic must not be learned"
         )
-    for t in texts:
-        low = t.lower()
-        if "learned placement" in low or "learned scheduler" in low or "learned jsq" in low:
-            # also via canonical would be caught as forbidden? but keep explicit
-            forb2 = _contains_affirming_forbidden_any(t)
-            if forb2 is not None and "learned" in forb2:
-                raise ValueError(
-                    f"strategy {sem.placement_id}/{sem.scaling_id}: forbidden learned placement {forb2!r}"
-                )
 
 
 def _validate_semantics(sem: E3StrategySemantics) -> None:

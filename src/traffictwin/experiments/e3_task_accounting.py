@@ -53,7 +53,6 @@ DROPPED_REASON: str = (
     "UNAVAILABLE — dropped cannot be derived without compute_completed/returned split; not zero"
 )
 
-QUEUED_WORK_REASON: str = "UNAVAILABLE — waiting-room queued work not yet instrumented separately; not conflated with compute backlog"
 RESOURCE_COST_REASON: str = (
     "UNAVAILABLE — resource_unit_seconds null before execution; not monetary, not zero"
 )

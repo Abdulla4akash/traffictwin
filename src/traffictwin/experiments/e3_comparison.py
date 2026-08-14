@@ -40,11 +40,6 @@ METHOD: str = "two-sided Student-t 95% interval over fleet-draw differences (df=
 
 SCENARIO: str = "Manchester incident hour 2024-03-15 20:00-21:00 Europe/London, provisional uk2030 fleet, 10 RSUs, 3600 ticks (dormant)"
 
-# Bounded decision labels compatible with E2
-DECISION_BELOW: str = "directional_deficit_for_treatment_within_bounded_draws"
-DECISION_ABOVE: str = "directional_advantage_for_treatment_within_bounded_draws"
-DECISION_INCONCLUSIVE: str = "inconclusive_at_this_replication_size"
-
 
 def _check_package_hold(pkg: E3ResearchEvidencePackage) -> None:
     if pkg.evidence_state != NOT_EXECUTED:

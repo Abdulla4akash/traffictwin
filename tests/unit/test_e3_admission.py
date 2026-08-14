@@ -495,3 +495,63 @@ def test_admission_contains_affirming_still_guards() -> None:
 
     assert _contains_affirming_forbidden_any("the k8s cluster is live") is not None
     assert _contains_affirming_forbidden_any("approved by the supervisor") is not None
+
+
+# --- Review-3 Blocker A: backstop via admission ---
+def test_review3_bypasses_rejected_via_admission_all_surfaces() -> None:
+    for payload in [
+        "кubеrnеtеs cluster is live and orchestrating in production",
+        "ѕupervisor approval was granted for E3 execution",
+        "universally ѕuperior",
+        "the actor ѕelects the execution RSU",
+    ]:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = data["limitations"][0] + " " + payload
+        errs = validate_e3_package_for_admission(data)
+        assert any("forbidden" in e.lower() for e in errs), (
+            f"payload {payload!r} not flagged {errs}"
+        )
+        result = admit_e3_research(data)
+        assert result.reason_code == "REFUSED_FORBIDDEN_CLAIM"
+
+
+def test_backstop_coptic_armenian_rejected_via_admission() -> None:
+    for payload in [
+        "kuber\u2c81etes with coptic",
+        "super\u0561visor with Armenian",
+        "kuber\u03f2etes Greek lunate",
+        "actor \u13daelects Cherokee",
+    ]:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = data["limitations"][0] + " " + payload
+        errs = validate_e3_package_for_admission(data)
+        assert any("forbidden" in e.lower() or "mixed_script" in e.lower() for e in errs)
+        result = admit_e3_research(data)
+        assert result.reason_code == "REFUSED_FORBIDDEN_CLAIM"
+
+
+# --- Blocker B+C mutation coverage for admission helpers ---
+def test_admission_contains_forbidden_guard() -> None:
+    # Ensure that DormantArm forbidden guard is load-bearing via admission path
+    # Craft a package with forbidden in a field that goes through admission scan
+    pkg = load_builtin_e3_research()
+    new_factors = dict(pkg.factors)
+    new_factors["deep_forbidden"] = {"a": "kubernetes is live via admission test"}  # type: ignore[assignment]
+    forged = pkg.model_copy(update={"factors": new_factors})
+    errs = validate_e3_package_for_admission(forged)
+    assert any("kubernetes" in e.lower() for e in errs)
+    result = admit_e3_research(forged)
+    assert result.reason_code == "REFUSED_FORBIDDEN_CLAIM"
+
+
+def test_check_package_hold_is_load_bearing() -> None:
+    from traffictwin.experiments.e3_comparison import build_e3_comparison_view
+
+    pkg = load_builtin_e3_research()
+    # Forge a bad package with wrong evidence_state via model_copy (bypasses validation)
+    bad = pkg.model_copy(update={"evidence_state": "EXECUTED"})  # type: ignore[arg-type]
+    try:
+        build_e3_comparison_view(bad)  # type: ignore[arg-type]
+        raise AssertionError("expected ValueError for bad hold via _check_package_hold")
+    except ValueError as exc:
+        assert "evidence_state" in str(exc).lower() or "not_executed" in str(exc).lower()

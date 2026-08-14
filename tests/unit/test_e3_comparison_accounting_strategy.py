@@ -309,3 +309,109 @@ def test_strategy_semantics_neutering_still_fails() -> None:
         raise AssertionError("should have raised")
     except ValueError:
         pass
+
+
+# --- Test gap: E3StrategySemantics constructor regressions ---
+def test_strategy_semantics_constructor_regressions_hostile_fields() -> None:
+    """Hostile text in admission, forwarding, execution_placement, human_label each rejected; all eight canonical still construct."""
+    import dataclasses
+
+    from traffictwin.experiments.e3_strategy_semantics import (
+        E3StrategySemantics,
+        e3_semantics_for,
+        e3_strategy_semantics,
+    )
+
+    # All eight canonical instances still construct
+    all_sems = e3_strategy_semantics()
+    assert len(all_sems) == 8
+    for sem in all_sems:
+        assert sem.is_learned is False
+        assert sem.is_deterministic is True
+
+    # Hostile texts: family claims, confusable variants, negation phrasings
+    hostile_texts = [
+        "kubernetes cluster is live is true",  # family
+        "supervisor approved this deployment",  # family
+        "universally superior is proven",  # family
+        "tasks as n is valid",  # family
+        "manchester-wide inference is valid",  # family
+        "monetary cost is low dollars",  # family
+        "actor selects execution rsu is true",  # family
+        "queue ceiling is compute is true",  # family
+        "learned placement is active",  # learned
+        "kub\u0435rnetes cluster",  # confusable Cyrillic
+        "kub\u200bernetes deployment",  # zero-width
+        "\uff2b\uff55\uff42\uff45\uff52\uff4e\uff45\uff54\uff45\uff53 cluster",  # fullwidth
+        "there is no doubt kubernetes cluster is live",  # negation
+        "never in doubt: supervisor approved this",  # negation
+        "kuber\u2c81etes coptic",  # backstop Coptic
+    ]
+    fields = ["admission", "forwarding", "execution_placement", "human_label"]
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    for hostile in hostile_texts:
+        for field in fields:
+            try:
+                dataclasses.replace(canon, **{field: hostile})  # type: ignore[arg-type]
+                raise AssertionError(f"expected rejection for hostile {hostile!r} in field {field}")
+            except ValueError as exc:
+                msg = str(exc).lower()
+                assert (
+                    "forbidden" in msg
+                    or "mixed_script" in msg
+                    or "claim" in msg
+                    or "learned" in msg
+                )
+
+    # Also test direct constructor with hostile text should reject
+    base_kwargs = {
+        "placement_id": "per_task_dla",
+        "scaling_id": "fixed_1x",
+        "state_age_ms": 0,
+        "human_label": "test human label that is long enough for validation and mentions queue vs compute properly and resource_unit_seconds and evidence state NOT_EXECUTED and more text to exceed ten chars",
+        "radio_ingress": "test radio_ingress that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state and more words to be substantive length",
+        "execution_placement": "test execution_placement that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        "admission": "test admission that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        "forwarding": "test forwarding that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        "actor_authority": "test actor_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        "infrastructure_authority": "test infrastructure_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        "scaling_semantics": "test scaling_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        "staleness_semantics": "test staleness_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        "queue_capacity_note": "Queue capacity is waiting-room tasks per RSU, strictly separate from compute service capacity, queue waiting",
+        "compute_capacity_note": "Compute capacity is active units 1..3 per RSU, each drains 1000 work_ms per second",
+        "resource_cost_note": "Resource cost is resource_unit_seconds = sum over RSU sum over interval active_units * interval_seconds, normalized usage not money, measured in resource_unit_seconds only.",
+        "is_learned": False,
+        "is_deterministic": True,
+        "evidence_level": "IMPLEMENTATION-VERIFIED FACT NOT_EXECUTED NO_E3_RESEARCH_RESULTS_AVAILABLE and more text to be substantive",
+        "limitations": "Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; waiting-room ceiling 6220 and compute service capacity separate and resource_unit_seconds and evidence state NOT_EXECUTED and more text to be substantive length.",
+    }
+    # Direct constructor with hostile human_label should reject
+    try:
+        E3StrategySemantics(
+            **{
+                **base_kwargs,
+                "human_label": "kubernetes cluster is live is true and long enough to pass length but should be rejected for forbidden claim and also mentions queue waiting compute resource_unit_seconds and NOT_EXECUTED and more text to be substantive",
+            }
+        )
+        raise AssertionError("expected rejection for direct constructor hostile human_label")
+    except ValueError:
+        pass
+    # Direct constructor with clean should succeed
+    clean = E3StrategySemantics(**base_kwargs)
+    assert clean.placement_id == "per_task_dla"
+
+
+def test_strategy_semantics_all_eight_canonical_still_construct() -> None:
+    from traffictwin.experiments.e3_strategy_semantics import e3_strategy_semantics
+
+    all_sems = e3_strategy_semantics()
+    assert len(all_sems) == 8
+    # Check that each placement/scaling/age triple is unique and valid
+    seen = set()
+    for sem in all_sems:
+        key = (sem.placement_id, sem.scaling_id, sem.state_age_ms)
+        assert key not in seen
+        seen.add(key)
+        # Each should have substantive fields
+        assert len(sem.human_label) > 10
+        assert "resource_unit_seconds" in sem.resource_cost_note.lower()

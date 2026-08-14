@@ -36,18 +36,6 @@ from traffictwin.experiments.e3_research_evidence import (
 _RESOURCE_PACKAGE = "traffictwin.resources.research"
 _RESOURCE_NAME = "e3_dynamic_resource_v2.json"
 
-_PINNED_IDENTITIES: dict[str, str] = {
-    "product_base": TRAFFICTWIN_PRODUCT_BASE_SHA,
-    "research_promotion": TRAFFICTWIN_RESEARCH_PROMOTION_SHA,
-    "approved_candidate": APPROVED_CANDIDATE_SHA,
-    "contract_checkpoint": CONTRACT_CHECKPOINT_SHA,
-    "vec_promotion": VEC_PROMOTION_SHA,
-    "vec_core": VEC_CORE_SHA,
-    "vec_adapter": VEC_ADAPTER_SHA,
-    "contract_sha256": CONTRACT_SHA256,
-    "manifest_sidecar_sha256": MANIFEST_SIDECAR_SHA256,
-}
-
 _REQUIRED_HOLD_PHRASES: tuple[str, ...] = (
     LANE_09,
     NOT_EXECUTED,
@@ -104,12 +92,9 @@ def validate_e3_research_artifact(text: str) -> E3ResearchEvidencePackage:
     if (
         '"research_workloads_launched": 0' not in text
         and '"research_workloads_launched":0' not in text
+        and "research_workloads_launched" not in text
     ):
-        # allow spaced variant but strict zero
-        if "research_workloads_launched" not in text:
-            raise ValueError("artifact must declare research_workloads_launched")
-        # parsed check will enforce exact 0
-        pass
+        raise ValueError("artifact must declare research_workloads_launched")
     # Reject any placeholder/sample/synthetic results language that would hide no-results truth
     placeholder_re = re.compile(r"(placeholder|synthetic|sample\s+result)", re.IGNORECASE)
     if placeholder_re.search(text):

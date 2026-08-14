@@ -862,3 +862,237 @@ def test_assert_no_private_paths_or_secrets_direct_still_guards() -> None:
         _assert_no_private_paths_or_secrets("token: secret assignment test api_key: xyz")
     # clean text should not raise
     _assert_no_private_paths_or_secrets("this is a clean artifact text with no secrets")
+
+
+# --- Review-3 Blocker A: confusable folding must be class-killing, not hand-rolled list ---
+_REVIEW3_BYPASSES = [
+    "кubеrnеtеs cluster is live and orchestrating in production",
+    "ѕupervisor approval was granted for E3 execution",
+    "universally ѕuperior",
+    "the actor ѕelects the execution RSU",
+]
+
+# Four NEW single-substitution variants using characters NOT mapped explicitly (proving backstop e.g. Coptic/Armenian)
+_NEW_BACKSTOP_VARIANTS = [
+    "kubernetes with kuber\u2c81etes coptic",  # Coptic Alfa U+2C81 looks like a
+    "supervisor with super\u0561visor Armenian",  # Armenian AYB U+0561
+    "kubernetes with kuber\u03f2etes Greek lunate",  # Greek Lunate Sigma U+03F2 not in map
+    "actor \u13daelects Cherokee",  # Cherokee Letter Du U+13DA
+]
+
+
+def test_review3_bypasses_rejected_via_loader() -> None:
+    for payload in _REVIEW3_BYPASSES:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = data["limitations"][0] + " " + payload
+        with pytest.raises((ValidationError, ValueError)) as exc:
+            load_e3_research_evidence_json(json.dumps(data))
+        msg = str(exc.value).lower()
+        assert "forbidden" in msg or "mixed_script" in msg or "claim" in msg
+
+
+def test_review3_bypasses_rejected_via_artifact() -> None:
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+
+    for payload in _REVIEW3_BYPASSES:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = data["limitations"][0] + " " + payload
+        with pytest.raises((ValidationError, ValueError)) as exc:
+            validate_e3_research_artifact(json.dumps(data))
+        assert "forbidden" in str(exc.value).lower() or "mixed_script" in str(exc.value).lower()
+
+
+def test_review3_bypasses_rejected_via_admission_pre_errors() -> None:
+    from traffictwin.evidence_admission.e3_research import (
+        admit_e3_research,
+        validate_e3_package_for_admission,
+    )
+
+    for payload in _REVIEW3_BYPASSES:
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = data["limitations"][0] + " " + payload
+        errs = validate_e3_package_for_admission(data)
+        assert any("forbidden" in e.lower() for e in errs), f"expected forbidden in {errs}"
+        result = admit_e3_research(data)
+        assert result.reason_code == "REFUSED_FORBIDDEN_CLAIM", (
+            f"got {result.reason_code} {result.reason_detail}"
+        )
+
+
+def test_review3_bypasses_rejected_via_strategy_semantics() -> None:
+    import dataclasses
+
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    for payload in _REVIEW3_BYPASSES:
+        for field in ["admission", "forwarding", "execution_placement", "human_label"]:
+            canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+            try:
+                dataclasses.replace(canon, **{field: payload})  # type: ignore[arg-type]
+                raise AssertionError(f"expected rejection for {payload!r} in {field}")
+            except ValueError as exc:
+                assert "forbidden" in str(exc).lower() or "mixed_script" in str(exc).lower()
+
+
+def test_new_backstop_variants_rejected_via_all_surfaces() -> None:
+    import dataclasses
+
+    from traffictwin.evidence_admission.e3_research import (
+        admit_e3_research,
+        validate_e3_package_for_admission,
+    )
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    for payload in _NEW_BACKSTOP_VARIANTS:
+        # loader
+        data = json.loads(builtin_e3_research_json())
+        data["limitations"][0] = data["limitations"][0] + " " + payload
+        with pytest.raises((ValidationError, ValueError)):
+            load_e3_research_evidence_json(json.dumps(data))
+        # artifact
+        with pytest.raises((ValidationError, ValueError)):
+            validate_e3_research_artifact(json.dumps(data))
+        # admission
+        data2 = json.loads(builtin_e3_research_json())
+        data2["limitations"][0] = data2["limitations"][0] + " " + payload
+        errs = validate_e3_package_for_admission(data2)
+        assert any("forbidden" in e.lower() or "mixed_script" in e.lower() for e in errs)
+        result = admit_e3_research(data2)
+        assert result.reason_code == "REFUSED_FORBIDDEN_CLAIM"
+        # strategy semantics
+        for field in ["admission", "forwarding", "execution_placement", "human_label"]:
+            canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+            try:
+                dataclasses.replace(canon, **{field: payload})  # type: ignore[arg-type]
+                raise AssertionError(f"expected rejection for backstop {payload!r} in {field}")
+            except ValueError:
+                pass
+
+
+def test_shipped_json_semantics_disclaimers_still_load() -> None:
+    # Shipped JSON must still load (pure single-script Latin)
+    raw = builtin_e3_research_json()
+    pkg = load_e3_research_evidence_json(raw)
+    assert pkg.lane_09 == LANE_09
+    from traffictwin.experiments.e3_research_artifact import validate_e3_research_artifact
+
+    validated = validate_e3_research_artifact(raw)
+    assert validated.lane_09 == LANE_09
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+    from traffictwin.experiments.e3_strategy_semantics import e3_strategy_semantics
+
+    for sem in e3_strategy_semantics():
+        assert sem.placement_id in ("ingress_dla", "per_task_dla", "p2c_dla")
+    # disclaimers are pure Latin, not mixed
+    for dis in ALLOWLISTED_DISCLAIMERS:
+        from traffictwin.experiments.e3_research_evidence import (
+            _contains_affirming_forbidden_any,
+            _has_mixed_script,
+        )
+
+        assert _contains_affirming_forbidden_any(dis) is None
+        assert _has_mixed_script(dis) is False
+
+
+# --- Blocker B+C: one hex validator and mutation coverage for _contains_forbidden and hex ---
+def test_contains_forbidden_rejected_via_dormant_arm_public_surface() -> None:
+    from traffictwin.experiments.e3_research_evidence import DormantArm
+
+    # Use a valid placement/scaling but inject forbidden claim into arm_id via the validator's forbidden check.
+    # We use an arm_id that is not canonical but contains forbidden, so it should be rejected for forbidden before canonical.
+    # The validator checks forbidden first, then canonical, so we assert forbidden in message.
+    with pytest.raises(ValidationError) as exc:
+        DormantArm(
+            arm_id="forbidden kubernetes claim is here",
+            placement="ingress_dla",
+            scaling="fixed_1x",
+            state_age_ms=0,
+        )
+    assert "forbidden" in str(exc.value).lower()
+
+
+def test_hex_validator_consolidated_single_function() -> None:
+    import pathlib as _pathlib
+
+    text = _pathlib.Path("src/traffictwin/experiments/e3_research_evidence.py").read_text()
+    # Only one hex loop definition should exist (inside _hex_violations_for_string)
+    assert text.count("_HEX40_TOKEN_RE.finditer") == 1
+    assert text.count("_HEX64_TOKEN_RE.finditer") == 1
+    assert text.count("def _hex_violations_for_string") == 1
+    # _validate_hex_tokens_in_package should exist but not contain duplicate loop
+    assert "def _validate_hex_tokens_in_package" in text
+    # provenance validator should call helper, not contain duplicate loop
+    assert text.count("provenance approval/promotion SHA mismatch") == 1  # only in helper
+    assert (
+        text.count("_hex_violations_for_string") >= 4
+    )  # helper def + 3 call sites + helper internal
+
+
+def test_hex_validator_mutation_public_surface() -> None:
+    # Through package loader, a bad 40-hex not in allowed should be rejected via hex validator (provenance or scan)
+    data = json.loads(builtin_e3_research_json())
+    data["provenance"][0]["note"] = "bad sha 0000000000000000000000000000000000000000"
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_e3_research_evidence_json(json.dumps(data))
+    assert "provenance" in str(exc.value).lower() or "mismatch" in str(exc.value).lower()
+
+
+def test_contains_forbidden_mutation_neuter_fails() -> None:
+    # Directly verify that _contains_forbidden is load-bearing: it should detect kubernetes
+    from traffictwin.experiments.e3_research_evidence import _contains_forbidden
+
+    assert _contains_forbidden("kubernetes is here") is not None
+    assert _contains_forbidden("hello world") is None
+
+
+def test_hex_validator_mutation_neuter_fails_direct() -> None:
+    from traffictwin.experiments.e3_research_evidence import _hex_violations_for_string
+
+    violations = _hex_violations_for_string("bad sha 0000000000000000000000000000000000000000", "$")
+    assert len(violations) > 0
+    violations2 = _hex_violations_for_string(
+        f"approved candidate {'c5d66ef7e77f3b7d1f3fde084feea45a83f5c178'}", "$"
+    )
+    assert len(violations2) == 0
+
+
+# --- Blocker E: learned pattern ---
+def test_learned_claim_rejected_via_strategy_semantics() -> None:
+    import dataclasses
+
+    from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for
+
+    canon = e3_semantics_for("per_task_dla", "fixed_1x", 0)
+    for phrase in [
+        "learned placement is active",
+        "learned scheduler is used",
+        "learned scheduler is used",
+    ]:
+        for field in ["admission", "forwarding", "execution_placement", "human_label"]:
+            try:
+                dataclasses.replace(canon, **{field: phrase})  # type: ignore[arg-type]
+                raise AssertionError(f"expected rejection for learned {phrase!r} in {field}")
+            except ValueError as exc:
+                assert "forbidden" in str(exc).lower() or "learned" in str(exc).lower()
+
+
+def test_validate_hex_tokens_in_package_is_load_bearing() -> None:
+    from traffictwin.experiments.e3_research_evidence import _validate_hex_tokens_in_package
+
+    # Hex in dict keys is only caught by _validate_hex_tokens_in_package, not by _scan_forbidden_recursive
+    violations = _validate_hex_tokens_in_package(
+        {"bad_0000000000000000000000000000000000000000": "value"}
+    )
+    assert len(violations) > 0
+    assert any("mismatch" in v.lower() or "provenance" in v.lower() for v in violations)
+    # Allowed SHA should not trigger
+    from traffictwin.experiments.e3_research_evidence import TRAFFICTWIN_PRODUCT_BASE_SHA
+
+    violations2 = _validate_hex_tokens_in_package({TRAFFICTWIN_PRODUCT_BASE_SHA: "value"})
+    # This is a valid SHA, should be allowed (it's in allowed set) - but key contains allowed SHA, so no violation
+    # Actually _validate checks if token not in allowed, so allowed should give 0
+    assert len(violations2) == 0
+
+    # Also test via package-level string that _validate is used in model_validator: inject bad hex via provenance note prefix?
+    # Already covered by loader, but this ensures package scanner works
