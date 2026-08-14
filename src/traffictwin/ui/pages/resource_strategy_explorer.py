@@ -344,6 +344,8 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
     # pops e2_active (see above). This ensures I1 without touching base E2 lines.
     _intent = st.session_state.get("resource_strategy_intent")
     if _intent == "e2":
+        if st.session_state.get("resource_strategy_e3_active"):
+            st.session_state.pop("_resource_strategy_intent_pending_pop", None)
         st.session_state.pop("resource_strategy_e3_active", None)
         st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
     # Generic mutual exclusion if both flags somehow co-exist (e.g., direct button
