@@ -227,3 +227,20 @@ def test_e3_reporting_rendered_constants_match_package() -> None:
     assert j["replication"]["fleet_seeds"] == list(pkg.replication.fleet_seeds)
     assert j["dormant_counts"]["arms"] == len(pkg.dormant_arms)
     assert j["dormant_counts"]["configs"] == len(pkg.dormant_configs)
+    # Extend drift regression to export TEXT (CSV/Markdown) — package-derived, not hard-coded
+    # CSV replication detail and dormant reason
+    assert f"N={pkg.replication.n}" in bundle.csv, "CSV must contain package-derived N"
+    assert f"evaluator_seed {pkg.replication.evaluator_seed}" in bundle.csv
+    assert f"{len(pkg.dormant_configs)} configs dormant" in bundle.csv, (
+        "CSV dormant reason must be derived from len(dormant_configs)"
+    )
+    # Markdown arms/configs expected and total
+    assert f"({len(pkg.dormant_arms)} expected)" in bundle.markdown
+    assert f"({len(pkg.dormant_configs)} expected)" in bundle.markdown
+    assert f"Total configs {len(pkg.dormant_configs)}" in bundle.markdown
+    # Ensure markdown does not contain stale hard-coded opposite (would indicate drift) -
+    # Also verify CSV detail uses derived values for both N and configs
+    assert (
+        f"fleet_draw N={pkg.replication.n} evaluator_seed {pkg.replication.evaluator_seed}"  # noqa: E501
+        in bundle.csv
+    )

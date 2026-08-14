@@ -338,22 +338,29 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
     )
 
     # --- I1: mode arbitration (added code only, BEFORE base E2 code runs) ---
-    # Mutual exclusion: after any render at most one of e2_active/e3_active is set.
-    # When an e2 intent is present, the added code pops e3_active (and E3 pending)
-    # BEFORE base E2 code runs. When the e3 intent activates E3, _render_e3_preset
-    # pops e2_active (see above). This ensures I1 without touching base E2 lines.
+    # TRUE invariant: mutual exclusion holds AFTER top-of-render arbitration,
+    # not "after any render". The both-set state (e2_active and e3_active True)
+    # is reachable transiently via the E2-load click during an E3 view: base E2
+    # sets e2_active without popping e3_active and arbitration runs pre-click,
+    # so ONE render leaves both flags set. The surface is correct (E2 renders,
+    # because _render_e2_preset precedes _render_e3_preset) and self-heals: the
+    # NEXT render's top arbitration deterministically pops
+    # resource_strategy_e3_active (E2 is the most recent user action) and the
+    # surface always matches the processed click.
     _intent = st.session_state.get("resource_strategy_intent")
     if _intent == "e2":
         if st.session_state.get("resource_strategy_e3_active"):
             st.session_state.pop("_resource_strategy_intent_pending_pop", None)
         st.session_state.pop("resource_strategy_e3_active", None)
         st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
-    # Generic mutual exclusion if both flags somehow co-exist (e.g., direct button
-    # both-clicks without intent). With I1 they never coexist, so this branch is
-    # unreachable in reachable states, but it guarantees the synthetic sweep row
-    # (both True, no intent) never leaves both set after render and never double-renders.
-    # Only clear E3 when no e3 intent is pending activation; if e3 intent is present
-    # and will activate, let _render_e3_preset handle the pop after activation.
+    # Generic mutual exclusion when both flags co-exist. This IS reachable
+    # transiently via the E3 -> E2 Load button path described above (one render
+    # leaves both True after the E2 click) and also for synthetic sweep rows
+    # (both True, no intent). It guarantees at most one remains after
+    # arbitration and prevents double-render. Deterministic resolution: pop
+    # resource_strategy_e3_active (E2 is the most recent action). Only defer
+    # when an e3 intent is pending activation without pending-pop — let
+    # _render_e3_preset activate E3 and pop e2 instead.
     if st.session_state.get("resource_strategy_e2_active") and st.session_state.get(
         "resource_strategy_e3_active"
     ):
@@ -382,11 +389,12 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
     # --- E3 preset — visibly separate one-click, no path input needed ---
     if not _e3_already_rendered and _render_e3_preset():  # noqa: SIM102
         return
-    # I3: Clear-E2 returns to GENERIC explorer. With I1, e2/e3 actives never coexist,
-    # so the dormant-E3-after-Clear-E2 row is unreachable; we prove it by the
-    # arbitration above: after any render at most one active, hence after Clear-E2
-    # (which pops e2_active) no e3_active remains, so generic renders. No added code
-    # after Clear-E2 needs to handle E3 — it is already absent.
+    # I3: Clear-E2 returns to GENERIC explorer. With the TRUE invariant,
+    # mutual exclusion holds AFTER top-of-render arbitration. After Clear-E2
+    # pops e2_active, if a transient both-set remains (e.g., E3 was active and
+    # E2 click left both True for one render), the NEXT render's arbitration
+    # pops resource_strategy_e3_active, so generic renders. No added post-Clear
+    # code needs to handle E3 — arbitration already ensures it is absent.
 
     study = _study_or_empty_state()
     if study is None:

@@ -771,7 +771,7 @@ def _build_csv(package: E3ResearchEvidencePackage) -> str:
                 "reason": "Matched fleet draw replication unit",
                 "replication_unit": "fleet_draw",
                 "fleet_seed": seed,
-                "detail": "fleet_draw N=4 evaluator_seed 0",
+                "detail": f"fleet_draw N={package.replication.n} evaluator_seed {package.replication.evaluator_seed}",
             }
         )
     # Dormant arms - structure only, not results
@@ -796,7 +796,7 @@ def _build_csv(package: E3ResearchEvidencePackage) -> str:
                 "key": cfg.config_id,
                 "value": "",
                 "availability": "STRUCTURE_ONLY",
-                "reason": "56 configs dormant, NOT_EXECUTED",
+                "reason": f"{len(package.dormant_configs)} configs dormant, NOT_EXECUTED",
                 "replication_unit": package.replication.replication_unit,
                 "fleet_seed": cfg.fleet_seed,
                 "detail": f"arm_id={cfg.arm_id} fleet={cfg.fleet_seed} rsu={cfg.num_rsus}",
@@ -1103,7 +1103,7 @@ def _build_markdown(
     lines.append("## Dormant Arms and Configs (Structure Only)")
     lines.append("")
     lines.append(
-        f"- Arms: {len(package.dormant_arms)} (14 expected) configs: {len(package.dormant_configs)} (56 expected)"
+        f"- Arms: {len(package.dormant_arms)} ({len(package.dormant_arms)} expected) configs: {len(package.dormant_configs)} ({len(package.dormant_configs)} expected)"
     )
     lines.append("")
     lines.append("| arm_id | placement | scaling | state_age_ms |")
@@ -1124,7 +1124,7 @@ def _build_markdown(
             f"| {c['config_id']} | {c['arm_id']} | {c['fleet_seed']} | {c['num_rsus']} | {c['state_age_ms']} |"
         )
     lines.append("")
-    lines.append("_Total configs 56, showing 10; full list in JSON._")
+    lines.append(f"_Total configs {len(package.dormant_configs)}, showing 10; full list in JSON._")
     lines.append("")
     lines.append("## Per-RSU and Scale-Action Summary STRUCTURE")
     lines.append("")

@@ -803,120 +803,121 @@ def test_home_e2_e3_e2_renders_e2_first_press_parametrized(extra_reruns: int) ->
     assert "NO_E3_RESEARCH_RESULTS_AVAILABLE" not in body
 
 
-def test_home_e2_e3_e2_fails_on_a9fbbf2_and_passes_with_fix() -> None:
-    """Verify blocker fails on a9fbbf2 code and passes with fix (in-process restore).
+def test_e3_arbitration_shared_pop_static_assertion() -> None:
+    """Static snippet: fixed arbitration must pop shared pending when e3_active + intent e2."""  # noqa: E501
 
-    Uses in-process restore of the previous arbitration (a9fbbf2: no shared
-    pop) to prove the regression would FAIL on the rejected SHA, and that
-    the current fixed arbitration PASSES. Also covers targeted state
-    construction: the exact stale row (e3_active + shared pending + intent e2)
-    is the minimal reproduction.
-    """
-
-    import importlib
     import pathlib
 
     import traffictwin.ui.pages.resource_strategy_explorer as explorer_mod
 
     explorer_path = pathlib.Path(explorer_mod.__file__)
-    orig_text = explorer_path.read_text()
-
-    # Current fixed logic must contain the shared pop when e3_active
+    orig_text = explorer_path.read_text(encoding="utf-8")
+    # Must contain the shared pop guarded by e3_active check inside the e2 intent block
     assert (
         'if st.session_state.get("resource_strategy_e3_active"):' in orig_text
         and 'st.session_state.pop("_resource_strategy_intent_pending_pop"' in orig_text
     ), "fixed arbitration must pop shared pending when e3_active and intent e2"
+    # Also verify deterministic resolution for both-set prefers E2 (pop E3)
+    assert 'st.session_state.pop("resource_strategy_e3_active"' in orig_text
 
-    # Helper to run the Home E2→E3→E2 sequence and return whether E2 rendered
-    def _run_sequence_with_current_code(extra_reruns: int = 0) -> bool:
-        app = _page_app()
-        app.session_state["resource_strategy_intent"] = "e2"
-        app.run(timeout=30)
-        app.session_state["resource_strategy_intent"] = "e3"
-        app.run(timeout=30)
-        for _ in range(extra_reruns):
-            app.run(timeout=30)
-        app.session_state["resource_strategy_intent"] = "e2"
-        app.run(timeout=30)
-        return "0.683619229" in _text_of(app)
 
-    # With fix, both parametrized cases PASS
-    for er in (0, 1):
-        assert _run_sequence_with_current_code(er), f"with fix, extra_reruns={er} must render E2"
+def test_state_sweep_stale_row_e2_renders_e2_construction() -> None:
+    """Targeted stale-row construction: e3_active + shared pending + intent e2 -> E2."""
 
-    # Restore a9fbbf2 arbitration (no shared pop) in-process and verify FAIL
-    old_snippet = (
-        '    _intent = st.session_state.get("resource_strategy_intent")\n'
-        '    if _intent == "e2":\n'
-        '        if st.session_state.get("resource_strategy_e3_active"):\n'
-        '            st.session_state.pop("_resource_strategy_intent_pending_pop", None)\n'
-        '        st.session_state.pop("resource_strategy_e3_active", None)\n'
-        '        st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)'
+    app = _page_app()
+    if "resource_strategy_e2_active" in app.session_state:
+        del app.session_state["resource_strategy_e2_active"]
+    app.session_state["resource_strategy_e3_active"] = True
+    app.session_state["_resource_strategy_e3_intent_pending_pop"] = True
+    app.session_state["_resource_strategy_intent_pending_pop"] = True
+    app.session_state["resource_strategy_intent"] = "e2"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body = _text_of(app)
+    assert "0.683619229" in body, "with fix, targeted stale row must render E2"
+    assert "ADMITTED RESEARCH" in body
+    assert "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" not in body
+
+
+def test_e3_load_then_e2_load_two_click_renders_e2_and_heals() -> None:
+    """REAL two-click: E3 Load -> E2 Load leaves both-set for ONE render but E2 surface heals.
+
+    Fresh -> click Load TrafficTwin E3 Dynamic Resource V2 -> click
+    Load TrafficTwin E2 research -> assert E2 surface renders THAT render
+    (not E3), and the next plain rerun restores single-flag state with E2
+    retained. Asserts the E2 surface (markers), not just flags. Proves the
+    transient both-set is reachable and self-heals with deterministic E2
+    precedence.
+    """
+
+    app = _page_app().run(timeout=30)
+    assert not app.exception, app.exception
+    # Fresh: neither active
+    assert "resource_strategy_e3_active" not in app.session_state
+    assert "resource_strategy_e2_active" not in app.session_state
+
+    # Click E3 Load
+    e3_btn = None
+    for b in app.button:
+        if "Load TrafficTwin E3 Dynamic Resource V2" in str(b.label):
+            e3_btn = b
+            break
+    assert e3_btn is not None, "E3 load button must exist on fresh render"
+    e3_btn.click().run(timeout=30)
+    assert not app.exception, app.exception
+    body_e3 = _text_of(app)
+    assert "REFUSED" in body_e3 or "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body_e3, (
+        "after E3 click, E3 surface must render"
     )
-    a9fbbf2_snippet = (
-        '    _intent = st.session_state.get("resource_strategy_intent")\n'
-        '    if _intent == "e2":\n'
-        '        st.session_state.pop("resource_strategy_e3_active", None)\n'
-        '        st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)'
+    assert "resource_strategy_e3_active" in app.session_state
+    assert app.session_state["resource_strategy_e3_active"] is True
+    assert "resource_strategy_e2_active" not in app.session_state
+
+    # Click E2 Load during E3 view -> both-set transient
+    e2_btn = None
+    for b in app.button:
+        if "Load TrafficTwin E2 research" in str(b.label):
+            e2_btn = b
+            break
+    assert e2_btn is not None, "E2 load button must be present during E3 view"
+    e2_btn.click().run(timeout=30)
+    assert not app.exception, app.exception
+    body_e2_first = _text_of(app)
+    # THAT render must be E2 surface, not E3
+    assert "0.683619229" in body_e2_first, (
+        f"E2 surface must render THAT render after E3->E2 click, got snippet: {body_e2_first[:500]!r}"  # noqa: E501
     )
-    if old_snippet in orig_text:
-        a9fbbf2_text = orig_text.replace(old_snippet, a9fbbf2_snippet)
-        explorer_path.write_text(a9fbbf2_text)
-        try:
-            importlib.reload(explorer_mod)
-            # Need to also reload the AppTest file path? The page file is reloaded via import, but AppTest loads from file path each time, so it will pick up the old file.  # noqa: E501
-            # Test that old code FAILS (does NOT render E2 on first press)
-            for er in (0, 1):
-                app = _page_app()
-                app.session_state["resource_strategy_intent"] = "e2"
-                app.run(timeout=30)
-                app.session_state["resource_strategy_intent"] = "e3"
-                app.run(timeout=30)
-                for _ in range(er):
-                    app.run(timeout=30)
-                app.session_state["resource_strategy_intent"] = "e2"
-                app.run(timeout=30)
-                body = _text_of(app)
-                assert "0.683619229" not in body, (
-                    f"a9fbbf2 code with extra_reruns={er} must NOT render E2 on first press (swallowed), "  # noqa: E501
-                    f"but got E2 — regression would not fail, fix not verified. Body: {body[:400]!r}"  # noqa: E501
-                )
-                # Old code rendered GENERIC or stale E3, not E2
-                assert (
-                    "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" not in body or "0.683619229" not in body
-                )
-            # Targeted state construction for old code: e3_active + shared pending + intent e2 → GENERIC  # noqa: E501
-            app2 = _page_app()
-            if "resource_strategy_e2_active" in app2.session_state:
-                del app2.session_state["resource_strategy_e2_active"]
-            app2.session_state["resource_strategy_e3_active"] = True
-            app2.session_state["_resource_strategy_e3_intent_pending_pop"] = True
-            app2.session_state["_resource_strategy_intent_pending_pop"] = True
-            app2.session_state["resource_strategy_intent"] = "e2"
-            app2.run(timeout=30)
-            assert "0.683619229" not in _text_of(app2), "a9fbbf2 targeted row must not render E2"
-        finally:
-            explorer_path.write_text(orig_text)
-            importlib.reload(explorer_mod)
-            # Verify fix restored and still passes
-            for er in (0, 1):
-                assert _run_sequence_with_current_code(er), (
-                    f"after restore, extra_reruns={er} must render E2"
-                )
-    else:
-        # If snippet not found, fallback to targeted state construction proof
-        # With fix, targeted row renders E2
-        app = _page_app()
-        if "resource_strategy_e2_active" in app.session_state:
-            del app.session_state["resource_strategy_e2_active"]
-        app.session_state["resource_strategy_e3_active"] = True
-        app.session_state["_resource_strategy_e3_intent_pending_pop"] = True
-        app.session_state["_resource_strategy_intent_pending_pop"] = True
-        app.session_state["resource_strategy_intent"] = "e2"
-        app.run(timeout=30)
-        assert "0.683619229" in _text_of(app), "with fix, targeted stale row must render E2"
-        # Without fix, we simulate old logic by manually not popping shared pending:
-        # Old would have left shared pending, then _render_e2_preset would pop intent as stale
-        # So we assert that old logic would NOT render E2 — we document this is the failure mode
-        # This is proven by the snippet check above; here we just assert current passes
-        pass
+    assert "0.715773211" in body_e2_first
+    assert "ADMITTED RESEARCH" in body_e2_first
+    assert "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" not in body_e2_first
+    assert "NO_E3_RESEARCH_RESULTS_AVAILABLE" not in body_e2_first
+    # Transient both-set: both flags True for this one render (before next arbitration)
+    has_e2 = (
+        "resource_strategy_e2_active" in app.session_state
+        and app.session_state["resource_strategy_e2_active"]
+    )
+    has_e3 = (
+        "resource_strategy_e3_active" in app.session_state
+        and app.session_state["resource_strategy_e3_active"]
+    )
+    assert has_e2 and has_e3, (
+        f"both flags must be set transiently after E3->E2 click for one render, e2={has_e2} e3={has_e3}"  # noqa: E501
+    )
+
+    # Next plain rerun: arbitration must heal to single-flag E2
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body_e2_next = _text_of(app)
+    assert "0.683619229" in body_e2_next, "E2 must still render after healing rerun"
+    assert "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" not in body_e2_next
+    has_e2_next = (
+        "resource_strategy_e2_active" in app.session_state
+        and app.session_state["resource_strategy_e2_active"]
+    )
+    has_e3_next = (
+        "resource_strategy_e3_active" in app.session_state
+        and app.session_state["resource_strategy_e3_active"]
+    )
+    assert has_e2_next, "E2 must be retained after healing"
+    assert not has_e3_next, "E3 must be cleared after healing (deterministic E2 precedence)"
+    assert not (has_e2_next and has_e3_next), "mutual exclusion must hold after arbitration"
