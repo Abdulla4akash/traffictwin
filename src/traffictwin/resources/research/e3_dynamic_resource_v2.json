@@ -1,0 +1,1008 @@
+{
+  "approved_candidate_sha": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+  "campaign": "e3-dynamic-resource-v2",
+  "compute_capacity": {
+    "active_units_per_rsu_range": [
+      1,
+      2,
+      3
+    ],
+    "is_compute_not_queue": true,
+    "max_pending_actions": 1,
+    "max_units": 3,
+    "min_units": 1,
+    "unit": "compute_unit"
+  },
+  "contract": {
+    "path": "docs/evaluation/e3/e3_dynamic_resource_v2_contract_v2.json",
+    "schema_version": "e3_dynamic_resource_v2_contract_v2",
+    "sha256": "f0d6eb913df6c2165a63ddcb0fd4980368e9bb80bbd38db964273ba3925f4870"
+  },
+  "contract_checkpoint_sha": "211a6662151ccad43187f8a2ce3f75a57515408d",
+  "dormant_arms": [
+    {
+      "arm_id": "ingress_dla__fixed_1x__age_0ms",
+      "placement": "ingress_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_0ms",
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_1000ms",
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_3000ms",
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_0ms",
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_1000ms",
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_3000ms",
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_0ms",
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_1000ms",
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_3000ms",
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_0ms",
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_1000ms",
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_3000ms",
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__static_overprovisioned__age_0ms",
+      "placement": "per_task_dla",
+      "scaling": "static_overprovisioned",
+      "state_age_ms": 0
+    }
+  ],
+  "dormant_configs": [
+    {
+      "arm_id": "ingress_dla__fixed_1x__age_0ms",
+      "config_id": "ingress_dla__fixed_1x__age_0ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "ingress_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "ingress_dla__fixed_1x__age_0ms",
+      "config_id": "ingress_dla__fixed_1x__age_0ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "ingress_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "ingress_dla__fixed_1x__age_0ms",
+      "config_id": "ingress_dla__fixed_1x__age_0ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "ingress_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "ingress_dla__fixed_1x__age_0ms",
+      "config_id": "ingress_dla__fixed_1x__age_0ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "ingress_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_0ms",
+      "config_id": "p2c_dla__fixed_1x__age_0ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_0ms",
+      "config_id": "p2c_dla__fixed_1x__age_0ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_0ms",
+      "config_id": "p2c_dla__fixed_1x__age_0ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_0ms",
+      "config_id": "p2c_dla__fixed_1x__age_0ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_1000ms",
+      "config_id": "p2c_dla__fixed_1x__age_1000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_1000ms",
+      "config_id": "p2c_dla__fixed_1x__age_1000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_1000ms",
+      "config_id": "p2c_dla__fixed_1x__age_1000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_1000ms",
+      "config_id": "p2c_dla__fixed_1x__age_1000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_3000ms",
+      "config_id": "p2c_dla__fixed_1x__age_3000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_3000ms",
+      "config_id": "p2c_dla__fixed_1x__age_3000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_3000ms",
+      "config_id": "p2c_dla__fixed_1x__age_3000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "p2c_dla__fixed_1x__age_3000ms",
+      "config_id": "p2c_dla__fixed_1x__age_3000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "p2c_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_0ms",
+      "config_id": "per_task_dla__fixed_1x__age_0ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_0ms",
+      "config_id": "per_task_dla__fixed_1x__age_0ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_0ms",
+      "config_id": "per_task_dla__fixed_1x__age_0ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_0ms",
+      "config_id": "per_task_dla__fixed_1x__age_0ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_1000ms",
+      "config_id": "per_task_dla__fixed_1x__age_1000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_1000ms",
+      "config_id": "per_task_dla__fixed_1x__age_1000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_1000ms",
+      "config_id": "per_task_dla__fixed_1x__age_1000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_1000ms",
+      "config_id": "per_task_dla__fixed_1x__age_1000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_3000ms",
+      "config_id": "per_task_dla__fixed_1x__age_3000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_3000ms",
+      "config_id": "per_task_dla__fixed_1x__age_3000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_3000ms",
+      "config_id": "per_task_dla__fixed_1x__age_3000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__fixed_1x__age_3000ms",
+      "config_id": "per_task_dla__fixed_1x__age_3000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "fixed_1x",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_0ms",
+      "config_id": "per_task_dla__proactive__age_0ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_0ms",
+      "config_id": "per_task_dla__proactive__age_0ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_0ms",
+      "config_id": "per_task_dla__proactive__age_0ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_0ms",
+      "config_id": "per_task_dla__proactive__age_0ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_1000ms",
+      "config_id": "per_task_dla__proactive__age_1000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_1000ms",
+      "config_id": "per_task_dla__proactive__age_1000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_1000ms",
+      "config_id": "per_task_dla__proactive__age_1000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_1000ms",
+      "config_id": "per_task_dla__proactive__age_1000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_3000ms",
+      "config_id": "per_task_dla__proactive__age_3000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_3000ms",
+      "config_id": "per_task_dla__proactive__age_3000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_3000ms",
+      "config_id": "per_task_dla__proactive__age_3000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__proactive__age_3000ms",
+      "config_id": "per_task_dla__proactive__age_3000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "proactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_0ms",
+      "config_id": "per_task_dla__reactive__age_0ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_0ms",
+      "config_id": "per_task_dla__reactive__age_0ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_0ms",
+      "config_id": "per_task_dla__reactive__age_0ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_0ms",
+      "config_id": "per_task_dla__reactive__age_0ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_1000ms",
+      "config_id": "per_task_dla__reactive__age_1000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_1000ms",
+      "config_id": "per_task_dla__reactive__age_1000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_1000ms",
+      "config_id": "per_task_dla__reactive__age_1000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_1000ms",
+      "config_id": "per_task_dla__reactive__age_1000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 1000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_3000ms",
+      "config_id": "per_task_dla__reactive__age_3000ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_3000ms",
+      "config_id": "per_task_dla__reactive__age_3000ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_3000ms",
+      "config_id": "per_task_dla__reactive__age_3000ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__reactive__age_3000ms",
+      "config_id": "per_task_dla__reactive__age_3000ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "reactive",
+      "state_age_ms": 3000
+    },
+    {
+      "arm_id": "per_task_dla__static_overprovisioned__age_0ms",
+      "config_id": "per_task_dla__static_overprovisioned__age_0ms__eval_0__fleet_1__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 1,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "static_overprovisioned",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__static_overprovisioned__age_0ms",
+      "config_id": "per_task_dla__static_overprovisioned__age_0ms__eval_0__fleet_2__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 2,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "static_overprovisioned",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__static_overprovisioned__age_0ms",
+      "config_id": "per_task_dla__static_overprovisioned__age_0ms__eval_0__fleet_3__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 3,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "static_overprovisioned",
+      "state_age_ms": 0
+    },
+    {
+      "arm_id": "per_task_dla__static_overprovisioned__age_0ms",
+      "config_id": "per_task_dla__static_overprovisioned__age_0ms__eval_0__fleet_4__rsus_10",
+      "evaluator_seed": 0,
+      "fleet_seed": 4,
+      "num_rsus": 10,
+      "placement": "per_task_dla",
+      "scaling": "static_overprovisioned",
+      "state_age_ms": 0
+    }
+  ],
+  "evidence_state": "NOT_EXECUTED",
+  "execution_authority": {
+    "e3a_authorized": false,
+    "e3b_authorized": false,
+    "e3c_authorized": false,
+    "empirical_e3_results_authorized": false,
+    "evidence_state": "NOT_EXECUTED",
+    "full_3600_step_cells_authorized": false,
+    "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "manchester_trace_comparative_execution_authorized": false,
+    "multi_seed_or_fleet_draw_execution_authorized": false,
+    "performance_evidence_benchmark_authorized": false,
+    "research_workloads_launched": 0,
+    "result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+    "scientific_execution_authorized": false,
+    "statistical_inference_authorized": false,
+    "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
+  },
+  "factors": {
+    "evaluator_seed": 0,
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "padded_fleet_width": 2488,
+    "placements": [
+      "ingress_dla",
+      "per_task_dla",
+      "p2c_dla"
+    ],
+    "scalings": [
+      "fixed_1x",
+      "static_overprovisioned",
+      "reactive",
+      "proactive"
+    ],
+    "scenario_rsus": 10,
+    "smoke_ticks": 10,
+    "state_age_ms_values": [
+      0,
+      1000,
+      3000
+    ],
+    "ticks_per_cell": 3600
+  },
+  "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+  "limitations": [
+    "Evidence state NOT_EXECUTED, result_availability NO_E3_RESEARCH_RESULTS_AVAILABLE, research_workloads_launched = 0, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD, E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED — no E3 research results exist; model natively represents no-results truth",
+    "Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority",
+    "One Manchester incident hour 2024-03-15 20:00-21:00 Europe/London, provisional uk2030 fleet width 2488, 10 RSUs, 3600 ticks per cell (dormant), waiting-room ceiling 6220 (2.5x), fixed 1x service baseline, zero backhaul in frozen design",
+    "Frozen MAPPO actor 93c97059 does not observe RSU load and does not select execution RSU; frozen trace e188ce07 frozen E2d manifest f77afb23; actor and trace are implementation-verified facts, not learned control",
+    "Queue waiting-room capacity strictly separate from compute service capacity (units 1..3 per RSU); resource cost is resource_unit_seconds normalized usage not money; scale-action receipts, per-RSU summaries, capacity levels, state-age receipts null with reasons before execution",
+    "All task counts offered/admitted/rejected/forwarded/deadline_success unavailable with reasons; genuine rejection classes v2i_gate_rejected, v2i_cap_rejected, local_mqd_rejected, v2v_mqd_rejected, v2i_unavailable, v2v_unavailable remain null; unavailable lifecycle started/compute_completed/returned/dropped stays null with reasons, never zero",
+    "Staleness state_age_ms typed integer milliseconds in {0,1000,3000} as view parameter only; does not mutate true state; no empirical staleness results; E3c dormant",
+    "Provenance and missingness are first-class; limitations and non-claims are first-class; admission fails closed requiring exact frozen fingerprints plus future analysis artifact and package fingerprint"
+  ],
+  "missingness": [
+    {
+      "field": "offered",
+      "reason": "UNAVAILABLE — no E3 research workloads launched, research_workloads_launched = 0"
+    },
+    {
+      "field": "admitted",
+      "reason": "UNAVAILABLE — no E3 cells executed under hold"
+    },
+    {
+      "field": "rejected_total",
+      "reason": "UNAVAILABLE — genuine rejection classes not yet observed"
+    },
+    {
+      "field": "forwarded",
+      "reason": "UNAVAILABLE — forwarding null before execution"
+    },
+    {
+      "field": "deadline_success",
+      "reason": "UNAVAILABLE — deadline success null before execution"
+    },
+    {
+      "field": "started",
+      "reason": "UNAVAILABLE as an independently instrumented quantity"
+    },
+    {
+      "field": "compute_completed",
+      "reason": "UNAVAILABLE — compute completion not distinct"
+    },
+    {
+      "field": "returned",
+      "reason": "UNAVAILABLE — physical return not distinct"
+    },
+    {
+      "field": "dropped",
+      "reason": "UNAVAILABLE — cannot derive without split"
+    },
+    {
+      "field": "scale_action_receipts",
+      "reason": "UNAVAILABLE — null before execution, not empty fabricated"
+    },
+    {
+      "field": "per_rsu_summaries",
+      "reason": "UNAVAILABLE — null before execution"
+    },
+    {
+      "field": "capacity_levels",
+      "reason": "UNAVAILABLE — null before execution"
+    },
+    {
+      "field": "state_age_receipts",
+      "reason": "UNAVAILABLE — null before execution, typed int ms 0/1000/3000"
+    },
+    {
+      "field": "resource_unit_seconds",
+      "reason": "UNAVAILABLE — null before execution, not monetary"
+    },
+    {
+      "field": "paired_differences",
+      "reason": "UNAVAILABLE — NO_E3_RESEARCH_RESULTS_AVAILABLE, N=4 interval not yet computed"
+    }
+  ],
+  "non_claims": [
+    "No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population",
+    "No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective",
+    "No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency",
+    "No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster",
+    "No actor selects execution RSU; frozen actor does not observe load",
+    "No tasks-as-N; tasks are accounting records, not independent replicates; task-level N is forbidden",
+    "No supervisor approval; standing is E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "Queue capacity is waiting-room slots, not compute units; queue/compute conflation forbidden",
+    "No physical result-return verification; deadline_success is simulator outcome when executed",
+    "No stale-state communication savings proven; H1 remains hypothesis about pair-only vs global least-busy dependence"
+  ],
+  "product_base_sha": "2b6d4675658b426f96a79c41ac7f0b8f2a82bc5c",
+  "provenance": [
+    {
+      "artifact": "e3_dynamic_resource_v2_manifest_v1.json",
+      "kind": "manifest",
+      "note": "sidecar SHA 39862882ae34e71260ce5b466fcd4a93d61da783c4dd16fc987be562ea396438"
+    },
+    {
+      "artifact": "e3_dynamic_resource_v2_contract_v2.json",
+      "kind": "contract",
+      "note": "normative contract SHA f0d6eb913df6c2165a63ddcb0fd4980368e9bb80bbd38db964273ba3925f4870"
+    },
+    {
+      "artifact": "run_e3_dynamic_resource_v2.py",
+      "kind": "runner",
+      "note": "approved candidate ac8e410... and promotion 342789..."
+    },
+    {
+      "artifact": "vec_evaluator",
+      "kind": "software_identity",
+      "note": "vec promotion dc606770, core 53e34db, adapter c37f97e, actor and trace frozen"
+    }
+  ],
+  "queue_capacity": {
+    "capacity_per_rsu": 6220,
+    "is_compute_units": false,
+    "is_queue_not_compute": true,
+    "unit": "waiting_room_task_slots"
+  },
+  "replication": {
+    "critical_value": 3.182446305284263,
+    "degrees_of_freedom": 3,
+    "evaluator_seed": 0,
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "interval": "two-sided 95% Student-t, df=3, t_0.975,3 = 3.182",
+    "method": "two-sided Student-t 95% interval over fleet-draw differences",
+    "n": 4,
+    "replication_key": "fleet_seed",
+    "replication_unit": "fleet_draw",
+    "seed_0_in_primary": false,
+    "tasks_are_not_replicates": true
+  },
+  "research_promotion_sha": "342789434233e97cd87ea74e21a759878610ce40",
+  "research_workloads_launched": 0,
+  "resource_cost": {
+    "formula": "resource_unit_seconds = sum_over_RSU sum_over_interval (active_compute_units * interval_seconds) per 1 s, normalized resource usage not money",
+    "interval_seconds": 1,
+    "metric": "resource_unit_seconds",
+    "monetary": false,
+    "unit": "resource_unit_seconds"
+  },
+  "result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+  "scaling_receipts": {
+    "capacity_levels_null_reason": "UNAVAILABLE — capacity levels null before execution",
+    "has_receipts_when_executed": false,
+    "per_rsu_summaries_null_reason": "UNAVAILABLE — per-RSU summaries null before execution",
+    "receipts_when_not_executed_null_reason": "UNAVAILABLE — scale-action receipts null before execution, research_workloads_launched = 0, evidence_state = NOT_EXECUTED",
+    "state_age_receipts_null_reason": "UNAVAILABLE — state-age receipts null before execution, state_age_ms typed int milliseconds values 0/1000/3000"
+  },
+  "schema_version": "e3_dynamic_resource_v2_evidence_v1",
+  "software_identity": {
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "e2d_manifest_sha256": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "traffictwin_contract_head": "211a6662151ccad43187f8a2ce3f75a57515408d",
+    "vec_core_candidate_sha": "53e34db6146da40118a6c816f6a1ffaa2596ddf3",
+    "vec_promoted_base": "b2abcee2b4c2628e604fff0811110b8c61a22b23"
+  },
+  "staged_design": {
+    "e3a": {
+      "equation": "3 placements * 1 scaling * 1 stale * 4 draws = 12",
+      "evaluator_seed": 0,
+      "fleet_seeds": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "n": 4,
+      "placement": [
+        "ingress_dla",
+        "per_task_dla",
+        "p2c_dla"
+      ],
+      "replication_unit": "fleet_draw",
+      "scaling": [
+        "fixed_1x"
+      ],
+      "stage": "E3a",
+      "stage_listed_cells": 12,
+      "state_age_ms": [
+        0
+      ],
+      "unique_cells": 12
+    },
+    "e3b": {
+      "equation": "4 scalers * 1 placement * 1 stale * 4 draws = 16 stage-listed; 16 - 4 overlap = 12 unique",
+      "evaluator_seed": 0,
+      "fleet_seeds": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "n": 4,
+      "overlap_with_e3a": 4,
+      "placement": [
+        "per_task_dla"
+      ],
+      "replication_unit": "fleet_draw",
+      "scaling": [
+        "fixed_1x",
+        "static_overprovisioned",
+        "reactive",
+        "proactive"
+      ],
+      "stage": "E3b",
+      "stage_listed_cells": 16,
+      "state_age_ms": [
+        0
+      ],
+      "unique_additional": 12,
+      "unique_cells": 12
+    },
+    "e3c": {
+      "contrasts": [
+        {
+          "comparison": "per_task_dla vs p2c_dla",
+          "fixed": "fixed_1x",
+          "fixed_placement": null,
+          "over_stale_ms": [
+            0,
+            1000,
+            3000
+          ]
+        },
+        {
+          "comparison": "reactive vs proactive",
+          "fixed": null,
+          "fixed_placement": "per_task_dla",
+          "over_stale_ms": [
+            0,
+            1000,
+            3000
+          ]
+        }
+      ],
+      "fresh_observations_reused": 16,
+      "reuses_identical_fresh_cells": true,
+      "stage": "E3c",
+      "stale_variant_cells_max": 32,
+      "state_age_ms_values": [
+        0,
+        1000,
+        3000
+      ],
+      "state_is_view_parameter": true,
+      "total_contrast_observations": 48
+    },
+    "identical_fresh_cells_reused_not_rerun": true,
+    "maximum_candidate_unique_cells": 56,
+    "not_double_counted": true,
+    "stage_listed_cells": 60
+  },
+  "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
+  "task_accounting": {
+    "admitted": null,
+    "compute_completed": null,
+    "conservation_holds": null,
+    "conservation_reason": "UNAVAILABLE — conservation offered == admitted + rejected not yet verified, research_workloads_launched = 0, evidence_state = NOT_EXECUTED",
+    "deadline_success": null,
+    "dropped": null,
+    "forwarded": null,
+    "genuine_rejection_classes": [
+      "v2i_gate_rejected",
+      "v2i_cap_rejected",
+      "local_mqd_rejected",
+      "v2v_mqd_rejected",
+      "v2i_unavailable",
+      "v2v_unavailable"
+    ],
+    "offered": null,
+    "rejected_by_class": null,
+    "rejected_total": null,
+    "returned": null,
+    "started": null,
+    "unavailable_reasons": {
+      "compute_completed": "UNAVAILABLE — compute completion not distinct from deadline_success",
+      "dropped": "UNAVAILABLE — dropped cannot be derived without compute_completed/returned split",
+      "returned": "UNAVAILABLE — physical return not distinct from deadline_success",
+      "started": "UNAVAILABLE as an independently instrumented quantity — started not separately emitted"
+    }
+  },
+  "traffictwin_runtime": {
+    "base_commit": "211a6662151ccad43187f8a2ce3f75a57515408d"
+  },
+  "vec_runtime": {
+    "adapter_candidate": "c37f97ea66b236dfc662bfdd6bee7eab1a775bbc",
+    "core_candidate": "53e34db6146da40118a6c816f6a1ffaa2596ddf3",
+    "promotion_commit": "dc606770059f0c4a413bac2217d7f38600b74fff"
+  }
+}
