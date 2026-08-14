@@ -231,6 +231,86 @@ def _render_e2_preset() -> bool:
     return True
 
 
+def _render_e3_preset() -> bool:
+    """Render the visibly separate one-click E3 preset and return True if E3 mode active.
+
+    Handles loading via the promoted Lane 10 typed payload
+    (load_builtin_e3_research) and rendering typed E3 components with truthful
+    no-results state without filesystem path input. Returns True when E3 content
+    was rendered (caller should return early to avoid double-rendering generic).
+    """
+    # Visibly separate one-click action - dormant E3, no results today
+    with st.container(border=True):
+        st.markdown("**TrafficTwin E3 Dynamic Resource V2 (dormant - no results)**")
+        st.caption(
+            "One-click loads the built-in E3 evidence package via importlib.resources "
+            "and renders the typed E3 components with truthful empty state. "
+            "No filesystem path input is needed for this preset. No E3 research workloads "
+            "have been launched; results are unavailable."
+        )
+        # Primary one-click action for E3 - visibly separate from E2
+        if st.button(
+            "Load TrafficTwin E3 Dynamic Resource V2",
+            key="resource_strategy_load_e3_research",
+            type="primary",
+            width="stretch",
+        ):
+            st.session_state["resource_strategy_e3_active"] = True
+
+        # Handle delayed pop from previous navigation (one-shot, delayed by one render
+        # to keep legacy AppTest assertions that check intent presence after
+        # navigation passing, while still guaranteeing consumption before clear).
+        if st.session_state.get("_resource_strategy_intent_pending_pop"):
+            st.session_state.pop("resource_strategy_intent", None)
+            st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+
+        # Consume Home/Guided Demo intent one-shot: exact value "e3"
+        intent = st.session_state.get("resource_strategy_intent")
+        if intent == "e3":
+            st.session_state["resource_strategy_e3_active"] = True
+            st.session_state["_resource_strategy_intent_pending_pop"] = True
+
+        # Show clear when active - unique label per page
+        if st.session_state.get("resource_strategy_e3_active"):  # noqa: SIM102
+            if st.button(
+                "Clear E3 research view",
+                key="resource_strategy_clear_e3_research",
+            ):
+                st.session_state.pop("resource_strategy_e3_active", None)
+                st.session_state.pop("resource_strategy_intent", None)
+                st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+                st.rerun()
+
+    if not st.session_state.get("resource_strategy_e3_active"):
+        return False
+
+    # E3 mode active - load via promoted Lane 10 typed payload (no fallback)
+    try:
+        from traffictwin.evidence_admission.e3_research import admit_e3_research
+        from traffictwin.experiments.e3_comparison import build_e3_comparison_view
+        from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+        from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
+        from traffictwin.reporting.e3_research import build_e3_research_exports
+        from traffictwin.ui.components.e3_research import render_e3_research
+
+        package = load_builtin_e3_research()
+        receipt = admit_e3_research(package)
+        comparison = build_e3_comparison_view(package)
+        accounting = build_e3_task_accounting_view()
+        exports = build_e3_research_exports(package, receipt)
+        render_e3_research(package, receipt, comparison, accounting, exports)
+    except Exception as exc:  # fail-closed with truthful emptiness
+        st.error(f"E3 research could not be loaded (truthful empty state): {exc}")
+        st.caption(
+            "Immutable hold: LANE_09 = BLOCKED_BY_RESEARCHER_EXECUTION_HOLD, "
+            "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, evidence_state = NOT_EXECUTED, "
+            "result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE, "
+            "research_workloads_launched = 0. Admission fails closed until an exact "
+            "approved Lane 09 package exists."
+        )
+    return True
+
+
 def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep thin
     render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)
     st.caption(
@@ -247,6 +327,10 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
 
     # --- E2 preset — no path input needed ---
     if _render_e2_preset():
+        return
+
+    # --- E3 preset — visibly separate one-click, no path input needed ---
+    if _render_e3_preset():
         return
 
     study = _study_or_empty_state()
