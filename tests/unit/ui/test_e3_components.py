@@ -109,8 +109,8 @@ render_e3_strategy_semantics(sems)
     assert "per_task_dla" in body
     assert "p2c_dla" in body
     assert "fixed_1x" in body
-    # Staleness values derived from semantics
-    assert "0" in body and "1000" in body and "3000" in body
+    # Staleness values derived from semantics — exact typed grid, not generic digits
+    assert "0, 1000, 3000 ms" in body
 
 
 def test_e3_tradeoff_structure_reads_from_package(tmp_path: pathlib.Path) -> None:
@@ -127,8 +127,10 @@ render_e3_tradeoff_structure(pkg)
         str(x.value) for x in at.caption
     )
     assert str(pkg.queue_capacity.capacity_per_rsu) in body
-    assert str(pkg.factors["scenario_rsus"]) in body or "RSU" in body
+    assert str(pkg.factors["scenario_rsus"]) in body
     assert "resource_unit_seconds" in body
+    # Staleness grid must be package-derived, not fallback literal
+    assert ", ".join(str(v) for v in pkg.factors["state_age_ms_values"]) in body
     assert str(len(pkg.dormant_arms)) in body
     assert str(len(pkg.dormant_configs)) in body
 
@@ -185,4 +187,5 @@ render_e3_research(pkg, receipt, comp, acct, exports)
     assert str(pkg.factors["padded_fleet_width"]) in body
     assert str(pkg.queue_capacity.capacity_per_rsu) in body
     assert str(pkg.factors["scenario_rsus"]) in body
+    assert ", ".join(str(v) for v in pkg.factors["state_age_ms_values"]) in body
     assert "Download E3 JSON" in [b.label for b in at.download_button]

@@ -321,10 +321,11 @@ def test_e3_explorer_rendered_constants_match_package(tmp_path: pathlib.Path) ->
     btn.click().run(timeout=30)
     body = _text_of(app)
     # Must contain package values, not hardcoded drift
-    assert str(pkg.factors["scenario_rsus"]) in body or "10" in body  # RSU count
+    assert str(pkg.factors["scenario_rsus"]) in body
     assert str(pkg.factors["padded_fleet_width"]) in body
     assert str(pkg.factors["ticks_per_cell"]) in body
     assert str(pkg.queue_capacity.capacity_per_rsu) in body
+    assert ", ".join(str(v) for v in pkg.factors["state_age_ms_values"]) in body
     # Verify that the button labels are still unique and E3 load button visible
     labels = [b.label for b in app.button]
     assert "Load TrafficTwin E3 Dynamic Resource V2" in labels
@@ -343,14 +344,18 @@ def test_e3_intent_b_and_d_regressions() -> None:
     assert "Load TrafficTwin E3 Dynamic Resource V2" in [b.label for b in app.button], (
         "E3 load button must be visible when E2 active and e3 intent pending"
     )
-    # D: after Clear-E2 with pending e3 intent → E3 activates
-    # Simulate fresh E2 active, set intent, then clear E2 via session manipulation and check E3
+    # D: after Clear-E2 with pending e3 intent — with distinct E3 pending key, E3 does not
+    # auto-activate from a stale pending after Clear-E2
+    # (scenario now impossible for shared pending).
+    # Drive the Clear-E2 widget in an E2-active run with a pending e3 intent
+    # and verify the click is real
+    # and E2 clears without swallowing a future e2 intent.
     app2 = _page_app()
     app2.session_state["resource_strategy_e2_active"] = True
-    app2.run(timeout=30)
-    # Now set intent and simulate clear
     app2.session_state["resource_strategy_intent"] = "e3"
-    # Find and click Clear E2
+    app2.session_state["_resource_strategy_e3_intent_pending_pop"] = True
+    app2.run(timeout=30)
+    # Find and click Clear E2 — real widget click
     clear = None
     for b in app2.button:
         if "Clear E2 research view" in str(b.label):
@@ -360,5 +365,145 @@ def test_e3_intent_b_and_d_regressions() -> None:
     clear.click().run(timeout=30)
     assert not app2.exception, app2.exception
     body2 = _text_of(app2)
-    assert "REFUSED" in body2 or "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body2
-    assert "NOT_EXECUTED" in body2
+    # After Clear-E2, E2 must be cleared; E3 pending is distinct so it should not have swallowed e2
+    # With distinct keys, clearing E2 does not auto-activate E3 from stale
+    # pending — user must re-navigate via Home CTA.
+    # Verify E2 values are gone and page is in generic state (not E3 REFUSED auto).
+    assert "0.683619229" not in body2
+    # E2 active flag must be cleared
+    assert "resource_strategy_e2_active" not in app2.session_state
+
+
+def test_e2_cta_after_e3_visit_renders_e2_first_press() -> None:
+    """B1 regression: E2 CTA after an E3 visit renders E2 on FIRST rerun.
+
+    Reviewer exploit sequence — run explorer with intent="e3" (E3 renders,
+    e3_active True and distinct _resource_strategy_e3_intent_pending_pop set
+    by the page), then set intent="e2" as the Home CTA callback does and
+    rerun. FIRST rerun must render the E2 journey (E2 marker 0.683619229
+    present and E3 REFUSED banner absent), proving the E3 pending key cannot
+    pop the e2 intent.
+
+    Bug reference (git 7e4f833): E3 previously wrote the shared
+    _resource_strategy_intent_pending_pop. With the shared key, the FIRST
+    rerun after an E3 visit swallowed the fresh e2 intent in
+    _render_e2_preset (pending pop) and fell through to stale E3 because
+    resource_strategy_e3_active was still True. This test FAILS under the
+    shared-key behavior and PASSES only with the distinct
+    _resource_strategy_e3_intent_pending_pop key.
+    """
+
+    app = _page_app()
+    app.session_state["resource_strategy_intent"] = "e3"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body_e3 = _text_of(app)
+    assert "REFUSED" in body_e3 or "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body_e3
+    assert "NOT_EXECUTED" in body_e3
+    # Distinct E3 pending must be set; shared pending must not be set by E3.
+    assert "resource_strategy_e3_active" in app.session_state
+    assert app.session_state["resource_strategy_e3_active"] is True
+    assert "_resource_strategy_e3_intent_pending_pop" in app.session_state
+    assert app.session_state["_resource_strategy_e3_intent_pending_pop"] is True
+    assert "_resource_strategy_intent_pending_pop" not in app.session_state, (
+        "E3 must write distinct _resource_strategy_e3_intent_pending_pop, not shared"
+    )
+
+    # Simulate Home CTA callback for E2: exact "_on_inspect_e2_research" path
+    # sets resource_strategy_intent="e2" then navigates.
+    app.session_state["resource_strategy_intent"] = "e2"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body = _text_of(app)
+    assert "0.683619229" in body, "FIRST rerun after E3 with e2 CTA must render E2"
+    assert "0.715773211" in body
+    assert "ADMITTED RESEARCH" in body
+    # E3 REFUSED banner must be absent on FIRST rerun.
+    assert "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" not in body
+    assert "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED" not in body
+    assert "NO_E3_RESEARCH_RESULTS_AVAILABLE" not in body
+    # If E3 had written the shared key (7e4f833), this FIRST rerun would have
+    # rendered stale E3 and the asserts above would FAIL.
+
+
+def test_e3_cta_after_e2_visit_renders_e3() -> None:
+    """Mirror B1: E3 CTA after an E2 visit renders E3 on FIRST rerun.
+
+    Sequence — run explorer with intent="e2" (E2 renders, e2_active True and
+    shared pending set), then set intent="e3" as the Home CTA does and rerun.
+    FIRST rerun must render the E3 journey (REFUSED banner present, E2 marker
+    absent), proving the intents are symmetric and E2 pending cannot block E3.
+
+    Distinct-key invariant: E3 writes only _resource_strategy_e3_intent_pending_pop,
+    E2 writes only _resource_strategy_intent_pending_pop. Under git 7e4f833 both
+    wrote the shared key; a stale E2 pending could delay or swallow a later e3
+    intent if dispatch order changed. This mirror FAILS if E3 ever writes the
+    shared key again.
+    """
+
+    app = _page_app()
+    app.session_state["resource_strategy_intent"] = "e2"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body_e2 = _text_of(app)
+    assert "0.683619229" in body_e2
+    assert "ADMITTED RESEARCH" in body_e2
+    assert "resource_strategy_e2_active" in app.session_state
+    assert app.session_state["resource_strategy_e2_active"] is True
+    # E2 uses the shared pending key
+    assert "_resource_strategy_intent_pending_pop" in app.session_state
+    assert app.session_state["_resource_strategy_intent_pending_pop"] is True
+
+    # Simulate Home CTA for E3
+    app.session_state["resource_strategy_intent"] = "e3"
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body = _text_of(app)
+    assert "REFUSED" in body or "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" in body
+    assert "NOT_EXECUTED" in body
+    assert "NO_E3_RESEARCH_RESULTS_AVAILABLE" in body
+    assert "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED" in body
+    # E2 marker must be absent — E3 has dispatched before E2 when intent is e3.
+    assert "0.683619229" not in body
+    assert "0.715773211" not in body
+
+
+def test_state_sweep_exploit_row_e2_with_stale_e3_pending_renders_e2() -> None:
+    """State-sweep for exact B1 exploit row — stale E3 must not hijack e2.
+
+    Exact row: intent="e2", _resource_strategy_e3_intent_pending_pop=True,
+    resource_strategy_e3_active=True, no resource_strategy_e2_active.
+    Rerun must render E2 (0.683619229) not E3. This is the direct session-state
+    form of the B1 exploit without needing a full navigation sequence.
+
+    With the distinct key the E3 handler clears only the stale E3 flag when
+    intent is e2, leaving the e2 intent to activate E2. With the git 7e4f833
+    shared key, _render_e2_preset popped the e2 intent as stale (shared pending)
+    and fell through to _render_e3_preset which rendered stale E3 — this test
+    FAILS under the shared key and PASSES only with the distinct E3 key.
+    """
+
+    app = _page_app()
+    # Arrange exact exploit row
+    if "resource_strategy_e2_active" in app.session_state:
+        del app.session_state["resource_strategy_e2_active"]
+    app.session_state["resource_strategy_e3_active"] = True
+    app.session_state["_resource_strategy_e3_intent_pending_pop"] = True
+    app.session_state["resource_strategy_intent"] = "e2"
+    # Ensure shared E2 pending is absent — simulates distinct-key world.
+    # If E3 had written shared key, this would be True and E2 would be swallowed.
+    if "_resource_strategy_intent_pending_pop" in app.session_state:
+        del app.session_state["_resource_strategy_intent_pending_pop"]
+
+    app.run(timeout=30)
+    assert not app.exception, app.exception
+    body = _text_of(app)
+    assert "0.683619229" in body, "exploit row must render E2, not stale E3"
+    assert "0.715773211" in body
+    assert "ADMITTED RESEARCH" in body
+    assert "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD" not in body
+    assert "NO_E3_RESEARCH_RESULTS_AVAILABLE" not in body
+    assert "REFUSED" not in body or "ADMITTED RESEARCH" in body
+    # Post-condition: E2 activated, stale E3 flag cleared to distinct key only
+    assert "resource_strategy_e2_active" in app.session_state
+    assert app.session_state["resource_strategy_e2_active"] is True

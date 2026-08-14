@@ -226,12 +226,6 @@ def render_e3_tradeoff_structure(
         f"compute_is_not_queue: {package.compute_capacity.is_compute_not_queue}"
     )
     # Derive staged design numbers from the typed package — no literal duplication.
-    _e3a_cells = (
-        len(package.factors.get("placements", []))
-        * len([1])
-        * len([1])
-        * len(package.replication.fleet_seeds)
-    )
     _unique_configs = len(package.dormant_configs)
     _arms = len(package.dormant_arms)
     # Use exact package-derived values; no fallback literals.
@@ -251,10 +245,8 @@ def render_e3_tradeoff_structure(
         rows = [
             {
                 "arm_id": a.arm_id,
-                "placement": str(
-                    a.placement.value if hasattr(a.placement, "value") else a.placement
-                ),
-                "scaling": str(a.scaling.value if hasattr(a.scaling, "value") else a.scaling),
+                "placement": str(a.placement.value),
+                "scaling": str(a.scaling.value),
                 "state_age_ms": a.state_age_ms,
                 "status": "dormant NOT_EXECUTED",
             }
@@ -306,7 +298,7 @@ def render_e3_per_rsu_and_scale_action_structure(
         st.caption(package.scaling_receipts.capacity_levels_null_reason)
         st.caption(accounting.scaling_receipts.capacity_reason)
         st.markdown("**State-age receipts**")
-        _state_vals = package.factors.get("state_age_ms_values", [0, 1000, 3000])
+        _state_vals = package.factors["state_age_ms_values"]
         st.markdown(
             f"`value = None` typed int milliseconds {'/'.join(str(v) for v in _state_vals)}"
         )

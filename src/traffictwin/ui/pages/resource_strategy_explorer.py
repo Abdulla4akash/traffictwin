@@ -257,38 +257,26 @@ def _render_e3_preset() -> bool:
         ):
             st.session_state["resource_strategy_e3_active"] = True
 
-        # Handle delayed pop from previous navigation (one-shot, delayed by one render
-        # to keep legacy AppTest assertions that check intent presence after
-        # navigation passing, while still guaranteeing consumption before clear).
-        # Preserve E3 intent when it is pending consumption.
-        if st.session_state.get("_resource_strategy_intent_pending_pop"):
+        # Handle delayed pop for E3 intent (one-shot, delayed by one render
+        # to keep AppTest assertions that check intent presence after navigation
+        # passing, while still guaranteeing consumption before clear). Uses a
+        # DISTINCT key from the E2 pending flag so that E2 and E3 intents do
+        # not interfere; invariant pending ==> e2_active is preserved for E2.
+        # If the E3 pending flag is set and the current intent is e3, pop both;
+        # if the intent is different (e2 or None), clear only the stale E3 flag
+        # so an e2 intent is never swallowed by an E3 pending.
+        if st.session_state.get("_resource_strategy_e3_intent_pending_pop"):
             if st.session_state.get("resource_strategy_intent") == "e3":
-                # Do not pop the fresh E3 intent on the same render where it must
-                # be consumed; the pending flag here is stale from a prior
-                # activation and can be cleared without destroying the new intent.
-                # For E3, the pending flag will be set anew after consumption, so
-                # we only clear the stale flag here.
-                # If this pending belongs to E3 itself from previous render, it
-                # should be popped together with the intent that has already been
-                # consumed; but since intent is still e3 (fresh), we preserve it
-                # and clear only the stale flag, allowing consumption below.
-                # The next render (after consumption sets a new pending) will
-                # correctly pop the intent after one-render delay.
-                # To distinguish, we check whether E3 is already active.
-                if st.session_state.get("resource_strategy_e3_active"):
-                    st.session_state.pop("resource_strategy_intent", None)
-                    st.session_state.pop("_resource_strategy_intent_pending_pop", None)
-                else:
-                    st.session_state.pop("_resource_strategy_intent_pending_pop", None)
-            else:
                 st.session_state.pop("resource_strategy_intent", None)
-                st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+                st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+            else:
+                st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
 
         # Consume Home/Guided Demo intent one-shot: exact value "e3"
         intent = st.session_state.get("resource_strategy_intent")
         if intent == "e3":
             st.session_state["resource_strategy_e3_active"] = True
-            st.session_state["_resource_strategy_intent_pending_pop"] = True
+            st.session_state["_resource_strategy_e3_intent_pending_pop"] = True
 
         # Show clear when active - unique label per page
         if st.session_state.get("resource_strategy_e3_active"):  # noqa: SIM102
@@ -298,7 +286,7 @@ def _render_e3_preset() -> bool:
             ):
                 st.session_state.pop("resource_strategy_e3_active", None)
                 st.session_state.pop("resource_strategy_intent", None)
-                st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+                st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
                 st.rerun()
 
     if not st.session_state.get("resource_strategy_e3_active"):
