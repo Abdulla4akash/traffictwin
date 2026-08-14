@@ -146,7 +146,7 @@ No empirical offering; no placeholder fabricated results.
 - Manifest sidecar SHA: `39862882ae34e71260ce5b466fcd4a93d61da783c4dd16fc987be562ea396438`
 - E3 package fingerprint (canonical sorted SHA-256): `e5ff1bc0e3410d47520c2e841803c8fa67efb3581b8f52a66e407552457b8e8c`
 - Lane promotions: Lane 08 approved `c5d66ef7e77f3b7d1f3fde084feea45a83f5c178` promotion `342789434233e97cd87ea74e21a759878610ce40`; Lane 10 approved `194941f0dcb1e2f72351fb030d7f58679c001205` promotion `8a2f0fffb605fac94ec625f49f80260a54daba6d`; Lane 11 approved `e87b2ed39d1ad2ebd6d98dd0f0a9156158ea166d` promotion `6edf8f447244ede8bcc942c4d6a7c03fef45a606`
-- Campaign: `e3-dynamic-resource-v2`, Lane 12 base integration `4f1ef5bc82585e2a719387a71c38e188f3f43594`, campaign base `6e3fd0d385c20c7262e096f2d7da4995a7d9c21b`
+- Campaign: `e3-dynamic-resource-v2`, Lane 12 base integration `6edf8f447244ede8bcc942c4d6a7c03fef45a606`, campaign base `6e3fd0d385c20c7262e096f2d7da4995a7d9c21b`
 - Hosted CI: `HOSTED_CI_UNAVAILABLE`
 
 ### Limitations and non-claims

@@ -50,8 +50,10 @@
       "promotion": "6edf8f447244ede8bcc942c4d6a7c03fef45a606"
     },
     "12": {
-      "base_integration_sha": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
-      "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b"
+      "base_integration_sha": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+      "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
+      "note": "self_sha binds at promotion; promotion receipt binds final SHA",
+      "self_sha": "BOUND_AT_PROMOTION"
     }
   },
   "pass": true,

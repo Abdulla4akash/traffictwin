@@ -1,4 +1,4 @@
-# ruff: noqa: ANN401, E501, S108, SIM102, SIM115, F841, S110, I001, F401
+# ruff: noqa: ANN401, ANN202, ANN002, ANN003, E501, S108, SIM102, SIM115, F841, S110, I001, F401, B023, S603
 """End-to-end E3 research product acceptance — Lane 12.
 
 AppTest journey: generic state, E2 journey unchanged, E3 journey truthful
@@ -405,6 +405,31 @@ def test_tracked_receipt_byte_stability(tmp_path: Path) -> None:
     assert before == after, "suite must leave tracked file byte-identical"
 
 
+def test_tracked_gate_receipt_matches_fresh_regeneration(tmp_path: Path) -> None:
+    import scripts.validate_e3_research_product as v
+
+    tracked = Path("docs/quality/e3_quality_gate.json")
+    assert tracked.exists(), "tracked gate receipt must exist"
+    before = tracked.read_bytes()
+    # Fresh regeneration via validator subcommand
+    fresh = tmp_path / "fresh_gate.json"
+    rc = v.main(["--emit-gate-receipt", str(fresh)])
+    assert rc == 0
+    fresh_text = fresh.read_text(encoding="utf-8")
+    # Also via direct build_gate for determinism
+    gate2 = v.build_gate()
+    gate2_text = json.dumps(gate2, indent=2, ensure_ascii=False) + "\n"
+    assert fresh_text == gate2_text, "fresh regeneration must be deterministic"
+    # Committed must match fresh
+    assert before.decode("utf-8") == fresh_text, (
+        "committed gate receipt must match fresh regeneration "
+        "(run scripts/validate_e3_research_product.py --emit-gate-receipt docs/quality/e3_quality_gate.json)"
+    )
+    # Ensure suite does not modify tracked file
+    after = tracked.read_bytes()
+    assert before == after, "suite must leave tracked gate receipt byte-identical"
+
+
 # ---- Helper for CLI-surface mutation tests ---------------------------------
 
 
@@ -694,6 +719,109 @@ def test_bypass_sentences_fail_via_cli(
     assert any(e.startswith(expected_code + ":") for e in errs), (
         f"expected {expected_code} in {errs}"
     )
+
+
+def test_b1_heading_and_ordered_units_with_disclaimer_plus_claim_fail_typed(tmp_path: Path) -> None:
+    """B1 regression: heading (^#) and ordered (^\\d+\\.) units that contain disclaimer+claim must fail typed."""
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+    ad = ALLOWLISTED_DISCLAIMERS[6]
+    cases = [
+        (f"# {ad} Kubernetes deployment is live", "E3PV_KUBERNETES_CLAIM"),
+        (f"## {ad} Cost is $100 dollars", "E3PV_MONETARY_CLAIM"),
+        (f"### {ad} tasks as n is true claim", "E3PV_TASKS_AS_N"),
+        (f"1. {ad} supervisor approval already granted", "E3PV_SUPERVISOR_CLAIM"),
+        (f"2. {ad} We generalize across all of Manchester", "E3PV_MANCHESTER_WIDE"),
+        (f"3. {ad} p2c_dla ranks universally superior", "E3PV_UNIVERSAL_SUPERIORITY"),
+    ]
+    for sentence, expected_code in cases:
+        orig_read = Path.read_text
+
+        def fake_read(self: Path, *args, **kwargs):  # type: ignore[no-untyped-def]
+            if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+                real = orig_read(self, *args, **kwargs)
+                return real + "\n\n" + sentence + "\n"
+            return orig_read(self, *args, **kwargs)
+
+        mp = pytest.MonkeyPatch()
+        mp.setattr(Path, "read_text", fake_read)
+        try:
+            rc, errs, _ = _run_validator_cli(mp, tmp_path)
+            assert rc != 0, f"heading/ordered bypass should fail: {sentence!r}"
+            assert any(e.startswith(expected_code + ":") for e in errs), (
+                f"expected {expected_code} in {errs} for {sentence!r}"
+            )
+        finally:
+            mp.undo()
+
+
+def test_b1_bullet_and_plain_units_with_disclaimer_plus_claim_fail_typed(tmp_path: Path) -> None:
+    """B1 regression: bullet and plain units with disclaimer+claim must also fail typed (controls)."""
+    from traffictwin.experiments.e3_research_evidence import ALLOWLISTED_DISCLAIMERS
+
+    ad = ALLOWLISTED_DISCLAIMERS[0]
+    cases = [
+        (f"- {ad} Kubernetes deployment is live", "E3PV_KUBERNETES_CLAIM"),
+        (f"* {ad} Cost is $100 dollars", "E3PV_MONETARY_CLAIM"),
+        (f"Plain line {ad} tasks as n is true claim", "E3PV_TASKS_AS_N"),
+        (f"Intro {ad} supervisor approval already granted", "E3PV_SUPERVISOR_CLAIM"),
+    ]
+    for sentence, expected_code in cases:
+        orig_read = Path.read_text
+
+        def fake_read(self: Path, *args, **kwargs):  # type: ignore[no-untyped-def]
+            if str(self).endswith("e3_dynamic_resource_v2_product.md"):
+                real = orig_read(self, *args, **kwargs)
+                return real + "\n\n" + sentence + "\n"
+            return orig_read(self, *args, **kwargs)
+
+        mp = pytest.MonkeyPatch()
+        mp.setattr(Path, "read_text", fake_read)
+        try:
+            rc, errs, _ = _run_validator_cli(mp, tmp_path)
+            assert rc != 0, f"bullet/plain bypass should fail: {sentence!r}"
+            assert any(e.startswith(expected_code + ":") for e in errs), (
+                f"expected {expected_code} in {errs}"
+            )
+        finally:
+            mp.undo()
+
+
+def test_b2_traceability_marketing_injection_fails_typed(tmp_path: Path) -> None:
+    """B2 regression: traceability free-text marketing injection must fail typed via CLI."""
+    import json
+
+    real_trace = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    injected = json.loads(real_trace)
+    injected["marketing"] = (
+        "Our VEC platform is universally superior, Manchester-wide, on Kubernetes, for $100"
+    )
+
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args, **kwargs):  # type: ignore[no-untyped-def]
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(injected)
+        return orig_read(self, *args, **kwargs)
+
+    mp = pytest.MonkeyPatch()
+    mp.setattr(Path, "read_text", fake_read)
+    try:
+        rc, errs, _ = _run_validator_cli(mp, tmp_path)
+        assert rc != 0, "marketing injection into traceability should fail"
+        # Should contain at least one typed forbidden code
+        assert any(
+            e.startswith(code + ":")
+            for e in errs
+            for code in [
+                "E3PV_KUBERNETES_CLAIM",
+                "E3PV_MONETARY_CLAIM",
+                "E3PV_UNIVERSAL_SUPERIORITY",
+                "E3PV_MANCHESTER_WIDE",
+            ]
+        ), f"expected typed forbidden code in {errs}"
+    finally:
+        mp.undo()
 
 
 def test_allowlisted_disclaimers_pass_via_cli(tmp_path: Path) -> None:

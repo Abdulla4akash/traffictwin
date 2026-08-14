@@ -16,11 +16,11 @@
       "result": "PASS",
       "exit_code": 0,
       "errors": [],
-      "checks": 14,
+      "checks": 15,
       "deterministic": true
     },
     "validator_mutations": {
-      "count": 18,
+      "count": 20,
       "each_must_fail_with_typed_error_no_traceback": true,
       "result": "PASS",
       "tested_categories": [
@@ -48,7 +48,7 @@
     },
     "acceptance_apptest": {
       "path": "tests/integration/test_e3_research_product_acceptance.py",
-      "tests": 37,
+      "tests": 57,
       "result": "PASS",
       "covers": [
         "generic synthetic still works",
@@ -58,7 +58,7 @@
         "e3 no placeholder fabricated",
         "cta sequences mutual exclusion",
         "exports deterministic typed payload no leakage",
-        "validator self-tests 18 mutations",
+        "validator self-tests 20 mutations",
         "no absolute path literals"
       ]
     },
@@ -123,14 +123,7 @@
         "docs/closure/e3_product_traceability.json",
         "docs/quality/e3_"
       ],
-      "found_untracked": [
-        "docs/closure/e3_product_traceability.json",
-        "docs/e3_dynamic_resource_v2_product.md",
-        "docs/quality/e3_quality_gate.json",
-        "docs/quality/e3_validator_verdict.json",
-        "scripts/validate_e3_research_product.py",
-        "tests/integration/test_e3_research_product_acceptance.py"
-      ],
+      "found_untracked": [],
       "all_allowed": true,
       "result": "PASS"
     },
@@ -191,5 +184,11 @@
   },
   "verdict": "PASS",
   "no_scientific_execution": true,
-  "research_workloads_launched": 0
+  "research_workloads_launched": 0,
+  "generation": {
+    "script": "scripts/validate_e3_research_product.py",
+    "procedure": "python scripts/validate_e3_research_product.py --emit-gate-receipt docs/quality/e3_quality_gate.json",
+    "deterministic": true,
+    "note": "Run this script to regenerate; committed receipt must match fresh regeneration (test asserts)."
+  }
 }

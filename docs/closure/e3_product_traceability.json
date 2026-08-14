@@ -38,11 +38,11 @@
       "description": "E3 Lane 11 product journey and reporting"
     },
     "12": {
-      "approved": "WORKTREE_UNCOMMITTED_e323db4e",
-      "promotion": "WORKTREE_UNCOMMITTED_6edf8f4",
-      "base_integration_sha": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
+      "base_integration_sha": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+      "self_sha": "BOUND_AT_PROMOTION",
+      "note": "self_sha binds at promotion; promotion receipt binds final SHA",
       "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
-      "description": "Lane 12 acceptance validator + docs (this worktree, uncommitted)"
+      "description": "Lane 12 acceptance validator + docs (honest self-pin; base is lane 11 promotion)"
     }
   },
   "hold": {
@@ -53,7 +53,7 @@
     "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
   },
   "hosted_ci": "HOSTED_CI_UNAVAILABLE",
-  "hosted_ci_truth": "HOSTED_CI_UNAVAILABLE — no hosted CI claim; supervisor approval not claimed",
+  "hosted_ci_truth": "HOSTED_CI_UNAVAILABLE — no hosted CI claim; no approval claim beyond hold",
   "frozen_e2_preservation": {
     "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",
     "receipt_fingerprint": "45e8c2782ff40495e472bc0e6de3ba3be1610fdb974f88b7ffd12a754d031ebc",
@@ -87,7 +87,12 @@
   "replication": {
     "replication_unit": "fleet_draw",
     "n": 4,
-    "fleet_seeds": [1, 2, 3, 4],
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
     "evaluator_seed": 0,
     "method": "two-sided Student-t 95% interval over fleet-draw differences (df=3, t=3.182)"
   },
@@ -96,8 +101,16 @@
     "unit": "resource_unit_seconds",
     "monetary": false,
     "queue_capacity_per_rsu": 6220,
-    "compute_active_units_per_rsu_range": [1, 2, 3],
-    "state_age_ms_values": [0, 1000, 3000]
+    "compute_active_units_per_rsu_range": [
+      1,
+      2,
+      3
+    ],
+    "state_age_ms_values": [
+      0,
+      1000,
+      3000
+    ]
   },
   "receipts": {
     "validator_verdict": "docs/quality/e3_validator_verdict.json",
@@ -107,27 +120,27 @@
     "quality_gate": "docs/quality/e3_quality_gate.json"
   },
   "validator_checks": [
-    "identity_mismatch research_promotion / runner / vec_promotion / actor / trace / manifest / product_base / lane10-11 promotions",
-    "wrong_numbers placeholder while NOT_EXECUTED",
-    "tasks_as_n forbidden",
-    "queue_compute_conflation forbidden",
-    "unavailable_to_zero forbidden",
-    "monetary_cost forbidden",
-    "kubernetes_claim forbidden",
-    "actor_selects_rsu_claim forbidden",
-    "universal_superiority forbidden",
-    "manchester_wide_inference forbidden",
-    "supervisor_approval not claimed",
-    "missing_resource_denominator",
-    "free_unbounded_scaling",
-    "stale_unit_drift",
-    "broken_e3_journey_route",
-    "export_mismatch",
-    "non_deterministic_exports",
-    "placeholder_fabricated_results",
-    "source_path_secret_leakage",
-    "e2_preservation byte-for-byte",
-    "hosted_ci_unavailable"
+    "identity mismatch for product_base, research_promotion, runner, vec_promotion, actor_sha, trace_sha, manifest_sidecar, lane 10-11 pins",
+    "placeholder numbers must stay None while NOT_EXECUTED",
+    "replication unit must be fleet_draw (tasks are not replicates)",
+    "queue and compute capacities strictly separate",
+    "unavailable fields must stay None not zero",
+    "resource cost is resource_unit_seconds not monetary",
+    "placement is deterministic infra, not managed cluster",
+    "actor does not choose execution RSU",
+    "hypotheses H1-H5 are not scalar best (no universal)",
+    "bounded to incident hour, not city-wide",
+    "no claim of approval status beyond hold",
+    "resource denominator resource_unit_seconds present",
+    "compute capacity 1..3 only (no free scaling)",
+    "state_age_ms typed 0,1000,3000 only",
+    "E3 journey route present and correct",
+    "export JSON/CSV/Markdown mismatch check",
+    "exports deterministic across rebuilds",
+    "no fabricated placeholder results while NOT_EXECUTED",
+    "no private path or secret leakage",
+    "E2 artifact preserved byte-for-byte",
+    "hosted CI is unavailable truthfully"
   ],
   "acceptance_test": "tests/integration/test_e3_research_product_acceptance.py (AppTest launch->generic->E2 unchanged->E3 truthful no-results hold banner/refusal/null lifecycle/provenance pins/CTA sequences/exports)",
   "evidence_state": "NOT_EXECUTED",
