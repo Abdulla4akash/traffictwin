@@ -2,6 +2,7 @@
   "schema_version": "e3_quality_gate_v1",
   "campaign": "e3-dynamic-resource-v2",
   "lane": 12,
+  "repo_root": "/Users/akashx/AntigravityTest/e3-dynamic-resource-v2/worktrees/lane12-acceptance",
   "hold": {
     "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
     "evidence_state": "NOT_EXECUTED",
@@ -13,17 +14,20 @@
   "gates": {
     "validator_real_tree": {
       "script": "scripts/validate_e3_research_product.py",
+      "repo_root": "/Users/akashx/AntigravityTest/e3-dynamic-resource-v2/worktrees/lane12-acceptance",
       "result": "PASS",
       "exit_code": 0,
       "errors": [],
       "checks": 16,
-      "deterministic": true
+      "deterministic": true,
+      "note": "measured against real tree"
     },
     "validator_mutations": {
-      "count": 244,
-      "each_must_fail_with_typed_error_no_traceback": true,
+      "count": "deferred_to_controller",
+      "each_must_fail_with_typed_error_no_traceback": "deferred_to_controller",
       "result": "deferred_to_controller",
-      "note": "derived from pytest --collect-only or deferred if unavailable"
+      "note": "deferred_to_controller: measuring requires executing the suite, which emit must not do",
+      "repo_root": "/Users/akashx/AntigravityTest/e3-dynamic-resource-v2/worktrees/lane12-acceptance"
     },
     "acceptance_apptest": {
       "path": "tests/integration/test_e3_research_product_acceptance.py",
@@ -98,7 +102,11 @@
         "docs/quality/e3_"
       ],
       "found_untracked": [],
-      "found_changed": [],
+      "found_changed": [
+        "docs/quality/e3_quality_gate.json",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
       "found_out_of_scope": [],
       "all_allowed": true,
       "result": "PASS"

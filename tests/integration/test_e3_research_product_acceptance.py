@@ -1767,7 +1767,7 @@ def test_verified_results_headline_flip_fails_typed(
     def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
         if str(self).endswith("e3_dynamic_resource_v2_product.md"):
             real = orig_read(self, *args, **kwargs)
-            return real + "\n\n# E3 results\nWe have E3 results verified for all workloads.\n"
+            return real + "\n\n# Verified results\nWe have verified results for all workloads.\n"
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
@@ -1813,7 +1813,7 @@ def test_traceability_verified_results_injection_fails(
 ) -> None:
     real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
     data = json.loads(real)
-    data["note"] = "E3 results are verified and show improvement"
+    data["note"] = "Verified results show improvement"
     orig_read = Path.read_text
 
     def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
@@ -2730,41 +2730,150 @@ def test_review6_truthful_controls_pass_on_each_surface(
     assert rc == 0, f"truthful {truth_phrase!r} on {surface!r} should pass but got {errs}"
 
 
+# ---- Review-7 15 escapes — HEAD-ONLY (no verb required), parametrized over all surfaces including two residue-free surfaces ----
+_REVIEW7_ESCAPES: list[tuple[str, str]] = [
+    # Hosted CI family — any mention of hosted ci / github actions / ci checks is error (no verb needed)
+    (
+        "Hosted CI: success. Every job finished on the first attempt.",
+        "E3PV_HOSTED_CI_CONTRADICTION",
+    ),
+    ("The hosted CI run was successful across the pipeline.", "E3PV_HOSTED_CI_CONTRADICTION"),
+    ("Hosted CI was clean; no failures at all.", "E3PV_HOSTED_CI_CONTRADICTION"),
+    ("Hosted CI reported zero failures in the final run.", "E3PV_HOSTED_CI_CONTRADICTION"),
+    ("GitHub Actions: success across every job.", "E3PV_HOSTED_CI_CONTRADICTION"),
+    ("CI checks came back successful and complete.", "E3PV_HOSTED_CI_CONTRADICTION"),
+    # Research workloads family — any mention of research workloads is error
+    ("The E3 research workloads completed; every arm reported.", "E3PV_WORKLOADS_CONTRADICTION"),
+    ("Research workloads are ready for inspection.", "E3PV_WORKLOADS_CONTRADICTION"),
+    ("Our research workloads have been completed.", "E3PV_WORKLOADS_CONTRADICTION"),
+    ("Research workloads overview shows all arms listed.", "E3PV_WORKLOADS_CONTRADICTION"),
+    ("research workloads: 12 workloads processed", "E3PV_WORKLOADS_CONTRADICTION"),
+    # E3 results/outcomes family — any mention of e3 results/outcomes is error; plus verified results head
+    ("E3 results are ready and attached for review.", "E3PV_CONTRADICTION"),
+    ("E3 outcomes have been obtained for all arms.", "E3PV_CONTRADICTION"),
+    ("The E3 results are now available and published.", "E3PV_CONTRADICTION"),
+    ("E3 outcomes are available for download.", "E3PV_CONTRADICTION"),
+]
+
+# All five scanned surfaces plus the two residue-free surfaces are covered — the residue-free surfaces are
+# e2_product_lane12_base_receipt.json and e3_quality_gate.json which have no incidental heads after stripping
+_ALL_SURFACES_REVIEW7: list[str] = [
+    "docs/e3_dynamic_resource_v2_product.md",
+    "docs/closure/e3_product_traceability.json",
+    "docs/quality/e3_quality_gate.json",
+    "docs/quality/e3_validator_verdict.json",
+    "docs/closure/e2_product_lane12_base_receipt.json",
+]
+
+
+@pytest.mark.parametrize("phrase,expected_code", _REVIEW7_ESCAPES)
+@pytest.mark.parametrize("surface", _ALL_SURFACES_REVIEW7)
+def test_review7_escape_fails_typed_on_each_surface(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    phrase: str,
+    expected_code: str,
+    surface: str,
+) -> None:
+    """Every review-7 HEAD-ONLY escape must fail typed on every surface (no verb required, including residue-free surfaces)."""
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith(surface):
+            real = orig_read(self, *args, **kwargs)
+            if surface.endswith(".json"):
+                try:
+                    data = json.loads(real)
+                    data["review7_injection"] = phrase
+                    return json.dumps(data)
+                except Exception:
+                    return real + "\n" + phrase + "\n"
+            else:
+                return real + "\n\n" + phrase + "\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, f"review-7 escape {phrase!r} on {surface!r} should fail"
+    assert any(e.startswith(expected_code + ":") for e in errs), (
+        f"expected {expected_code} got {errs} for {phrase!r} on {surface!r}"
+    )
+
+
+@pytest.mark.parametrize("surface", _ALL_SURFACES_REVIEW7)
+def test_review7_truthful_controls_pass_on_each_surface(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, surface: str
+) -> None:
+    """Truthful allowlisted controls must still pass on each surface after HEAD-ONLY."""
+    truth_map: dict[str, str] = {
+        "docs/e3_dynamic_resource_v2_product.md": "research_workloads_launched = 0",
+        "docs/closure/e3_product_traceability.json": "HOSTED_CI_UNAVAILABLE",
+        "docs/quality/e3_quality_gate.json": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+        "docs/quality/e3_validator_verdict.json": "research_workloads_launched = 0",
+        "docs/closure/e2_product_lane12_base_receipt.json": "HOSTED_CI_UNAVAILABLE",
+    }
+    truth_phrase = truth_map.get(surface, "research_workloads_launched = 0")
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith(surface):
+            real = orig_read(self, *args, **kwargs)
+            if surface.endswith(".json"):
+                try:
+                    data = json.loads(real)
+                    data["truthful_injection"] = truth_phrase
+                    return json.dumps(data)
+                except Exception:
+                    return real
+            else:
+                return real + "\n\n" + truth_phrase + "\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc == 0, f"truthful {truth_phrase!r} on {surface!r} should pass but got {errs}"
+
+
 def test_no_unmeasured_values_in_gate(tmp_path: Path) -> None:
     """Gate must have no unmeasured literals: deferred_to_controller has no number, checks derived, deterministic measured."""
     import scripts.validate_e3_research_product as v
 
     gate = v.build_gate()
-    # validator_mutations count should be either int measured or deferred string, never literal 145 when deferred? Check that if deferred, it's string
     vm = gate["gates"]["validator_mutations"]
-    count = vm["count"]
-    # If it's deferred, it must be exactly "deferred_to_controller" with no number
-    if isinstance(count, str):
-        assert count == "deferred_to_controller"
-        assert "145" not in str(vm) or isinstance(
-            count, int
-        )  # ensure not literal 145 when deferred
-    else:
-        assert isinstance(count, int) and count > 0
-        assert count >= 0  # measured count, 145 is okay if derived
+    # HONEST MUTATION FIELDS: both count and each_must_fail are ALWAYS deferred_to_controller (measuring requires executing suite)
+    assert vm["count"] == "deferred_to_controller"
+    assert vm["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
+    assert "deferred_to_controller" in vm["note"]
+    # Ensure no literal true leaked
+    assert vm["each_must_fail_with_typed_error_no_traceback"] is not True  # type: ignore[comparison-overlap]
+    assert vm["count"] is not True  # type: ignore[comparison-overlap]
     # checks should be independent expected count 16, not tautological len(registry)
     assert gate["gates"]["validator_real_tree"]["checks"] == 16
     assert gate["gates"]["validator_real_tree"]["checks"] == len(v._CHECK_REGISTRY)
     # deterministic should be bool True/False or deferred string, not hard literal without measurement
     det = gate["gates"]["validator_real_tree"]["deterministic"]
     assert det in (True, False, "deferred_to_controller")
-    # Sweep: ensure no other literal unmeasured values like hardcoded 145 when unavailable — we already check
-    # For this test, we just ensure the gate was built without exception
+    # Also ensure validator_real_tree is labeled by actual repo root
+    assert "repo_root" in gate
+    assert "repo_root" in gate["gates"]["validator_real_tree"]
+    assert gate["repo_root"] == gate["gates"]["validator_real_tree"]["repo_root"]
 
 
 def test_validator_mutations_deferred_when_tools_unavailable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """When git and pytest both unavailable, validator_mutations must be deferred with no number."""
+    """When git and pytest both unavailable, validator_mutations must be deferred with no number — and also when tools ARE available."""
     import subprocess
     import scripts.validate_e3_research_product as v
-    import importlib
 
+    # First, when tools available (normal branch), must still be deferred
+    gate_available = v.build_gate()
+    vm_avail = gate_available["gates"]["validator_mutations"]
+    assert vm_avail["count"] == "deferred_to_controller"
+    assert vm_avail["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
+    assert vm_avail["each_must_fail_with_typed_error_no_traceback"] is not True  # type: ignore[comparison-overlap]
+
+    # Second, when tools forced unavailable, must also be deferred
     orig_run = subprocess.run
 
     def fake_run(*args: Any, **kwargs: Any) -> Any:
@@ -2772,9 +2881,6 @@ def test_validator_mutations_deferred_when_tools_unavailable(
         raise FileNotFoundError("forced unavailable for test")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
-    # Need to reload module to trigger top-level measurement? No — build_gate does subprocess.run internally,
-    # so we just call build_gate with patched subprocess.run and assert deferred.
-    # Also ensure importlib reload not needed; build_gate will use patched run.
     gate = v.build_gate()
     vm = gate["gates"]["validator_mutations"]
     assert vm["count"] == "deferred_to_controller"
@@ -2786,3 +2892,20 @@ def test_validator_mutations_deferred_when_tools_unavailable(
         "true" not in json.dumps(vm).lower()
         or vm["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
     )
+
+
+def test_validator_mutations_always_deferred_even_when_available(tmp_path: Path) -> None:
+    """validator_mutations fields are ALWAYS deferred_to_controller even when tools available (honest measurement)."""
+    import scripts.validate_e3_research_product as v
+
+    gate = v.build_gate()
+    vm = gate["gates"]["validator_mutations"]
+    assert vm["count"] == "deferred_to_controller", (
+        f"count should be deferred even when available, got {vm['count']!r}"
+    )
+    assert vm["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller", (
+        f"each_must_fail should be deferred even when available, got {vm['each_must_fail_with_typed_error_no_traceback']!r}"
+    )
+    assert vm["result"] == "deferred_to_controller"
+    # Ensure note explains deferral reason
+    assert "deferred" in vm["note"].lower() or "executing" in vm["note"].lower()

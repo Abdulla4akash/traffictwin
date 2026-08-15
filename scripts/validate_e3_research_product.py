@@ -1784,23 +1784,29 @@ def _fold_for_contradiction(text: str) -> str:
         return t.casefold()
 
 
-# ---- Strip-then-co-occur construction (Lane 10) ----
+# ---- HEAD-ONLY allowlist construction (Lane 12 review-7) ----
 # Canonical fold of WHOLE text, strip every EXACT allowlisted truthful statement
-# (byte-equal after fold), then on REMAINDER flag ANY co-occurrence in same file
-# of family head + verb-form, no sentence units, no windows, NO negation heuristics.
+# (byte-equal after fold), then on REMAINDER flag ANY remaining occurrence of a
+# family HEAD — no verb required, anywhere in any scanned surface is typed error.
+# Family HEADs: /hosted ci|github actions|ci checks?/, /research workloads?/,
+# /e3 (results?|outcomes?)/ plus /verified results?/ as additional head for the
+# results family (covers "verified results" without e3 prefix).
 
 _TRUTHFUL_STRIP_ALLOWLIST_RAW: tuple[str, ...] = (
-    # Workloads truthful — byte-equal after fold
+    # Workloads truthful — byte-equal after fold (structured field names/values that are truth)
     "research_workloads_launched = 0",
     '"research_workloads_launched": 0',
     '"research_workloads_launched":0',
+    '"research_workloads_launched": 0,',
+    '"research_workloads_launched":0,',
     "research workloads launched remains 0",
     "Research workloads launched remains 0",
     "no e3 research workloads launched, research_workloads_launched = 0",
     "no e3 research workloads launched",
     "without launching research workloads",
     "without launching e3 research workloads",
-    # Hosted CI truthful
+    "Both must pass without launching research workloads. Hosted CI is `HOSTED_CI_UNAVAILABLE`.",
+    # Hosted CI truthful (structured field names/values + doc sentences)
     "HOSTED_CI_UNAVAILABLE",
     "hosted_ci_unavailable",
     "Hosted CI truthfully `HOSTED_CI_UNAVAILABLE`. This is not a research approval.",
@@ -1812,17 +1818,33 @@ _TRUTHFUL_STRIP_ALLOWLIST_RAW: tuple[str, ...] = (
     '"hosted_ci": "HOSTED_CI_UNAVAILABLE"',
     '"hosted_ci":"HOSTED_CI_UNAVAILABLE"',
     '"hosted_ci": "hosted_ci_unavailable"',
+    '"hosted_ci_truth": "HOSTED_CI_UNAVAILABLE \u2014 no hosted CI claim; no approval claim beyond hold"',
+    '"hosted_ci_truth":"HOSTED_CI_UNAVAILABLE \u2014 no hosted CI claim; no approval claim beyond hold"',
+    '"hosted_ci_truth": "hosted_ci_unavailable \u2014 no hosted ci claim; no approval claim beyond hold"',
+    '"hosted_ci_truth":"hosted_ci_unavailable \u2014 no hosted ci claim; no approval claim beyond hold"',
     "HOSTED_CI_UNAVAILABLE \u2014 no hosted CI claim; no approval claim beyond hold",
     "hosted_ci_unavailable \u2014 no hosted ci claim; no approval claim beyond hold",
-    # Results truthful
+    # Escaped json (ensure_ascii) variants — em dash encoded as \\u2014
+    '"hosted_ci_truth": "HOSTED_CI_UNAVAILABLE \\u2014 no hosted CI claim; no approval claim beyond hold"',
+    '"hosted_ci_truth":"HOSTED_CI_UNAVAILABLE \\u2014 no hosted CI claim; no approval claim beyond hold"',
+    '"hosted_ci_truth": "hosted_ci_unavailable \\u2014 no hosted ci claim; no approval claim beyond hold"',
+    '"hosted_ci_truth":"hosted_ci_unavailable \\u2014 no hosted ci claim; no approval claim beyond hold"',
+    "HOSTED_CI_UNAVAILABLE \\u2014 no hosted CI claim; no approval claim beyond hold",
+    "hosted_ci_unavailable \\u2014 no hosted ci claim; no approval claim beyond hold",
+    "hosted CI is unavailable truthfully",
+    "hosted ci is unavailable truthfully",
+    '"hosted CI is unavailable truthfully"',
+    '"hosted ci is unavailable truthfully"',
+    # Results truthful (structured field names/values + doc sentences)
     "NO_E3_RESEARCH_RESULTS_AVAILABLE",
     "no_e3_research_results_available",
     '"result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE"',
     '"result_availability":"NO_E3_RESEARCH_RESULTS_AVAILABLE"',
     '"result_availability": "no_e3_research_results_available"',
+    '"result_availability":"no_e3_research_results_available"',
     "result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE",
     "result_availability = no_e3_research_results_available",
-    # Allowlisted disclaimers — also strip to avoid false co-occurrence via "e3 results" + "unavailable"
+    # Allowlisted disclaimers — also strip to avoid false co-occurrence via "e3 results" residue
     "No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population",
     "No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective",
     "No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency",
@@ -1859,55 +1881,45 @@ def _strip_truthful(folded: str) -> str:
 
 
 _WORKLOADS_HEAD_RE: re.Pattern[str] = re.compile(r"research[\s_\-]+workloads?")
-_WORKLOADS_VERB_RE: re.Pattern[str] = re.compile(r"(?:launch|execut|ran\b|\brun\b|deploy)")
 _HOSTED_HEAD_RE: re.Pattern[str] = re.compile(
     r"(?:hosted[\s_\-]+ci|github[\s_\-]+actions|ci[\s_\-]+checks?)"
 )
-_HOSTED_VERB_RE: re.Pattern[str] = re.compile(r"(?:succeed|passed|pass\b|green|ok\b)")
-_RESULTS_HEAD_RE: re.Pattern[str] = re.compile(r"e3[\s_\-]+(?:results?|outcomes?)")
-_RESULTS_VERB_RE: re.Pattern[str] = re.compile(r"(?:verif|available|confirm|measur|in[\s_\-]+hand)")
+_RESULTS_HEAD_RE: re.Pattern[str] = re.compile(
+    r"e3[\s_\-]+(?:results?|outcomes?)|verified[\s_\-]+results?"
+)
 
 
 def _contains_workload_contradiction(text: str) -> str | None:
-    """Strip-then-co-occur: fold whole text, strip exact allowlisted truthful forms, then file-level co-occurrence."""
+    """HEAD-ONLY: fold whole text, strip exact allowlisted truthful forms, then ANY remaining head is typed error."""
     folded = _fold_for_contradiction(text)
     stripped = _strip_truthful(folded)
-    if _WORKLOADS_HEAD_RE.search(stripped) and _WORKLOADS_VERB_RE.search(stripped):
-        hm = _WORKLOADS_HEAD_RE.search(stripped)
-        vm = _WORKLOADS_VERB_RE.search(stripped)
-        if hm and vm:
-            return f"{hm.group(0)} ... {vm.group(0)}"
-        return stripped[:80].strip()
+    m = _WORKLOADS_HEAD_RE.search(stripped)
+    if m:
+        return m.group(0)
     return None
 
 
 def _contains_hosted_ci_contradiction(text: str) -> str | None:
-    """Hosted CI family — file-level co-occurrence after stripping."""
+    """HEAD-ONLY: hosted CI family — ANY remaining head after stripping is typed error."""
     folded = _fold_for_contradiction(text)
     stripped = _strip_truthful(folded)
     if not stripped.strip():
         return None
-    if _HOSTED_HEAD_RE.search(stripped) and _HOSTED_VERB_RE.search(stripped):
-        hm = _HOSTED_HEAD_RE.search(stripped)
-        vm = _HOSTED_VERB_RE.search(stripped)
-        if hm and vm:
-            return f"{hm.group(0)} ... {vm.group(0)}"
-        return hm.group(0) if hm else stripped[:80]
+    m = _HOSTED_HEAD_RE.search(stripped)
+    if m:
+        return m.group(0)
     return None
 
 
 def _contains_results_availability_contradiction(text: str) -> str | None:
-    """Results availability family — file-level co-occurrence after stripping."""
+    """HEAD-ONLY: results availability family — ANY remaining head (e3 results/outcomes or verified results) is typed error."""
     folded = _fold_for_contradiction(text)
     stripped = _strip_truthful(folded)
     if not stripped.strip():
         return None
-    if _RESULTS_HEAD_RE.search(stripped) and _RESULTS_VERB_RE.search(stripped):
-        hm = _RESULTS_HEAD_RE.search(stripped)
-        vm = _RESULTS_VERB_RE.search(stripped)
-        if hm and vm:
-            return f"{hm.group(0)} ... {vm.group(0)}"
-        return hm.group(0) if hm else stripped[:80]
+    m = _RESULTS_HEAD_RE.search(stripped)
+    if m:
+        return m.group(0)
     return None
 
 
@@ -2154,28 +2166,38 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     Provenance is built from validated inputs (package), not echoed from committed file.
     """
     _repo_root: Path = repo_root if repo_root is not None else _REPO_ROOT
-    # Run full check pipeline and record measured outcomes
-    _errors: list[str] = []
-    _check_base_receipt(_errors)
-    _check_e2_preservation(_errors)
-    _check_e3_builtin(_errors)
-    _check_identities(_errors)
-    _check_hold_state(_errors)
-    _check_resource_denominator(_errors)
-    _check_capacity_bounds(_errors)
-    _check_state_age_ms(_errors)
-    _check_forbidden_claims(_errors)
-    _check_unavailable_not_zero(_errors)
-    _check_placeholder_fabricated(_errors)
-    _check_absolute_path_secret(_errors)
-    _check_routes(_errors)
-    _check_exports_mismatch_and_determinism(_errors)
-    _check_limitations(_errors)
-    import contextlib
+    # Honest repo-root labeling: use _repo_root for all file-based checks; temp-copy emits are labeled and do not claim validator_real_tree
+    _real_root: Path = _REPO_ROOT
+    _is_temp_copy: bool = _repo_root.resolve() != _real_root.resolve()
+    # Temporarily override global _REPO_ROOT for check functions that read from disk (so they measure the requested root)
+    _orig_repo_root: Path = _REPO_ROOT
+    globals()["_REPO_ROOT"] = _repo_root
+    try:
+        # Run full check pipeline and record measured outcomes
+        _errors: list[str] = []
+        _check_base_receipt(_errors)
+        _check_e2_preservation(_errors)
+        _check_e3_builtin(_errors)
+        _check_identities(_errors)
+        _check_hold_state(_errors)
+        _check_resource_denominator(_errors)
+        _check_capacity_bounds(_errors)
+        _check_state_age_ms(_errors)
+        _check_forbidden_claims(_errors)
+        _check_unavailable_not_zero(_errors)
+        _check_placeholder_fabricated(_errors)
+        _check_absolute_path_secret(_errors)
+        _check_routes(_errors)
+        _check_exports_mismatch_and_determinism(_errors)
+        _check_limitations(_errors)
+        import contextlib
 
-    with contextlib.suppress(Exception):
-        _check_contradictions(_errors)
-    validator_pass = len(_errors) == 0
+        with contextlib.suppress(Exception):
+            _check_contradictions(_errors)
+        validator_pass = len(_errors) == 0
+        # Restore global before provenance building that needs package (package is import-based, not file-based, so root not needed)
+    finally:
+        globals()["_REPO_ROOT"] = _orig_repo_root
     # Build provenance from validated inputs, not from committed file
     from traffictwin.experiments.e3_research_artifact import (  # type: ignore[import-untyped,unused-ignore]
         builtin_e3_research_json,
@@ -2188,9 +2210,9 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         _fp = e3_artifact_fingerprint(builtin_e3_research_json())
     except Exception:
         _fp = EXPECTED_E3_PACKAGE_FP
-    # lanes from traceability if available else fallback
+    # lanes from traceability if available else fallback (use requested repo_root for reading)
     _lanes_prov: dict[str, object] = {}
-    _trace_path = _REPO_ROOT / "docs/closure/e3_product_traceability.json"
+    _trace_path = _repo_root / "docs/closure/e3_product_traceability.json"
     if _trace_path.exists():
         try:
             _tr = json.loads(_trace_path.read_text(encoding="utf-8"))
@@ -2374,65 +2396,16 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         "note": "no password/secret/api_key/credential/private_key assignment",
     }
 
-    # validator_mutations: derive count from actual test collection via pytest --collect-only (or deferred with no number)
+    # validator_mutations: ALWAYS deferred_to_controller — measuring requires executing the suite, which emit must not do
     _validator_mutations_count: object = "deferred_to_controller"
     _validator_mutations_error: str | None = None
     _validator_mutations_each: object = "deferred_to_controller"
-    try:
-        _rr = subprocess.run(
-            [
-                ".venv/bin/pytest",
-                "tests/integration/test_e3_research_product_acceptance.py",
-                "--collect-only",
-                "-q",
-            ],
-            cwd=_repo_root,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        if _rr.returncode == 0:
-            _cnt: int | None = None
-            for _line in reversed(_rr.stdout.splitlines()):
-                _parts = _line.strip().split()
-                if len(_parts) >= 3 and _parts[1] in {"test", "tests"} and _parts[2] == "collected":
-                    try:
-                        _cnt = int(_parts[0].replace(",", ""))
-                        break
-                    except ValueError:
-                        continue
-            if _cnt is not None:
-                _validator_mutations_count = _cnt
-                _validator_mutations_each = True
-            else:
-                _validator_mutations_count = "deferred_to_controller"
-                _validator_mutations_each = "deferred_to_controller"
-                _validator_mutations_error = "could not parse count"
-        elif _rr.returncode < 0:
-            _validator_mutations_count = "deferred_to_controller"
-            _validator_mutations_each = "deferred_to_controller"
-            _validator_mutations_error = f"pytest signal {-_rr.returncode}"
-        else:
-            _validator_mutations_count = "deferred_to_controller"
-            _validator_mutations_each = "deferred_to_controller"
-            _validator_mutations_error = (
-                f"pytest collect failed code {_rr.returncode}: {_rr.stderr[:200]}"
-            )
-    except subprocess.TimeoutExpired as _e:
-        _validator_mutations_count = "deferred_to_controller"
-        _validator_mutations_each = "deferred_to_controller"
-        _validator_mutations_error = f"timeout: {_e}"
-    except FileNotFoundError as _e:
-        _validator_mutations_count = "deferred_to_controller"
-        _validator_mutations_each = "deferred_to_controller"
-        _validator_mutations_error = f"pytest unavailable: {_e}"
-    except Exception as _e:
-        _validator_mutations_count = "deferred_to_controller"
-        _validator_mutations_each = "deferred_to_controller"
-        _validator_mutations_error = str(_e)
+    _validator_mutations_error = "deferred_to_controller: measuring requires executing the suite"
 
-    # Measure deterministic by double-emit byte-compare (without recursion)
+    # Measure deterministic by double-emit byte-compare (without recursion) — use same repo_root as first pass
     _measured_deterministic: object = "deferred_to_controller"
+    _orig2 = globals()["_REPO_ROOT"]
+    globals()["_REPO_ROOT"] = _repo_root
     try:
         _errors2: list[str] = []
         _check_base_receipt(_errors2)
@@ -2455,14 +2428,20 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         _measured_deterministic = sorted(_errors) == sorted(_errors2)
     except Exception:
         _measured_deterministic = "deferred_to_controller"
+    finally:
+        globals()["_REPO_ROOT"] = _orig2
 
-    # Measure e2_preservation own result (not global validator_pass)
+    # Measure e2_preservation own result (not global validator_pass) — also on requested repo_root
     _e2_own_errors: list[str] = []
+    _orig3 = globals()["_REPO_ROOT"]
+    globals()["_REPO_ROOT"] = _repo_root
     try:
         _check_e2_preservation(_e2_own_errors)
         _check_base_receipt(_e2_own_errors)
     except Exception:
         _e2_own_errors.append("E3PV_E2_PRESERVATION_FAILED: exception")
+    finally:
+        globals()["_REPO_ROOT"] = _orig3
     _e2_own_pass = len(_e2_own_errors) == 0
 
     # Headline verdict = conjunction of EVERY measured gate's own result
@@ -2479,10 +2458,21 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     )
     _headline_verdict = "PASS" if _headline_pass else "FAIL"
 
+    # Label emit measurements by actual repo root; temp-copy emits must not claim validator_real_tree (real tree measurement)
+    _validator_real_tree_result: object
+    _validator_real_tree_note: str
+    if _is_temp_copy:
+        _validator_real_tree_result = "deferred_to_controller"
+        _validator_real_tree_note = f"temp copy {str(_repo_root)} — not real tree; use real tree emit for validator_real_tree"
+    else:
+        _validator_real_tree_result = "PASS" if validator_pass else "FAIL"
+        _validator_real_tree_note = "measured against real tree"
+
     gate: dict[str, object] = {
         "schema_version": "e3_quality_gate_v1",
         "campaign": EXPECTED_CAMPAIGN,
         "lane": 12,
+        "repo_root": str(_repo_root),
         "hold": {
             "lane_09": LANE_09,
             "evidence_state": NOT_EXECUTED,
@@ -2494,18 +2484,24 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         "gates": {
             "validator_real_tree": {
                 "script": "scripts/validate_e3_research_product.py",
-                "result": "PASS" if validator_pass else "FAIL",
-                "exit_code": 0 if validator_pass else 1,
-                "errors": sorted(_errors),
+                "repo_root": str(_repo_root),
+                "result": _validator_real_tree_result,
+                "exit_code": 0
+                if validator_pass and not _is_temp_copy
+                else (1 if not validator_pass and not _is_temp_copy else 0),
+                "errors": sorted(_errors) if not _is_temp_copy else [],
                 "checks": len(_CHECK_REGISTRY),
-                "deterministic": _measured_deterministic,
+                "deterministic": _measured_deterministic
+                if not _is_temp_copy
+                else "deferred_to_controller",
+                "note": _validator_real_tree_note,
             },
             "validator_mutations": {
-                "count": _validator_mutations_count,
-                "each_must_fail_with_typed_error_no_traceback": _validator_mutations_each,
+                "count": "deferred_to_controller",
+                "each_must_fail_with_typed_error_no_traceback": "deferred_to_controller",
                 "result": "deferred_to_controller",
-                "note": "derived from pytest --collect-only or deferred if unavailable"
-                + (f" ({_validator_mutations_error})" if _validator_mutations_error else ""),
+                "note": "deferred_to_controller: measuring requires executing the suite, which emit must not do",
+                "repo_root": str(_repo_root),
             },
             "acceptance_apptest": {
                 "path": "tests/integration/test_e3_research_product_acceptance.py",
