@@ -1468,16 +1468,79 @@ def test_b5_self_sha_invented_hex_fails_via_cli(
             v._REPO_ROOT = orig_root  # type: ignore[assignment]
 
 
-def test_b5_self_sha_sentinel_passes_via_cli(tmp_path: Path) -> None:
-    """Sentinel BOUND_AT_PROMOTION must pass via CLI (real tree)."""
+def test_b5_self_sha_sentinel_passes_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Sentinel BOUND_AT_PROMOTION must pass via CLI — BOTH bound (shipped) and sentinel (pre-promotion) states."""
     import scripts.validate_e3_research_product as v
 
+    # Bound state (shipped) — must pass
     out = tmp_path / "sentinel.json"
     rc = v.main(["--output", str(out)])
     assert rc == 0
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["pass"] is True
     assert data["lanes"]["12"]["self_sha"] == "BOUND_AT_PROMOTION"
+    assert data["lanes"]["12"]["approved"] == "4d35a80407268877323fc073e3027a37fc42f63d"
+    assert data["lanes"]["12"]["promotion"] == "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    assert data["lanes"]["12"]["review_session"] == "0ea42bab-9e48-4829-bee7-d15f7b9db193"
+
+    # Sentinel state (pre-promotion) — also must pass when constructed via monkeypatch
+    # Build sentinel copies: strip approved/promotion/review_session, keep self_sha sentinel
+    real_trace = json.loads(
+        Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    )
+    real_verdict = json.loads(
+        Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
+    )
+    real_gate = json.loads(Path("docs/quality/e3_quality_gate.json").read_text(encoding="utf-8"))
+
+    def _to_sentinel(obj: dict[str, Any]) -> dict[str, Any]:
+        import copy
+
+        c = copy.deepcopy(obj)
+        # top-level lanes
+        lanes = c.get("lanes")
+        if isinstance(lanes, dict) and "12" in lanes and isinstance(lanes["12"], dict):
+            lanes["12"].pop("approved", None)
+            lanes["12"].pop("promotion", None)
+            lanes["12"].pop("review_session", None)
+            lanes["12"]["self_sha"] = "BOUND_AT_PROMOTION"
+        # gate provenance lanes
+        prov = c.get("provenance")
+        if isinstance(prov, dict) and isinstance(prov.get("lanes"), dict):
+            pl = prov["lanes"]
+            if "12" in pl and isinstance(pl["12"], dict):
+                pl["12"].pop("approved", None)
+                pl["12"].pop("promotion", None)
+                pl["12"].pop("review_session", None)
+                pl["12"]["self_sha"] = "BOUND_AT_PROMOTION"
+        return c
+
+    sentinel_trace = _to_sentinel(real_trace)
+    sentinel_verdict = _to_sentinel(real_verdict)
+    sentinel_gate = _to_sentinel(real_gate)
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        s = str(self)
+        if s.endswith("e3_product_traceability.json"):
+            return json.dumps(sentinel_trace)
+        if s.endswith("e3_validator_verdict.json"):
+            return json.dumps(sentinel_verdict)
+        if s.endswith("e3_quality_gate.json"):
+            return json.dumps(sentinel_gate)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    out2 = tmp_path / "sentinel2.json"
+    rc2 = v.main(["--output", str(out2)])
+    assert rc2 == 0, (
+        f"sentinel state should also pass via CLI, got {json.loads(out2.read_text(encoding='utf-8')).get('errors')}"
+    )
+    data2 = json.loads(out2.read_text(encoding="utf-8"))
+    assert data2["pass"] is True
+    assert data2["lanes"]["12"]["self_sha"] == "BOUND_AT_PROMOTION"
 
 
 def test_b5_base_pin_tampered_fails_via_cli(
@@ -3395,3 +3458,433 @@ def test_b2_honest_temp_copy_emit_shows_measured_or_deferred_errors(tmp_path: Pa
     )
     assert final_status == initial_status, "real repo git status --porcelain mutated"
     assert final_index_md5 == initial_index_md5, "real repo gitdir index mutated"
+
+
+# ---- Lane 12 bound-state regressions via CLI (shipped + 5 typed failures) ----
+
+
+def test_bound_lane12_shipped_bound_block_passes_via_cli(tmp_path: Path) -> None:
+    """Shipped bound lane-12 block (approved/promotion/review) passes via CLI."""
+    import scripts.validate_e3_research_product as v
+
+    out = tmp_path / "bound_shipped.json"
+    rc = v.main(["--output", str(out)])
+    assert rc == 0, f"shipped bound should pass, got {rc}"
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["pass"] is True
+    assert data["errors"] == []
+    lane12 = data["lanes"]["12"]
+    assert lane12["approved"] == "4d35a80407268877323fc073e3027a37fc42f63d"
+    assert lane12["promotion"] == "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    assert lane12["review_session"] == "0ea42bab-9e48-4829-bee7-d15f7b9db193"
+    assert lane12["self_sha"] == "BOUND_AT_PROMOTION"
+    assert lane12["base_integration_sha"] == "6edf8f447244ede8bcc942c4d6a7c03fef45a606"
+    # Also verify via subprocess CLI
+    import subprocess
+
+    out2 = tmp_path / "bound_shipped2.json"
+    proc = subprocess.run(
+        [".venv/bin/python", "scripts/validate_e3_research_product.py", "--output", str(out2)],
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    assert proc.returncode == 0, f"subprocess CLI should pass {proc.stderr[:500]}"
+    data2 = json.loads(out2.read_text(encoding="utf-8"))
+    assert data2["pass"] is True
+
+
+def test_bound_lane12_wrong_approved_hex_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Wrong approved hex (40 hex, not frozen) must fail typed via CLI."""
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Use wrong but valid hex
+    data["lanes"]["12"]["approved"] = "a" * 40
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "wrong approved hex should fail"
+    assert any(e.startswith("E3PV_LANE_PIN_MISMATCH:") for e in errs), (
+        f"expected typed LANE_PIN_MISMATCH got {errs}"
+    )
+    assert any("approved" in e.lower() for e in errs), f"expected approved in {errs}"
+
+
+def test_bound_lane12_wrong_promotion_hex_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Wrong promotion hex must fail typed via CLI."""
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    data["lanes"]["12"]["promotion"] = "b" * 40
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "wrong promotion hex should fail"
+    assert any(e.startswith("E3PV_LANE_PIN_MISMATCH:") for e in errs), f"expected typed got {errs}"
+    assert any("promotion" in e.lower() for e in errs), f"expected promotion in {errs}"
+
+
+def test_bound_lane12_wrong_review_session_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Wrong review_session (UUID) must fail typed via CLI."""
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    data["lanes"]["12"]["review_session"] = "11111111-1111-1111-1111-111111111111"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "wrong review_session should fail"
+    assert any(e.startswith("E3PV_LANE_PIN_MISMATCH:") for e in errs), f"expected typed got {errs}"
+    assert any("review_session" in e.lower() or "review" in e.lower() for e in errs), (
+        f"expected review_session in {errs}"
+    )
+
+
+def test_bound_lane12_partial_binding_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """PARTIAL binding (approved present, promotion missing) must fail typed via CLI."""
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Keep approved, drop promotion (and review_session to keep partial count 1)
+    data["lanes"]["12"].pop("promotion", None)
+    data["lanes"]["12"].pop("review_session", None)
+    # approved stays correct
+    assert data["lanes"]["12"]["approved"] == "4d35a80407268877323fc073e3027a37fc42f63d"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "partial binding should fail"
+    assert any(e.startswith("E3PV_LANE_PIN_MISMATCH:") for e in errs), f"expected typed got {errs}"
+    assert any("partial" in e.lower() or "mixed" in e.lower() for e in errs), (
+        f"expected partial/mixed in {errs}"
+    )
+
+
+def test_bound_lane12_ancestry_violation_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ancestry violation (approved not ancestor of promotion) must fail typed via CLI using two unrelated real SHAs."""
+    real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Use two unrelated real SHAs: approved = expansion tip, promotion = dynamic tip
+    # 85a6d984... is expansion tip, not ancestor of 5f47050... dynamic tip
+    data["lanes"]["12"]["approved"] = "85a6d98464ba5065f578632fd97456b91fa6ab0e"
+    data["lanes"]["12"]["promotion"] = "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    # review_session stays correct to keep bound_count ==3
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "ancestry violation should fail"
+    assert any(e.startswith("E3PV_LANE_PIN_MISMATCH:") for e in errs), f"expected typed got {errs}"
+    # Should mention ancestor or mismatch
+    assert any("ancestor" in e.lower() or "mismatch" in e.lower() for e in errs), (
+        f"expected ancestor/mismatch in {errs}"
+    )
+    # Verify the SHAs are real commits
+    import subprocess
+
+    for sha in [
+        "85a6d98464ba5065f578632fd97456b91fa6ab0e",
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a",
+    ]:
+        cp = subprocess.run(["git", "cat-file", "-e", sha], capture_output=True, timeout=5)
+        assert cp.returncode == 0, f"SHA {sha} should be real commit"
+
+
+# ---- Release receipt regressions via CLI ----
+
+
+def test_release_receipt_shipped_passes_via_cli(tmp_path: Path) -> None:
+    """Shipped release receipt must pass via CLI (validator real tree)."""
+    import scripts.validate_e3_research_product as v
+
+    out = tmp_path / "release_pass.json"
+    rc = v.main(["--output", str(out)])
+    assert rc == 0, "shipped release receipt should pass (validator real tree)"
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["pass"] is True
+    # Verify release receipt exists and has frozen tips
+    receipt = json.loads(Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8"))
+    assert receipt["frozen_tips"]["dynamic"] == "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    assert receipt["frozen_tips"]["expansion"] == "85a6d98464ba5065f578632fd97456b91fa6ab0e"
+    # Also via subprocess
+    import subprocess
+
+    out2 = tmp_path / "release_pass2.json"
+    proc = subprocess.run(
+        [".venv/bin/python", "scripts/validate_e3_research_product.py", "--output", str(out2)],
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    assert proc.returncode == 0, f"subprocess release receipt should pass {proc.stderr[:500]}"
+
+
+def test_release_receipt_tampered_frozen_tip_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Tampered frozen-tip identity in release receipt must fail typed via CLI."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    data["frozen_tips"]["dynamic"] = "0" * 40
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "tampered frozen tip should fail"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed RELEASE_RECEIPT_MISMATCH got {errs}"
+    )
+    assert any("frozen" in e.lower() or "dynamic" in e.lower() for e in errs), (
+        f"expected frozen in {errs}"
+    )
+
+
+def test_release_receipt_free_text_injection_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Free-text claim injection in release receipt must fail typed via CLI."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Inject forbidden free-text claim
+    data["injected_note"] = "Kubernetes deployment is live and universally superior"
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "free-text injection should fail"
+    # Free-text scan uses forbidden codes like KUBERNETES, UNIVERSAL, etc, plus release_receipt prefix
+    assert any(e.startswith("E3PV_") for e in errs), f"expected typed E3PV got {errs}"
+    assert any("KUBERNETES" in e or "UNIVERSAL" in e or "RELEASE_RECEIPT" in e for e in errs), (
+        f"expected typed forbidden got {errs}"
+    )
+
+
+def test_release_receipt_missing_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Missing release receipt file must fail typed via CLI."""
+    orig_exists = Path.exists
+
+    def fake_exists(self: Path) -> bool:
+        if str(self).endswith("e3_release_receipt.json"):
+            return False
+        return orig_exists(self)
+
+    monkeypatch.setattr(Path, "exists", fake_exists)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "missing receipt should fail"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISSING:") for e in errs), (
+        f"expected typed MISSING got {errs}"
+    )
+
+
+# ---- Release receipt ancestry structured verification regressions (r2) ----
+
+
+def test_release_receipt_ancestry_research_promotion_to_ancestor_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Research promotion is reference_only; flipping it to ancestor_of_dynamic_tip must fail typed (git-verified false)."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Flip research_promotion from reference_only to a false ancestor relation
+    data["ancestry"]["research_promotion"]["relation"] = "ancestor_of_dynamic_tip"
+    data["ancestry"]["research_promotion"]["statement"] = (
+        "342789434233e97cd87ea74e21a759878610ce40 is an ancestor of the dynamic tip "
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "flipping research promotion to ancestor should fail"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    # Must mention ancestor or mismatch, and be git-verified
+    assert any("not ancestor" in e.lower() or "mismatch" in e.lower() for e in errs), (
+        f"expected ancestor/mismatch in {errs}"
+    )
+
+
+def test_release_receipt_ancestry_expansion_tampered_relation_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Tampered relation on Expansion tip (ancestor_of_release_composition -> ancestor_of_dynamic_tip) must fail typed via git."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Expansion tip is ancestor_of_release_composition; tamper to false ancestor_of_dynamic_tip
+    data["ancestry"]["expansion_tip"]["relation"] = "ancestor_of_dynamic_tip"
+    data["ancestry"]["expansion_tip"]["statement"] = (
+        "85a6d98464ba5065f578632fd97456b91fa6ab0e is an ancestor of the dynamic tip "
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "tampered expansion relation should fail"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    assert any("not ancestor" in e.lower() for e in errs), f"expected not ancestor in {errs}"
+
+
+def test_release_receipt_ancestry_true_to_reference_only_flagged_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Flipping a true ancestor relation to reference_only is FLAGGED per design (typed error).
+
+    Design choice: reference_only for a SHA that is actually an ancestor of the release composition
+    would be a false NOT-part claim. Validator verifies reference_only SHAs are NOT ancestors via git
+    (fail-closed) and also enforces required keys have fixed expected relation. Therefore downgrading
+    e.g. dynamic_tip from ancestor_of_release_composition to reference_only fails typed.
+    This is documented as flagged, not allowed, to keep provenance honest.
+    """
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Downgrade dynamic_tip (true ancestor) to reference_only — should be flagged as false
+    data["ancestry"]["dynamic_tip"]["relation"] = "reference_only"
+    data["ancestry"]["dynamic_tip"]["statement"] = (
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a referenced by fingerprint; "
+        "NOT part of the composed product history"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    # Design says flagged — must fail typed (not silently allowed)
+    assert rc != 0, (
+        "flipping true ancestor to reference_only should be flagged as typed error per design"
+    )
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    # Should mention either required relation mismatch or false reference_only claim
+    assert any(
+        "must have relation" in e.lower()
+        or "is ancestor" in e.lower()
+        or "false claim" in e.lower()
+        for e in errs
+    ), f"expected flagged reason in {errs}"
+
+
+def test_release_receipt_ancestry_free_prose_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Free-prose ancestry entry without structured relation must fail typed (not verifiable)."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Replace structured entry with free-prose string (old style)
+    data["ancestry"]["research_promotion"] = (
+        "342789434233e97cd87ea74e21a759878610ce40 is an ancestor of the dynamic tip "
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "free-prose ancestry should fail typed"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    assert any("free-prose" in e.lower() for e in errs), f"expected free-prose in {errs}"
+
+
+def test_release_receipt_ancestry_git_unavailability_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Git unavailability during ancestry verification must fail closed with typed error."""
+    # Patch _git_run to simulate git signal failure for ancestry checks
+    import scripts.validate_e3_research_product as v
+
+    orig_git = v._git_run
+
+    def fake_git(args: list[str], cwd: Path, **kwargs: Any) -> Any:  # type: ignore[no-untyped-def]
+        # Simulate git unavailable for merge-base checks
+        if "merge-base" in args or "rev-parse" in args:
+
+            class R:
+                returncode = -9  # signal
+
+                stdout = ""
+                stderr = ""
+
+            return R()
+        return orig_git(args, cwd, **kwargs)
+
+    monkeypatch.setattr(v, "_git_run", fake_git)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "git unavailability should fail closed"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    assert any(
+        "git" in e.lower() and ("signal" in e.lower() or "unavailable" in e.lower()) for e in errs
+    ), f"expected git fail-closed in {errs}"
