@@ -27,8 +27,11 @@ def test_e3_reporting_deterministic_and_no_timestamps() -> None:
     for txt in (b1.json, b1.csv, b1.markdown):
         assert "\r\n" not in txt
         assert not timestamp_key_re.search(txt.lower()), "export must not contain timestamp field"
-        assert not iso_ts_re.search(txt), (
-            f"export must not contain ISO timestamp, found {iso_ts_re.search(txt).group(0)!r}"
+        iso_match = iso_ts_re.search(txt)
+        assert iso_match is None, (
+            f"export must not contain ISO timestamp, found {iso_match.group(0)!r}"
+            if iso_match is not None
+            else "export must not contain ISO timestamp"
         )
         # No local path leaks
         assert ("/" + "Users" + "/") not in txt
@@ -174,14 +177,14 @@ def test_e3_reporting_forbidden_mutated_limitations_rejected() -> None:
     try:
         from traffictwin.reporting.e3_research import build_e3_research_exports
 
-        build_e3_research_exports(mutated, receipt)  # type: ignore[arg-type]
+        build_e3_research_exports(mutated, receipt)
         raise AssertionError("export should have raised on mutated forbidden limitation")
     except ValueError as exc:
         assert "forbidden" in str(exc).lower() or "supervisor" in str(exc).lower()
     # Also try with monetary claim
     mutated2 = pkg.model_copy(update={"limitations": ["cost is $100 dollars"]})
     try:
-        build_e3_research_exports(mutated2, receipt)  # type: ignore[arg-type]
+        build_e3_research_exports(mutated2, receipt)
         raise AssertionError("export should have raised on monetary claim")
     except ValueError as exc:
         assert "forbidden" in str(exc).lower() or "dollar" in str(exc).lower() or "$" in str(exc)

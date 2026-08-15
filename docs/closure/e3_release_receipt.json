@@ -104,7 +104,8 @@
     }
   },
   "composed_sha_binding": "BOUND_BY_FINAL_AUDIT_VERDICT",
-  "release_composition_sha": "abf914583b94ea42ca2b973f4001e062543cb6a7",
+  "audited_prior_composition_sha": "abf914583b94ea42ca2b973f4001e062543cb6a7",
+  "release_composition_binding": "BOUND_BY_FINAL_AUDIT_VERDICT",
   "hold": {
     "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
     "evidence_state": "NOT_EXECUTED",
