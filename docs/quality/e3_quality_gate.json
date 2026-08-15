@@ -1,0 +1,199 @@
+{
+  "schema_version": "e3_quality_gate_v1",
+  "campaign": "e3-dynamic-resource-v2",
+  "lane": 12,
+  "repo_root_kind": "real_tree",
+  "repo_is_toplevel": true,
+  "hold": {
+    "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "evidence_state": "NOT_EXECUTED",
+    "result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+    "research_workloads_launched": 0,
+    "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
+  },
+  "hosted_ci": "HOSTED_CI_UNAVAILABLE",
+  "gates": {
+    "validator_real_tree": {
+      "script": "scripts/validate_e3_research_product.py",
+      "repo_root_kind": "real_tree",
+      "repo_is_toplevel": true,
+      "result": "PASS",
+      "exit_code": 0,
+      "errors": [],
+      "checks": 16,
+      "deterministic": true,
+      "note": "measured against real tree"
+    },
+    "validator_mutations": {
+      "count": "deferred_to_controller",
+      "each_must_fail_with_typed_error_no_traceback": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "deferred_to_controller: measuring requires executing the suite, which emit must not do",
+      "repo_root_kind": "real_tree",
+      "repo_is_toplevel": true
+    },
+    "acceptance_apptest": {
+      "path": "tests/integration/test_e3_research_product_acceptance.py",
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "pytest not run in gate; controller verifies via subprocess"
+    },
+    "lane10_focused": {
+      "suites": [
+        "tests/unit/test_e3_research_evidence.py",
+        "tests/unit/test_e3_admission.py",
+        "tests/unit/test_e3_comparison_accounting_strategy.py"
+      ],
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "deferred to controller"
+    },
+    "lane11_focused": {
+      "suites": [
+        "tests/unit/ui/test_e3_reporting.py",
+        "tests/unit/ui/test_e3_components.py",
+        "tests/unit/ui/test_resource_strategy_explorer_e3.py"
+      ],
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "deferred to controller"
+    },
+    "accessibility": {
+      "path": "tests/ui/test_accessibility.py",
+      "tests": "deferred_to_controller",
+      "result": "deferred_to_controller",
+      "note": "documentation-only pages don't need it, but deferred"
+    },
+    "ruff_format_check": {
+      "changed_files": [
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
+      "result": "deferred_to_controller",
+      "note": "ruff format deferred to controller",
+      "command": "ruff format --check"
+    },
+    "ruff_check": {
+      "changed_files": [
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
+      "result": "deferred_to_controller",
+      "note": "ruff check deferred to controller",
+      "command": "ruff check"
+    },
+    "mypy_strict": {
+      "path": "scripts/validate_e3_research_product.py",
+      "result": "deferred_to_controller",
+      "note": "mypy deferred to controller",
+      "command": "mypy --strict"
+    },
+    "py_compile": {
+      "paths": [
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
+      "result": "deferred_to_controller",
+      "note": "py_compile deferred"
+    },
+    "scope_check": {
+      "allowed_prefixes": [
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py",
+        "docs/e3_dynamic_resource_v2_product.md",
+        "docs/closure/e3_product_traceability.json",
+        "docs/quality/e3_"
+      ],
+      "found_untracked": [],
+      "found_changed": [],
+      "found_out_of_scope": [],
+      "all_allowed": true,
+      "result": "PASS"
+    },
+    "no_absolute_path_literals": {
+      "checked_files": [
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py",
+        "docs/e3_dynamic_resource_v2_product.md",
+        "docs/closure/e3_product_traceability.json",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json"
+      ],
+      "actually_checked": [
+        "docs/closure/e3_product_traceability.json",
+        "docs/e3_dynamic_resource_v2_product.md",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
+      "forbidden_literal": "slash Users slash contiguous (constructed, no literal)",
+      "violations": [],
+      "result": "PASS",
+      "note": "path checks use constructed \"/\" + \"Users\" + \"/\" to avoid literal"
+    },
+    "no_secrets": {
+      "checked_files": [
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py",
+        "docs/e3_dynamic_resource_v2_product.md",
+        "docs/closure/e3_product_traceability.json",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json"
+      ],
+      "actually_checked": [
+        "docs/closure/e3_product_traceability.json",
+        "docs/e3_dynamic_resource_v2_product.md",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
+      "violations": [],
+      "result": "PASS",
+      "note": "no password/secret/api_key/credential/private_key assignment"
+    },
+    "e2_preservation": {
+      "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",
+      "receipt_fingerprint": "45e8c2782ff40495e472bc0e6de3ba3be1610fdb974f88b7ffd12a754d031ebc",
+      "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+      "result": "PASS",
+      "note": "byte-for-byte E2 artifact pinned; E2 route still works"
+    }
+  },
+  "provenance": {
+    "product_base_sha": "2b6d4675658b426f96a79c41ac7f0b8f2a82bc5c",
+    "research_promotion_sha": "342789434233e97cd87ea74e21a759878610ce40",
+    "approved_candidate_sha": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+    "contract_checkpoint_sha": "211a6662151ccad43187f8a2ce3f75a57515408d",
+    "vec_promotion_sha": "dc606770059f0c4a413bac2217d7f38600b74fff",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "manifest_sidecar_sha256": "39862882ae34e71260ce5b466fcd4a93d61da783c4dd16fc987be562ea396438",
+    "contract_sha256": "f0d6eb913df6c2165a63ddcb0fd4980368e9bb80bbd38db964273ba3925f4870",
+    "e3_package_fingerprint": "e5ff1bc0e3410d47520c2e841803c8fa67efb3581b8f52a66e407552457b8e8c",
+    "lanes": {
+      "08": {
+        "approved": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+        "promotion": "342789434233e97cd87ea74e21a759878610ce40"
+      },
+      "10": {
+        "approved": "194941f0dcb1e2f72351fb030d7f58679c001205",
+        "promotion": "8a2f0fffb605fac94ec625f49f80260a54daba6d"
+      },
+      "11": {
+        "approved": "e87b2ed39d1ad2ebd6d98dd0f0a9156158ea166d",
+        "promotion": "6edf8f447244ede8bcc942c4d6a7c03fef45a606"
+      }
+    }
+  },
+  "verdict": "PASS",
+  "no_scientific_execution": true,
+  "research_workloads_launched": 0,
+  "generation": {
+    "script": "scripts/validate_e3_research_product.py",
+    "procedure": "python scripts/validate_e3_research_product.py --emit-gate-receipt docs/quality/e3_quality_gate.json",
+    "deterministic": true,
+    "note": "Run this script to regenerate; committed receipt must match fresh regeneration (test asserts)."
+  }
+}
