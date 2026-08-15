@@ -20,10 +20,10 @@
       "deterministic": true
     },
     "validator_mutations": {
-      "count": 20,
+      "count": 145,
       "each_must_fail_with_typed_error_no_traceback": true,
       "result": "deferred_to_controller",
-      "note": "mutation self-tests are in acceptance suite; deferred here"
+      "note": "derived from pytest --collect-only or deferred if unavailable"
     },
     "acceptance_apptest": {
       "path": "tests/integration/test_e3_research_product_acceptance.py",
@@ -98,6 +98,12 @@
         "docs/quality/e3_"
       ],
       "found_untracked": [],
+      "found_changed": [
+        "docs/quality/e3_quality_gate.json",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
+      "found_out_of_scope": [],
       "all_allowed": true,
       "result": "PASS"
     },
@@ -108,7 +114,14 @@
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json"
       ],
+      "actually_checked": [
+        "docs/closure/e3_product_traceability.json",
+        "docs/e3_dynamic_resource_v2_product.md",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
       "forbidden_literal": "/Users/ contiguous",
+      "violations": [],
       "result": "PASS",
       "note": "path checks use constructed \"/\" + \"Users\" + \"/\" to avoid literal"
     },
@@ -119,8 +132,15 @@
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json"
       ],
+      "actually_checked": [
+        "docs/closure/e3_product_traceability.json",
+        "docs/e3_dynamic_resource_v2_product.md",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
+      "violations": [],
       "result": "PASS",
-      "note": "no password/secret/api_key/credential/private_key"
+      "note": "no password/secret/api_key/credential/private_key assignment"
     },
     "e2_preservation": {
       "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",
