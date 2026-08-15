@@ -5376,3 +5376,102 @@ focused and adjacent National Highways/history tests passed. Ruff, focused stric
 schema/help reconciliation and diff checks passed. No provider, real snapshot pair, writer,
 Changes page, measured-traffic claim, public row, capability acceptance, release or tag was
 created.
+
+### Completed lead ownership: current cross-agent session context (6 August 2026)
+
+The integrating lead owns the documentation-only reconciliation of the root session-context entry
+points, the additive v9 canonical handoff, the historical-v8 warning, the narrow documentation-index
+pointer, and this ownership record on `agent/current-status-5-6-pro-analysis`. The update may record
+verified Git/PR/CI/process state; point to existing evidence; preserve the external, descriptive
+ceiling of the owner-supplied 5.6 Pro audit; and reconcile the corrected capacity interpretation and
+next research sequence. It may not alter code, tests, experiment bytes, registries, external clones,
+approval standing, capability standing, tags, releases or scientific evidence.
+
+Completed locally on 6 August 2026. One canonical v9 handoff now supersedes the contradictory
+pre-release root prompts; historical prompts remain preserved and v8 is visibly marked superseded.
+The integration handoff now reflects the live v0.7 main/tag/housekeeping topology and the dedicated
+draft documentation PR. The context records the GitHub billing gate as an external workflow-start
+blocker, not a test verdict, and separates frozen-actor deterministic forwarding from capacity-aware
+actor retraining. No implementation, experiment, evidence, approval, capability, tag or release was
+changed.
+
+### Completed lead ownership: Sparse-64 documentation-standing correction (6 August 2026)
+
+The owner-directed integrating lead owns a documentation-only correction in this record,
+`CLAUDE_SESSION_CONTEXT_PROMPT_V9.md`, `docs/evaluation/experiment_catalogue_20260730.md` and
+`docs/experiments_and_findings_20260728.md`. The correction may reconcile the append-only 2 August
+owner admission with current documentation and distinguish repeated fixed held-out evaluation/
+return from completed training, actors and checkpoints. It may not alter either 30 July result or
+machine-evidence record, the append-only owner-decision bytes, private archives, code, tests,
+registries, external clones, scientific settings, tags or releases.
+
+Completed locally on 6 August 2026. The current canonical handoff, detailed catalogue and
+authoritative register now state that the earlier 147-repeat Sparse-64 return remains non-admitted,
+while the clean rerun is owner-admitted only as descriptive evidence with its immutable
+`admitted_with_execution_deviation` qualifier. They no longer imply that training, actors or
+checkpoints were overwritten: the recorded deviation was repeated fixed held-out evaluation/return
+after completed training, with unchanged settings and no metric-based selection. Cross-return
+identity remains unverifiable, the clean rerun remains outside VEC-06 and neither return is pooled
+with protocol-confirmed VEC evidence. Historical result/evidence and owner-decision bytes remain
+unchanged; no implementation, experiment, evidence calculation, private artifact, approval,
+capability, tag or release changed.
+
+### Completed lead ownership: complete scientific experiment history (6 August 2026)
+
+The owner-directed integrating lead owns a documentation-only synthesis in
+`docs/evaluation/complete_experiment_history_20260806.md`, its `docs/index.md` pointer and this
+record. The synthesis may consolidate completed experiments, negative results, execution
+deviations, withdrawn interpretations, evidence ceilings and next research steps from existing
+repository records. It may not create or reinterpret experimental evidence; expose private data;
+alter protocols, results, evidence, campaign or registry bytes; touch external clones; add
+implementation; or change any approval, capability, tag or release.
+
+Completed locally on 6 August 2026. The new history follows the programme from the 17-study
+capacity campaign through Colab/GPU diagnostics, attended BODS observations, B-BUS hybrid
+experiments and Manchester demand/network investigations. It preserves the corrected semantics:
+the 2.5-to-0.75 control changed a per-RSU admission/in-flight concurrency ceiling rather than
+computation power, and lower mean modelled latency reflects compression of an already-failed tail
+under incomplete lifecycle accounting rather than faster computation or improved physical
+completion. Real captured bus mobility is separated from simulated computing tasks,
+infrastructure and outcomes. The record identifies evidence standing and unavailable claims, and
+keeps lifecycle/work-conservation instrumentation ahead of deterministic forwarding, learned
+scheduling and separate capacity-aware actor retraining. No implementation, experiment, evidence,
+private artifact, approval, capability, tag or release changed.
+
+### Completed lead ownership: live-bus and Colab experiment guide (6 August 2026)
+
+The owner-directed integrating lead owns a documentation-only focused synthesis in
+`docs/evaluation/live_bus_and_colab_experiments_20260806.md`, its `docs/index.md` pointer and this
+record. The synthesis may restate attended aggregate BODS observations, Colab/GPU diagnostics and
+B-BUS hybrid results from existing repository records, with explicit real-versus-simulated and
+evidence-standing boundaries. It may not expose private bus or GPU artifacts; create or
+reinterpret experimental evidence; alter experiment, evidence, campaign or registry bytes; touch
+external clones; add implementation; or change an approval, capability, tag or release.
+
+Completed locally on 6 August 2026. The focused guide separates pure live-bus observations,
+synthetic Colab training diagnostics and B-BUS real-mobility-informed simulations. It records all
+four attended sessions, the identity/refusal and speed–fleet analyses, every completed GPU
+campaign or smoke, the B-BUS placement refusal, corridor result and both Sparse-64 executions. It
+preserves the clean rerun's narrow `admitted_with_execution_deviation` standing, the earlier
+return's non-admission and the admission/in-flight-ceiling correction. No implementation,
+experiment, evidence, private artifact, approval, capability, tag or release changed.
+
+### Completed lead ownership: canonical session context v10 (7 August 2026)
+
+The owner-directed integrating lead owns a documentation-only refresh of the canonical root
+handoff, its three current pointer/integration files, the documentation-index link and this record
+on `agent/current-status-5-6-pro-analysis`. The refresh may record verified Git, remote, PR, CI,
+campaign/registry and PID state; catalogue the five already-pushed VEC scheduling-foundation
+branches; and distinguish implemented synthetic/provisional software from native evaluator and
+scientific completion. It may not add implementation code to PR #2; alter campaign, registry,
+approval, evidence or digest-bound bytes; touch external clones; integrate branches; move tags; or
+change any scientific, publication or capability standing.
+
+Completed locally on 7 August 2026. `CLAUDE_SESSION_CONTEXT_PROMPT_V10.md` now supersedes v9,
+records the five pushed implementation tips and their exact evidence ceilings, identifies the
+authorised native lifecycle/state producer as the evidence bottleneck, retains the corrected
+admission/in-flight-ceiling interpretation and updates every current handoff pointer. The live
+audit confirmed PR #2 remained Markdown-only, hosted CI was blocked before runner allocation by
+the account billing/spending state, the admitted campaign and registry hashes were unchanged and
+PID 49470 was not alive. No implementation, experiment, campaign, registry, evidence, approval,
+external repository, tag or release was changed.

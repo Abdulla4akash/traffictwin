@@ -1,6 +1,15 @@
 # The Capacity-Squeeze Finding in Full Detail — Setup, Execution, Results, Interpretation
 
-**Status: exploratory `owner_approved_candidate` evidence, descriptive and non-causal
+> **Status reconciliation, 6 August 2026:** this is the historical 27 July pilot narrative. The
+> held-out campaign it describes as running subsequently completed; use the
+> [confirmatory result](capacity_confirmatory_results_20260728.md) for that outcome. The later
+> [5.6 Pro interpretation audit](../current_status_5_6_pro_analysis.md) also narrows the mechanism:
+> the control is an admission/in-flight concurrency ceiling, not compute power; modelled deadline
+> attainment is not physical completion; and incomplete per-task lifecycle/work-conservation
+> records prevent a definitive “quick rejection/fail fast” causal claim. The dated prose below is
+> preserved as the pilot record, not silently rewritten as hindsight.
+
+**Original status at writing: exploratory `owner_approved_candidate` evidence, descriptive and non-causal
 throughout.** This is the long-form narrative companion to the concise
 [pilot results record](capacity_pilot_results_20260727.md); every number below traces to a
 committed artifact or the local hash-verified analysis outputs, and nothing here upgrades
