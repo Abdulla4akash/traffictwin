@@ -2922,22 +2922,38 @@ def test_validator_mutations_always_deferred_even_when_available(tmp_path: Path)
     assert "deferred" in vm["note"].lower() or "executing" in vm["note"].lower()
 
 
-# ---- B1 portable receipt regression: git archive materialization ----
+# ---- B1 portable receipt regression: clone materialization proves regeneration equality ----
 def test_b1_portable_receipt_no_absolute_paths_and_archive_regeneration(tmp_path: Path) -> None:
-    """B1: receipts contain no absolute paths; git-archive materialization proves regeneration equality."""
-    import subprocess
-    import tempfile
+    """B1: receipts contain no absolute paths; clone at temp path proves byte-equal regeneration, non-git archive fails closed."""
     import json
-    import shutil
+    import subprocess
 
-    # 1. No absolute paths in committed receipts
-    for receipt in ["docs/quality/e3_quality_gate.json", "docs/quality/e3_validator_verdict.json"]:
-        txt = Path(receipt).read_text(encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+
+    # Guard: capture real repo state at start (read-only, for final unchanged assertion)
+    initial_remote = subprocess.run(
+        ["git", "-C", str(repo_root), "remote", "-v"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    initial_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+
+    # 1. No absolute paths in committed receipts; portable labeling only
+    for receipt in [
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json",
+    ]:
+        txt = (repo_root / receipt).read_text(encoding="utf-8")
         assert ("/" + "Users" + "/") not in txt, f"{receipt} leaks Users"
         assert ("/" + "home" + "/") not in txt
         assert ("/" + "tmp" + "/") not in txt
         assert "private" not in txt.lower() or ("/" + "private" + "/") not in txt
-        # Must have portable labeling, not repo_root
         data = json.loads(txt) if receipt.endswith("e3_quality_gate.json") else None
         if data is not None:
             assert "repo_root_kind" in data, "gate must have repo_root_kind"
@@ -2946,154 +2962,128 @@ def test_b1_portable_receipt_no_absolute_paths_and_archive_regeneration(tmp_path
             assert '"repo_root":' not in json.dumps(data["gates"]["validator_real_tree"])
             assert "repo_root_kind" in data["gates"]["validator_real_tree"]
             assert '"repo_root":' not in json.dumps(data["gates"]["validator_mutations"])
-            # Also validator check and gate check must include both receipts in checked_files
             no_abs = data["gates"]["no_absolute_path_literals"]
             assert "docs/quality/e3_quality_gate.json" in no_abs.get("checked_files", [])
             assert "docs/quality/e3_validator_verdict.json" in no_abs.get("checked_files", [])
             assert "docs/quality/e3_quality_gate.json" in no_abs.get("actually_checked", [])
             assert "docs/quality/e3_validator_verdict.json" in no_abs.get("actually_checked", [])
 
-    # 2. Materialize commit at temp path via git archive and prove regeneration equality
-    src_root = Path(".").resolve()
-    with tempfile.TemporaryDirectory() as td:
-        td_path = Path(td)
-        dst = td_path / "archive_copy"
-        dst.mkdir()
-        # git archive HEAD | tar -x -C dst — materialize commit at temp path
-        archive = subprocess.run(
-            ["git", "archive", "HEAD"],
-            cwd=str(src_root),
-            capture_output=True,
-            timeout=15,
-        )
-        assert archive.returncode == 0, f"git archive failed {archive.stderr[:500]}"
-        extract = subprocess.run(
-            ["tar", "-x", "-C", str(dst)],
-            input=archive.stdout,
-            capture_output=True,
-            timeout=15,
-        )
-        assert extract.returncode == 0, f"tar extract failed {extract.stderr[:500]}"
-        # Overlay current worktree fixes (uncommitted) onto dst so dst reflects current code, not just HEAD
-        for rel in [
-            "scripts/validate_e3_research_product.py",
-            "tests/integration/test_e3_research_product_acceptance.py",
-            "docs/quality/e3_quality_gate.json",
-            "docs/quality/e3_validator_verdict.json",
-        ]:
-            src = src_root / rel
-            if src.exists():
-                dst_path = dst / rel
-                dst_path.parent.mkdir(parents=True, exist_ok=True)
-                dst_path.write_bytes(src.read_bytes())
-        # Also copy .git so dst is a git repo (git archive does not include .git)
-        import shutil as _shutil
+    # 2. REAL clone to tmp -- never copy worktree .git pointer, never git init/remote add
+    head_sha = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    assert len(head_sha) == 40 and all(c in "0123456789abcdef" for c in head_sha)
+    clone_path = tmp_path / "clone"
+    rc_clone = subprocess.run(
+        ["git", "clone", "-q", "--no-hardlinks", str(repo_root), str(clone_path)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert rc_clone.returncode == 0, f"git clone failed {rc_clone.stderr[:1000]}"
+    rc_checkout = subprocess.run(
+        ["git", "-C", str(clone_path), "checkout", "-q", head_sha],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    assert rc_checkout.returncode == 0, f"git checkout failed {rc_checkout.stderr[:1000]}"
+    assert (clone_path / ".git").exists()
+    assert (clone_path / "scripts/validate_e3_research_product.py").exists()
+    assert (clone_path / "docs/quality/e3_quality_gate.json").exists()
 
-        # Handle worktree .git file vs directory — copy appropriately so dst is a git repo
-        if (src_root / ".git").exists():
-            if not (dst / ".git").exists():
-                git_path = src_root / ".git"
-                if git_path.is_file():
-                    # worktree: .git is a file containing gitdir: reference
-                    dst_git_content = git_path.read_text(encoding="utf-8")
-                    (dst / ".git").write_text(dst_git_content, encoding="utf-8")
-                    # Also need to ensure the referenced gitdir's worktree config is handled?
-                    # For archive copy test, we don't strictly need fully functional git; we just need git status to not fail closed due to missing .git
-                    # Instead, create a minimal .git dir to avoid git error: copy the main git dir if possible
-                    # Try to resolve gitdir
-                    import re
+    # 3. Emit gate receipt at the clone (cwd is clone, so _REPO_ROOT == clone)
+    fresh_out = tmp_path / "fresh_gate_clone.json"
+    py = str(repo_root / ".venv/bin/python")
+    # fallback to sys.executable if venv python missing
+    if not Path(py).exists():
+        import sys
 
-                    m = re.search(r"gitdir:\s*(.+)", dst_git_content)
-                    if m:
-                        real_gitdir = Path(m.group(1).strip())
-                        # If relative, resolve relative to src_root
-                        if not real_gitdir.is_absolute():
-                            real_gitdir = (src_root / real_gitdir).resolve()
-                        # Copy the worktree's git dir if it exists, else copy main .git
-                        if real_gitdir.exists() and real_gitdir.is_dir():
-                            # Copy the worktree-specific git dir to a temp location and adjust?
-                            # Simpler: just init a new repo at dst and set remote
-                            pass
-                    # Fallback: init dst as git repo with same HEAD
-                    try:
-                        import subprocess as _sp
+        py = sys.executable
+    rc_emit = subprocess.run(
+        [py, "scripts/validate_e3_research_product.py", "--emit-gate-receipt", str(fresh_out)],
+        cwd=str(clone_path),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert rc_emit.returncode == 0, (
+        f"gate emit at clone failed {rc_emit.returncode} {rc_emit.stderr[:1500]} {rc_emit.stdout[:1500]}"
+    )
+    assert fresh_out.exists()
+    fresh_text = fresh_out.read_text(encoding="utf-8")
+    assert ("/" + "Users" + "/") not in fresh_text
+    assert ("/" + "home" + "/") not in fresh_text
+    assert '"repo_root_kind"' in fresh_text
+    assert '"repo_root":' not in fresh_text
+    fresh_data = json.loads(fresh_text)
+    assert "repo_root_kind" in fresh_data
+    assert fresh_data["repo_root_kind"] in ("real_tree", "temp_copy")
+    committed_text = (repo_root / "docs/quality/e3_quality_gate.json").read_text(encoding="utf-8")
+    assert fresh_text == committed_text, (
+        "fresh clone receipt must be byte-equal to committed receipt"
+    )
 
-                        _sp.run(
-                            ["git", "init", "--quiet"], cwd=str(dst), capture_output=True, timeout=5
-                        )
-                        _sp.run(
-                            ["git", "remote", "add", "origin", str(src_root)],
-                            cwd=str(dst),
-                            capture_output=True,
-                            timeout=5,
-                        )
-                    except Exception:
-                        pass
-                else:
-                    _shutil.copytree(git_path, dst / ".git", symlinks=True)
-        # Verify materialized tree has required files
-        assert (dst / "scripts/validate_e3_research_product.py").exists()
-        assert (dst / "docs/quality/e3_quality_gate.json").exists()
-        # Regenerate gate at materialized path via subprocess (run from inside dst, so _REPO_ROOT == dst)
-        out = td_path / "fresh_gate_archive.json"
-        py = str(src_root / ".venv/bin/python")
-        rc = subprocess.run(
-            [
-                py,
-                "scripts/validate_e3_research_product.py",
-                "--emit-gate-receipt",
-                str(out),
-                "--allow-dirty",
-            ],
-            cwd=str(dst),
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        assert rc.returncode == 0, (
-            f"gate emit in archive copy failed {rc.returncode} {rc.stderr[:1000]} {rc.stdout[:1000]}"
-        )
-        assert out.exists()
-        gate_text = out.read_text(encoding="utf-8")
-        # No absolute paths in regenerated
-        assert ("/" + "Users" + "/") not in gate_text
-        assert ("/" + "home" + "/") not in gate_text
-        # Deterministic: second emit should match first
-        out2 = td_path / "fresh_gate_archive2.json"
-        rc2 = subprocess.run(
-            [
-                py,
-                "scripts/validate_e3_research_product.py",
-                "--emit-gate-receipt",
-                str(out2),
-                "--allow-dirty",
-            ],
-            cwd=str(dst),
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        assert rc2.returncode == 0
-        assert out.read_text(encoding="utf-8") == out2.read_text(encoding="utf-8"), (
-            "archive regeneration must be deterministic"
-        )
-        # Regeneration equality at temp path holds: fresh gate deterministic and portable, no absolute paths
-        src_committed = Path("docs/quality/e3_quality_gate.json").read_text(encoding="utf-8")
-        fresh_text = out.read_text(encoding="utf-8")
-        assert (
-            '"repo_root_kind": "real_tree"' in fresh_text
-            or '"repo_root_kind": "temp_copy"' in fresh_text
-        )
-        assert ("/" + "Users" + "/") not in fresh_text
-        import json as _json
+    # 4. NON-git materialization (git archive, no .git at all) must fail closed with typed E3PV error
+    nogit_path = tmp_path / "nogit"
+    nogit_path.mkdir()
+    archive = subprocess.run(
+        ["git", "archive", "HEAD"],
+        cwd=str(clone_path),
+        capture_output=True,
+        timeout=15,
+    )
+    assert archive.returncode == 0, (
+        f"git archive failed {archive.stderr[:500] if archive.stderr else ''}"
+    )
+    extract = subprocess.run(
+        ["tar", "-x", "-C", str(nogit_path)],
+        input=archive.stdout,
+        capture_output=True,
+        timeout=15,
+    )
+    assert extract.returncode == 0, (
+        f"tar extract failed {extract.stderr[:500] if extract.stderr else ''}"
+    )
+    assert not (nogit_path / ".git").exists()
+    assert (nogit_path / "scripts/validate_e3_research_product.py").exists()
+    nogit_out = tmp_path / "nogit_gate.json"
+    rc_nogit = subprocess.run(
+        [py, "scripts/validate_e3_research_product.py", "--emit-gate-receipt", str(nogit_out)],
+        cwd=str(nogit_path),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert rc_nogit.returncode != 0, f"non-git emit must fail but got {rc_nogit.returncode}"
+    combined_nogit = rc_nogit.stderr + rc_nogit.stdout
+    assert "E3PV" in combined_nogit, (
+        f"non-git failure must be typed E3PV got {combined_nogit[:1500]}"
+    )
+    assert (
+        "E3PV_GATE_DIRTY_TREE" in combined_nogit
+        or "E3PV_LANE_PIN_MISMATCH" in combined_nogit
+        or "git" in combined_nogit.lower()
+    )
 
-        try:
-            src_data = _json.loads(src_committed)
-            fresh_data = _json.loads(fresh_text)
-            if src_data.get("repo_root_kind") == fresh_data.get("repo_root_kind"):
-                assert fresh_data["verdict"] == src_data["verdict"]
-        except Exception:
-            pass
+    # Guard: real repo unchanged
+    final_remote = subprocess.run(
+        ["git", "-C", str(repo_root), "remote", "-v"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    final_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    assert final_remote == initial_remote, "real repo git remote -v mutated"
+    assert final_status == initial_status, "real repo git status --porcelain mutated"
 
 
 # ---- B2 honest temp-copy emit regression ----
