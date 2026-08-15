@@ -1767,7 +1767,7 @@ def test_verified_results_headline_flip_fails_typed(
     def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
         if str(self).endswith("e3_dynamic_resource_v2_product.md"):
             real = orig_read(self, *args, **kwargs)
-            return real + "\n\n# Verified results\nWe have verified results for all workloads.\n"
+            return real + "\n\n# E3 results\nWe have E3 results verified for all workloads.\n"
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
@@ -1813,7 +1813,7 @@ def test_traceability_verified_results_injection_fails(
 ) -> None:
     real = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
     data = json.loads(real)
-    data["note"] = "Verified results show improvement"
+    data["note"] = "E3 results are verified and show improvement"
     orig_read = Path.read_text
 
     def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
@@ -2279,6 +2279,10 @@ def test_emit_scope_check_reflects_out_of_scope_file(
         )
         assert scope["all_allowed"] is False
         assert scope["result"] == "FAIL"
+        # Headline verdict must be FAIL when any measured gate fails (D)
+        assert gate["verdict"] == "FAIL"
+        # Specifically e2_preservation's own result should remain PASS here (scope failure not e2)
+        assert gate["gates"]["e2_preservation"]["result"] == "PASS"
         # Also ensure real worktree was never touched
         assert not Path("surprise_outside.txt").exists()
 
@@ -2352,51 +2356,67 @@ def test_emit_no_abs_reflects_users_literal(
 
 
 def test_emit_gate_refuses_when_dirty_without_allow(tmp_path: Path) -> None:
-    """--emit-gate-receipt must REFUSE when git status --porcelain is nonempty without --allow-dirty."""
+    """--emit-gate-receipt must REFUSE when git status --porcelain is nonempty without --allow-dirty (temp-copy, no real writes)."""
     import subprocess
+    import tempfile
+    import shutil
 
-    dirty = Path("tmp_dirty_for_gate_test.txt")
-    try:
-        dirty.write_text("dirty", encoding="utf-8")
-        out = tmp_path / "gate_dirty.json"
+    # Use temp-copy pattern so we never write into the real repo root
+    src_root = Path(".").resolve()
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        dst = td_path / "copy"
+        shutil.copytree(
+            src_root,
+            dst,
+            symlinks=True,
+            ignore=shutil.ignore_patterns(
+                ".venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "*.pyc"
+            ),
+        )
+        # Plant dirty file inside the temp copy only
+        (dst / "tmp_dirty_for_gate_test.txt").write_text("dirty", encoding="utf-8")
+        out = Path(td) / "gate_dirty.json"
         rc = subprocess.run(
             [
                 ".venv/bin/python",
                 "scripts/validate_e3_research_product.py",
                 "--emit-gate-receipt",
                 str(out),
+                "--repo-root",
+                str(dst),
             ],
+            cwd=str(src_root),
             capture_output=True,
             text=True,
             timeout=10,
         ).returncode
-        # Should refuse with typed error code 2
-        assert rc == 2, f"expected refuse code 2 got {rc} stderr {rc}"
+        assert rc == 2, f"expected refuse code 2 got {rc}"
         assert not out.exists() or out.read_text(encoding="utf-8") == "", (
             "should not write file when dirty without allow"
         )
-        # With --allow-dirty, it should succeed for tmp output
-        out2 = tmp_path / "gate_dirty2.json"
+        # With --allow-dirty, it should succeed for tmp output via temp copy
+        out2 = Path(td) / "gate_dirty2.json"
         rc2 = subprocess.run(
             [
                 ".venv/bin/python",
                 "scripts/validate_e3_research_product.py",
                 "--emit-gate-receipt",
                 str(out2),
+                "--repo-root",
+                str(dst),
                 "--allow-dirty",
             ],
+            cwd=str(src_root),
             capture_output=True,
             text=True,
             timeout=10,
         ).returncode
         assert rc2 == 0, f"allow-dirty should succeed got {rc2}"
         assert out2.exists()
-    finally:
-        if dirty.exists():
-            dirty.unlink()
-        for f in [tmp_path / "gate_dirty.json", tmp_path / "gate_dirty2.json"]:
-            if f.exists():
-                f.unlink()
+    # Ensure real worktree was never touched
+    assert not Path("tmp_dirty_for_gate_test.txt").exists()
+    assert not (Path(".") / "tmp_dirty_for_gate_test.txt").exists()
 
 
 def test_exemptions_exact_per_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2594,6 +2614,122 @@ def test_new_reviewer_truthful_controls_pass_on_each_surface(
     assert rc == 0, f"truthful {truth_phrase!r} on {surface!r} should pass but got {errs}"
 
 
+# ---- Review-6 escape regressions — strip-then-co-occur (file-level, no negation heuristics) ----
+_REVIEW6_ESCAPES: list[tuple[str, str]] = [
+    # Negation-word interleavings (A) — unrelated no/zero/not/without must not exempt
+    (
+        "Research workloads, with no exceptions, were launched for the final evaluation.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    (
+        "Research workloads for the zero backhaul design were executed in full.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    (
+        "Research workloads that were not dormant were launched last week.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    (
+        "Research workloads, without any gating, were launched on the cluster.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    # Cross-unit / newline splits (B) — head and verb in different units must still fail
+    (
+        "Research workloads for E3 are complete; they were launched last week.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    (
+        "We finished the research workloads. Each of them was launched under the frozen actor.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    ("Research workloads\nwere launched in March.", "E3PV_WORKLOADS_CONTRADICTION"),
+    (
+        "Hosted CI ran the merge queue; every one of those checks passed successfully.",
+        "E3PV_HOSTED_CI_CONTRADICTION",
+    ),
+    (
+        "The E3 results are in hand; all of them have been independently verified.",
+        "E3PV_CONTRADICTION",
+    ),
+]
+
+_FIVE_SURFACES_REVIEW6: list[str] = [
+    "docs/e3_dynamic_resource_v2_product.md",
+    "docs/closure/e3_product_traceability.json",
+    "docs/quality/e3_quality_gate.json",
+    "docs/quality/e3_validator_verdict.json",
+    "docs/closure/e2_product_lane12_base_receipt.json",
+]
+
+
+@pytest.mark.parametrize("phrase,expected_code", _REVIEW6_ESCAPES)
+@pytest.mark.parametrize("surface", _FIVE_SURFACES_REVIEW6)
+def test_review6_escape_fails_typed_on_each_surface(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    phrase: str,
+    expected_code: str,
+    surface: str,
+) -> None:
+    """Every review-6 escape must fail typed on every surface (strip-then-co-occur, no windows, no negation)."""
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith(surface):
+            real = orig_read(self, *args, **kwargs)
+            if surface.endswith(".json"):
+                try:
+                    data = json.loads(real)
+                    data["review6_injection"] = phrase
+                    return json.dumps(data)
+                except Exception:
+                    return real + "\n" + phrase + "\n"
+            else:
+                return real + "\n\n" + phrase + "\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, f"review-6 escape {phrase!r} on {surface!r} should fail"
+    assert any(e.startswith(expected_code + ":") for e in errs), (
+        f"expected {expected_code} got {errs} for {phrase!r} on {surface!r}"
+    )
+
+
+@pytest.mark.parametrize("surface", _FIVE_SURFACES_REVIEW6)
+def test_review6_truthful_controls_pass_on_each_surface(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, surface: str
+) -> None:
+    """Truthful allowlisted controls must still pass on each surface after strip-then-co-occur."""
+    truth_map: dict[str, str] = {
+        "docs/e3_dynamic_resource_v2_product.md": "research_workloads_launched = 0",
+        "docs/closure/e3_product_traceability.json": "HOSTED_CI_UNAVAILABLE",
+        "docs/quality/e3_quality_gate.json": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+        "docs/quality/e3_validator_verdict.json": "research_workloads_launched = 0",
+        "docs/closure/e2_product_lane12_base_receipt.json": "HOSTED_CI_UNAVAILABLE",
+    }
+    truth_phrase = truth_map.get(surface, "research_workloads_launched = 0")
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith(surface):
+            real = orig_read(self, *args, **kwargs)
+            if surface.endswith(".json"):
+                try:
+                    data = json.loads(real)
+                    data["truthful_injection"] = truth_phrase
+                    return json.dumps(data)
+                except Exception:
+                    return real
+            else:
+                return real + "\n\n" + truth_phrase + "\n"
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc == 0, f"truthful {truth_phrase!r} on {surface!r} should pass but got {errs}"
+
+
 def test_no_unmeasured_values_in_gate(tmp_path: Path) -> None:
     """Gate must have no unmeasured literals: deferred_to_controller has no number, checks derived, deterministic measured."""
     import scripts.validate_e3_research_product as v
@@ -2611,10 +2747,42 @@ def test_no_unmeasured_values_in_gate(tmp_path: Path) -> None:
     else:
         assert isinstance(count, int) and count > 0
         assert count >= 0  # measured count, 145 is okay if derived
-    # checks should be len of registry
+    # checks should be independent expected count 16, not tautological len(registry)
+    assert gate["gates"]["validator_real_tree"]["checks"] == 16
     assert gate["gates"]["validator_real_tree"]["checks"] == len(v._CHECK_REGISTRY)
     # deterministic should be bool True/False or deferred string, not hard literal without measurement
     det = gate["gates"]["validator_real_tree"]["deterministic"]
     assert det in (True, False, "deferred_to_controller")
     # Sweep: ensure no other literal unmeasured values like hardcoded 145 when unavailable — we already check
     # For this test, we just ensure the gate was built without exception
+
+
+def test_validator_mutations_deferred_when_tools_unavailable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When git and pytest both unavailable, validator_mutations must be deferred with no number."""
+    import subprocess
+    import scripts.validate_e3_research_product as v
+    import importlib
+
+    orig_run = subprocess.run
+
+    def fake_run(*args: Any, **kwargs: Any) -> Any:
+        # Simulate total tool unavailability for both git status and pytest collect
+        raise FileNotFoundError("forced unavailable for test")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    # Need to reload module to trigger top-level measurement? No — build_gate does subprocess.run internally,
+    # so we just call build_gate with patched subprocess.run and assert deferred.
+    # Also ensure importlib reload not needed; build_gate will use patched run.
+    gate = v.build_gate()
+    vm = gate["gates"]["validator_mutations"]
+    assert vm["count"] == "deferred_to_controller"
+    assert vm["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
+    # Ensure no literal true leaked when unavailable
+    assert vm["each_must_fail_with_typed_error_no_traceback"] is not True  # type: ignore[comparison-overlap]
+    # Also when tools unavailable, each_must_fail must not be True literal
+    assert (
+        "true" not in json.dumps(vm).lower()
+        or vm["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
+    )

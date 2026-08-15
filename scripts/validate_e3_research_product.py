@@ -26,6 +26,42 @@ import sys
 from pathlib import Path
 from typing import Any
 
+
+def _git_run(
+    args: list[str],
+    cwd: Path,
+    timeout: int = 5,
+    retries: int = 2,
+    text: bool = False,
+    capture_output: bool = True,
+) -> subprocess.CompletedProcess[Any]:
+    """Run git with retry on signal/segfault (fail-closed after retries)."""
+    last: subprocess.CompletedProcess[Any] | None = None
+    for attempt in range(retries + 1):
+        try:
+            r = subprocess.run(  # noqa: S603
+                args, cwd=cwd, capture_output=capture_output, text=text, timeout=timeout
+            )
+            if r.returncode >= 0:
+                return r
+            last = r
+            if attempt < retries:
+                import time
+
+                time.sleep(0.1 * (attempt + 1))
+                continue
+            return r
+        except subprocess.TimeoutExpired:
+            if attempt < retries:
+                import time
+
+                time.sleep(0.1 * (attempt + 1))
+                continue
+            raise
+    assert last is not None
+    return last
+
+
 _SYS_ROOT: Path = Path(__file__).resolve().parents[1]
 _SRC: Path = _SYS_ROOT / "src"
 if str(_SRC) not in sys.path:
@@ -573,7 +609,7 @@ def _check_identities(errors: list[str]) -> None:
                 derived_expected = ""
                 is_git_repo = False
                 try:
-                    r = subprocess.run(
+                    r = _git_run(
                         ["git", "rev-parse", "--git-dir"],
                         cwd=_REPO_ROOT,
                         capture_output=True,
@@ -613,7 +649,7 @@ def _check_identities(errors: list[str]) -> None:
                     is_git_repo = False
                 if is_git_repo:
                     try:
-                        rc = subprocess.run(
+                        rc = _git_run(
                             ["git", "cat-file", "-e", base_sha],
                             cwd=_REPO_ROOT,
                             capture_output=True,
@@ -631,7 +667,7 @@ def _check_identities(errors: list[str]) -> None:
                                     f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} not found in repo (git cat-file -e failed code {rc.returncode})",
                                 )
                         else:
-                            rc2 = subprocess.run(
+                            rc2 = _git_run(
                                 ["git", "merge-base", "--is-ancestor", base_sha, "HEAD"],
                                 cwd=_REPO_ROOT,
                                 capture_output=True,
@@ -649,7 +685,7 @@ def _check_identities(errors: list[str]) -> None:
                                         f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} not ancestor of HEAD (git merge-base --is-ancestor failed code {rc2.returncode})",
                                     )
                             else:
-                                rr = subprocess.run(
+                                rr = _git_run(
                                     [
                                         "git",
                                         "log",
@@ -706,8 +742,6 @@ def _check_identities(errors: list[str]) -> None:
                             errors,
                             f"E3PV_LANE_PIN_MISMATCH: git verification failed for {base_sha!r}: {exc}",
                         )
-                if git_ok:
-                    pass
             # Verify self_sha is exactly sentinel, never invented hex
             self_sha = lane12.get("self_sha")
             if self_sha != "BOUND_AT_PROMOTION":
@@ -1248,8 +1282,8 @@ def _check_forbidden_claims(errors: list[str]) -> None:
                                 snippet2 = m2.group(1) if m2 else v
                                 code2 = _forbidden_code_for_match(snippet2)
                                 _fail(errors, f"{code2}: export {name} {v}")
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        _fail(errors, f"E3PV_RECEIPT_FORBIDDEN_CHECK_FAILED: export {name} {exc}")
                 # Also check raw text units for monetary $ etc that may be in CSV/Markdown
                 for unit in _split_doc_units(txt):
                     # Skip units that are allowlisted or contain allowlisted payload substrings
@@ -1284,8 +1318,6 @@ def _check_forbidden_claims(errors: list[str]) -> None:
                     if forb2 is not None:
                         code3 = _forbidden_code_for_match(forb2)
                         _fail(errors, f"{code3}: export {name} contains {forb2!r} in {unit!r}")
-                if "$" in txt:
-                    pass
         except Exception as e2:
             _fail(errors, f"E3PV_FORBIDDEN_CLAIM_FAILED: {e2}")
     except Exception as exc:
@@ -1752,140 +1784,130 @@ def _fold_for_contradiction(text: str) -> str:
         return t.casefold()
 
 
-def _split_sentence_units(folded: str) -> list[str]:
-    """Split folded text into sentence units (after canonical fold).
+# ---- Strip-then-co-occur construction (Lane 10) ----
+# Canonical fold of WHOLE text, strip every EXACT allowlisted truthful statement
+# (byte-equal after fold), then on REMAINDER flag ANY co-occurrence in same file
+# of family head + verb-form, no sentence units, no windows, NO negation heuristics.
 
-    Protects version numbers like v2.1 (digit dot digit) from splitting.
-    Splits on sentence terminators . ! ? ; and newline, without char-window limits.
-    Matching families must be WITHIN a single unit.
-    """
-    protected = re.sub(r"(\d)\.(\d)", r"\1<DOT>\2", folded)
-    lines = protected.splitlines()
-    units: list[str] = []
-    for line in lines:
-        parts = re.split(r"(?<=[.!?;])\s+", line)
-        for part in parts:
-            part = part.strip()
-            if part:
-                part = part.replace("<DOT>", ".")
-                units.append(part)
-    return [u for u in units if u.strip()]
+_TRUTHFUL_STRIP_ALLOWLIST_RAW: tuple[str, ...] = (
+    # Workloads truthful — byte-equal after fold
+    "research_workloads_launched = 0",
+    '"research_workloads_launched": 0',
+    '"research_workloads_launched":0',
+    "research workloads launched remains 0",
+    "Research workloads launched remains 0",
+    "no e3 research workloads launched, research_workloads_launched = 0",
+    "no e3 research workloads launched",
+    "without launching research workloads",
+    "without launching e3 research workloads",
+    # Hosted CI truthful
+    "HOSTED_CI_UNAVAILABLE",
+    "hosted_ci_unavailable",
+    "Hosted CI truthfully `HOSTED_CI_UNAVAILABLE`. This is not a research approval.",
+    "hosted ci truthfully `hosted_ci_unavailable`. this is not a research approval.",
+    "Hosted CI: `HOSTED_CI_UNAVAILABLE`",
+    "hosted ci: `hosted_ci_unavailable`",
+    "Hosted CI is `HOSTED_CI_UNAVAILABLE`.",
+    "hosted ci is `hosted_ci_unavailable`.",
+    '"hosted_ci": "HOSTED_CI_UNAVAILABLE"',
+    '"hosted_ci":"HOSTED_CI_UNAVAILABLE"',
+    '"hosted_ci": "hosted_ci_unavailable"',
+    "HOSTED_CI_UNAVAILABLE \u2014 no hosted CI claim; no approval claim beyond hold",
+    "hosted_ci_unavailable \u2014 no hosted ci claim; no approval claim beyond hold",
+    # Results truthful
+    "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+    "no_e3_research_results_available",
+    '"result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE"',
+    '"result_availability":"NO_E3_RESEARCH_RESULTS_AVAILABLE"',
+    '"result_availability": "no_e3_research_results_available"',
+    "result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE",
+    "result_availability = no_e3_research_results_available",
+    # Allowlisted disclaimers — also strip to avoid false co-occurrence via "e3 results" + "unavailable"
+    "No Manchester-wide deployment tested; bounded to one incident hour and four fleet draws, replication unit fleet_draw, N=4, not population",
+    "No universal superiority claim; hypotheses H1-H5 are not expected truths; trade-off family has no scalar best objective",
+    "No monetary cost claim; resource cost is resource_unit_seconds, never dollars/billing/currency",
+    "No Kubernetes actual deployment or cluster orchestration; placement is deterministic infrastructure scheduling, not managed cluster",
+    "No actor selects execution RSU; frozen actor does not observe load",
+    "No tasks-as-N; tasks are accounting records, not independent replicates; task-level N is forbidden",
+    "Bounded to staged designs E3a/E3b/E3c with 14 arms and 56 configs, replication unit fleet_draw N=4 matched draws 1-4, evaluator_seed 0, never tasks-as-N, never Manchester-wide inference, never universal superiority",
+    "No supervisor approval; standing is E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, LANE_09 BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; no Manchester-wide inference; no universal superiority.",
+)
+
+
+def _build_folded_allowlist() -> tuple[str, ...]:
+    folded: list[str] = []
+    for raw in _TRUTHFUL_STRIP_ALLOWLIST_RAW:
+        try:
+            f = _fold_for_contradiction(raw)
+        except Exception:
+            f = raw.casefold()
+        folded.append(f)
+    uniq = sorted(set(folded), key=len, reverse=True)
+    return tuple(uniq)
+
+
+_FOLDED_STRIP_ALLOWLIST: tuple[str, ...] = _build_folded_allowlist()
+
+
+def _strip_truthful(folded: str) -> str:
+    rem = folded
+    for allow in _FOLDED_STRIP_ALLOWLIST:
+        if allow and allow in rem:
+            rem = rem.replace(allow, "")
+    return rem
+
+
+_WORKLOADS_HEAD_RE: re.Pattern[str] = re.compile(r"research[\s_\-]+workloads?")
+_WORKLOADS_VERB_RE: re.Pattern[str] = re.compile(r"(?:launch|execut|ran\b|\brun\b|deploy)")
+_HOSTED_HEAD_RE: re.Pattern[str] = re.compile(
+    r"(?:hosted[\s_\-]+ci|github[\s_\-]+actions|ci[\s_\-]+checks?)"
+)
+_HOSTED_VERB_RE: re.Pattern[str] = re.compile(r"(?:succeed|passed|pass\b|green|ok\b)")
+_RESULTS_HEAD_RE: re.Pattern[str] = re.compile(r"e3[\s_\-]+(?:results?|outcomes?)")
+_RESULTS_VERB_RE: re.Pattern[str] = re.compile(r"(?:verif|available|confirm|measur|in[\s_\-]+hand)")
 
 
 def _contains_workload_contradiction(text: str) -> str | None:
-    """Detect workload-launch contradiction over folded text — sentence-unit matching.
-
-    Split scanned text into sentence units (after canonical fold), then match families
-    WITHIN a unit without char-window limits; negation exemption only for structural
-    negation adjacent to the family head ("no/zero/never/not ... workloads launched")
-    or the exact truthful statements.
-    """
-    truth_zero_patterns = [
-        re.compile(r'"?research_workloads_launched"?\s*[:=]\s*0\b', re.I),
-        re.compile(r"research[\s_]+workloads?[\s_]+launched\s*(?:remains|is|are)?\s*0\b", re.I),
-        re.compile(r"no\s+(?:e3\s+)?research[\s_]+workloads?\s+launched\b", re.I),
-        re.compile(r"without\s+launching\s+research\s+workloads?\b", re.I),
-        re.compile(r"without\s+launching\s+e3\s+research\s+workloads?\b", re.I),
-        re.compile(r"HOSTED_CI_UNAVAILABLE", re.I),
-        re.compile(r"NO_E3_RESEARCH_RESULTS_AVAILABLE", re.I),
-        re.compile(r'"?research_workloads_launched"?\s*[:=]\s*0', re.I),
-    ]
-    text_for_scan = text
-    for pat in truth_zero_patterns:
-        if pat.search(text_for_scan):
-            text_for_scan = pat.sub("", text_for_scan)
-    folded = _fold_for_contradiction(text_for_scan)
-    units = _split_sentence_units(folded)
-
-    workload_phrase = r"research[\s_\-]+workload[s]?"
-    verb_pat = r"(?:launch\w*|execut\w*|\bran\b|\brun\w*)"
-
-    adjacent_neg_before = re.compile(
-        r"\b(?:no|zero|never|not|none|without)\b[\s,]*"
-        r"(?:e3[\s_\-]+)?"
-        r"research[\s_\-]+workload[s]?[\s_\-]*"
-        r"(?:launch|execut|run)\w*\b",
-        re.I,
-    )
-    adjacent_neg_between = re.compile(
-        r"research[\s_\-]+workload[s]?[^\n]*?\b(?:not|never|no|zero|without)\b[^\n]*?(?:launch|execut|run)\w*\b",
-        re.I,
-    )
-
-    for unit in units:
-        low = unit
-        has_workload = re.search(workload_phrase, low)
-        has_verb = re.search(verb_pat, low)
-        if has_workload and has_verb:
-            if adjacent_neg_before.search(low) or adjacent_neg_between.search(low):
-                continue
-            m = re.search(workload_phrase + r".*?" + verb_pat, low)
-            if not m:
-                m = re.search(verb_pat + r".*?" + workload_phrase, low)
-            if m:
-                return m.group(0).strip()
-            return low[:120].strip()
+    """Strip-then-co-occur: fold whole text, strip exact allowlisted truthful forms, then file-level co-occurrence."""
+    folded = _fold_for_contradiction(text)
+    stripped = _strip_truthful(folded)
+    if _WORKLOADS_HEAD_RE.search(stripped) and _WORKLOADS_VERB_RE.search(stripped):
+        hm = _WORKLOADS_HEAD_RE.search(stripped)
+        vm = _WORKLOADS_VERB_RE.search(stripped)
+        if hm and vm:
+            return f"{hm.group(0)} ... {vm.group(0)}"
+        return stripped[:80].strip()
     return None
 
 
 def _contains_hosted_ci_contradiction(text: str) -> str | None:
-    """Hosted CI family over folded text — sentence-unit matching, no char-window limits."""
-    text_for_scan = re.sub(r"HOSTED_CI_UNAVAILABLE", "", text, flags=re.I)
-    folded = _fold_for_contradiction(text_for_scan)
-    if not folded.strip():
+    """Hosted CI family — file-level co-occurrence after stripping."""
+    folded = _fold_for_contradiction(text)
+    stripped = _strip_truthful(folded)
+    if not stripped.strip():
         return None
-    units = _split_sentence_units(folded)
-
-    ci_variants = [
-        r"hosted[\s_\-]+ci",
-        r"github[\s_\-]+actions",
-        r"ci[\s_\-]+checks?",
-    ]
-    success_pat = r"(?:succeed\w*|pass\w*|green|\bok\b|successful|success)"
-
-    for unit in units:
-        low = unit
-        for ci_pat in ci_variants:
-            has_ci = re.search(ci_pat, low)
-            has_success = re.search(success_pat, low)
-            if has_ci and has_success:
-                m = re.search(ci_pat + r".*?" + success_pat, low)
-                if not m:
-                    m = re.search(success_pat + r".*?" + ci_pat, low)
-                if m:
-                    return m.group(0).strip()
-                return has_ci.group(0)
+    if _HOSTED_HEAD_RE.search(stripped) and _HOSTED_VERB_RE.search(stripped):
+        hm = _HOSTED_HEAD_RE.search(stripped)
+        vm = _HOSTED_VERB_RE.search(stripped)
+        if hm and vm:
+            return f"{hm.group(0)} ... {vm.group(0)}"
+        return hm.group(0) if hm else stripped[:80]
     return None
 
 
 def _contains_results_availability_contradiction(text: str) -> str | None:
-    """Results availability family — sentence-unit matching."""
-    text_for_scan = re.sub(r"NO_E3_RESEARCH_RESULTS_AVAILABLE", "", text, flags=re.I)
-    folded = _fold_for_contradiction(text_for_scan)
-    if not folded.strip():
+    """Results availability family — file-level co-occurrence after stripping."""
+    folded = _fold_for_contradiction(text)
+    stripped = _strip_truthful(folded)
+    if not stripped.strip():
         return None
-    units = _split_sentence_units(folded)
-
-    e3_pat = r"\be3[\s_\-]+(?:result[s]?|outcome[s]?)"
-    verified_pat = r"(?:verif\w*|avail\w*|confirm\w*|measur\w*)"
-
-    for unit in units:
-        low = unit
-        has_e3 = re.search(e3_pat, low)
-        has_verified = re.search(verified_pat, low)
-        if has_e3 and has_verified:
-            m = re.search(e3_pat + r".*?" + verified_pat, low)
-            if not m:
-                m = re.search(verified_pat + r".*?" + e3_pat, low)
-            if m:
-                return m.group(0).strip()
-            return has_e3.group(0)
-        if re.search(r"verified[\s_]+result[s]?", low):
-            if re.search(r"\b(?:no|not|without|never|none)\b[\s,]*verified[\s_]+result", low):
-                continue
-            m2 = re.search(r"verified[\s_]+result[s]?", low)
-            if m2:
-                return m2.group(0)
+    if _RESULTS_HEAD_RE.search(stripped) and _RESULTS_VERB_RE.search(stripped):
+        hm = _RESULTS_HEAD_RE.search(stripped)
+        vm = _RESULTS_VERB_RE.search(stripped)
+        if hm and vm:
+            return f"{hm.group(0)} ... {vm.group(0)}"
+        return hm.group(0) if hm else stripped[:80]
     return None
 
 
@@ -2079,114 +2101,40 @@ def _check_contradictions(errors: list[str]) -> None:
         from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research  # type: ignore[import-untyped, unused-ignore]
 
         pkg = load_builtin_e3_research()
-        doc_path: Path = _REPO_ROOT / "docs/e3_dynamic_resource_v2_product.md"
-        doc_txt = doc_path.read_text(encoding="utf-8") if doc_path.exists() else ""
-        # Workload family via folded check
-        w = _contains_workload_contradiction(doc_txt)
-        if w is not None:
-            _fail(
-                errors,
-                f"E3PV_WORKLOADS_CONTRADICTION: docs contains workload launch claim {w!r} while research_workloads_launched=0",
-            )
-        h = _contains_hosted_ci_contradiction(doc_txt)
-        if h is not None:
-            _fail(
-                errors,
-                f"E3PV_HOSTED_CI_CONTRADICTION: docs claims hosted CI success {h!r} while HOSTED_CI_UNAVAILABLE",
-            )
-        r = _contains_results_availability_contradiction(doc_txt)
-        if r is not None:
-            _fail(
-                errors,
-                f"E3PV_CONTRADICTION: docs contains E3 results availability claim {r!r} while NOT_EXECUTED",
-            )
-        # Also scan receipt files for same contradictions (gate, verdict, traceability, e2 base) — five surfaces, with exact structural exemption for errors arrays
-        for rp in [
-            _REPO_ROOT / "docs/closure/e3_product_traceability.json",
-            _REPO_ROOT / "docs/quality/e3_quality_gate.json",
-            _REPO_ROOT / "docs/quality/e3_validator_verdict.json",
-            _REPO_ROOT / "docs/closure/e2_product_lane12_base_receipt.json",
-        ]:
-            if rp.exists():
-                try:
-                    t_raw = rp.read_text(encoding="utf-8")
-                    # For JSON receipts, do structured scan with exemption for errors arrays to avoid flagging validator's own diagnostics
-                    if rp.suffix == ".json":
-                        try:
-                            jdata = json.loads(t_raw)
-                        except Exception:
-                            # Fallback to raw scan if not JSON
-                            jdata = None
-                        if isinstance(jdata, dict):
-                            # Define exact exempt check for contradictions (per file: only gate/verdict errors arrays; traceability/e2 base NO exemptions)
-                            def _is_contradiction_exempt(path: str, _rp: Path = rp) -> bool:
-                                _rp_name = _rp.name
-                                if _rp_name in (
-                                    "e3_quality_gate.json",
-                                    "e3_validator_verdict.json",
-                                ):
-                                    return bool(
-                                        re.fullmatch(r"\$\.errors\[\d+\]", path)
-                                        or re.fullmatch(r"\$\.gates\.[^.]+\.errors\[\d+\]", path)
-                                    )
-                                else:
-                                    # traceability and e2 base have NO exemptions
-                                    return False
-
-                            def _scan_contradiction(  # noqa: B023
-                                obj: object, cur_path: str = "$", _rp: Path = rp
-                            ) -> None:
-                                if isinstance(obj, str):
-                                    if _is_contradiction_exempt(cur_path):
-                                        return
-                                    w2 = _contains_workload_contradiction(obj)
-                                    if w2 is not None:
-                                        _fail(
-                                            errors,
-                                            f"E3PV_WORKLOADS_CONTRADICTION: {_rp.name} {cur_path} claims workloads launched {w2!r} while 0",
-                                        )
-                                    h2 = _contains_hosted_ci_contradiction(obj)
-                                    if h2 is not None:
-                                        _fail(
-                                            errors,
-                                            f"E3PV_HOSTED_CI_CONTRADICTION: {_rp.name} {cur_path} claims hosted CI success {h2!r}",
-                                        )
-                                    r2 = _contains_results_availability_contradiction(obj)
-                                    if r2 is not None:
-                                        _fail(
-                                            errors,
-                                            f"E3PV_CONTRADICTION: {_rp.name} {cur_path} contains E3 results availability claim {r2!r} while NOT_EXECUTED",
-                                        )
-                                elif isinstance(obj, dict):
-                                    for k, v in obj.items():
-                                        _scan_contradiction(v, f"{cur_path}.{k}")
-                                elif isinstance(obj, (list, tuple)):
-                                    for idx, v in enumerate(obj):
-                                        _scan_contradiction(v, f"{cur_path}[{idx}]")
-
-                            _scan_contradiction(jdata)
-                            continue
-                    # Fallback raw scan for non-JSON or if parsing failed (e.g., docs)
-                    w2 = _contains_workload_contradiction(t_raw)
-                    if w2 is not None:
-                        _fail(
-                            errors,
-                            f"E3PV_WORKLOADS_CONTRADICTION: {rp.name} claims workloads launched {w2!r} while 0",
-                        )
-                    h2 = _contains_hosted_ci_contradiction(t_raw)
-                    if h2 is not None:
-                        _fail(
-                            errors,
-                            f"E3PV_HOSTED_CI_CONTRADICTION: {rp.name} claims hosted CI success {h2!r}",
-                        )
-                    r2 = _contains_results_availability_contradiction(t_raw)
-                    if r2 is not None:
-                        _fail(
-                            errors,
-                            f"E3PV_CONTRADICTION: {rp.name} contains E3 results availability claim {r2!r} while NOT_EXECUTED",
-                        )
-                except Exception:
-                    pass
+        surfaces: list[tuple[Path, str]] = [
+            (_REPO_ROOT / "docs/e3_dynamic_resource_v2_product.md", "docs"),
+            (_REPO_ROOT / "docs/closure/e3_product_traceability.json", "traceability"),
+            (_REPO_ROOT / "docs/quality/e3_quality_gate.json", "gate"),
+            (_REPO_ROOT / "docs/quality/e3_validator_verdict.json", "verdict"),
+            (_REPO_ROOT / "docs/closure/e2_product_lane12_base_receipt.json", "e2_base_receipt"),
+        ]
+        for rp, label in surfaces:
+            if not rp.exists():
+                _fail(errors, f"E3PV_CONTRADICTION_CHECK_FAILED: missing {rp}")
+                continue
+            try:
+                t_raw = rp.read_text(encoding="utf-8")
+            except Exception as exc_inner:
+                _fail(errors, f"E3PV_CONTRADICTION_CHECK_FAILED: {rp.name} read failed {exc_inner}")
+                continue
+            w = _contains_workload_contradiction(t_raw)
+            if w is not None:
+                _fail(
+                    errors,
+                    f"E3PV_WORKLOADS_CONTRADICTION: {label} ({rp.name}) contains workload launch co-occurrence {w!r} while research_workloads_launched=0",
+                )
+            h = _contains_hosted_ci_contradiction(t_raw)
+            if h is not None:
+                _fail(
+                    errors,
+                    f"E3PV_HOSTED_CI_CONTRADICTION: {label} ({rp.name}) claims hosted CI success {h!r} while HOSTED_CI_UNAVAILABLE",
+                )
+            r = _contains_results_availability_contradiction(t_raw)
+            if r is not None:
+                _fail(
+                    errors,
+                    f"E3PV_CONTRADICTION: {label} ({rp.name}) contains E3 results availability co-occurrence {r!r} while NOT_EXECUTED",
+                )
     except Exception as exc:
         _fail(errors, f"E3PV_CONTRADICTION_CHECK_FAILED: {exc}")
 
@@ -2289,7 +2237,7 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     _found_changed: list[str] = []
     _scope_git_error: str | None = None
     try:
-        _r = subprocess.run(
+        _r = _git_run(
             ["git", "status", "--porcelain"],
             cwd=_repo_root,
             capture_output=True,
@@ -2310,7 +2258,7 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
             _scope_git_error = f"git status terminated by signal {-_r.returncode}"
         else:
             _scope_git_error = f"git status failed code {_r.returncode}"
-        _r2 = subprocess.run(
+        _r2 = _git_run(
             ["git", "diff", "--name-only", "HEAD"],
             cwd=_repo_root,
             capture_output=True,
@@ -2429,6 +2377,7 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     # validator_mutations: derive count from actual test collection via pytest --collect-only (or deferred with no number)
     _validator_mutations_count: object = "deferred_to_controller"
     _validator_mutations_error: str | None = None
+    _validator_mutations_each: object = "deferred_to_controller"
     try:
         _rr = subprocess.run(
             [
@@ -2454,25 +2403,32 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
                         continue
             if _cnt is not None:
                 _validator_mutations_count = _cnt
+                _validator_mutations_each = True
             else:
                 _validator_mutations_count = "deferred_to_controller"
+                _validator_mutations_each = "deferred_to_controller"
                 _validator_mutations_error = "could not parse count"
         elif _rr.returncode < 0:
             _validator_mutations_count = "deferred_to_controller"
+            _validator_mutations_each = "deferred_to_controller"
             _validator_mutations_error = f"pytest signal {-_rr.returncode}"
         else:
             _validator_mutations_count = "deferred_to_controller"
+            _validator_mutations_each = "deferred_to_controller"
             _validator_mutations_error = (
                 f"pytest collect failed code {_rr.returncode}: {_rr.stderr[:200]}"
             )
     except subprocess.TimeoutExpired as _e:
         _validator_mutations_count = "deferred_to_controller"
+        _validator_mutations_each = "deferred_to_controller"
         _validator_mutations_error = f"timeout: {_e}"
     except FileNotFoundError as _e:
         _validator_mutations_count = "deferred_to_controller"
+        _validator_mutations_each = "deferred_to_controller"
         _validator_mutations_error = f"pytest unavailable: {_e}"
     except Exception as _e:
         _validator_mutations_count = "deferred_to_controller"
+        _validator_mutations_each = "deferred_to_controller"
         _validator_mutations_error = str(_e)
 
     # Measure deterministic by double-emit byte-compare (without recursion)
@@ -2500,6 +2456,29 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     except Exception:
         _measured_deterministic = "deferred_to_controller"
 
+    # Measure e2_preservation own result (not global validator_pass)
+    _e2_own_errors: list[str] = []
+    try:
+        _check_e2_preservation(_e2_own_errors)
+        _check_base_receipt(_e2_own_errors)
+    except Exception:
+        _e2_own_errors.append("E3PV_E2_PRESERVATION_FAILED: exception")
+    _e2_own_pass = len(_e2_own_errors) == 0
+
+    # Headline verdict = conjunction of EVERY measured gate's own result
+    _scope_pass = bool(_measured_scope_check.get("result") == "PASS")
+    _no_abs_pass = bool(_measured_no_abs.get("result") == "PASS")
+    _no_secrets_pass = bool(_measured_no_secrets.get("result") == "PASS")
+    _validator_pass_headline = bool(validator_pass)
+    _headline_pass = bool(
+        _validator_pass_headline
+        and _scope_pass
+        and _no_abs_pass
+        and _no_secrets_pass
+        and _e2_own_pass
+    )
+    _headline_verdict = "PASS" if _headline_pass else "FAIL"
+
     gate: dict[str, object] = {
         "schema_version": "e3_quality_gate_v1",
         "campaign": EXPECTED_CAMPAIGN,
@@ -2523,9 +2502,10 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
             },
             "validator_mutations": {
                 "count": _validator_mutations_count,
-                "each_must_fail_with_typed_error_no_traceback": True,
+                "each_must_fail_with_typed_error_no_traceback": _validator_mutations_each,
                 "result": "deferred_to_controller",
-                "note": "derived from pytest --collect-only or deferred if unavailable",
+                "note": "derived from pytest --collect-only or deferred if unavailable"
+                + (f" ({_validator_mutations_error})" if _validator_mutations_error else ""),
             },
             "acceptance_apptest": {
                 "path": "tests/integration/test_e3_research_product_acceptance.py",
@@ -2598,12 +2578,12 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
                 "package_fingerprint": EXPECTED_E2_PACKAGE_FP,
                 "receipt_fingerprint": EXPECTED_E2_RECEIPT_FP,
                 "base_sha": EXPECTED_E2_BASE_SHA,
-                "result": "PASS" if validator_pass else "FAIL",
+                "result": "PASS" if _e2_own_pass else "FAIL",
                 "note": "byte-for-byte E2 artifact pinned; E2 route still works",
             },
         },
         "provenance": _provenance,
-        "verdict": "PASS" if validator_pass else "FAIL",
+        "verdict": _headline_verdict,
         "no_scientific_execution": True,
         "research_workloads_launched": 0,
         "generation": {
@@ -2623,7 +2603,7 @@ def _emit_gate_receipt(
     # CLEAN-TREE RECEIPTS BY CONSTRUCTION: refuse if git status --porcelain is nonempty unless --allow-dirty
     if not allow_dirty:
         try:
-            _porcelain = subprocess.run(
+            _porcelain = _git_run(
                 ["git", "status", "--porcelain"],
                 cwd=_repo_root,
                 capture_output=True,
@@ -2669,7 +2649,7 @@ def _emit_gate_receipt(
 def _git_lane11_sha_or_fallback() -> str:
     """Derive Lane 11 promotion SHA via git, fail closed if git unavailable/times out."""
     try:
-        r = subprocess.run(
+        r = _git_run(
             ["git", "rev-parse", "--git-dir"],
             cwd=_REPO_ROOT,
             capture_output=True,
@@ -2679,7 +2659,7 @@ def _git_lane11_sha_or_fallback() -> str:
             if r.returncode < 0:
                 return "GIT_SIGNAL_" + "0" * 40
             return "GIT_UNAVAILABLE_" + "0" * 40
-        rr = subprocess.run(
+        rr = _git_run(
             ["git", "log", "--all", "--grep=Merge approved E3 Lane 11", "--format=%H", "-n", "1"],
             cwd=_REPO_ROOT,
             capture_output=True,

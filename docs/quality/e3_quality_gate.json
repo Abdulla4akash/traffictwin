@@ -20,7 +20,7 @@
       "deterministic": true
     },
     "validator_mutations": {
-      "count": 193,
+      "count": 244,
       "each_must_fail_with_typed_error_no_traceback": true,
       "result": "deferred_to_controller",
       "note": "derived from pytest --collect-only or deferred if unavailable"
@@ -98,7 +98,11 @@
         "docs/quality/e3_"
       ],
       "found_untracked": [],
-      "found_changed": [],
+      "found_changed": [
+        "docs/quality/e3_quality_gate.json",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
       "found_out_of_scope": [],
       "all_allowed": true,
       "result": "PASS"
