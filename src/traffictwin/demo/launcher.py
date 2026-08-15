@@ -23,6 +23,7 @@ class LaunchPlan:
 
 MIN_LAUNCH_PORT = 1024
 MAX_LAUNCH_PORT = 65535
+GROUPED_NAVIGATION_LOCK_ENV = "TRAFFICTWIN_GROUPED_NAVIGATION_LOCK"
 
 
 def launch_workspace(
@@ -51,6 +52,7 @@ def launch_workspace(
     env["TRAFFICTWIN_WORKSPACE_PATH"] = str(workspace)
     env["TRAFFICTWIN_REGISTRY_PATH"] = str(workspace / "registry.sqlite")
     env["TRAFFICTWIN_FIXTURE_PATH"] = str(workspace / "bundles")
+    env[GROUPED_NAVIGATION_LOCK_ENV] = "1"
     command = [sys.executable, "-m", "streamlit", "run", str(app_path)]
     if port is not None:
         command.extend(["--server.port", str(port)])
@@ -62,6 +64,7 @@ def launch_workspace(
             "TRAFFICTWIN_WORKSPACE_PATH": str(workspace),
             "TRAFFICTWIN_REGISTRY_PATH": str(workspace / "registry.sqlite"),
             "TRAFFICTWIN_FIXTURE_PATH": str(workspace / "bundles"),
+            GROUPED_NAVIGATION_LOCK_ENV: "1",
         },
     )
     if not dry_run:
