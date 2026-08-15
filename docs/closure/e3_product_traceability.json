@@ -15,7 +15,7 @@
   "e3_package_fingerprint": "e5ff1bc0e3410d47520c2e841803c8fa67efb3581b8f52a66e407552457b8e8c",
   "branch": "worker/e3-lane-12-acceptance-v1",
   "lane": 12,
-  "issue": "Lane 12 — E3 final validator, acceptance and documentation (initial implementation)",
+  "issue": "Lane 12 \u2014 E3 final validator, acceptance and documentation (initial implementation)",
   "base_integration_sha": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
   "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
   "lanes": {
@@ -40,9 +40,12 @@
     "12": {
       "base_integration_sha": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
       "self_sha": "BOUND_AT_PROMOTION",
-      "note": "self_sha binds at promotion; promotion receipt binds final SHA",
+      "note": "self_sha binds at promotion; promotion receipt binds final SHA (sentinel form existed pre-promotion)",
       "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
-      "description": "Lane 12 acceptance validator + docs (honest self-pin; base is lane 11 promotion)"
+      "description": "Lane 12 acceptance validator + docs (honest self-pin; base is lane 11 promotion)",
+      "approved": "4d35a80407268877323fc073e3027a37fc42f63d",
+      "promotion": "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a",
+      "review_session": "0ea42bab-9e48-4829-bee7-d15f7b9db193"
     }
   },
   "hold": {
@@ -53,7 +56,7 @@
     "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
   },
   "hosted_ci": "HOSTED_CI_UNAVAILABLE",
-  "hosted_ci_truth": "HOSTED_CI_UNAVAILABLE — no hosted CI claim; no approval claim beyond hold",
+  "hosted_ci_truth": "HOSTED_CI_UNAVAILABLE \u2014 no hosted CI claim; no approval claim beyond hold",
   "frozen_e2_preservation": {
     "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",
     "receipt_fingerprint": "45e8c2782ff40495e472bc0e6de3ba3be1610fdb974f88b7ffd12a754d031ebc",
