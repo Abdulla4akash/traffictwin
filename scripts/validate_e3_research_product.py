@@ -100,7 +100,9 @@ EXPECTED_FROZEN_EXPANSION_TIP: str = "85a6d98464ba5065f578632fd97456b91fa6ab0e"
 EXPECTED_MAIN_TIP_AT_COMPOSITION: str = "eb33ae8fc4d2f88518ee1009c0057bac77d2c6d6"
 EXPECTED_DOCS_COMMIT: str = "75c8d2a2434c8406c87ac5888a57eb18df7d607a"
 EXPECTED_RELEASE_COMPOSITION_SHA: str = "abf914583b94ea42ca2b973f4001e062543cb6a7"
+EXPECTED_AUDITED_PRIOR_COMPOSITION_SHA: str = "abf914583b94ea42ca2b973f4001e062543cb6a7"
 EXPECTED_COMPOSED_SHA_BINDING: str = "BOUND_BY_FINAL_AUDIT_VERDICT"
+EXPECTED_RELEASE_COMPOSITION_BINDING: str = "BOUND_BY_FINAL_AUDIT_VERDICT"
 
 # Hold verbatim
 LANE_09: str = "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
@@ -2705,6 +2707,22 @@ def _check_release_receipt(errors: list[str]) -> None:
                 errors,
                 f"E3PV_RELEASE_RECEIPT_MISMATCH: composed_sha_binding expected {EXPECTED_COMPOSED_SHA_BINDING!r} got {data.get('composed_sha_binding')!r}",
             )
+        # audited prior composition and release composition binding (truthful restatement)
+        if data.get("audited_prior_composition_sha") != EXPECTED_AUDITED_PRIOR_COMPOSITION_SHA:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: audited_prior_composition_sha expected {EXPECTED_AUDITED_PRIOR_COMPOSITION_SHA!r} got {data.get('audited_prior_composition_sha')!r}",
+            )
+        if data.get("release_composition_binding") != EXPECTED_RELEASE_COMPOSITION_BINDING:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: release_composition_binding expected {EXPECTED_RELEASE_COMPOSITION_BINDING!r} got {data.get('release_composition_binding')!r}",
+            )
+        if "release_composition_sha" in data:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: release_composition_sha is superseded — must use audited_prior_composition_sha + release_composition_binding, got {data.get('release_composition_sha')!r}",
+            )
         # Hold block — immutable
         hold = data.get("hold")
         if not isinstance(hold, dict):
@@ -2762,7 +2780,7 @@ def _check_release_receipt(errors: list[str]) -> None:
             "reference_only",
         }
         relation_target = {
-            "ancestor_of_release_composition": EXPECTED_RELEASE_COMPOSITION_SHA,
+            "ancestor_of_release_composition": EXPECTED_AUDITED_PRIOR_COMPOSITION_SHA,
             "ancestor_of_dynamic_tip": EXPECTED_FROZEN_DYNAMIC_TIP,
             "ancestor_of_expansion_tip": EXPECTED_FROZEN_EXPANSION_TIP,
             "ancestor_of_main_tip": EXPECTED_MAIN_TIP_AT_COMPOSITION,
@@ -2825,9 +2843,9 @@ def _check_release_receipt(errors: list[str]) -> None:
                                     errors,
                                     f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} must contain 'frozen on research/e3-dynamic-resource-v2' got {statement!r}",
                                 )
-                        # For reference_only, verify truthfulness: sha must NOT be ancestor of release composition
+                        # For reference_only, verify truthfulness: sha must NOT be ancestor of CURRENT HEAD lineage
                         # (otherwise claiming NOT part would be false). Fail-closed on git unavailability.
-                        # Design: flipping true ancestor to reference_only is FLAGGED (typed error) because it would be false.
+                        # Updated per final audit: check against HEAD, not pinned superseded SHA, stricter.
                         try:
                             r = _git_run(
                                 ["git", "rev-parse", "--git-dir"],
@@ -2865,51 +2883,60 @@ def _check_release_receipt(errors: list[str]) -> None:
                                             f"E3PV_RELEASE_RECEIPT_MISMATCH: reference_only sha {key!r} {sha!r} not found (code {ce.returncode})",
                                         )
                                 else:
-                                    ce2 = _git_run(
-                                        ["git", "cat-file", "-e", EXPECTED_RELEASE_COMPOSITION_SHA],
+                                    # Resolve current HEAD lineage for reference_only check
+                                    head_res = _git_run(
+                                        ["git", "rev-parse", "HEAD"],
                                         cwd=_REPO_ROOT,
                                         capture_output=True,
+                                        text=True,
                                         timeout=5,
                                     )
-                                    if ce2.returncode != 0:
-                                        if ce2.returncode < 0:
+                                    if head_res.returncode != 0:
+                                        if head_res.returncode < 0:
                                             _fail(
                                                 errors,
-                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-ce2.returncode} for target {EXPECTED_RELEASE_COMPOSITION_SHA!r} — fail closed",
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-head_res.returncode} for HEAD resolve for reference_only {key!r} — fail closed",
                                             )
                                         else:
                                             _fail(
                                                 errors,
-                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: target {EXPECTED_RELEASE_COMPOSITION_SHA!r} not found (code {ce2.returncode})",
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: HEAD not found for reference_only check {key!r} (code {head_res.returncode}) — fail closed",
                                             )
                                     else:
-                                        mb = _git_run(
-                                            [
-                                                "git",
-                                                "merge-base",
-                                                "--is-ancestor",
-                                                sha,
-                                                EXPECTED_RELEASE_COMPOSITION_SHA,
-                                            ],
-                                            cwd=_REPO_ROOT,
-                                            capture_output=True,
-                                            timeout=5,
-                                        )
-                                        if mb.returncode == 0:
+                                        head_sha = head_res.stdout.strip()
+                                        if not head_sha or not head_sha.strip():
                                             _fail(
                                                 errors,
-                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} sha {sha!r} is ancestor of release composition but claims reference_only (NOT part) — false claim",
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: HEAD empty for reference_only {key!r} — fail closed",
                                             )
-                                        elif mb.returncode < 0:
-                                            _fail(
-                                                errors,
-                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-mb.returncode} for reference_only ancestry check {key!r} — fail closed",
+                                        else:
+                                            mb = _git_run(
+                                                [
+                                                    "git",
+                                                    "merge-base",
+                                                    "--is-ancestor",
+                                                    sha,
+                                                    head_sha,
+                                                ],
+                                                cwd=_REPO_ROOT,
+                                                capture_output=True,
+                                                timeout=5,
                                             )
-                                        elif mb.returncode != 1:
-                                            _fail(
-                                                errors,
-                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git error for reference_only check {key!r} code {mb.returncode} — fail closed",
-                                            )
+                                            if mb.returncode == 0:
+                                                _fail(
+                                                    errors,
+                                                    f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} sha {sha!r} is ancestor of HEAD {head_sha!r} but claims reference_only (NOT part) — false claim",
+                                                )
+                                            elif mb.returncode < 0:
+                                                _fail(
+                                                    errors,
+                                                    f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-mb.returncode} for reference_only ancestry check {key!r} — fail closed",
+                                                )
+                                            elif mb.returncode != 1:
+                                                _fail(
+                                                    errors,
+                                                    f"E3PV_RELEASE_RECEIPT_MISMATCH: git error for reference_only check {key!r} code {mb.returncode} — fail closed",
+                                                )
                         except FileNotFoundError as exc:
                             _fail(
                                 errors,
@@ -3078,11 +3105,11 @@ def _check_release_receipt(errors: list[str]) -> None:
                                     errors,
                                     f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry required key {req!r} must have relation 'reference_only' got {rel!r}",
                                 )
-            rc_sha = data.get("release_composition_sha")
-            if rc_sha != EXPECTED_RELEASE_COMPOSITION_SHA:
+            # release_composition_sha is superseded; audited_prior_composition_sha + release_composition_binding already checked above
+            if "release_composition_sha" in data:
                 _fail(
                     errors,
-                    f"E3PV_RELEASE_RECEIPT_MISMATCH: release_composition_sha expected {EXPECTED_RELEASE_COMPOSITION_SHA!r} got {rc_sha!r}",
+                    f"E3PV_RELEASE_RECEIPT_MISMATCH: release_composition_sha superseded — must not be present, got {data.get('release_composition_sha')!r}",
                 )
         # Free-text scan of all string values in release receipt (exempt only diagnostics if any)
         try:

@@ -1457,7 +1457,7 @@ def test_b5_self_sha_invented_hex_fails_via_cli(
         import scripts.validate_e3_research_product as v
 
         orig_root = v._REPO_ROOT
-        v._REPO_ROOT = fake_root  # type: ignore[assignment]
+        v._REPO_ROOT = fake_root
         try:
             out = td_path / "out.json"
             rc2 = v.main(["--output", str(out)])
@@ -1465,7 +1465,7 @@ def test_b5_self_sha_invented_hex_fails_via_cli(
             errs2 = json.loads(out.read_text(encoding="utf-8")).get("errors", [])
             assert any(e.startswith("E3PV_LANE_PIN_MISMATCH") for e in errs2)
         finally:
-            v._REPO_ROOT = orig_root  # type: ignore[assignment]
+            v._REPO_ROOT = orig_root
 
 
 def test_b5_self_sha_sentinel_passes_via_cli(
@@ -3075,35 +3075,42 @@ def test_review7_truthful_controls_pass_on_each_surface(
 def test_no_unmeasured_values_in_gate(tmp_path: Path) -> None:
     """Gate must have no unmeasured literals: deferred_to_controller has no number, checks derived, deterministic measured."""
     import scripts.validate_e3_research_product as v
+    from typing import Any, cast
 
-    gate = v.build_gate()
-    vm = gate["gates"]["validator_mutations"]
+    gate_any: Any = v.build_gate()
+    gate: dict[str, Any] = cast(dict[str, Any], gate_any)
+    gates: Any = gate["gates"]
+    gates_dict: dict[str, Any] = cast(dict[str, Any], gates)
+    vm_any: Any = gates_dict["validator_mutations"]
+    vm: dict[str, Any] = cast(dict[str, Any], vm_any)
     # HONEST MUTATION FIELDS: both count and each_must_fail are ALWAYS deferred_to_controller (measuring requires executing suite)
     assert vm["count"] == "deferred_to_controller"
     assert vm["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
     assert "deferred_to_controller" in vm["note"]
     # Ensure no literal true leaked
-    assert vm["each_must_fail_with_typed_error_no_traceback"] is not True  # type: ignore[comparison-overlap]
-    assert vm["count"] is not True  # type: ignore[comparison-overlap]
+    assert vm["each_must_fail_with_typed_error_no_traceback"] is not True
+    assert vm["count"] is not True
     # checks should be independent expected count 16, not tautological len(registry)
-    assert gate["gates"]["validator_real_tree"]["checks"] == 16
-    assert gate["gates"]["validator_real_tree"]["checks"] == len(v._CHECK_REGISTRY)
+    vrt_any: Any = gates_dict["validator_real_tree"]
+    vrt: dict[str, Any] = cast(dict[str, Any], vrt_any)
+    assert vrt["checks"] == 16
+    assert vrt["checks"] == len(v._CHECK_REGISTRY)
     # deterministic should be bool True/False or deferred string, not hard literal without measurement
-    det = gate["gates"]["validator_real_tree"]["deterministic"]
+    det = vrt["deterministic"]
     assert det in (True, False, "deferred_to_controller")
     # Also ensure validator_real_tree is labeled by portable repo kind (no absolute paths)
     assert "repo_root_kind" in gate
     assert gate["repo_root_kind"] in ("real_tree", "temp_copy")
-    assert "repo_root_kind" in gate["gates"]["validator_real_tree"]
-    assert gate["repo_root_kind"] == gate["gates"]["validator_real_tree"]["repo_root_kind"]
-    assert gate["repo_root_kind"] == gate["gates"]["validator_mutations"]["repo_root_kind"]
+    assert "repo_root_kind" in vrt
+    assert gate["repo_root_kind"] == vrt["repo_root_kind"]
+    assert gate["repo_root_kind"] == vm["repo_root_kind"]
     # No absolute path leakage in receipts
     gate_text = __import__("json").dumps(gate)
     assert ("/" + "Users" + "/") not in gate_text
     assert ("/" + "home" + "/") not in gate_text
     # Portable marker should exist
     assert gate.get("repo_is_toplevel") is True
-    assert gate["gates"]["validator_real_tree"].get("repo_is_toplevel") is True
+    assert vrt.get("repo_is_toplevel") is True
 
 
 def test_validator_mutations_deferred_when_tools_unavailable(
@@ -3112,13 +3119,18 @@ def test_validator_mutations_deferred_when_tools_unavailable(
     """When git and pytest both unavailable, validator_mutations must be deferred with no number — and also when tools ARE available."""
     import subprocess
     import scripts.validate_e3_research_product as v
+    from typing import Any, cast
 
     # First, when tools available (normal branch), must still be deferred
-    gate_available = v.build_gate()
-    vm_avail = gate_available["gates"]["validator_mutations"]
+    gate_available_any: Any = v.build_gate()
+    gate_available: dict[str, Any] = cast(dict[str, Any], gate_available_any)
+    gates_avail: Any = gate_available["gates"]
+    gates_avail_dict: dict[str, Any] = cast(dict[str, Any], gates_avail)
+    vm_avail_any: Any = gates_avail_dict["validator_mutations"]
+    vm_avail: dict[str, Any] = cast(dict[str, Any], vm_avail_any)
     assert vm_avail["count"] == "deferred_to_controller"
     assert vm_avail["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
-    assert vm_avail["each_must_fail_with_typed_error_no_traceback"] is not True  # type: ignore[comparison-overlap]
+    assert vm_avail["each_must_fail_with_typed_error_no_traceback"] is not True
 
     # Second, when tools forced unavailable, must also be deferred
     orig_run = subprocess.run
@@ -3128,12 +3140,16 @@ def test_validator_mutations_deferred_when_tools_unavailable(
         raise FileNotFoundError("forced unavailable for test")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
-    gate = v.build_gate()
-    vm = gate["gates"]["validator_mutations"]
+    gate_any: Any = v.build_gate()
+    gate: dict[str, Any] = cast(dict[str, Any], gate_any)
+    gates: Any = gate["gates"]
+    gates_dict: dict[str, Any] = cast(dict[str, Any], gates)
+    vm_any: Any = gates_dict["validator_mutations"]
+    vm: dict[str, Any] = cast(dict[str, Any], vm_any)
     assert vm["count"] == "deferred_to_controller"
     assert vm["each_must_fail_with_typed_error_no_traceback"] == "deferred_to_controller"
     # Ensure no literal true leaked when unavailable
-    assert vm["each_must_fail_with_typed_error_no_traceback"] is not True  # type: ignore[comparison-overlap]
+    assert vm["each_must_fail_with_typed_error_no_traceback"] is not True
     # Also when tools unavailable, each_must_fail must not be True literal
     assert (
         "true" not in json.dumps(vm).lower()
@@ -3144,9 +3160,14 @@ def test_validator_mutations_deferred_when_tools_unavailable(
 def test_validator_mutations_always_deferred_even_when_available(tmp_path: Path) -> None:
     """validator_mutations fields are ALWAYS deferred_to_controller even when tools available (honest measurement)."""
     import scripts.validate_e3_research_product as v
+    from typing import Any, cast
 
-    gate = v.build_gate()
-    vm = gate["gates"]["validator_mutations"]
+    gate_any: Any = v.build_gate()
+    gate: dict[str, Any] = cast(dict[str, Any], gate_any)
+    gates: Any = gate["gates"]
+    gates_dict: dict[str, Any] = cast(dict[str, Any], gates)
+    vm_any: Any = gates_dict["validator_mutations"]
+    vm: dict[str, Any] = cast(dict[str, Any], vm_any)
     assert vm["count"] == "deferred_to_controller", (
         f"count should be deferred even when available, got {vm['count']!r}"
     )
@@ -3273,7 +3294,7 @@ def test_b1_portable_receipt_no_absolute_paths_and_archive_regeneration(tmp_path
         timeout=15,
     )
     assert archive.returncode == 0, (
-        f"git archive failed {archive.stderr[:500] if archive.stderr else ''}"
+        f"git archive failed {archive.stderr[:500].decode(errors='replace') if archive.stderr else ''}"
     )
     extract = subprocess.run(
         ["tar", "-x", "-C", str(nogit_path)],
@@ -3282,7 +3303,7 @@ def test_b1_portable_receipt_no_absolute_paths_and_archive_regeneration(tmp_path
         timeout=15,
     )
     assert extract.returncode == 0, (
-        f"tar extract failed {extract.stderr[:500] if extract.stderr else ''}"
+        f"tar extract failed {extract.stderr[:500].decode(errors='replace') if extract.stderr else ''}"
     )
     assert not (nogit_path / ".git").exists()
     assert (nogit_path / "scripts/validate_e3_research_product.py").exists()
@@ -3866,7 +3887,7 @@ def test_release_receipt_ancestry_git_unavailability_fails_typed_via_cli(
 
     orig_git = v._git_run
 
-    def fake_git(args: list[str], cwd: Path, **kwargs: Any) -> Any:  # type: ignore[no-untyped-def]
+    def fake_git(args: list[str], cwd: Path, **kwargs: Any) -> Any:
         # Simulate git unavailable for merge-base checks
         if "merge-base" in args or "rev-parse" in args:
 

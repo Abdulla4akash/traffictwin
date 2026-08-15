@@ -201,8 +201,11 @@ def test_e3_exports_deterministic_and_match_typed_payload() -> None:
     assert not _timestamp_key_re.search(exports.json.lower()), (
         "export must not contain timestamp field"
     )
-    assert not _iso_re.search(exports.json), (
-        f"export must not contain ISO timestamp, found {_iso_re.search(exports.json).group(0)!r}"
+    iso_match_e3 = _iso_re.search(exports.json)
+    assert iso_match_e3 is None, (
+        f"export must not contain ISO timestamp, found {iso_match_e3.group(0)!r}"
+        if iso_match_e3 is not None
+        else "export must not contain ISO timestamp"
     )
     # Check that json is byte-stable ordering (sorted keys)
     # Verify that package fingerprint is 64 hex

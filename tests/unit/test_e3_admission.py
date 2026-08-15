@@ -22,10 +22,11 @@ from traffictwin.experiments.e3_research_artifact import (
 from traffictwin.experiments.e3_research_evidence import (
     NO_E3_RESEARCH_RESULTS_AVAILABLE,
     NOT_EXECUTED,
+    E3ResearchEvidencePackage,
 )
 
 
-def _valid_pkg() -> object:
+def _valid_pkg() -> E3ResearchEvidencePackage:
     return load_builtin_e3_research()
 
 
@@ -174,7 +175,7 @@ def test_admit_no_exception_on_completely_invalid_dict() -> None:
 
 def test_admit_never_raises_for_current_inputs() -> None:
     pkg = _valid_pkg()
-    cases = [
+    cases: list[E3ResearchEvidencePackage | dict[str, object] | None] = [
         pkg,
         None,
         {},
@@ -182,7 +183,7 @@ def test_admit_never_raises_for_current_inputs() -> None:
         json.loads(builtin_e3_research_json()),
     ]
     for case in cases:
-        result = admit_e3_research(case)  # type: ignore[arg-type]
+        result = admit_e3_research(case)
         assert isinstance(result, E3ResearchAdmissionRefusal)
         assert result.admitted is False
         assert result.lane_09 == LANE_09_HOLD
@@ -266,7 +267,7 @@ def test_admission_forbidden_families_deep_nested() -> None:
         pkg = load_builtin_e3_research()
         # Forge package with deep nested forbidden via model_copy (bypasses validation)
         new_factors = dict(pkg.factors)
-        new_factors["deep_admission"] = {"inner": {"deepest": phrase}}  # type: ignore[assignment]
+        new_factors["deep_admission"] = {"inner": {"deepest": phrase}}
         forged = pkg.model_copy(update={"factors": new_factors})
         errs = validate_e3_package_for_admission(forged)
         assert len(errs) > 0
@@ -297,7 +298,7 @@ def test_admission_allowlisted_disclaimers_pass_precheck() -> None:
 def test_admission_deep_nested_forbidden_via_package_object() -> None:
     pkg = load_builtin_e3_research()
     new_factors = dict(pkg.factors)
-    new_factors["deep5"] = {"level2": {"deepest": "kubernetes deep via package object is true"}}  # type: ignore[assignment]
+    new_factors["deep5"] = {"level2": {"deepest": "kubernetes deep via package object is true"}}
     forged = pkg.model_copy(update={"factors": new_factors})
     errs = validate_e3_package_for_admission(forged)
     assert len(errs) > 0
@@ -310,7 +311,7 @@ def test_admission_deep_nested_forbidden_via_package_object() -> None:
 def test_admission_deep_nested_true_authorized_via_package_object() -> None:
     pkg = load_builtin_e3_research()
     new_factors = dict(pkg.factors)
-    new_factors["deep6"] = {"level2": {"my_authorized": True}}  # type: ignore[assignment]
+    new_factors["deep6"] = {"level2": {"my_authorized": True}}
     forged = pkg.model_copy(update={"factors": new_factors})
     errs = validate_e3_package_for_admission(forged)
     assert len(errs) > 0
@@ -320,7 +321,7 @@ def test_admission_deep_nested_true_authorized_via_package_object() -> None:
 def test_admission_deep_nested_private_path_via_package_object() -> None:
     pkg = load_builtin_e3_research()
     new_factors = dict(pkg.factors)
-    new_factors["deep7"] = {"deep": {"path": "/tmp/evil_via_admission"}}  # type: ignore[assignment]  # noqa: S108
+    new_factors["deep7"] = {"deep": {"path": "/tmp/evil_via_admission"}}  # noqa: S108
     forged = pkg.model_copy(update={"factors": new_factors})
     errs = validate_e3_package_for_admission(forged)
     assert len(errs) > 0
@@ -328,7 +329,7 @@ def test_admission_deep_nested_private_path_via_package_object() -> None:
 
 
 def test_scan_forbidden_recursive_direct() -> None:
-    from traffictwin.evidence_admission.e3_research import _scan_forbidden_recursive
+    from traffictwin.evidence_admission.e3_research import _scan_forbidden_recursive  # type: ignore[attr-defined]  # noqa: I001
 
     deep = {"a": {"b": {"c": "kubernetes deep direct is true"}}}
     errs = _scan_forbidden_recursive(deep)
@@ -408,7 +409,7 @@ def test_forbidden_families_deep_nested_via_admission_package_object() -> None:
     for phrase in _FORBIDDEN_FAMILIES_ADM:
         pkg = load_builtin_e3_research()
         new_factors = dict(pkg.factors)
-        new_factors["deep_adm"] = {"inner": {"deepest": phrase}}  # type: ignore[assignment]
+        new_factors["deep_adm"] = {"inner": {"deepest": phrase}}
         forged = pkg.model_copy(update={"factors": new_factors})
         errs = validate_e3_package_for_admission(forged)
         assert len(errs) > 0
@@ -438,7 +439,7 @@ def test_unicode_variants_rejected_via_admission() -> None:
         # also via package object deep
         pkg = load_builtin_e3_research()
         new_factors = dict(pkg.factors)
-        new_factors["deep_unicode"] = {"a": {"b": payload}}  # type: ignore[assignment]
+        new_factors["deep_unicode"] = {"a": {"b": payload}}
         forged = pkg.model_copy(update={"factors": new_factors})
         errs2 = validate_e3_package_for_admission(forged)
         assert len(errs2) > 0
@@ -484,7 +485,7 @@ def test_allowlist_integrity_via_admission() -> None:
 
 # --- Review-2 regression: neutering coverage for admission scanner ---
 def test_admission_scan_alias_is_canonical() -> None:
-    from traffictwin.evidence_admission.e3_research import _scan_forbidden_recursive as adm_scan
+    from traffictwin.evidence_admission.e3_research import _scan_forbidden_recursive as adm_scan  # type: ignore[attr-defined]  # noqa: I001
     from traffictwin.experiments.e3_research_evidence import _scan_forbidden_recursive as canon_scan
 
     assert adm_scan is canon_scan
@@ -539,7 +540,7 @@ def test_admission_forbidden_guard_via_public_surface() -> None:
     # Craft a package with forbidden in a field that goes through admission scan
     pkg = load_builtin_e3_research()
     new_factors = dict(pkg.factors)
-    new_factors["deep_forbidden"] = {"a": "kubernetes is live via admission test"}  # type: ignore[assignment]
+    new_factors["deep_forbidden"] = {"a": "kubernetes is live via admission test"}
     forged = pkg.model_copy(update={"factors": new_factors})
     errs = validate_e3_package_for_admission(forged)
     assert any("kubernetes" in e.lower() for e in errs)
@@ -570,9 +571,9 @@ def test_check_package_hold_is_load_bearing() -> None:
 
     pkg = load_builtin_e3_research()
     # Forge a bad package with wrong evidence_state via model_copy (bypasses validation)
-    bad = pkg.model_copy(update={"evidence_state": "EXECUTED"})  # type: ignore[arg-type]
+    bad = pkg.model_copy(update={"evidence_state": "EXECUTED"})
     try:
-        build_e3_comparison_view(bad)  # type: ignore[arg-type]
+        build_e3_comparison_view(bad)
         raise AssertionError("expected ValueError for bad hold via _check_package_hold")
     except ValueError as exc:
         assert "evidence_state" in str(exc).lower() or "not_executed" in str(exc).lower()

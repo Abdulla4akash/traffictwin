@@ -159,18 +159,18 @@ def test_placement_scaling_factor_sets_exact() -> None:
         "proactive",
     }
     # E3a
-    assert set(pkg.staged_design.e3a.placement) == {"ingress_dla", "per_task_dla", "p2c_dla"}  # type: ignore[attr-defined]
-    assert pkg.staged_design.e3a.scaling == ["fixed_1x"]  # type: ignore[union-attr]
+    assert set(pkg.staged_design.e3a.placement) == {"ingress_dla", "per_task_dla", "p2c_dla"}
+    assert pkg.staged_design.e3a.scaling == ["fixed_1x"]
     assert pkg.staged_design.e3a.state_age_ms == [0]
     # E3b
     e3b = pkg.staged_design.e3b
-    assert {p.value for p in e3b.placement} == {"per_task_dla"}  # type: ignore[attr-defined]
+    assert {p.value for p in e3b.placement} == {"per_task_dla"}
     assert {p.value for p in e3b.scaling} == {
         "fixed_1x",
         "static_overprovisioned",
         "reactive",
         "proactive",
-    }  # type: ignore[attr-defined]
+    }
     assert e3b.state_age_ms == [0]
     assert e3b.stage_listed_cells == 16
     assert e3b.unique_cells == 12
@@ -190,7 +190,7 @@ def test_e3a_b_c_structure_exact_counts() -> None:
     assert pkg.staged_design.stage_listed_cells == 60
     assert pkg.staged_design.e3a.stage_listed_cells == 12
     assert pkg.staged_design.e3a.unique_cells == 12
-    assert pkg.staged_design.e3b.unique_cells == 12  # type: ignore[union-attr]
+    assert pkg.staged_design.e3b.unique_cells == 12
     # uniqueness
     assert len({a.arm_id for a in pkg.dormant_arms}) == 14
     assert len({c.config_id for c in pkg.dormant_configs}) == 56
@@ -433,7 +433,7 @@ def test_forbidden_families_deep_nested_rejected() -> None:
     for phrase, needle in families:
         data = json.loads(builtin_e3_research_json())
         # deep-nested under factors extra with neutral key
-        data["factors"]["deep_nested"] = {"level2": {"level3": phrase}}  # type: ignore[assignment]
+        data["factors"]["deep_nested"] = {"level2": {"level3": phrase}}
         with pytest.raises((ValidationError, ValueError)) as exc:
             load_e3_research_evidence_json(json.dumps(data))
         msg = str(exc.value).lower()
@@ -466,7 +466,7 @@ def test_deep_nested_private_path_caught_by_scan() -> None:
     data = json.loads(builtin_e3_research_json())
     # Private path deep under factors extra nested - field validator for factors does not check private path for nested, only scan does
     # Use neutral extra key that does not contain 'private' to isolate scan vs extra error
-    data["factors"]["deep1"] = {"a": {"b": "/tmp/evil_private_path"}}  # type: ignore[assignment]  # noqa: S108
+    data["factors"]["deep1"] = {"a": {"b": "/tmp/evil_private_path"}}  # noqa: S108
     with pytest.raises((ValidationError, ValueError)) as exc:
         load_e3_research_evidence_json(json.dumps(data))
     assert "private" in str(exc.value).lower()
@@ -475,7 +475,7 @@ def test_deep_nested_private_path_caught_by_scan() -> None:
 def test_deep_nested_true_authorized_caught_by_scan() -> None:
     data = json.loads(builtin_e3_research_json())
     # Deep-nested true _authorized under factors (field validator does not check _authorized)
-    data["factors"]["deep2"] = {"level2": {"my_authorized": True}}  # type: ignore[assignment]
+    data["factors"]["deep2"] = {"level2": {"my_authorized": True}}
     with pytest.raises((ValidationError, ValueError)) as exc:
         load_e3_research_evidence_json(json.dumps(data))
     msg = str(exc.value).lower()
@@ -484,7 +484,7 @@ def test_deep_nested_true_authorized_caught_by_scan() -> None:
 
 def test_deep_nested_forbidden_via_evidence_scan() -> None:
     data = json.loads(builtin_e3_research_json())
-    data["factors"]["deep3"] = {"x": {"y": "kubernetes deep forbidden claim is true"}}  # type: ignore[assignment]
+    data["factors"]["deep3"] = {"x": {"y": "kubernetes deep forbidden claim is true"}}
     with pytest.raises((ValidationError, ValueError)) as exc:
         load_e3_research_evidence_json(json.dumps(data))
     assert "kubernetes" in str(exc.value).lower()
@@ -497,7 +497,7 @@ def test_artifact_private_path_secret_via_artifact_api() -> None:
     data = json.loads(raw)
     # Inject private path as a key (not value) deep inside factors to isolate artifact raw check
     # Key containing private path will be caught by artifact raw text check but not by evidence dict scan (which doesn't check keys for private path)
-    data["factors"]["evil_key"] = {"/tmp/evil_key": 123}  # type: ignore[assignment]  # noqa: S108
+    data["factors"]["evil_key"] = {"/tmp/evil_key": 123}  # noqa: S108
     injected = json.dumps(data)
     with pytest.raises((ValidationError, ValueError)) as exc:
         validate_e3_research_artifact(injected)
@@ -507,7 +507,7 @@ def test_artifact_private_path_secret_via_artifact_api() -> None:
 # --- Secondary 1 factors strict ---
 def test_factors_extra_result_like_numeric_rejected() -> None:
     data = json.loads(builtin_e3_research_json())
-    data["factors"]["e3a_mean_diff"] = 0.062  # type: ignore[assignment]
+    data["factors"]["e3a_mean_diff"] = 0.062
     with pytest.raises((ValidationError, ValueError)) as exc:
         load_e3_research_evidence_json(json.dumps(data))
     assert "extra" in str(exc.value).lower() or "factors" in str(exc.value).lower()
@@ -679,7 +679,7 @@ def test_forbidden_families_rejected_top_level_via_loader(phrase: str) -> None:
 def test_forbidden_families_rejected_deep_nested_via_loader(phrase: str) -> None:
     data = json.loads(builtin_e3_research_json())
     # deep-nested under factors (scan occurs before extra keys validator for forbidden content)
-    data["factors"]["deep_nested"] = {"level2": {"level3": phrase}}  # type: ignore[assignment]
+    data["factors"]["deep_nested"] = {"level2": {"level3": phrase}}
     with pytest.raises((ValidationError, ValueError)) as exc:
         load_e3_research_evidence_json(json.dumps(data))
     msg = str(exc.value).lower()
@@ -1271,7 +1271,7 @@ def test_remaining_validators_direct_wiring() -> None:
     with pytest.raises(ValidationError):
         QueueCapacitySpec(
             unit="waiting_room_task_slots", capacity_per_rsu="notint", is_queue_not_compute=True
-        )  # type: ignore[arg-type]
+        )
     with pytest.raises(ValidationError):
         ComputeCapacitySpec(
             unit="compute_unit",
@@ -1570,7 +1570,7 @@ def test_lane10_queue_capacity_int_strict_via_all_surfaces() -> None:
     with pytest.raises(ValidationError):
         QueueCapacitySpec(
             unit="waiting_room_task_slots", capacity_per_rsu="5", is_queue_not_compute=True
-        )  # type: ignore[arg-type]  # string must be rejected before coercion
+        )  # string must be rejected before coercion
     with pytest.raises(ValidationError):
         QueueCapacitySpec(
             unit="waiting_room_task_slots", capacity_per_rsu=0, is_queue_not_compute=True
@@ -1578,7 +1578,7 @@ def test_lane10_queue_capacity_int_strict_via_all_surfaces() -> None:
     with pytest.raises(ValidationError):
         QueueCapacitySpec(
             unit="waiting_room_task_slots", capacity_per_rsu=3.5, is_queue_not_compute=True
-        )  # type: ignore[arg-type]
+        )
 
     # Valid passes
     QueueCapacitySpec(unit="waiting_room_task_slots", capacity_per_rsu=1, is_queue_not_compute=True)
@@ -1622,7 +1622,7 @@ def test_lane10_task_accounting_reasons_via_all_surfaces() -> None:
     }
     # Missing required key
     with pytest.raises(ValidationError):
-        TaskAccountingSpec(unavailable_reasons={"started": "r"}, **base_kwargs)  # type: ignore[arg-type]
+        TaskAccountingSpec(unavailable_reasons={"started": "r"}, **base_kwargs)
     # Empty reason
     with pytest.raises(ValidationError):
         TaskAccountingSpec(
@@ -1720,13 +1720,13 @@ def test_lane10_task_accounting_nulls_via_all_surfaces() -> None:
     }
     # Unexpected rejection class key - typing dict[str, None] accepts any string, only validator rejects
     with pytest.raises(ValidationError) as exc:
-        TaskAccountingSpec(rejected_by_class={"unexpected_key": None}, **base_kwargs)  # type: ignore[arg-type]
+        TaskAccountingSpec(rejected_by_class={"unexpected_key": None}, **base_kwargs)
     assert "unexpected" in str(exc.value).lower() or "rejection" in str(exc.value).lower()
 
     with pytest.raises(ValidationError):
         TaskAccountingSpec(
             rejected_by_class={"v2i_gate_rejected": None, "bogus": None}, **base_kwargs
-        )  # type: ignore[arg-type]
+        )
 
     # Valid with None still passes
     TaskAccountingSpec(rejected_by_class=None, **base_kwargs)
@@ -1867,13 +1867,13 @@ def test_currency_symbols_rejected_via_all_four_surfaces() -> None:
     # Use a clean extended label that still meets length requirements and mentions resource_unit_seconds
     clean_label = clean + " with per_task_dla fixed_1x at state_age 0 ms valid extended label"
     # Should not raise
-    replaced = dataclasses.replace(canon, human_label=clean_label)  # type: ignore[arg-type]
+    replaced = dataclasses.replace(canon, human_label=clean_label)
     assert replaced.human_label == clean_label
     # Also test admission field with clean phrasing that is still substantive
     clean_admission = (
         clean + " deadline gate at ingress with resource_unit_seconds metric only, not money"
     )
-    replaced2 = dataclasses.replace(canon, admission=clean_admission)  # type: ignore[arg-type]
+    replaced2 = dataclasses.replace(canon, admission=clean_admission)
     assert replaced2.admission == clean_admission
 
 
@@ -2092,14 +2092,14 @@ def test_review7_enclosed_range_samples_rejected_in_claim_context() -> None:
                 dataclasses.replace(
                     canon,
                     human_label=carrier + " with per_task_dla fixed_1x at state_age 0 ms extended",
-                )  # type: ignore[arg-type]
+                )
                 # if carrier is short, ensure length requirement still met
                 if len(carrier) < 10:
                     # supplement to meet substantive length
                     carrier_long = (
                         carrier + " with per_task_dla fixed_1x at state_age 0 ms extended"
                     )
-                    dataclasses.replace(canon, human_label=carrier_long)  # type: ignore[arg-type]
+                    dataclasses.replace(canon, human_label=carrier_long)
                 raise AssertionError(f"expected semantics rejection for {range_name} {carrier!r}")
             except ValueError as exc:
                 assert "forbidden" in str(exc).lower() or "invalid_text" in str(exc).lower()
@@ -2169,7 +2169,7 @@ def test_review7_decorated_letter_sanity_and_shipped_still_load() -> None:
     try:
         dataclasses.replace(
             canon, human_label=payload + " with per_task_dla fixed_1x at state_age 0 ms"
-        )  # type: ignore[arg-type]
+        )
         raise AssertionError("expected decorated payload to be rejected in semantics")
     except ValueError as exc2:
         assert "forbidden" in str(exc2).lower()

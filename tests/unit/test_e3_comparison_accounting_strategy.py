@@ -12,12 +12,13 @@ from traffictwin.experiments.e3_research_evidence import (
     LANE_09,
     NO_E3_RESEARCH_RESULTS_AVAILABLE,
     NOT_EXECUTED,
+    E3ResearchEvidencePackage,
 )
 from traffictwin.experiments.e3_strategy_semantics import e3_semantics_for, e3_strategy_semantics
 from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
 
 
-def _pkg() -> object:
+def _pkg() -> E3ResearchEvidencePackage:
     return load_builtin_e3_research()
 
 
@@ -30,7 +31,7 @@ def test_e3_comparison_view_is_no_results_typed() -> None:
     assert view.e3a.fleet_seeds == (1, 2, 3, 4)
     assert view.e3a.evaluator_seed == 0
     assert view.e3a.degrees_of_freedom == 3
-    assert 3.18 < view.e3a.critical_value < 3.19  # type: ignore[attr-defined]
+    assert 3.18 < view.e3a.critical_value < 3.19
     assert "Student-t" in view.e3a.method
     assert view.e3a.tasks_are_not_replicates is True
     assert view.e3a.manchester_wide_inference_forbidden is True
@@ -45,8 +46,8 @@ def test_e3_comparison_view_is_no_results_typed() -> None:
         assert pd.replication_unit == "fleet_draw"
         assert pd.n == 4
     # E3b and E3c similarly
-    assert view.e3b.n_fleet_draws == 4  # type: ignore[attr-defined]
-    assert view.e3c.n_fleet_draws == 4  # type: ignore[attr-defined]
+    assert view.e3b.n_fleet_draws == 4
+    assert view.e3c.n_fleet_draws == 4
     for pd in view.e3b.paired_differences:
         assert pd.per_seed_values is None
     for pd in view.e3c.paired_differences:
@@ -60,7 +61,7 @@ def test_e3_comparison_estimands_match_staged_design() -> None:
     estimands_e3a = [e.estimand for e in view.e3a.estimands]
     assert any("p2c_dla" in s and "per_task_dla" in s for s in estimands_e3a)
     # E3b has 4 scalers
-    assert len(view.e3b.estimands) >= 4  # type: ignore[attr-defined]
+    assert len(view.e3b.estimands) >= 4
     # E3c has staleness
     assert any("reactive" in e.estimand and "proactive" in e.estimand for e in view.e3c.estimands)
 
@@ -171,14 +172,14 @@ def test_no_tasks_as_n_in_comparison() -> None:
     # Should not claim tasks as N affirmatively
     assert "task as n is true" not in dumped
     # Should contain tasks_are_not_replicates true
-    assert view.e3a.tasks_are_not_replicates is True  # type: ignore[attr-defined]
+    assert view.e3a.tasks_are_not_replicates is True
 
 
 def test_e3a_b_c_stage_counts_match_package() -> None:
     pkg = _pkg()
     _ = build_e3_comparison_view(pkg)
     assert pkg.staged_design.e3a.stage_listed_cells == 12
-    assert pkg.staged_design.e3b.stage_listed_cells == 16  # type: ignore[union-attr]
+    assert pkg.staged_design.e3b.stage_listed_cells == 16
     assert pkg.staged_design.e3c.stale_variant_cells_max == 32
     # comparison view should reflect same dormancy
     assert pkg.staged_design.maximum_candidate_unique_cells == 56
@@ -364,40 +365,53 @@ def test_strategy_semantics_constructor_regressions_hostile_fields() -> None:
                 )
 
     # Also test direct constructor with hostile text should reject
-    base_kwargs = {
-        "placement_id": "per_task_dla",
-        "scaling_id": "fixed_1x",
-        "state_age_ms": 0,
-        "human_label": "test human label that is long enough for validation and mentions queue vs compute properly and resource_unit_seconds and evidence state NOT_EXECUTED and more text to exceed ten chars",
-        "radio_ingress": "test radio_ingress that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state and more words to be substantive length",
-        "execution_placement": "test execution_placement that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
-        "admission": "test admission that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
-        "forwarding": "test forwarding that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
-        "actor_authority": "test actor_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
-        "infrastructure_authority": "test infrastructure_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
-        "scaling_semantics": "test scaling_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
-        "staleness_semantics": "test staleness_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
-        "queue_capacity_note": "Queue capacity is waiting-room tasks per RSU, strictly separate from compute service capacity, queue waiting",
-        "compute_capacity_note": "Compute capacity is active units 1..3 per RSU, each drains 1000 work_ms per second",
-        "resource_cost_note": "Resource cost is resource_unit_seconds = sum over RSU sum over interval active_units * interval_seconds, normalized usage not money, measured in resource_unit_seconds only.",
-        "is_learned": False,
-        "is_deterministic": True,
-        "evidence_level": "IMPLEMENTATION-VERIFIED FACT NOT_EXECUTED NO_E3_RESEARCH_RESULTS_AVAILABLE and more text to be substantive",
-        "limitations": "Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; waiting-room ceiling 6220 and compute service capacity separate and resource_unit_seconds and evidence state NOT_EXECUTED and more text to be substantive length.",
-    }
-    # Direct constructor with hostile human_label should reject
     try:
         E3StrategySemantics(
-            **{
-                **base_kwargs,
-                "human_label": "kubernetes cluster is live is true and long enough to pass length but should be rejected for forbidden claim and also mentions queue waiting compute resource_unit_seconds and NOT_EXECUTED and more text to be substantive",
-            }
+            placement_id="per_task_dla",
+            scaling_id="fixed_1x",
+            state_age_ms=0,
+            human_label="kubernetes cluster is live is true and long enough to pass length but should be rejected for forbidden claim and also mentions queue waiting compute resource_unit_seconds and NOT_EXECUTED and more text to be substantive",
+            radio_ingress="test radio_ingress that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state and more words to be substantive length",
+            execution_placement="test execution_placement that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+            admission="test admission that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+            forwarding="test forwarding that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+            actor_authority="test actor_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+            infrastructure_authority="test infrastructure_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+            scaling_semantics="test scaling_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+            staleness_semantics="test staleness_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+            queue_capacity_note="Queue capacity is waiting-room tasks per RSU, strictly separate from compute service capacity, queue waiting",
+            compute_capacity_note="Compute capacity is active units 1..3 per RSU, each drains 1000 work_ms per second",
+            resource_cost_note="Resource cost is resource_unit_seconds = sum over RSU sum over interval active_units * interval_seconds, normalized usage not money, measured in resource_unit_seconds only.",
+            is_learned=False,
+            is_deterministic=True,
+            evidence_level="IMPLEMENTATION-VERIFIED FACT NOT_EXECUTED NO_E3_RESEARCH_RESULTS_AVAILABLE and more text to be substantive",
+            limitations="Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; waiting-room ceiling 6220 and compute service capacity separate and resource_unit_seconds and evidence state NOT_EXECUTED and more text to be substantive length.",
         )
         raise AssertionError("expected rejection for direct constructor hostile human_label")
     except ValueError:
         pass
     # Direct constructor with clean should succeed
-    clean = E3StrategySemantics(**base_kwargs)
+    clean = E3StrategySemantics(
+        placement_id="per_task_dla",
+        scaling_id="fixed_1x",
+        state_age_ms=0,
+        human_label="test human label that is long enough for validation and mentions queue vs compute properly and resource_unit_seconds and evidence state NOT_EXECUTED and more text to exceed ten chars",
+        radio_ingress="test radio_ingress that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state and more words to be substantive length",
+        execution_placement="test execution_placement that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        admission="test admission that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        forwarding="test forwarding that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        actor_authority="test actor_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        infrastructure_authority="test infrastructure_authority that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        scaling_semantics="test scaling_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        staleness_semantics="test staleness_semantics that is long enough and mentions resource_unit_seconds and queue waiting and compute and is deterministic and mentions NOT_EXECUTED hold state",
+        queue_capacity_note="Queue capacity is waiting-room tasks per RSU, strictly separate from compute service capacity, queue waiting",
+        compute_capacity_note="Compute capacity is active units 1..3 per RSU, each drains 1000 work_ms per second",
+        resource_cost_note="Resource cost is resource_unit_seconds = sum over RSU sum over interval active_units * interval_seconds, normalized usage not money, measured in resource_unit_seconds only.",
+        is_learned=False,
+        is_deterministic=True,
+        evidence_level="IMPLEMENTATION-VERIFIED FACT NOT_EXECUTED NO_E3_RESEARCH_RESULTS_AVAILABLE and more text to be substantive",
+        limitations="Bounded to staged design E3a; no E3 results. Tasks are accounting records, not replicates; waiting-room ceiling 6220 and compute service capacity separate and resource_unit_seconds and evidence state NOT_EXECUTED and more text to be substantive length.",
+    )
     assert clean.placement_id == "per_task_dla"
 
 
