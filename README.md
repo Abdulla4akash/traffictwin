@@ -678,11 +678,24 @@ compatibility with Randy's private package.
 Integration evidence and remaining questions are documented under
 [docs/integration/](docs/integration/).
 
+As of 7 August 2026, complete authorised private mirrors of
+[`vec_env`](https://github.com/Abdulla4akash/vec_env) and
+[`tos-data`](https://github.com/Abdulla4akash/tos-data) preserve their current histories and the
+exact TrafficTwin-reviewed snapshots. Local SUMO 1.27.1 is also available. These facts establish a
+research-start inventory; they do not by themselves prove end-to-end reproduction, change formal
+capability status, or authorise public redistribution. See the
+[dated research-start status](docs/research_start_2026-08-07.md) for the two active research
+threads and their first verification milestone.
+
 ## Documentation Index
 
 Start at [docs/index.md](docs/index.md). Key documents:
 
 - [docs/traffictwin-design-v0_7.md](docs/traffictwin-design-v0_7.md) — canonical planned Manchester evidence and product-experience design
+- [SUPERVISOR_RESEARCH_DIRECTION.md](SUPERVISOR_RESEARCH_DIRECTION.md) — prominent agent-facing record of Sandra's direct RSU load-management research direction
+- [docs/research_start_2026-08-07.md](docs/research_start_2026-08-07.md) — secured assets and the supervisor-aligned and independent-bus research start
+- [docs/randy_email_research_analysis_2026-08-07.md](docs/randy_email_research_analysis_2026-08-07.md) — queue accounting, RSU-load MAPPO, DLA/Kubernetes baselines, and proactive-scaling research plan
+- [docs/msc_students_qna_research_record_2026-08-05.md](docs/msc_students_qna_research_record_2026-08-05.md) — detailed Q&A decisions for RSU admission, timing, dispatch, scaling, staleness, and controlled experiments
 - [docs/traffictwin-design-v0_6.md](docs/traffictwin-design-v0_6.md) — implemented evidence-gated Randy/VEC release design
 - [docs/integration/vec_end_to_end_research_artifact.md](docs/integration/vec_end_to_end_research_artifact.md) — VEC-12 archive use, rebuild, verification, and limits
 - [docs/traffictwin-design-v0_5.md](docs/traffictwin-design-v0_5.md) — implemented baseline

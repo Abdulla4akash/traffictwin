@@ -1,0 +1,26 @@
+TRAFFICTWIN — IMMEDIATE REQUEST CHECKLIST (7 AUGUST 2026)
+
+REQUEST FROM SANDRA
+- Confirm primary research question and mandatory deliverables.
+- Confirm primary actor, metric denominator, core trace set and deadline.
+- Confirm "Kubernetes-style" naming and whether physical-return events are mandatory.
+- Confirm whether the bus thread may remain a parallel contingency.
+
+REQUEST FROM RANDY
+- Raw 0.75x–40x sweep JSON/CSV and exact commands/manifests.
+- Actor/trace checksums, commits, seeds, environment and SUMO version.
+- Exact completion/latency/drain/rejection definitions.
+- Current authoritative evaluator semantics and native path-event feasibility.
+- CSF3 partition, quota, storage and allowed concurrency.
+
+REQUEST FROM ETHAN
+- Branch/commit, current workstream, raw outputs and completion date.
+- Ownership split for lifecycle, placement, scaling, forecasting and analysis.
+- Shared manifest/result naming and merge-review owner.
+
+DO NOW
+- Inventory local git status/untracked outputs at all three supplied paths.
+- Freeze E0 manifest.
+- Pin SUMO/environment.
+- Run bounded physical-semantics smoke only.
+- Validate task/work conservation before any campaign.
