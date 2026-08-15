@@ -3722,3 +3722,169 @@ def test_release_receipt_missing_fails_typed_via_cli(
     assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISSING:") for e in errs), (
         f"expected typed MISSING got {errs}"
     )
+
+
+# ---- Release receipt ancestry structured verification regressions (r2) ----
+
+
+def test_release_receipt_ancestry_research_promotion_to_ancestor_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Research promotion is reference_only; flipping it to ancestor_of_dynamic_tip must fail typed (git-verified false)."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Flip research_promotion from reference_only to a false ancestor relation
+    data["ancestry"]["research_promotion"]["relation"] = "ancestor_of_dynamic_tip"
+    data["ancestry"]["research_promotion"]["statement"] = (
+        "342789434233e97cd87ea74e21a759878610ce40 is an ancestor of the dynamic tip "
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "flipping research promotion to ancestor should fail"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    # Must mention ancestor or mismatch, and be git-verified
+    assert any("not ancestor" in e.lower() or "mismatch" in e.lower() for e in errs), (
+        f"expected ancestor/mismatch in {errs}"
+    )
+
+
+def test_release_receipt_ancestry_expansion_tampered_relation_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Tampered relation on Expansion tip (ancestor_of_release_composition -> ancestor_of_dynamic_tip) must fail typed via git."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Expansion tip is ancestor_of_release_composition; tamper to false ancestor_of_dynamic_tip
+    data["ancestry"]["expansion_tip"]["relation"] = "ancestor_of_dynamic_tip"
+    data["ancestry"]["expansion_tip"]["statement"] = (
+        "85a6d98464ba5065f578632fd97456b91fa6ab0e is an ancestor of the dynamic tip "
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "tampered expansion relation should fail"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    assert any("not ancestor" in e.lower() for e in errs), f"expected not ancestor in {errs}"
+
+
+def test_release_receipt_ancestry_true_to_reference_only_flagged_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Flipping a true ancestor relation to reference_only is FLAGGED per design (typed error).
+
+    Design choice: reference_only for a SHA that is actually an ancestor of the release composition
+    would be a false NOT-part claim. Validator verifies reference_only SHAs are NOT ancestors via git
+    (fail-closed) and also enforces required keys have fixed expected relation. Therefore downgrading
+    e.g. dynamic_tip from ancestor_of_release_composition to reference_only fails typed.
+    This is documented as flagged, not allowed, to keep provenance honest.
+    """
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Downgrade dynamic_tip (true ancestor) to reference_only — should be flagged as false
+    data["ancestry"]["dynamic_tip"]["relation"] = "reference_only"
+    data["ancestry"]["dynamic_tip"]["statement"] = (
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a referenced by fingerprint; "
+        "NOT part of the composed product history"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    # Design says flagged — must fail typed (not silently allowed)
+    assert rc != 0, (
+        "flipping true ancestor to reference_only should be flagged as typed error per design"
+    )
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    # Should mention either required relation mismatch or false reference_only claim
+    assert any(
+        "must have relation" in e.lower()
+        or "is ancestor" in e.lower()
+        or "false claim" in e.lower()
+        for e in errs
+    ), f"expected flagged reason in {errs}"
+
+
+def test_release_receipt_ancestry_free_prose_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Free-prose ancestry entry without structured relation must fail typed (not verifiable)."""
+    real = Path("docs/closure/e3_release_receipt.json").read_text(encoding="utf-8")
+    data = json.loads(real)
+    # Replace structured entry with free-prose string (old style)
+    data["ancestry"]["research_promotion"] = (
+        "342789434233e97cd87ea74e21a759878610ce40 is an ancestor of the dynamic tip "
+        "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+    )
+    orig_read = Path.read_text
+
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_release_receipt.json"):
+            return json.dumps(data)
+        return orig_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "free-prose ancestry should fail typed"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    assert any("free-prose" in e.lower() for e in errs), f"expected free-prose in {errs}"
+
+
+def test_release_receipt_ancestry_git_unavailability_fails_typed_via_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Git unavailability during ancestry verification must fail closed with typed error."""
+    # Patch _git_run to simulate git signal failure for ancestry checks
+    import scripts.validate_e3_research_product as v
+
+    orig_git = v._git_run
+
+    def fake_git(args: list[str], cwd: Path, **kwargs: Any) -> Any:  # type: ignore[no-untyped-def]
+        # Simulate git unavailable for merge-base checks
+        if "merge-base" in args or "rev-parse" in args:
+
+            class R:
+                returncode = -9  # signal
+
+                stdout = ""
+                stderr = ""
+
+            return R()
+        return orig_git(args, cwd, **kwargs)
+
+    monkeypatch.setattr(v, "_git_run", fake_git)
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, "git unavailability should fail closed"
+    assert any(e.startswith("E3PV_RELEASE_RECEIPT_MISMATCH:") for e in errs), (
+        f"expected typed MISMATCH got {errs}"
+    )
+    assert any(
+        "git" in e.lower() and ("signal" in e.lower() or "unavailable" in e.lower()) for e in errs
+    ), f"expected git fail-closed in {errs}"

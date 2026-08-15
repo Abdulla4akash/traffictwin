@@ -106,7 +106,12 @@
         "docs/quality/e3_"
       ],
       "found_untracked": [],
-      "found_changed": [],
+      "found_changed": [
+        "docs/closure/e3_release_receipt.json",
+        "docs/quality/e3_quality_gate.json",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
       "found_out_of_scope": [],
       "all_allowed": true,
       "result": "PASS"

@@ -2743,52 +2743,347 @@ def _check_release_receipt(errors: list[str]) -> None:
                     errors,
                     f"E3PV_RELEASE_RECEIPT_MISMATCH: research_workloads_launched expected 0 got {data.get('research_workloads_launched')!r}",
                 )
-        # Ancestry statements — must contain phrase "is an ancestor of the release composition"
+        # --- Structured ancestry verification (truthful, git-verified, fail-closed) ---
+        # Requirement: ancestry must be dict of objects each with sha, relation, statement
+        # Allowed relations: ancestor_of_release_composition, ancestor_of_dynamic_tip,
+        #   ancestor_of_expansion_tip, ancestor_of_main_tip, reference_only
+        # Each checkable relation is verified via `git merge-base --is-ancestor` (fail-closed on git unavailability).
+        # Free-prose string entries without relation are a typed error.
+        # Design choice: flipping a true ancestor relation to reference_only is ALLOWED
+        #   (weaker, not asserting ancestry, so no git check). We document this choice here.
+        #   This means downgrading e.g. dynamic_tip from ancestor_of_release_composition to reference_only
+        #   will still PASS, as it does not assert a false ancestry. Tampering of Expansion tip to a
+        #   false ancestor relation (e.g. ancestor_of_dynamic_tip) will FAIL typed via git check.
+        allowed_relations = {
+            "ancestor_of_release_composition",
+            "ancestor_of_dynamic_tip",
+            "ancestor_of_expansion_tip",
+            "ancestor_of_main_tip",
+            "reference_only",
+        }
+        relation_target = {
+            "ancestor_of_release_composition": EXPECTED_RELEASE_COMPOSITION_SHA,
+            "ancestor_of_dynamic_tip": EXPECTED_FROZEN_DYNAMIC_TIP,
+            "ancestor_of_expansion_tip": EXPECTED_FROZEN_EXPANSION_TIP,
+            "ancestor_of_main_tip": EXPECTED_MAIN_TIP_AT_COMPOSITION,
+        }
         ancestry = data.get("ancestry")
-        # Support both dict and list
-        ancestry_texts: list[str] = []
-        if isinstance(ancestry, dict):
-            for k, v in ancestry.items():
-                if isinstance(v, str):
-                    ancestry_texts.append(v)
-                # key itself may contain phrase
-                ancestry_texts.append(str(k))
-                ancestry_texts.append(str(v))
-        elif isinstance(ancestry, list):
-            for item in ancestry:
-                if isinstance(item, str):
-                    ancestry_texts.append(item)
-                elif isinstance(item, dict):
-                    for kv in item.values():
-                        if isinstance(kv, str):
-                            ancestry_texts.append(kv)
-        # Also check top-level ancestry_statements
-        for key in ("ancestry_statements", "ancestry_statements_text"):
-            val = data.get(key)
-            if isinstance(val, list):
-                for it in val:
-                    if isinstance(it, str):
-                        ancestry_texts.append(it)
-            elif isinstance(val, str):
-                ancestry_texts.append(val)
-        joined = " ".join(ancestry_texts).lower()
-        if "is an ancestor of the release composition" not in joined:
+        if not isinstance(ancestry, dict) or not ancestry:
             _fail(
                 errors,
-                "E3PV_RELEASE_RECEIPT_MISSING: ancestry statements must contain 'is an ancestor of the release composition'",
+                "E3PV_RELEASE_RECEIPT_MISSING: ancestry must be a non-empty dict of structured entries with relation",
             )
         else:
-            # Check each expected ancestor phrase present
-            for sha, label in [
-                (EXPECTED_FROZEN_DYNAMIC_TIP, "dynamic"),
-                (EXPECTED_FROZEN_EXPANSION_TIP, "expansion"),
-                (EXPECTED_MAIN_TIP_AT_COMPOSITION, "main_tip"),
-            ]:
-                if sha.lower() not in joined:
+            for key, val in ancestry.items():
+                if isinstance(val, str):
                     _fail(
                         errors,
-                        f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry missing {label} SHA {sha!r}",
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} is free-prose string without structured relation — must be object with sha, relation, statement; free-prose not verifiable",
                     )
+                elif not isinstance(val, dict):
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} must be dict with sha, relation, statement got {type(val).__name__}",
+                    )
+                else:
+                    sha = val.get("sha")
+                    relation = val.get("relation")
+                    statement = val.get("statement")
+                    if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha or ""):
+                        _fail(
+                            errors,
+                            f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} sha must be 40-hex got {sha!r}",
+                        )
+                        continue
+                    if relation not in allowed_relations:
+                        _fail(
+                            errors,
+                            f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} relation {relation!r} not in allowed {sorted(allowed_relations)!r}",
+                        )
+                        continue
+                    if not isinstance(statement, str) or not statement.strip():
+                        _fail(
+                            errors,
+                            f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} statement must be non-empty string",
+                        )
+                        continue
+                    if relation == "reference_only":
+                        low = statement.lower()
+                        if "referenced by fingerprint" not in low:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} reference_only statement must contain 'referenced by fingerprint' got {statement!r}",
+                            )
+                        if "not part of the composed product history" not in low:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} reference_only statement must contain 'NOT part of the composed product history' got {statement!r}",
+                            )
+                        if key in ("research_promotion", "lane_08_promotion", "lane_08_approved"):
+                            if "frozen on research/e3-dynamic-resource-v2" not in statement:
+                                _fail(
+                                    errors,
+                                    f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} must contain 'frozen on research/e3-dynamic-resource-v2' got {statement!r}",
+                                )
+                        # For reference_only, verify truthfulness: sha must NOT be ancestor of release composition
+                        # (otherwise claiming NOT part would be false). Fail-closed on git unavailability.
+                        # Design: flipping true ancestor to reference_only is FLAGGED (typed error) because it would be false.
+                        try:
+                            r = _git_run(
+                                ["git", "rev-parse", "--git-dir"],
+                                cwd=_REPO_ROOT,
+                                capture_output=True,
+                                timeout=5,
+                            )
+                            if r.returncode != 0:
+                                if r.returncode < 0:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable (signal {-r.returncode}) for reference_only check {key!r} — fail closed",
+                                    )
+                                else:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for reference_only check {key!r} (code {r.returncode}) — fail closed",
+                                    )
+                            else:
+                                ce = _git_run(
+                                    ["git", "cat-file", "-e", sha],
+                                    cwd=_REPO_ROOT,
+                                    capture_output=True,
+                                    timeout=5,
+                                )
+                                if ce.returncode != 0:
+                                    if ce.returncode < 0:
+                                        _fail(
+                                            errors,
+                                            f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-ce.returncode} for reference_only sha {key!r} {sha!r} — fail closed",
+                                        )
+                                    else:
+                                        _fail(
+                                            errors,
+                                            f"E3PV_RELEASE_RECEIPT_MISMATCH: reference_only sha {key!r} {sha!r} not found (code {ce.returncode})",
+                                        )
+                                else:
+                                    ce2 = _git_run(
+                                        ["git", "cat-file", "-e", EXPECTED_RELEASE_COMPOSITION_SHA],
+                                        cwd=_REPO_ROOT,
+                                        capture_output=True,
+                                        timeout=5,
+                                    )
+                                    if ce2.returncode != 0:
+                                        if ce2.returncode < 0:
+                                            _fail(
+                                                errors,
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-ce2.returncode} for target {EXPECTED_RELEASE_COMPOSITION_SHA!r} — fail closed",
+                                            )
+                                        else:
+                                            _fail(
+                                                errors,
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: target {EXPECTED_RELEASE_COMPOSITION_SHA!r} not found (code {ce2.returncode})",
+                                            )
+                                    else:
+                                        mb = _git_run(
+                                            [
+                                                "git",
+                                                "merge-base",
+                                                "--is-ancestor",
+                                                sha,
+                                                EXPECTED_RELEASE_COMPOSITION_SHA,
+                                            ],
+                                            cwd=_REPO_ROOT,
+                                            capture_output=True,
+                                            timeout=5,
+                                        )
+                                        if mb.returncode == 0:
+                                            _fail(
+                                                errors,
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} sha {sha!r} is ancestor of release composition but claims reference_only (NOT part) — false claim",
+                                            )
+                                        elif mb.returncode < 0:
+                                            _fail(
+                                                errors,
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-mb.returncode} for reference_only ancestry check {key!r} — fail closed",
+                                            )
+                                        elif mb.returncode != 1:
+                                            _fail(
+                                                errors,
+                                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git error for reference_only check {key!r} code {mb.returncode} — fail closed",
+                                            )
+                        except FileNotFoundError as exc:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for reference_only {key!r} {exc} — fail closed",
+                            )
+                        except subprocess.TimeoutExpired as exc:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git timeout for reference_only {key!r} {exc} — fail closed",
+                            )
+                        except Exception as exc:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git check failed for reference_only {key!r} {exc} — fail closed",
+                            )
+                    else:
+                        target = relation_target.get(relation)
+                        if target is None:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} unknown target for relation {relation!r}",
+                            )
+                            continue
+                        expected_for_key = {
+                            "dynamic_tip": EXPECTED_FROZEN_DYNAMIC_TIP,
+                            "expansion_tip": EXPECTED_FROZEN_EXPANSION_TIP,
+                            "main_tip": EXPECTED_MAIN_TIP_AT_COMPOSITION,
+                            "docs_commit": EXPECTED_DOCS_COMMIT,
+                            "research_promotion": EXPECTED_RESEARCH_PROMOTION_SHA,
+                            "lane_12_promotion": EXPECTED_FROZEN_DYNAMIC_TIP,
+                        }
+                        if key in expected_for_key and sha != expected_for_key[key]:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} sha {sha!r} does not match expected {expected_for_key[key]!r}",
+                            )
+                            continue
+                        low_stmt = statement.lower()
+                        if "ancestor" not in low_stmt and "reference" not in low_stmt:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} statement should describe relation {statement!r}",
+                            )
+                        try:
+                            r = _git_run(
+                                ["git", "rev-parse", "--git-dir"],
+                                cwd=_REPO_ROOT,
+                                capture_output=True,
+                                timeout=5,
+                            )
+                            if r.returncode != 0:
+                                if r.returncode < 0:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable (signal {-r.returncode}) for ancestry check {key!r} — fail closed",
+                                    )
+                                else:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for ancestry check {key!r} (code {r.returncode}) — fail closed",
+                                    )
+                                continue
+                            ce = _git_run(
+                                ["git", "cat-file", "-e", sha],
+                                cwd=_REPO_ROOT,
+                                capture_output=True,
+                                timeout=5,
+                            )
+                            if ce.returncode != 0:
+                                if ce.returncode < 0:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-ce.returncode} for ancestry sha {key!r} {sha!r} — fail closed",
+                                    )
+                                else:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry sha {key!r} {sha!r} not found in repo (code {ce.returncode})",
+                                    )
+                                continue
+                            ce2 = _git_run(
+                                ["git", "cat-file", "-e", target],
+                                cwd=_REPO_ROOT,
+                                capture_output=True,
+                                timeout=5,
+                            )
+                            if ce2.returncode != 0:
+                                if ce2.returncode < 0:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-ce2.returncode} for target {target!r} — fail closed",
+                                    )
+                                else:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: target {target!r} for relation {relation!r} not found (code {ce2.returncode})",
+                                    )
+                                continue
+                            mb = _git_run(
+                                ["git", "merge-base", "--is-ancestor", sha, target],
+                                cwd=_REPO_ROOT,
+                                capture_output=True,
+                                timeout=5,
+                            )
+                            if mb.returncode != 0:
+                                if mb.returncode < 0:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-mb.returncode} for {key!r} ancestry check {sha!r} -> {target!r} — fail closed",
+                                    )
+                                else:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry entry {key!r} sha {sha!r} not ancestor of {relation} target {target!r} (git merge-base --is-ancestor failed code {mb.returncode})",
+                                    )
+                        except FileNotFoundError as exc:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for ancestry {key!r} {exc} — fail closed",
+                            )
+                        except subprocess.TimeoutExpired as exc:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git timeout for ancestry {key!r} {exc} — fail closed",
+                            )
+                        except Exception as exc:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git check failed for ancestry {key!r} {exc} — fail closed",
+                            )
+            required_keys = {
+                "dynamic_tip",
+                "expansion_tip",
+                "main_tip",
+                "docs_commit",
+                "research_promotion",
+            }
+            for req in required_keys:
+                if req not in ancestry:
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISSING: ancestry must contain required key {req!r}",
+                    )
+                else:
+                    entry = ancestry.get(req)
+                    if isinstance(entry, dict):
+                        rel = entry.get("relation")
+                        if req in ("dynamic_tip", "expansion_tip", "main_tip"):
+                            if rel != "ancestor_of_release_composition":
+                                _fail(
+                                    errors,
+                                    f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry required key {req!r} must have relation 'ancestor_of_release_composition' got {rel!r}",
+                                )
+                        if req == "docs_commit":
+                            if rel not in (
+                                "ancestor_of_release_composition",
+                                "ancestor_of_main_tip",
+                            ):
+                                _fail(
+                                    errors,
+                                    f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry required key {req!r} must have relation 'ancestor_of_release_composition' or 'ancestor_of_main_tip' got {rel!r}",
+                                )
+                        if req == "research_promotion":
+                            if rel != "reference_only":
+                                _fail(
+                                    errors,
+                                    f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry required key {req!r} must have relation 'reference_only' got {rel!r}",
+                                )
+            rc_sha = data.get("release_composition_sha")
+            if rc_sha != EXPECTED_RELEASE_COMPOSITION_SHA:
+                _fail(
+                    errors,
+                    f"E3PV_RELEASE_RECEIPT_MISMATCH: release_composition_sha expected {EXPECTED_RELEASE_COMPOSITION_SHA!r} got {rc_sha!r}",
+                )
         # Free-text scan of all string values in release receipt (exempt only diagnostics if any)
         try:
             from traffictwin.experiments.e3_research_evidence import (
@@ -2823,113 +3118,7 @@ def _check_release_receipt(errors: list[str]) -> None:
             _scan(data)
         except Exception as exc:
             _fail(errors, f"E3PV_RELEASE_RECEIPT_FORBIDDEN_CHECK_FAILED: {exc}")
-        # Ancestry via git where checkable — verify dynamic tip is ancestor of release composition
-        try:
-            r = _git_run(
-                ["git", "rev-parse", "--git-dir"], cwd=_REPO_ROOT, capture_output=True, timeout=5
-            )
-            if r.returncode != 0:
-                if r.returncode < 0:
-                    _fail(
-                        errors,
-                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable (signal {-r.returncode}) for release ancestry check — fail closed",
-                    )
-                else:
-                    _fail(
-                        errors,
-                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for release ancestry (code {r.returncode}) — fail closed",
-                    )
-            else:
-                # Derive release composition SHA via git log --all --grep
-                rr = _git_run(
-                    [
-                        "git",
-                        "log",
-                        "--all",
-                        "--grep=Merge frozen Dynamic Resource V2 into the release composition",
-                        "--format=%H",
-                        "-n",
-                        "1",
-                    ],
-                    cwd=_REPO_ROOT,
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                )
-                release_sha = rr.stdout.strip().splitlines()[0].strip() if rr.stdout.strip() else ""
-                if not release_sha or not re.fullmatch(r"[0-9a-f]{40}", release_sha):
-                    # Fallback to expected constant if not found (e.g., limited history)
-                    release_sha = EXPECTED_RELEASE_COMPOSITION_SHA
-                    # Try to verify via cat-file that expected exists
-                    cat = _git_run(
-                        ["git", "cat-file", "-e", release_sha],
-                        cwd=_REPO_ROOT,
-                        capture_output=True,
-                        timeout=5,
-                    )
-                    if cat.returncode != 0:
-                        _fail(
-                            errors,
-                            f"E3PV_RELEASE_RECEIPT_MISMATCH: release composition SHA {release_sha!r} not found in repo",
-                        )
-                        return
-                # Check dynamic tip ancestry
-                for tip, label in [
-                    (EXPECTED_FROZEN_DYNAMIC_TIP, "dynamic"),
-                    (EXPECTED_FROZEN_EXPANSION_TIP, "expansion"),
-                    (EXPECTED_MAIN_TIP_AT_COMPOSITION, "main_tip"),
-                ]:
-                    # Ensure tip exists
-                    ce = _git_run(
-                        ["git", "cat-file", "-e", tip],
-                        cwd=_REPO_ROOT,
-                        capture_output=True,
-                        timeout=5,
-                    )
-                    if ce.returncode != 0:
-                        if ce.returncode < 0:
-                            _fail(
-                                errors,
-                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-ce.returncode} for tip {label} {tip!r} — fail closed",
-                            )
-                        else:
-                            _fail(
-                                errors,
-                                f"E3PV_RELEASE_RECEIPT_MISMATCH: tip {label} {tip!r} not found in repo (code {ce.returncode})",
-                            )
-                        continue
-                    mb = _git_run(
-                        ["git", "merge-base", "--is-ancestor", tip, release_sha],
-                        cwd=_REPO_ROOT,
-                        capture_output=True,
-                        timeout=5,
-                    )
-                    if mb.returncode != 0:
-                        if mb.returncode < 0:
-                            _fail(
-                                errors,
-                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-mb.returncode} for {label} ancestor check — fail closed",
-                            )
-                        else:
-                            _fail(
-                                errors,
-                                f"E3PV_RELEASE_RECEIPT_MISMATCH: {label} tip {tip!r} not ancestor of release composition {release_sha!r} (code {mb.returncode})",
-                            )
-        except FileNotFoundError as exc:
-            _fail(
-                errors,
-                f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for release ancestry {exc} — fail closed",
-            )
-        except subprocess.TimeoutExpired as exc:
-            _fail(
-                errors,
-                f"E3PV_RELEASE_RECEIPT_MISMATCH: git timeout for release ancestry {exc} — fail closed",
-            )
-        except Exception as exc:
-            _fail(
-                errors,
-                f"E3PV_RELEASE_RECEIPT_MISMATCH: git check failed for release ancestry {exc} — fail closed",
-            )
+        # Structured ancestry git checks already performed above (fail-closed per relation)
     except Exception as exc:
         _fail(errors, f"E3PV_RELEASE_RECEIPT_FAILED: {exc}")
 
