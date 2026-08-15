@@ -1,0 +1,1004 @@
+"""Deterministic pure replay engine over immutable ReplayEventStream.
+
+This module is a pure, deterministic cursor engine.  It never sleeps,
+never performs wall-clock waiting, never mutates or synthesises events,
+and never fabricates missing telemetry.  All controls are typed,
+frozen, strictly validated, and bounded.
+
+ADVANCE is additive and saturating in terms of the actual binary-float
+accumulation: playhead accumulates as the monotonic binary-float sum of
+``delta_s * speed_multiplier`` while PLAYING; zero delta, empty stream,
+PAUSED, or already ENDED are pure no-ops; whenever the actual
+accumulated ``new_playhead >= last_time`` (reaches or crosses the final
+event time), playhead is clamped exactly to ``last_time``,
+``cursor == len(events)``, ``playback == ENDED`` and ``end_of_stream ==
+True`` with equal-time final groups atomically complete, after which the
+engine remains immobile and further ADVANCE are no-ops.  Any two
+sequences whose actual Python binary-float accumulated
+``delta*speed`` sums both reach/cross ``last_time`` converge to that one
+clamped terminal state (identical cursor, playhead, state, fingerprint);
+nominal decimal totals whose actual accumulated floats differ and
+undershoot remain truthfully non-terminal and are not claimed
+equivalent. Cursor ordering before terminal remains deterministic and
+never skips ordered events. No wall-clock waiting is involved.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+from enum import StrEnum
+from typing import Literal
+
+from pydantic import Field, ValidationError, field_validator, model_validator
+
+from traffictwin.replay_observatory.models import (
+    MAX_EVENTS_PER_STREAM,
+    EventType,
+    ReplayEvent,
+    ReplayEventStream,
+    ReplayModel,
+    SourceDataKind,
+)
+
+# ---------------------------------------------------------------------------
+# Constants and canonical helpers
+# ---------------------------------------------------------------------------
+
+MIN_SPEED_MULTIPLIER: float = 0.125
+MAX_SPEED_MULTIPLIER: float = 16.0
+MAX_WINDOW_DURATION_S: float = 86400.0 * 7  # one week bound
+MAX_WINDOW_EVENTS: int = MAX_EVENTS_PER_STREAM
+MAX_STEP_COUNT: int = MAX_EVENTS_PER_STREAM
+MAX_ADVANCE_DELTA_S: float = 86400.0 * 7
+
+# Keep fingerprint helper local to avoid importing adapter internals.
+
+
+def _canonical_json(value: object) -> str:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    )
+
+
+def _fingerprint_dict(data: dict[str, object]) -> str:
+    return hashlib.sha256(_canonical_json(data).encode("utf-8")).hexdigest()
+
+
+def _revalidate_stream(stream: ReplayEventStream) -> ReplayEventStream:
+    try:
+        validated = ReplayEventStream.model_validate_json(stream.model_dump_json())
+    except ValidationError as exc:
+        raise ReplayEngineError("INVALID_STREAM", f"stream revalidation failed: {exc}") from exc
+    return validated
+
+
+def _revalidate_request(request: ReplayControlRequest) -> ReplayControlRequest:
+    try:
+        validated = ReplayControlRequest.model_validate_json(request.model_dump_json())
+    except ValidationError as exc:
+        raise ReplayEngineError("INVALID_REQUEST", f"request revalidation failed: {exc}") from exc
+    return validated
+
+
+# ---------------------------------------------------------------------------
+# Typed errors
+# ---------------------------------------------------------------------------
+
+
+class ReplayEngineError(ValueError):
+    """Typed fail-closed error for the replay engine."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(f"{code}: {message}")
+        self.code = code
+
+
+# ---------------------------------------------------------------------------
+# Enums and typed request / state / receipt
+# ---------------------------------------------------------------------------
+
+
+class PlaybackState(StrEnum):
+    PAUSED = "paused"
+    PLAYING = "playing"
+    ENDED = "ended"
+
+
+class ReplayControl(StrEnum):
+    PLAY = "play"
+    PAUSE = "pause"
+    STEP = "step"
+    SEEK = "seek"
+    ADVANCE = "advance"
+
+
+class ReplayControlRequest(ReplayModel):
+    """Immutable strict request for one engine transition."""
+
+    control: ReplayControl
+    target_time_s: float | None = None
+    step_count: int | None = None
+    step_direction: Literal["forward", "backward"] | None = None
+    speed_multiplier: float | None = None
+    expected_stream_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    advance_delta_s: float | None = None
+
+    @field_validator("target_time_s", "speed_multiplier", "advance_delta_s")
+    @classmethod
+    def validate_finite(cls, value: float | None) -> float | None:
+        if value is None:
+            return None
+        if not math.isfinite(value):
+            raise ValueError("value must be finite")
+        return value
+
+    @model_validator(mode="after")
+    def validate_request(self) -> ReplayControlRequest:
+        if self.speed_multiplier is not None:
+            if (
+                self.speed_multiplier < MIN_SPEED_MULTIPLIER
+                or self.speed_multiplier > MAX_SPEED_MULTIPLIER
+            ):
+                raise ValueError(
+                    f"speed_multiplier must be within "
+                    f"[{MIN_SPEED_MULTIPLIER},{MAX_SPEED_MULTIPLIER}]"
+                )
+            if self.speed_multiplier <= 0:
+                raise ValueError("speed_multiplier must be positive")
+        if self.advance_delta_s is not None and (
+            self.advance_delta_s < 0 or self.advance_delta_s > MAX_ADVANCE_DELTA_S
+        ):
+            raise ValueError(f"advance_delta_s must be within [0,{MAX_ADVANCE_DELTA_S}]")
+        if self.control is ReplayControl.SEEK:
+            if self.target_time_s is None:
+                raise ValueError("seek requires target_time_s")
+            if self.target_time_s < 0:
+                raise ValueError("target_time_s must be non-negative")
+            if self.step_count is not None or self.step_direction is not None:
+                raise ValueError("seek must not carry step fields")
+            if self.advance_delta_s is not None:
+                raise ValueError("seek must not carry advance_delta_s")
+        elif self.control is ReplayControl.STEP:
+            if self.step_count is None:
+                raise ValueError("step requires step_count")
+            if self.step_count < 1 or self.step_count > MAX_STEP_COUNT:
+                raise ValueError(f"step_count must be within [1,{MAX_STEP_COUNT}]")
+            if self.step_direction is None:
+                raise ValueError("step requires step_direction")
+            if self.target_time_s is not None:
+                raise ValueError("step must not carry target_time_s")
+            if self.advance_delta_s is not None:
+                raise ValueError("step must not carry advance_delta_s")
+        elif self.control is ReplayControl.ADVANCE:
+            if self.advance_delta_s is None:
+                raise ValueError("advance requires advance_delta_s")
+            if self.target_time_s is not None:
+                raise ValueError("advance must not carry target_time_s")
+            if self.step_count is not None or self.step_direction is not None:
+                raise ValueError("advance must not carry step fields")
+        elif self.control in (ReplayControl.PLAY, ReplayControl.PAUSE):
+            if self.target_time_s is not None:
+                raise ValueError(f"{self.control.value} must not carry target_time_s")
+            if self.step_count is not None or self.step_direction is not None:
+                raise ValueError(f"{self.control.value} must not carry step fields")
+            if self.advance_delta_s is not None:
+                raise ValueError(f"{self.control.value} must not carry advance_delta_s")
+        return self
+
+    def canonical_dict(self) -> dict[str, object]:
+        return self.model_dump(mode="json")
+
+    def fingerprint(self) -> str:
+        return _fingerprint_dict(self.canonical_dict())
+
+
+class ReplayCursor(ReplayModel):
+    index: int = Field(ge=0)
+    simulator_time_s: float = Field(ge=0)
+    event_id: str | None = None
+    is_empty: bool
+    is_at_end: bool
+    total_events: int = Field(ge=0, le=MAX_EVENTS_PER_STREAM)
+
+    @field_validator("simulator_time_s")
+    @classmethod
+    def validate_sim_time(cls, value: float) -> float:
+        if not math.isfinite(value):
+            raise ValueError("simulator_time_s must be finite")
+        return value
+
+    @model_validator(mode="after")
+    def validate_cursor(self) -> ReplayCursor:
+        if self.is_empty:
+            if self.total_events != 0:
+                raise ValueError("empty cursor requires total_events == 0")
+            if not self.is_at_end:
+                raise ValueError("empty cursor requires is_at_end == True")
+            if self.index != 0:
+                raise ValueError("empty cursor requires index == 0")
+            if self.event_id is not None:
+                raise ValueError("empty cursor requires event_id is None")
+            if self.simulator_time_s != 0.0:
+                raise ValueError("empty cursor requires simulator_time_s == 0.0")
+        else:
+            if self.total_events == 0:
+                raise ValueError("non-empty cursor requires total_events > 0")
+            if self.is_at_end:
+                if self.index != self.total_events:
+                    raise ValueError("at-end cursor requires index == total_events")
+                if self.event_id is not None:
+                    raise ValueError("at-end cursor requires event_id is None")
+            else:
+                if self.index >= self.total_events:
+                    raise ValueError("cursor index must be < total_events when not at end")
+                if self.event_id is None:
+                    raise ValueError("cursor requires event_id when not at end")
+                if self.is_at_end:
+                    raise ValueError("inconsistent at_end flag")
+        return self
+
+    def verify_against_stream(self, stream: ReplayEventStream) -> None:
+        """Structural exact verifier; not live freshness.
+
+        Revalidates the stream canonically and checks cursor coherence against
+        the stream's canonical ordering. Does not assert that this cursor is
+        still the engine's current live cursor; use
+        ReplayEngineState.verify_against_engine for exact live binding.
+        """
+        canonical = _revalidate_stream(stream)
+        total = len(canonical.events)
+        if self.total_events != total:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor total_events mismatch")
+        if (total == 0) != self.is_empty:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor is_empty mismatch")
+        if self.is_empty:
+            if self.index != 0 or self.event_id is not None or self.simulator_time_s != 0.0:
+                raise ReplayEngineError("CURSOR_MISMATCH", "empty cursor fields mismatch")
+            if not self.is_at_end:
+                raise ReplayEngineError("CURSOR_MISMATCH", "empty must be at end")
+            return
+        is_at_end = self.index >= total
+        if is_at_end != self.is_at_end:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor is_at_end mismatch")
+        if is_at_end:
+            if self.event_id is not None:
+                raise ReplayEngineError("CURSOR_MISMATCH", "at-end event_id must be None")
+            if total > 0:
+                expected_time = float(canonical.events[-1].simulator_time_s)
+                if self.simulator_time_s != expected_time:
+                    raise ReplayEngineError(
+                        "CURSOR_MISMATCH", "at-end simulator_time_s must match last event"
+                    )
+            return
+        ev = canonical.events[self.index]
+        if ev.event_id != self.event_id:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor event_id mismatch")
+        if float(ev.simulator_time_s) != self.simulator_time_s:
+            raise ReplayEngineError("CURSOR_MISMATCH", "cursor simulator_time_s mismatch")
+
+    def verify_exact(self, stream: ReplayEventStream) -> None:
+        self.verify_against_stream(stream)
+
+
+class ReplayEngineState(ReplayModel):
+    playback_state: PlaybackState
+    cursor: ReplayCursor
+    speed_multiplier: float = Field(ge=MIN_SPEED_MULTIPLIER, le=MAX_SPEED_MULTIPLIER)
+    stream_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    window_start_s: float | None = Field(default=None, ge=0)
+    window_end_s: float | None = Field(default=None, ge=0)
+    window_duration_s: float | None = Field(default=None, ge=0)
+    unavailable_event_types: tuple[EventType, ...] = ()
+    end_of_stream: bool
+    empty_stream: bool
+    playhead_time_s: float = Field(ge=0)
+
+    @field_validator(
+        "speed_multiplier", "window_start_s", "window_end_s", "window_duration_s", "playhead_time_s"
+    )
+    @classmethod
+    def validate_finite_fields(cls, value: float | None) -> float | None:
+        if value is None:
+            return None
+        if not math.isfinite(value):
+            raise ValueError("value must be finite")
+        return value
+
+    @model_validator(mode="after")
+    def validate_window(self) -> ReplayEngineState:
+        if (
+            self.window_start_s is not None
+            and self.window_end_s is not None
+            and self.window_end_s < self.window_start_s
+        ):
+            raise ValueError("window_end_s must be >= window_start_s")
+        if (
+            self.window_start_s is not None
+            and self.window_end_s is not None
+            and self.window_end_s - self.window_start_s > MAX_WINDOW_DURATION_S
+        ):
+            raise ValueError("window duration exceeds bound")
+        if self.window_duration_s is not None and self.window_duration_s > MAX_WINDOW_DURATION_S:
+            raise ValueError("window_duration_s exceeds bound")
+        if tuple(sorted(self.unavailable_event_types, key=str)) != self.unavailable_event_types:
+            raise ValueError("unavailable_event_types must use canonical lexical order")
+        if len(set(self.unavailable_event_types)) != len(self.unavailable_event_types):
+            raise ValueError("unavailable_event_types must not contain duplicates")
+        # Cross flags
+        if self.empty_stream != self.cursor.is_empty:
+            raise ValueError("empty_stream must match cursor.is_empty")
+        if self.end_of_stream != self.cursor.is_at_end:
+            raise ValueError("end_of_stream must match cursor.is_at_end")
+        if self.empty_stream:
+            if not self.end_of_stream:
+                raise ValueError("empty stream requires end_of_stream")
+            if self.playback_state is not PlaybackState.ENDED:
+                raise ValueError("empty stream requires playback_state == ended")
+            if self.playhead_time_s != 0.0:
+                raise ValueError("empty stream requires playhead_time_s == 0.0")
+        elif self.end_of_stream:
+            if self.playback_state is not PlaybackState.ENDED:
+                raise ValueError("end_of_stream requires playback_state == ended")
+            # Saturating end: ADVANCE clamps playhead exactly to final event time;
+            # SEEK beyond end may retain requested time > last, so allow >=.
+            # No silent drift: ADVANCE never leaves playhead > last.
+            if self.cursor.total_events > 0 and self.playhead_time_s < self.cursor.simulator_time_s:
+                raise ValueError("at-end playhead must be >= last event time")
+        else:
+            if self.playback_state is PlaybackState.ENDED:
+                raise ValueError("ended playback requires end_of_stream")
+            # Gap SEEK truthfully distinguishes requested playhead (may be < cursor
+            # when seek lands in a gap) from selected event time. No silent
+            # coercion: playhead may be < cursor when in a gap, or > cursor when
+            # playhead has advanced past cursor but next event not yet reached.
+        return self
+
+    def canonical_dict(self) -> dict[str, object]:
+        return self.model_dump(mode="json")
+
+    def fingerprint(self) -> str:
+        return _fingerprint_dict(self.canonical_dict())
+
+    def verify_against_engine(self, engine: ReplayEngine) -> None:
+        """Exact live-state verifier requiring the live engine/stream."""
+        # Revalidate self canonically to catch model_copy forgery.
+        try:
+            ReplayEngineState.model_validate_json(self.model_dump_json())
+        except ValidationError as exc:
+            raise ReplayEngineError("INVALID_STATE", f"state revalidation failed: {exc}") from exc
+        engine._verify_integrity()
+        if self.stream_fingerprint != engine.stream_fingerprint:
+            raise ReplayEngineError("STATE_MISMATCH", "state stream_fingerprint mismatch")
+        if self.speed_multiplier != engine.speed_multiplier:
+            raise ReplayEngineError("STATE_MISMATCH", "state speed_multiplier mismatch")
+        if (
+            self.window_start_s != engine._window_start_s
+            or self.window_end_s != engine._window_end_s
+            or self.window_duration_s != engine._window_duration_s
+        ):
+            raise ReplayEngineError("STATE_MISMATCH", "state window mismatch")
+        if self.playback_state != engine.playback_state:
+            raise ReplayEngineError("STATE_MISMATCH", "playback_state mismatch")
+        self.cursor.verify_against_stream(engine.stream)
+        # Exact live cursor binding: index and full cursor must match engine.
+        if self.cursor != engine._cursor_snapshot():
+            raise ReplayEngineError("STATE_MISMATCH", "cursor mismatch vs live engine")
+        if self.empty_stream != engine.is_empty() or self.end_of_stream != engine.is_at_end():
+            raise ReplayEngineError("STATE_MISMATCH", "empty/end flag mismatch")
+        if self.unavailable_event_types != engine._unavailable_event_types:
+            raise ReplayEngineError("STATE_MISMATCH", "unavailable_event_types mismatch")
+        if self.playhead_time_s != engine._playhead_time_s:
+            raise ReplayEngineError("STATE_MISMATCH", "playhead_time_s mismatch")
+
+    def verify_exact(self, engine: ReplayEngine) -> None:
+        self.verify_against_engine(engine)
+
+
+class ReplayReceipt(ReplayModel):
+    request: ReplayControlRequest
+    request_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    resulting_state: ReplayEngineState
+    stream_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    tamper_detected: bool
+    error_code: str | None = None
+    causal_disclaimer: str = "replay is deterministic; no causality implied"
+
+    @model_validator(mode="after")
+    def validate_receipt(self) -> ReplayReceipt:
+        # Canonical revalidation of nested models already ensures strictness; now coherence.
+        if self.request.fingerprint() != self.request_fingerprint:
+            raise ValueError("request_fingerprint must match request fingerprint")
+        if self.resulting_state.stream_fingerprint != self.stream_fingerprint:
+            raise ValueError("stream_fingerprint must match resulting_state.stream_fingerprint")
+        if self.causal_disclaimer != "replay is deterministic; no causality implied":
+            raise ValueError("causal_disclaimer must be exact")
+        if self.tamper_detected and self.error_code != "TAMPER_DETECTED":
+            raise ValueError("tamper_detected requires error_code == TAMPER_DETECTED")
+        if not self.tamper_detected and self.error_code == "TAMPER_DETECTED":
+            raise ValueError("TAMPER_DETECTED error requires tamper_detected == True")
+        if self.resulting_state.cursor.total_events == 0 and not self.resulting_state.empty_stream:
+            raise ValueError("receipt state empty coherence")
+        return self
+
+    def canonical_dict(self) -> dict[str, object]:
+        return self.model_dump(mode="json")
+
+    def fingerprint(self) -> str:
+        return _fingerprint_dict(self.canonical_dict())
+
+    def verify_against(
+        self, engine: ReplayEngine, request: ReplayControlRequest | None = None
+    ) -> None:
+        """Exact verifier against engine and originating request."""
+        try:
+            ReplayReceipt.model_validate_json(self.model_dump_json())
+        except ValidationError as exc:
+            raise ReplayEngineError(
+                "INVALID_RECEIPT", f"receipt revalidation failed: {exc}"
+            ) from exc
+        engine._verify_integrity()
+        check_req = request if request is not None else self.request
+        # Revalidate request canonically
+        validated_req = _revalidate_request(check_req)
+        if validated_req.fingerprint() != self.request_fingerprint:
+            raise ReplayEngineError("RECEIPT_MISMATCH", "request fingerprint mismatch")
+        if self.request.fingerprint() != self.request_fingerprint:
+            raise ReplayEngineError("RECEIPT_MISMATCH", "embedded request fingerprint mismatch")
+        if self.stream_fingerprint != engine.stream_fingerprint:
+            raise ReplayEngineError("RECEIPT_MISMATCH", "receipt stream fingerprint mismatch")
+        self.resulting_state.verify_against_engine(engine)
+        if self.tamper_detected:
+            raise ReplayEngineError("TAMPER_DETECTED", "receipt indicates tamper")
+        if self.error_code is not None:
+            raise ReplayEngineError(self.error_code, "receipt carries error_code")
+
+    def verify_exact(self, engine: ReplayEngine) -> None:
+        self.verify_against(engine, self.request)
+
+
+# ---------------------------------------------------------------------------
+# Pure engine
+# ---------------------------------------------------------------------------
+
+
+class ReplayEngine:
+    """Deterministic cursor engine over an immutable ReplayEventStream.
+
+    The engine holds a reference to the immutable stream and a cursor index.
+    All operations are pure with respect to the event sequence: equal-time
+    events remain ordered by (simulator_time_s, sequence, event_id) as stored,
+    and no method mutates or synthesises events. ADVANCE is additive and
+    saturating on the actual binary-float accumulation: any actual
+    accumulated ``new_playhead >= last_time`` clamps to the single terminal
+    state (``cursor == len(events)``, ``playhead == last_time``, ENDED,
+    atomically completing equal-time final groups); once ENDED further
+    advances are no-ops. Nominal decimal totals whose binary-float sums
+    differ/undershoot are not claimed equivalent. Cursor ordering before
+    terminal remains deterministic.
+    """
+
+    def __init__(
+        self,
+        stream: ReplayEventStream,
+        *,
+        window_duration_s: float | None = None,
+        speed_multiplier: float = 1.0,
+        window_start_s: float | None = None,
+        window_end_s: float | None = None,
+    ) -> None:
+        stream = _revalidate_stream(stream)
+        if not math.isfinite(speed_multiplier):
+            raise ReplayEngineError("INVALID_SPEED", "speed_multiplier must be finite")
+        if speed_multiplier < MIN_SPEED_MULTIPLIER or speed_multiplier > MAX_SPEED_MULTIPLIER:
+            raise ReplayEngineError(
+                "INVALID_SPEED",
+                f"speed_multiplier must be within [{MIN_SPEED_MULTIPLIER},{MAX_SPEED_MULTIPLIER}]",
+            )
+        if window_duration_s is not None:
+            if not math.isfinite(window_duration_s):
+                raise ReplayEngineError("INVALID_WINDOW", "window_duration_s must be finite")
+            if window_duration_s < 0 or window_duration_s > MAX_WINDOW_DURATION_S:
+                raise ReplayEngineError(
+                    "INVALID_WINDOW",
+                    f"window_duration_s must be within [0,{MAX_WINDOW_DURATION_S}]",
+                )
+        if window_start_s is not None and (not math.isfinite(window_start_s) or window_start_s < 0):
+            raise ReplayEngineError("INVALID_WINDOW", "window_start_s must be finite non-negative")
+        if window_end_s is not None and (not math.isfinite(window_end_s) or window_end_s < 0):
+            raise ReplayEngineError("INVALID_WINDOW", "window_end_s must be finite non-negative")
+        if (
+            window_start_s is not None
+            and window_end_s is not None
+            and window_end_s < window_start_s
+        ):
+            raise ReplayEngineError("INVALID_WINDOW", "window_end_s must be >= window_start_s")
+        if (
+            window_start_s is not None
+            and window_end_s is not None
+            and window_end_s - window_start_s > MAX_WINDOW_DURATION_S
+        ):
+            raise ReplayEngineError("INVALID_WINDOW", "window duration exceeds bound")
+        # Defensive tamper check: stream fingerprint must be computable.
+        fp = stream.fingerprint()
+
+        self._stream: ReplayEventStream = stream
+        self._stream_fingerprint: str = fp
+        self._speed_multiplier: float = speed_multiplier
+        self._window_duration_s: float | None = window_duration_s
+        self._window_start_s: float | None = window_start_s
+        self._window_end_s: float | None = window_end_s
+
+        # Cursor initialisation: empty stream starts at end, otherwise at 0 paused.
+        self._playhead_time_s: float = 0.0
+        if len(stream.events) == 0:
+            self._cursor_index: int = 0
+            self._playback_state: PlaybackState = PlaybackState.ENDED
+        else:
+            self._cursor_index = 0
+            self._playback_state = PlaybackState.PAUSED
+
+        # Derive unavailable event types from capability manifest vs present.
+        all_types = set(EventType)
+        present = set(stream.present_event_types)
+        unavailable = sorted(all_types - present, key=str)
+        self._unavailable_event_types: tuple[EventType, ...] = tuple(unavailable)
+
+        # Validate that we are not hiding a tampered stream that invented events.
+        if (
+            stream.capability_manifest.source_data_kind is SourceDataKind.AGGREGATE_ONLY
+            and len(stream.events) != 0
+        ):
+            raise ReplayEngineError(
+                "AGGREGATE_EVENT_INVENTION",
+                "aggregate-only source must remain zero-event",
+            )
+
+    # -- properties ----------------------------------------------------------
+
+    @property
+    def stream(self) -> ReplayEventStream:
+        return self._stream
+
+    @property
+    def stream_fingerprint(self) -> str:
+        return self._stream_fingerprint
+
+    @property
+    def speed_multiplier(self) -> float:
+        return self._speed_multiplier
+
+    @property
+    def cursor_index(self) -> int:
+        return self._cursor_index
+
+    @property
+    def playback_state(self) -> PlaybackState:
+        return self._playback_state
+
+    def is_empty(self) -> bool:
+        return len(self._stream.events) == 0
+
+    def is_at_end(self) -> bool:
+        if self.is_empty():
+            return True
+        return self._cursor_index >= len(self._stream.events)
+
+    def current_event(self) -> ReplayEvent | None:
+        if self.is_empty() or self.is_at_end():
+            return None
+        return self._stream.events[self._cursor_index]
+
+    def peek(self, count: int = 1) -> tuple[ReplayEvent, ...]:
+        if count < 0 or count > MAX_EVENTS_PER_STREAM:
+            raise ReplayEngineError("INVALID_WINDOW", "peek count out of bounds")
+        if self.is_empty() or self.is_at_end():
+            return ()
+        end = min(len(self._stream.events), self._cursor_index + count)
+        return tuple(self._stream.events[self._cursor_index : end])
+
+    # -- bounded window loading ---------------------------------------------
+
+    def load_time_window(
+        self,
+        start_s: float,
+        end_s: float,
+        *,
+        max_events: int = MAX_WINDOW_EVENTS,
+    ) -> tuple[ReplayEvent, ...]:
+        """Return events within [start_s, end_s] without mutating the stream.
+
+        Order is the stream's canonical (simulator_time_s, sequence, event_id).
+        No events are synthesised; an empty result is truthful unavailable.
+        """
+        if not math.isfinite(start_s) or not math.isfinite(end_s):
+            raise ReplayEngineError("INVALID_WINDOW", "window bounds must be finite")
+        if start_s < 0 or end_s < 0:
+            raise ReplayEngineError("INVALID_WINDOW", "window bounds must be non-negative")
+        if end_s < start_s:
+            raise ReplayEngineError("INVALID_WINDOW", "end_s must be >= start_s")
+        if end_s - start_s > MAX_WINDOW_DURATION_S:
+            raise ReplayEngineError(
+                "INVALID_WINDOW",
+                f"window duration exceeds bound {MAX_WINDOW_DURATION_S}",
+            )
+        if max_events < 1 or max_events > MAX_WINDOW_EVENTS:
+            raise ReplayEngineError("INVALID_WINDOW", "max_events out of bounds")
+        # Verify integrity before loading.
+        self._verify_integrity()
+        result: list[ReplayEvent] = []
+        for ev in self._stream.events:
+            if start_s <= ev.simulator_time_s <= end_s:
+                result.append(ev)
+                if len(result) >= max_events:
+                    break
+        # result is already in canonical order because stream is.
+        return tuple(result)
+
+    def load_bounded_window(
+        self,
+        *,
+        max_events: int = MAX_WINDOW_EVENTS,
+    ) -> tuple[ReplayEvent, ...]:
+        """Load the engine's configured bounded window if set, else full slice."""
+        self._verify_integrity()
+        if self._window_start_s is not None and self._window_end_s is not None:
+            return self.load_time_window(
+                self._window_start_s, self._window_end_s, max_events=max_events
+            )
+        if self._window_duration_s is not None:
+            # Window from current cursor time outward.
+            cur_time = 0.0
+            if not self.is_empty() and not self.is_at_end():
+                cur_time = float(self._stream.events[self._cursor_index].simulator_time_s)
+            elif not self.is_empty():
+                cur_time = float(self._stream.events[-1].simulator_time_s)
+            return self.load_time_window(
+                cur_time, cur_time + self._window_duration_s, max_events=max_events
+            )
+        # No window bound: return up to max_events from cursor.
+        if self.is_empty() or self.is_at_end():
+            return ()
+        end = min(len(self._stream.events), self._cursor_index + max_events)
+        return tuple(self._stream.events[self._cursor_index : end])
+
+    # -- integrity ----------------------------------------------------------
+
+    def _verify_integrity(self) -> None:
+        # Non-mutating integrity check: revalidates canonically to catch
+        # model_copy forgery but preserves object identity on success so
+        # observational methods remain non-mutating.
+        validated = _revalidate_stream(self._stream)
+        current_fp = validated.fingerprint()
+        if current_fp != self._stream_fingerprint:
+            raise ReplayEngineError("TAMPER_DETECTED", "stream fingerprint mismatch")
+
+    def verify_integrity(self, expected_fingerprint: str | None = None) -> bool:
+        fp = self._stream.fingerprint()
+        if expected_fingerprint is not None:
+            return fp == expected_fingerprint
+        return fp == self._stream_fingerprint
+
+    # -- state snapshot -----------------------------------------------------
+
+    def _cursor_snapshot(self) -> ReplayCursor:
+        total = len(self._stream.events)
+        if self.is_empty():
+            return ReplayCursor(
+                index=0,
+                simulator_time_s=0.0,
+                event_id=None,
+                is_empty=True,
+                is_at_end=True,
+                total_events=total,
+            )
+        if self.is_at_end():
+            last_time = float(self._stream.events[-1].simulator_time_s) if total else 0.0
+            return ReplayCursor(
+                index=self._cursor_index,
+                simulator_time_s=last_time,
+                event_id=None,
+                is_empty=False,
+                is_at_end=True,
+                total_events=total,
+            )
+        ev = self._stream.events[self._cursor_index]
+        return ReplayCursor(
+            index=self._cursor_index,
+            simulator_time_s=float(ev.simulator_time_s),
+            event_id=ev.event_id,
+            is_empty=False,
+            is_at_end=False,
+            total_events=total,
+        )
+
+    def state(self) -> ReplayEngineState:
+        """Pure observational snapshot; does not mutate engine state.
+
+        Preserves object identity: does not rebind the underlying stream on
+        success; verifies integrity non-mutatingly.
+        """
+        self._verify_integrity()
+        cursor = self._cursor_snapshot()
+        end_of_stream = cursor.is_at_end
+        playback = self._playback_state
+        if self.is_empty() or end_of_stream:
+            playback = PlaybackState.ENDED
+        # Observational: playhead is the requested/accumulated time, distinct
+        # from selected event time (cursor.simulator_time_s). No silent
+        # coercion: gap seeks keep requested playhead (< cursor), advance
+        # may have playhead > cursor when between events. ADVANCE saturates
+        # at final event time (see advance() contract).
+        playhead = self._playhead_time_s
+        if self.is_empty():
+            playhead = 0.0
+        return ReplayEngineState(
+            playback_state=playback,
+            cursor=cursor,
+            speed_multiplier=self._speed_multiplier,
+            stream_fingerprint=self._stream_fingerprint,
+            window_start_s=self._window_start_s,
+            window_end_s=self._window_end_s,
+            window_duration_s=self._window_duration_s,
+            unavailable_event_types=self._unavailable_event_types,
+            end_of_stream=end_of_stream,
+            empty_stream=self.is_empty(),
+            playhead_time_s=playhead,
+        )
+
+    # -- controls -----------------------------------------------------------
+
+    def apply(self, request: ReplayControlRequest) -> ReplayReceipt:
+        """Apply one typed request deterministically and return a receipt.
+
+        Validation is fail-closed: invalid fields, tamper, negative/nonfinite
+        values, or aggregate violations produce a typed error.
+        """
+        request = _revalidate_request(request)
+        # Tamper check before transition.
+        if (
+            request.expected_stream_fingerprint is not None
+            and request.expected_stream_fingerprint != self._stream_fingerprint
+        ):
+            raise ReplayEngineError(
+                "TAMPER_DETECTED",
+                "expected_stream_fingerprint does not match stream",
+            )
+        self._verify_integrity()
+
+        # Speed update is allowed on any control if present; validate already done.
+        if request.speed_multiplier is not None:
+            self._speed_multiplier = request.speed_multiplier
+
+        if request.control is ReplayControl.PLAY:
+            if self.is_empty():
+                self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
+            elif self.is_at_end():
+                # At end, PLAY stays ENDED; seek required to move.
+                self._playback_state = PlaybackState.ENDED
+            else:
+                self._playback_state = PlaybackState.PLAYING
+                # playhead stays, but ensure it is at least cursor time
+
+        elif request.control is ReplayControl.PAUSE:
+            if self.is_empty() or self.is_at_end():
+                self._playback_state = PlaybackState.ENDED
+            else:
+                self._playback_state = PlaybackState.PAUSED
+
+        elif request.control is ReplayControl.SEEK:
+            assert request.target_time_s is not None
+            # Seek is bounded: find first event with time >= target.
+            # Empty stream stays at end.
+            if self.is_empty():
+                self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
+            else:
+                idx = self._find_seek_index(request.target_time_s)
+                self._cursor_index = idx
+                self._playhead_time_s = request.target_time_s
+                if self.is_at_end():
+                    self._playback_state = PlaybackState.ENDED
+                else:
+                    self._playback_state = PlaybackState.PAUSED
+                    # playhead already at target; cursor time >= playhead by seek semantics
+
+        elif request.control is ReplayControl.STEP:
+            assert request.step_count is not None and request.step_direction is not None
+            if self.is_empty():
+                self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
+            else:
+                if request.step_direction == "forward":
+                    self._cursor_index = min(
+                        len(self._stream.events),
+                        self._cursor_index + request.step_count,
+                    )
+                else:
+                    self._cursor_index = max(0, self._cursor_index - request.step_count)
+                # Bind playhead to new cursor time
+                if self.is_at_end():
+                    self._playback_state = PlaybackState.ENDED
+                    if len(self._stream.events) > 0:
+                        self._playhead_time_s = float(self._stream.events[-1].simulator_time_s)
+                    else:
+                        self._playhead_time_s = 0.0
+                else:
+                    self._playback_state = PlaybackState.PAUSED
+                    self._playhead_time_s = float(
+                        self._stream.events[self._cursor_index].simulator_time_s
+                    )
+
+        elif request.control is ReplayControl.ADVANCE:
+            assert request.advance_delta_s is not None
+            # Deterministic saturating additive advancement while PLAYING.
+            # Contract (precise, no overclaim):
+            # - playhead accumulates as monotonic binary-float sum of
+            #   delta*speed; zero delta, empty, PAUSED, or already ENDED are
+            #   pure no-ops with no drift.
+            # - cursor advances monotonically and never skips ordered events or
+            #   equal-time siblings: it moves forward through every event whose
+            #   time <= playhead, consuming equal-time groups atomically.
+            # - whenever actual accumulated new_playhead >= last_time (reaches
+            #   or crosses final event time), playhead is clamped exactly to
+            #   last_time, cursor == len(events), ENDED, atomically completing
+            #   any equal-time final group; after ENDED the engine is immobile
+            #   and further ADVANCE are no-ops.
+            # - convergence holds for actual binary-float accumulations that
+            #   reach/cross; nominal decimal totals whose Python floats differ
+            #   and undershoot remain non-terminal and are not claimed
+            #   equivalent. Before terminal, ordering remains deterministic.
+            if self.is_empty():
+                self._playback_state = PlaybackState.ENDED
+                self._playhead_time_s = 0.0
+            elif self.is_at_end():
+                # Already ENDED remains immobile regardless of how it was reached
+                # (SEEK beyond retains its requested playhead; ADVANCE-clamped stays at last).
+                self._playback_state = PlaybackState.ENDED
+            elif self._playback_state is not PlaybackState.PLAYING:
+                pass
+            else:
+                delta = request.advance_delta_s
+                if delta == 0.0:
+                    pass
+                else:
+                    new_playhead = self._playhead_time_s + delta * self._speed_multiplier
+                    if not math.isfinite(new_playhead):
+                        raise ReplayEngineError("INVALID_ADVANCE", "playhead must remain finite")
+                    if new_playhead < self._playhead_time_s:
+                        raise ReplayEngineError("INVALID_ADVANCE", "playhead must be monotonic")
+                    # Saturating clamp: if reaches or crosses final event, clamp to it.
+                    last_time = float(self._stream.events[-1].simulator_time_s)
+                    if new_playhead >= last_time:
+                        self._playhead_time_s = last_time
+                        self._cursor_index = len(self._stream.events)
+                        self._playback_state = PlaybackState.ENDED
+                    else:
+                        self._playhead_time_s = new_playhead
+                        new_index = self._cursor_index
+                        while (
+                            new_index + 1 < len(self._stream.events)
+                            and float(self._stream.events[new_index + 1].simulator_time_s)
+                            <= new_playhead
+                        ):
+                            new_index += 1
+                        if new_index > self._cursor_index:
+                            self._cursor_index = new_index
+                        if self.is_at_end():
+                            self._playback_state = PlaybackState.ENDED
+                        else:
+                            self._playback_state = PlaybackState.PLAYING
+        else:
+            raise ReplayEngineError("INVALID_CONTROL", f"unknown control {request.control}")
+
+        resulting_state = self.state()
+        receipt = ReplayReceipt(
+            request=request,
+            request_fingerprint=request.fingerprint(),
+            resulting_state=resulting_state,
+            stream_fingerprint=self._stream_fingerprint,
+            tamper_detected=False,
+            error_code=None,
+        )
+        return receipt
+
+    def _find_seek_index(self, target_time_s: float) -> int:
+        # Deterministic: first event where simulator_time_s >= target.
+        # Equal-time events remain ordered by sequence, so the first of
+        # that time is the seek landing point.
+        for idx, ev in enumerate(self._stream.events):
+            if ev.simulator_time_s >= target_time_s:
+                return idx
+        return len(self._stream.events)
+
+    # Convenience wrappers that build typed requests.
+
+    def play(self, speed_multiplier: float | None = None) -> ReplayReceipt:
+        return self.apply(
+            ReplayControlRequest(control=ReplayControl.PLAY, speed_multiplier=speed_multiplier)
+        )
+
+    def pause(self) -> ReplayReceipt:
+        return self.apply(ReplayControlRequest(control=ReplayControl.PAUSE))
+
+    def seek(self, target_time_s: float) -> ReplayReceipt:
+        return self.apply(
+            ReplayControlRequest(control=ReplayControl.SEEK, target_time_s=target_time_s)
+        )
+
+    def step(
+        self, count: int = 1, direction: Literal["forward", "backward"] = "forward"
+    ) -> ReplayReceipt:
+        return self.apply(
+            ReplayControlRequest(
+                control=ReplayControl.STEP, step_count=count, step_direction=direction
+            )
+        )
+
+    def set_speed(self, speed_multiplier: float) -> ReplayReceipt:
+        # Speed alone preserves pause/ended semantics; use current playback paused.
+        if self.is_empty():
+            # Still validate speed, but state stays ended.
+            if not math.isfinite(speed_multiplier):
+                raise ReplayEngineError("INVALID_SPEED", "speed_multiplier must be finite")
+            if speed_multiplier < MIN_SPEED_MULTIPLIER or speed_multiplier > MAX_SPEED_MULTIPLIER:
+                raise ReplayEngineError("INVALID_SPEED", "speed_multiplier out of bounds")
+            self._speed_multiplier = speed_multiplier
+            req = ReplayControlRequest(
+                control=ReplayControl.PAUSE, speed_multiplier=speed_multiplier
+            )
+            return ReplayReceipt(
+                request=req,
+                request_fingerprint=req.fingerprint(),
+                resulting_state=self.state(),
+                stream_fingerprint=self._stream_fingerprint,
+                tamper_detected=False,
+            )
+        # If playing, keep playing; otherwise pause.
+        control = (
+            self._playback_state
+            if self._playback_state is PlaybackState.PLAYING
+            else ReplayControl.PAUSE
+        )
+        # Map PLAYING enum to control; fallback to pause if ended.
+        if control is PlaybackState.PLAYING:
+            req_control = ReplayControl.PLAY
+        else:
+            req_control = ReplayControl.PAUSE
+        return self.apply(
+            ReplayControlRequest(control=req_control, speed_multiplier=speed_multiplier)
+        )
+
+    def advance(self, delta_s: float) -> ReplayReceipt:
+        """Deterministic saturating non-real-time advancement while PLAYING.
+
+        Moves playhead by the actual binary-float ``delta_s *
+        speed_multiplier`` additive step while PLAYING. Preserves equal-time
+        ordering and never skips events; zero delta, PAUSED, empty, or
+        already ENDED are pure no-ops. Whenever the actual accumulated
+        ``new_playhead >= last_time`` (reaches or crosses the final event
+        time), playhead is clamped exactly to ``last_time``, ``cursor ==
+        len(events)``, ``playback == ENDED`` with the equal-time final group
+        atomically complete, after which the engine remains immobile and
+        further advances are no-ops. Any two actual binary-float accumulated
+        totals that both reach/cross converge to that one clamped terminal
+        state (identical cursor, playhead, state, fingerprint); nominal
+        decimal totals whose binary-float accumulations differ/undershoot are
+        not claimed equivalent. Cursor ordering before terminal remains
+        deterministic.
+        """
+        if not math.isfinite(delta_s):
+            raise ReplayEngineError("INVALID_ADVANCE", "delta_s must be finite")
+        if delta_s < 0:
+            raise ReplayEngineError("INVALID_ADVANCE", "delta_s must be non-negative")
+        if delta_s > MAX_ADVANCE_DELTA_S:
+            raise ReplayEngineError("INVALID_ADVANCE", "delta_s exceeds bound")
+        return self.apply(
+            ReplayControlRequest(control=ReplayControl.ADVANCE, advance_delta_s=delta_s)
+        )
