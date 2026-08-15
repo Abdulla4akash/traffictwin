@@ -80,6 +80,26 @@ EXPECTED_E2_MANIFESTS: dict[str, str] = {
 }
 EXPECTED_E3_PACKAGE_FP: str = "e5ff1bc0e3410d47520c2e841803c8fa67efb3581b8f52a66e407552457b8e8c"
 
+# Live check registry — used to derive `checks` count for validator_real_tree (never literal)
+_CHECK_REGISTRY: list[str] = [
+    "base_receipt",
+    "e2_preservation",
+    "e3_builtin",
+    "identities",
+    "hold_state",
+    "resource_denominator",
+    "capacity_bounds",
+    "state_age_ms",
+    "forbidden_claims",
+    "unavailable_not_zero",
+    "placeholder_fabricated",
+    "absolute_path_secret",
+    "routes",
+    "exports_mismatch_and_determinism",
+    "limitations",
+    "contradictions",
+]
+
 # Hosted CI truth
 HOSTED_CI_UNAVAILABLE: str = "HOSTED_CI_UNAVAILABLE"
 
@@ -92,15 +112,6 @@ _ABS_PREFIXES: tuple[str, ...] = (
     "/" + "var" + "/",
     "/" + "private" + "/",
     "C:\\",
-)
-_SECRET_NEEDLES: tuple[str, ...] = (
-    "password",
-    "secret",
-    "api-key",
-    "api_key",
-    "credential",
-    "private_key",
-    "private-key",
 )
 _SECRET_RE: re.Pattern[str] = re.compile(
     r"(password|secret|api[_-]?key|credential|private[_-]?key)", re.I
@@ -460,16 +471,6 @@ def _check_e3_builtin(errors: list[str]) -> None:
 
 def _check_identities(errors: list[str]) -> None:
     # Check if subprocess is broken due to AppTest pollution; if so, skip git verification for test suite
-    def _is_git_broken() -> bool:
-        try:
-            import os
-
-            out = os.popen("echo test").read().strip()
-            return out != "test"
-        except Exception:
-            return True
-
-    _git_broken = _is_git_broken()
     try:
         from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research  # type: ignore[import-untyped, unused-ignore]
 
@@ -567,8 +568,7 @@ def _check_identities(errors: list[str]) -> None:
                     f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} not 40 hex",
                 )
             else:
-                # Repo-verified: truth source is git, not a hardcoded literal.
-                # A tampered pin+constant pair is impossible because we derive expected via git.
+                # Repo-verified: truth source is git, not a hardcoded literal. Fail closed if git unavailable.
                 git_ok = False
                 derived_expected = ""
                 is_git_repo = False
@@ -579,29 +579,39 @@ def _check_identities(errors: list[str]) -> None:
                         capture_output=True,
                         timeout=5,
                     )
-                    # Handle subprocess polluted after AppTest (fork segfault returns -11); treat as repo but use fallback
-                    is_git_repo = True if r.returncode < 0 else r.returncode == 0
-                    _git_was_signal = r.returncode < 0
-                    if _git_was_signal:
-                        # Fork polluted: fallback to expected without further git calls
-                        if base_sha != EXPECTED_LANE11_PROMOTION:
+                    if r.returncode != 0:
+                        if r.returncode < 0:
                             _fail(
                                 errors,
-                                f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} != expected {EXPECTED_LANE11_PROMOTION!r} (fallback signal)",
+                                f"E3PV_LANE_PIN_MISMATCH: git unavailable (signal {-r.returncode}) for base {base_sha!r} — fail closed",
                             )
                         else:
-                            git_ok = True
-                        # Skip further git verification
-                        is_git_repo = False  # Prevent entering the is_git_repo block's git calls
-                        # But we need to ensure we don't hit the else branch that fails for git unavailable
-                        # So set a flag
-                        _signal_fallback_done = True
+                            _fail(
+                                errors,
+                                f"E3PV_LANE_PIN_MISMATCH: git unavailable for repo verification (rev-parse --git-dir failed code {r.returncode}) for base {base_sha!r}",
+                            )
+                        is_git_repo = False
                     else:
-                        _signal_fallback_done = False
-                except Exception:
+                        is_git_repo = True
+                except FileNotFoundError as exc:
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: git unavailable for repo verification: {exc} for base {base_sha!r}",
+                    )
+                    is_git_repo = False
+                except subprocess.TimeoutExpired as exc:
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: git timeout for base {base_sha!r}: {exc}",
+                    )
+                    is_git_repo = False
+                except Exception as exc:
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: git verification failed for {base_sha!r}: {exc}",
+                    )
                     is_git_repo = False
                 if is_git_repo:
-                    # Verify object exists
                     try:
                         rc = subprocess.run(
                             ["git", "cat-file", "-e", base_sha],
@@ -609,106 +619,93 @@ def _check_identities(errors: list[str]) -> None:
                             capture_output=True,
                             timeout=5,
                         )
-                        if rc.returncode != 0 and rc.returncode > 0:
-                            _fail(
-                                errors,
-                                f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} not found in repo (git cat-file -e failed)",
-                            )
-                        elif rc.returncode < 0:
-                            # Signal due to AppTest pollution: fallback to expected constant check
-                            if base_sha != EXPECTED_LANE11_PROMOTION:
+                        if rc.returncode != 0:
+                            if rc.returncode < 0:
                                 _fail(
                                     errors,
-                                    f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} != expected Lane 11 promotion {EXPECTED_LANE11_PROMOTION!r} (git signal fallback)",
+                                    f"E3PV_LANE_PIN_MISMATCH: git signal {-rc.returncode} for base {base_sha!r} — fail closed",
                                 )
                             else:
-                                git_ok = True
+                                _fail(
+                                    errors,
+                                    f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} not found in repo (git cat-file -e failed code {rc.returncode})",
+                                )
                         else:
-                            # Verify is ancestor of HEAD
                             rc2 = subprocess.run(
                                 ["git", "merge-base", "--is-ancestor", base_sha, "HEAD"],
                                 cwd=_REPO_ROOT,
                                 capture_output=True,
                                 timeout=5,
                             )
-                            if rc2.returncode != 0 and rc2.returncode > 0:
-                                _fail(
-                                    errors,
-                                    f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} not ancestor of HEAD (git merge-base --is-ancestor failed)",
-                                )
-                            elif rc2.returncode < 0:
-                                if base_sha != EXPECTED_LANE11_PROMOTION:
+                            if rc2.returncode != 0:
+                                if rc2.returncode < 0:
                                     _fail(
                                         errors,
-                                        f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} != expected Lane 11 promotion {EXPECTED_LANE11_PROMOTION!r} (git signal fallback)",
+                                        f"E3PV_LANE_PIN_MISMATCH: git signal {-rc2.returncode} for base {base_sha!r} — fail closed",
                                     )
                                 else:
-                                    # Still need to derive expected, but use fallback
-                                    derived_expected = EXPECTED_LANE11_PROMOTION
-                                    git_ok = True
-                            else:
-                                # Derive expected Lane 11 promotion via git log grep
-                                try:
-                                    rr = subprocess.run(
-                                        [
-                                            "git",
-                                            "log",
-                                            "--all",
-                                            "--grep=Merge approved E3 Lane 11",
-                                            "--format=%H",
-                                            "-n",
-                                            "1",
-                                        ],
-                                        cwd=_REPO_ROOT,
-                                        capture_output=True,
-                                        text=True,
-                                        timeout=5,
+                                    _fail(
+                                        errors,
+                                        f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} not ancestor of HEAD (git merge-base --is-ancestor failed code {rc2.returncode})",
                                     )
+                            else:
+                                rr = subprocess.run(
+                                    [
+                                        "git",
+                                        "log",
+                                        "--all",
+                                        "--grep=Merge approved E3 Lane 11",
+                                        "--format=%H",
+                                        "-n",
+                                        "1",
+                                    ],
+                                    cwd=_REPO_ROOT,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=5,
+                                )
+                                if rr.returncode != 0:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_LANE_PIN_MISMATCH: git log derivation failed code {rr.returncode}: {rr.stderr[:200]}",
+                                    )
+                                    derived_expected = ""
+                                else:
                                     derived_expected = (
                                         rr.stdout.strip().splitlines()[0].strip()
                                         if rr.stdout.strip()
                                         else ""
                                     )
-                                except Exception as exc:
-                                    _fail(
-                                        errors,
-                                        f"E3PV_LANE_PIN_MISMATCH: git log derivation failed: {exc}",
-                                    )
-                                    derived_expected = ""
-                                # Handle polluted subprocess (signal) fallback
-                                if not derived_expected and rc.returncode < 0 or rc2.returncode < 0:
-                                    derived_expected = EXPECTED_LANE11_PROMOTION
-                                if derived_expected and re.fullmatch(
-                                    r"[0-9a-f]{40}", derived_expected
-                                ):
-                                    if base_sha != derived_expected:
+                                    if derived_expected and re.fullmatch(
+                                        r"[0-9a-f]{40}", derived_expected
+                                    ):
+                                        if base_sha != derived_expected:
+                                            _fail(
+                                                errors,
+                                                f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} != git-derived Lane 11 promotion {derived_expected!r}",
+                                            )
+                                        else:
+                                            git_ok = True
+                                    else:
                                         _fail(
                                             errors,
-                                            f"E3PV_LANE_PIN_MISMATCH: lane_12 base_integration_sha {base_sha!r} != git-derived Lane 11 promotion {derived_expected!r}",
+                                            f"E3PV_LANE_PIN_MISMATCH: could not derive Lane 11 promotion from git: {derived_expected!r}",
                                         )
-                                    else:
-                                        git_ok = True
-                                else:
-                                    _fail(
-                                        errors,
-                                        f"E3PV_LANE_PIN_MISMATCH: could not derive Lane 11 promotion from git: {derived_expected!r}",
-                                    )
+                    except FileNotFoundError as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git unavailable for base {base_sha!r}: {exc}",
+                        )
+                    except subprocess.TimeoutExpired as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git timeout for base {base_sha!r}: {exc}",
+                        )
                     except Exception as exc:
                         _fail(
                             errors,
                             f"E3PV_LANE_PIN_MISMATCH: git verification failed for {base_sha!r}: {exc}",
                         )
-                else:
-                    if "_signal_fallback_done" in locals() and _signal_fallback_done:
-                        pass
-                    else:
-                        _fail(
-                            errors,
-                            f"E3PV_LANE_PIN_MISMATCH: git unavailable for repo verification (rev-parse --git-dir failed) for base {base_sha!r}",
-                        )
-                        git_ok = False
-                        derived_expected = ""
-                # If git verification succeeded, base_sha is repo-verified
                 if git_ok:
                     pass
             # Verify self_sha is exactly sentinel, never invented hex
@@ -1146,6 +1143,8 @@ def _check_forbidden_claims(errors: list[str]) -> None:
             except Exception as exc:
                 _fail(errors, f"E3PV_TRACEABILITY_FORBIDDEN_CHECK_FAILED: {exc}")
         # Full receipt scan coverage: scan free text of ALL receipt files the validator reads (gate, verdict, e2 base receipt, traceability already done)
+        # EXEMPTIONS PER FILE AND EXACT: only gate and verdict receipts' actual diagnostics arrays
+        # ($.errors[*], $.gates.*.errors[*]) are exempt; traceability and E2 base have NO exemptions; remove tested_categories exemption entirely.
         for _receipt_rel, _label in [
             ("docs/quality/e3_quality_gate.json", "gate"),
             ("docs/quality/e3_validator_verdict.json", "verdict"),
@@ -1167,16 +1166,17 @@ def _check_forbidden_claims(errors: list[str]) -> None:
                     cur_path: str = "$",
                     _lbl: str = _label,
                 ) -> None:
-                    # EXACT structural exemption: only string elements of arrays named `errors`
-                    # (top-level $.errors[*] and $.gates.*.errors[*]) and exact
-                    # `tested_categories` string ARRAY elements are exempt. No substring carve-out.
+                    # EXACT structural exemption: only gate/verdict $.errors[*] and $.gates.*.errors[*] are exempt.
+                    # Traceability and E2 base receipt have NO exemptions. No tested_categories exemption.
                     def _is_exempt_path(path: str) -> bool:
-                        return bool(
-                            re.fullmatch(r"\$\.errors\[\d+\]", path)
-                            or re.fullmatch(r"\$\.gates\.[^.]+\.errors\[\d+\]", path)
-                            or re.fullmatch(r"\$\.tested_categories\[\d+\]", path)
-                            or re.fullmatch(r"\$\.gates\.[^.]+\.tested_categories\[\d+\]", path)
-                        )
+                        if _lbl in ("gate", "verdict"):
+                            return bool(
+                                re.fullmatch(r"\$\.errors\[\d+\]", path)
+                                or re.fullmatch(r"\$\.gates\.[^.]+\.errors\[\d+\]", path)
+                            )
+                        else:
+                            # e2_base_receipt has NO exemptions
+                            return False
 
                     if isinstance(obj, str) and _is_exempt_path(cur_path):
                         return
@@ -1739,12 +1739,9 @@ def _fold_for_contradiction(text: str) -> str:
     try:
         from traffictwin.experiments.e3_research_evidence import _fold_to_ascii_or_reject
 
-        # Use canonical fold then already casefolded; ensure lower for safety
         folded = _fold_to_ascii_or_reject(text)
         return str(folded)  # already casefolded inside
     except Exception:
-        # Fallback to simple lower if fold rejects or unavailable (e.g., invalid_text)
-        # Use NFKD stripping similar to canonical but simple
         import unicodedata
 
         t = unicodedata.normalize("NFKD", text)
@@ -1755,157 +1752,140 @@ def _fold_for_contradiction(text: str) -> str:
         return t.casefold()
 
 
-def _contains_workload_contradiction(text: str) -> str | None:
-    """Detect workload-launch contradiction over folded text.
+def _split_sentence_units(folded: str) -> list[str]:
+    """Split folded text into sentence units (after canonical fold).
 
-    Covers: (any count word/digit or none) + "research workload(s)" + launch/execute/run
-    in ANY voice/tense ("were launched", "have been launched", "launched by", "ran", "executed")
-    -> typed error unless exact truthful zero statements.
-    Truthful zero like `research_workloads_launched = 0` or `research_workloads_launched: 0`
-    is exempt (exact). Other counts or bare assertions fail.
+    Protects version numbers like v2.1 (digit dot digit) from splitting.
+    Splits on sentence terminators . ! ? ; and newline, without char-window limits.
+    Matching families must be WITHIN a single unit.
     """
-    # Exempt exact truthful zero verbatim (case-insensitive, separators normalized)
-    # Handle multiple truthful forms: underscore variant with =/: and 0, space variant with remains/is and 0, and JSON quoted form
+    protected = re.sub(r"(\d)\.(\d)", r"\1<DOT>\2", folded)
+    lines = protected.splitlines()
+    units: list[str] = []
+    for line in lines:
+        parts = re.split(r"(?<=[.!?;])\s+", line)
+        for part in parts:
+            part = part.strip()
+            if part:
+                part = part.replace("<DOT>", ".")
+                units.append(part)
+    return [u for u in units if u.strip()]
+
+
+def _contains_workload_contradiction(text: str) -> str | None:
+    """Detect workload-launch contradiction over folded text — sentence-unit matching.
+
+    Split scanned text into sentence units (after canonical fold), then match families
+    WITHIN a unit without char-window limits; negation exemption only for structural
+    negation adjacent to the family head ("no/zero/never/not ... workloads launched")
+    or the exact truthful statements.
+    """
     truth_zero_patterns = [
         re.compile(r'"?research_workloads_launched"?\s*[:=]\s*0\b', re.I),
         re.compile(r"research[\s_]+workloads?[\s_]+launched\s*(?:remains|is|are)?\s*0\b", re.I),
         re.compile(r"no\s+(?:e3\s+)?research[\s_]+workloads?\s+launched\b", re.I),
         re.compile(r"without\s+launching\s+research\s+workloads?\b", re.I),
         re.compile(r"without\s+launching\s+e3\s+research\s+workloads?\b", re.I),
+        re.compile(r"HOSTED_CI_UNAVAILABLE", re.I),
+        re.compile(r"NO_E3_RESEARCH_RESULTS_AVAILABLE", re.I),
+        re.compile(r'"?research_workloads_launched"?\s*[:=]\s*0', re.I),
     ]
     text_for_scan = text
     for pat in truth_zero_patterns:
         if pat.search(text_for_scan):
             text_for_scan = pat.sub("", text_for_scan)
-    # If after removing truthful zeros, the remaining text has no workload claim, it is truthful only -> pass
-    # Continue scanning text_for_scan
-
     folded = _fold_for_contradiction(text_for_scan)
-    low = folded  # already folded casefolded
+    units = _split_sentence_units(folded)
 
-    # Workload phrase: research workload(s) with separators _ - space
-    # Count word optionally before: \b(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a|an|several|many|multiple|some|all|each|every)\b
-    # We allow count to be optional, so just look for workload phrase adjacency with verb
-
-    # Pattern A: workload before verb (with auxiliaries in between)
-    workload_pat = r"research[\s_\-]+workload[s]?"
+    workload_phrase = r"research[\s_\-]+workload[s]?"
     verb_pat = r"(?:launch\w*|execut\w*|\bran\b|\brun\w*)"
-    # Use tight window not crossing sentence boundary
-    if re.search(workload_pat + r"[^.\n]{0,40}?" + verb_pat, low):
-        m = re.search(workload_pat + r"[^.\n]{0,40}?" + verb_pat, low)
-        if m:
-            # Skip if preceded by negation within 20 chars before workload
-            start = m.start()
-            preceding = low[max(0, start - 30) : start]
-            if re.search(r"\b(?:no|not|without|never|none)\b", preceding):
-                pass
-            else:
-                return m.group(0)
-    # Pattern B: verb before workload (with optional count before workload)
-    # e.g., "launched 12 research workloads", "executed research workloads", "ran research workload", "we launched research workloads"
-    count_word = r"(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a|an|several|many|multiple|some|all|each|every)?"
-    if re.search(
-        verb_pat
-        + r"[^.\n]{0,20}?\s+(?:"
-        + count_word
-        + r"\s+)?(?:e3[^.\n]{0,10}?)?research[\s_\-]+workload[s]?\b",
-        low,
-    ):
-        m = re.search(
-            verb_pat
-            + r"[^.\n]{0,20}?\s+(?:"
-            + count_word
-            + r"\s+)?(?:e3[^.\n]{0,10}?)?research[\s_\-]+workload[s]?\b",
-            low,
-        )
-        if m:
-            return m.group(0)
-    # Fallback broader but still tight and not crossing sentence
-    if re.search(verb_pat + r"[^.\n]{0,40}?research[\s_\-]+workload[s]?\b", low):
-        m = re.search(verb_pat + r"[^.\n]{0,40}?research[\s_\-]+workload[s]?\b", low)
-        if m:
-            return m.group(0)
+
+    adjacent_neg_before = re.compile(
+        r"\b(?:no|zero|never|not|none|without)\b[\s,]*"
+        r"(?:e3[\s_\-]+)?"
+        r"research[\s_\-]+workload[s]?[\s_\-]*"
+        r"(?:launch|execut|run)\w*\b",
+        re.I,
+    )
+    adjacent_neg_between = re.compile(
+        r"research[\s_\-]+workload[s]?[^\n]*?\b(?:not|never|no|zero|without)\b[^\n]*?(?:launch|execut|run)\w*\b",
+        re.I,
+    )
+
+    for unit in units:
+        low = unit
+        has_workload = re.search(workload_phrase, low)
+        has_verb = re.search(verb_pat, low)
+        if has_workload and has_verb:
+            if adjacent_neg_before.search(low) or adjacent_neg_between.search(low):
+                continue
+            m = re.search(workload_phrase + r".*?" + verb_pat, low)
+            if not m:
+                m = re.search(verb_pat + r".*?" + workload_phrase, low)
+            if m:
+                return m.group(0).strip()
+            return low[:120].strip()
     return None
 
 
 def _contains_hosted_ci_contradiction(text: str) -> str | None:
-    """Hosted CI family over folded text: hosted ci/github actions/ci checks + succeed/pass/green/OK."""
-    # Exempt exact truth statement HOSTED_CI_UNAVAILABLE (folded)
-    if "hosted_ci_unavailable" in _fold_for_contradiction(text):
-        # Remove that occurrence and scan remainder; if remainder still has contradiction, flag it
-        cleaned = re.sub(r"hosted_ci_unavailable", "", _fold_for_contradiction(text))
-        # If no remaining text, then only truthful -> pass
-        if not cleaned.strip():
-            return None
-        # Continue scanning cleaned folded? But we already have folded, we will scan original minus truth
-        # Simpler: if text contains only the truthful and no success verb near ci phrase, pass
-        # We will remove truth phrase from original text for scan
-        text = re.sub(r"HOSTED_CI_UNAVAILABLE", "", text, flags=re.I)
+    """Hosted CI family over folded text — sentence-unit matching, no char-window limits."""
+    text_for_scan = re.sub(r"HOSTED_CI_UNAVAILABLE", "", text, flags=re.I)
+    folded = _fold_for_contradiction(text_for_scan)
+    if not folded.strip():
+        return None
+    units = _split_sentence_units(folded)
 
-    folded = _fold_for_contradiction(text)
-    low = folded
-
-    # CI phrases: hosted ci, github actions, ci checks
     ci_variants = [
         r"hosted[\s_\-]+ci",
         r"github[\s_\-]+actions",
         r"ci[\s_\-]+checks?",
     ]
-    success_variants = r"(?:succeed\w*|pass\w*|green|ok\w*|successful|success)"
+    success_pat = r"(?:succeed\w*|pass\w*|green|\bok\b|successful|success)"
 
-    for ci_pat in ci_variants:
-        # CI before success within tight window, not crossing sentence boundary (no period)
-        if re.search(ci_pat + r"[^.\n]{0,40}?" + success_variants, low):
-            m = re.search(ci_pat + r"[^.\n]{0,40}?" + success_variants, low)
-            if m:
-                # Ensure success is describing CI status: check intervening tokens are linking verbs (is/are/was/were/has/have/been) or directly adjacent
-                # For now, require that between ci and success, there is no unrelated clause break; we check that match does not contain "without" or "must" etc? Simple: if match contains "without" it is not CI success claim
-                if "without" not in m.group(0):
-                    return m.group(0)
-        # Success before CI within tight window (less common, but handle)
-        if re.search(success_variants + r"[^.\n]{0,40}?" + ci_pat, low):
-            m = re.search(success_variants + r"[^.\n]{0,40}?" + ci_pat, low)
-            if m:
-                if "without" not in m.group(0):
-                    return m.group(0)
+    for unit in units:
+        low = unit
+        for ci_pat in ci_variants:
+            has_ci = re.search(ci_pat, low)
+            has_success = re.search(success_pat, low)
+            if has_ci and has_success:
+                m = re.search(ci_pat + r".*?" + success_pat, low)
+                if not m:
+                    m = re.search(success_pat + r".*?" + ci_pat, low)
+                if m:
+                    return m.group(0).strip()
+                return has_ci.group(0)
     return None
 
 
 def _contains_results_availability_contradiction(text: str) -> str | None:
-    """Results availability family: E3 results/outcomes + verified/available/confirmed/measured."""
-    # Exempt exact NO_E3_RESEARCH_RESULTS_AVAILABLE truth
-    if "no_e3_research_results_available" in _fold_for_contradiction(text):
-        cleaned = re.sub(r"NO_E3_RESEARCH_RESULTS_AVAILABLE", "", text, flags=re.I)
-        # If after removing truthful, no remaining claim, pass
-        # But if there is another claim, we should still flag
-        # We'll scan cleaned remainder
-        text = cleaned
-
-    folded = _fold_for_contradiction(text)
-    low = folded
+    """Results availability family — sentence-unit matching."""
+    text_for_scan = re.sub(r"NO_E3_RESEARCH_RESULTS_AVAILABLE", "", text, flags=re.I)
+    folded = _fold_for_contradiction(text_for_scan)
+    if not folded.strip():
+        return None
+    units = _split_sentence_units(folded)
 
     e3_pat = r"\be3[\s_\-]+(?:result[s]?|outcome[s]?)"
     verified_pat = r"(?:verif\w*|avail\w*|confirm\w*|measur\w*)"
 
-    if re.search(e3_pat + r"[^.\n]{0,40}?" + verified_pat, low):
-        m = re.search(e3_pat + r"[^.\n]{0,40}?" + verified_pat, low)
-        if m:
-            return m.group(0)
-    if re.search(verified_pat + r"[^.\n]{0,40}?" + e3_pat, low):
-        m = re.search(verified_pat + r"[^.\n]{0,40}?" + e3_pat, low)
-        if m:
-            return m.group(0)
-    # Also catch plain "verified results" without E3 when evidence is NOT_EXECUTED (generic contradiction)
-    # This handles reviewer phrasing "Verified results" headline flip
-    if "verified result" in low:
-        # Ensure not part of truthful NO_E3... which was already removed, and not part of "no verified results" negation
-        # Check preceding negation
-        for m2 in re.finditer(r"verified[\s_]+result[s]?", low):
-            start = m2.start()
-            preceding = low[max(0, start - 20) : start]
-            if re.search(r"\b(?:no|not|without|never|none)\b", preceding):
+    for unit in units:
+        low = unit
+        has_e3 = re.search(e3_pat, low)
+        has_verified = re.search(verified_pat, low)
+        if has_e3 and has_verified:
+            m = re.search(e3_pat + r".*?" + verified_pat, low)
+            if not m:
+                m = re.search(verified_pat + r".*?" + e3_pat, low)
+            if m:
+                return m.group(0).strip()
+            return has_e3.group(0)
+        if re.search(r"verified[\s_]+result[s]?", low):
+            if re.search(r"\b(?:no|not|without|never|none)\b[\s,]*verified[\s_]+result", low):
                 continue
-            return m2.group(0)
+            m2 = re.search(r"verified[\s_]+result[s]?", low)
+            if m2:
+                return m2.group(0)
     return None
 
 
@@ -2138,16 +2118,20 @@ def _check_contradictions(errors: list[str]) -> None:
                             # Fallback to raw scan if not JSON
                             jdata = None
                         if isinstance(jdata, dict):
-                            # Define exact exempt check for contradictions (same as forbidden but for contradictions)
-                            def _is_contradiction_exempt(path: str) -> bool:
-                                return bool(
-                                    re.fullmatch(r"\$\.errors\[\d+\]", path)
-                                    or re.fullmatch(r"\$\.gates\.[^.]+\.errors\[\d+\]", path)
-                                    or re.fullmatch(r"\$\.tested_categories\[\d+\]", path)
-                                    or re.fullmatch(
-                                        r"\$\.gates\.[^.]+\.tested_categories\[\d+\]", path
+                            # Define exact exempt check for contradictions (per file: only gate/verdict errors arrays; traceability/e2 base NO exemptions)
+                            def _is_contradiction_exempt(path: str, _rp: Path = rp) -> bool:
+                                _rp_name = _rp.name
+                                if _rp_name in (
+                                    "e3_quality_gate.json",
+                                    "e3_validator_verdict.json",
+                                ):
+                                    return bool(
+                                        re.fullmatch(r"\$\.errors\[\d+\]", path)
+                                        or re.fullmatch(r"\$\.gates\.[^.]+\.errors\[\d+\]", path)
                                     )
-                                )
+                                else:
+                                    # traceability and e2 base have NO exemptions
+                                    return False
 
                             def _scan_contradiction(  # noqa: B023
                                 obj: object, cur_path: str = "$", _rp: Path = rp
@@ -2213,7 +2197,7 @@ def _check_contradictions(errors: list[str]) -> None:
 _DEFAULT_GATE_OUTPUT: Path = _REPO_ROOT / "docs/quality/e3_quality_gate.json"
 
 
-def build_gate() -> dict[str, object]:
+def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     """Deterministic build of E3 quality gate receipt (public for tests) — honest measurement.
 
     Runs the full validator check pipeline and records MEASURED outcomes for its own checks.
@@ -2221,6 +2205,7 @@ def build_gate() -> dict[str, object]:
     deferred_to_controller with NO pass/fail claim — never a literal PASS for unmeasured.
     Provenance is built from validated inputs (package), not echoed from committed file.
     """
+    _repo_root: Path = repo_root if repo_root is not None else _REPO_ROOT
     # Run full check pipeline and record measured outcomes
     _errors: list[str] = []
     _check_base_receipt(_errors)
@@ -2291,18 +2276,6 @@ def build_gate() -> dict[str, object]:
         "lanes": _lanes_prov,
     }
 
-    # Helper to check if subprocess is broken due to AppTest fork pollution (segfault)
-    def _is_subprocess_broken() -> bool:
-        try:
-            import os
-
-            out = os.popen("echo test").read().strip()
-            return out != "test"
-        except Exception:
-            return True
-
-    _subprocess_broken = _is_subprocess_broken()
-
     # ---- Measured gate receipts (honest, never PASS for unmeasured) ----
     # scope_check via git status --porcelain + git diff --name-only HEAD
     _allowed_prefixes = [
@@ -2316,11 +2289,9 @@ def build_gate() -> dict[str, object]:
     _found_changed: list[str] = []
     _scope_git_error: str | None = None
     try:
-        if _subprocess_broken:
-            raise RuntimeError("subprocess broken due to AppTest pollution, skipping git")
         _r = subprocess.run(
             ["git", "status", "--porcelain"],
-            cwd=_REPO_ROOT,
+            cwd=_repo_root,
             capture_output=True,
             text=True,
             timeout=5,
@@ -2335,58 +2306,32 @@ def build_gate() -> dict[str, object]:
                     _path = _path[1:-1]
                 if _line.startswith("??"):
                     _found_untracked.append(_path)
-                # Note: changed files will be captured via diff; ignore other status here to avoid double count
         elif _r.returncode < 0:
-            # Signal from AppTest pollution: try popen fallback
-            try:
-                import os
-
-                out = os.popen("git status --porcelain 2>&1").read()
-                for _line in out.splitlines():
-                    if not _line.strip():
-                        continue
-                    _raw = _line[3:] if len(_line) > 3 else ""
-                    _path = _raw.split(" -> ")[-1].strip()
-                    if _path.startswith('"') and _path.endswith('"'):
-                        _path = _path[1:-1]
-                    if _line.startswith("??"):
-                        _found_untracked.append(_path)
-            except Exception:
-                pass
+            _scope_git_error = f"git status terminated by signal {-_r.returncode}"
         else:
             _scope_git_error = f"git status failed code {_r.returncode}"
-        if _subprocess_broken:
-            _r2 = type(
-                "obj", (), {"returncode": 0, "stdout": "", "stderr": ""}
-            )()  # dummy when broken
-        else:
-            _r2 = subprocess.run(
-                ["git", "diff", "--name-only", "HEAD"],
-                cwd=_REPO_ROOT,
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
+        _r2 = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD"],
+            cwd=_repo_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
         if _r2.returncode == 0:
             for _p in _r2.stdout.splitlines():
                 _p = _p.strip()
                 if _p and _p not in _found_untracked and _p not in _found_changed:
                     _found_changed.append(_p)
         elif _r2.returncode < 0:
-            try:
-                import os
-
-                out2 = os.popen("git diff --name-only HEAD 2>&1").read()
-                for _p in out2.splitlines():
-                    _p = _p.strip()
-                    if _p and _p not in _found_untracked and _p not in _found_changed:
-                        _found_changed.append(_p)
-            except Exception:
-                pass
+            _scope_git_error = (
+                _scope_git_error or f"git diff terminated by signal {-_r2.returncode}"
+            )
         else:
             _scope_git_error = _scope_git_error or f"git diff failed code {_r2.returncode}"
     except subprocess.TimeoutExpired as _exc:
         _scope_git_error = f"git timeout: {_exc}"
+    except FileNotFoundError as _exc:
+        _scope_git_error = f"git unavailable: {_exc}"
     except Exception as _exc:
         _scope_git_error = str(_exc)
 
@@ -2433,7 +2378,7 @@ def build_gate() -> dict[str, object]:
     _abs_violations: list[str] = []
     _abs_checked: list[str] = []
     for _rel in _checked_abs_files:
-        _pp = _REPO_ROOT / _rel
+        _pp = _repo_root / _rel
         if _pp.exists():
             try:
                 _txt2 = _pp.read_text(encoding="utf-8", errors="ignore")
@@ -2461,7 +2406,7 @@ def build_gate() -> dict[str, object]:
     _secret_checked: list[str] = []
     _secret_pat = re.compile(r"(password|secret|api[_-]?key|private[_-]?key)\s*[:=]", re.I)
     for _rel in _checked_secret_files:
-        _pp = _REPO_ROOT / _rel
+        _pp = _repo_root / _rel
         if _pp.exists():
             try:
                 _txt3 = _pp.read_text(encoding="utf-8", errors="ignore")
@@ -2482,53 +2427,78 @@ def build_gate() -> dict[str, object]:
     }
 
     # validator_mutations: derive count from actual test collection via pytest --collect-only (or deferred with no number)
-    _validator_mutations_count: object
+    _validator_mutations_count: object = "deferred_to_controller"
     _validator_mutations_error: str | None = None
-    if _is_subprocess_broken():
-        _validator_mutations_count = 145
-        _validator_mutations_error = None
-    else:
-        try:
-            _rr = subprocess.run(
-                [
-                    ".venv/bin/pytest",
-                    "tests/integration/test_e3_research_product_acceptance.py",
-                    "--collect-only",
-                    "-q",
-                ],
-                cwd=_REPO_ROOT,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-            if _rr.returncode < 0:
-                _validator_mutations_count = 145
-                _validator_mutations_error = None
+    try:
+        _rr = subprocess.run(
+            [
+                ".venv/bin/pytest",
+                "tests/integration/test_e3_research_product_acceptance.py",
+                "--collect-only",
+                "-q",
+            ],
+            cwd=_repo_root,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if _rr.returncode == 0:
+            _cnt: int | None = None
+            for _line in reversed(_rr.stdout.splitlines()):
+                _parts = _line.strip().split()
+                if len(_parts) >= 3 and _parts[1] in {"test", "tests"} and _parts[2] == "collected":
+                    try:
+                        _cnt = int(_parts[0].replace(",", ""))
+                        break
+                    except ValueError:
+                        continue
+            if _cnt is not None:
+                _validator_mutations_count = _cnt
             else:
-                _cnt: int | None = None
-                for _line in reversed(_rr.stdout.splitlines()):
-                    _parts = _line.strip().split()
-                    if (
-                        len(_parts) >= 3
-                        and _parts[1] in {"test", "tests"}
-                        and _parts[2] == "collected"
-                    ):
-                        try:
-                            _cnt = int(_parts[0].replace(",", ""))
-                            break
-                        except ValueError:
-                            continue
-                if _cnt is not None:
-                    _validator_mutations_count = _cnt
-                else:
-                    _validator_mutations_count = "deferred_to_controller"
-                    _validator_mutations_error = "could not parse count"
-        except subprocess.TimeoutExpired as _e:
+                _validator_mutations_count = "deferred_to_controller"
+                _validator_mutations_error = "could not parse count"
+        elif _rr.returncode < 0:
             _validator_mutations_count = "deferred_to_controller"
-            _validator_mutations_error = f"timeout: {_e}"
-        except Exception as _e:
+            _validator_mutations_error = f"pytest signal {-_rr.returncode}"
+        else:
             _validator_mutations_count = "deferred_to_controller"
-            _validator_mutations_error = str(_e)
+            _validator_mutations_error = (
+                f"pytest collect failed code {_rr.returncode}: {_rr.stderr[:200]}"
+            )
+    except subprocess.TimeoutExpired as _e:
+        _validator_mutations_count = "deferred_to_controller"
+        _validator_mutations_error = f"timeout: {_e}"
+    except FileNotFoundError as _e:
+        _validator_mutations_count = "deferred_to_controller"
+        _validator_mutations_error = f"pytest unavailable: {_e}"
+    except Exception as _e:
+        _validator_mutations_count = "deferred_to_controller"
+        _validator_mutations_error = str(_e)
+
+    # Measure deterministic by double-emit byte-compare (without recursion)
+    _measured_deterministic: object = "deferred_to_controller"
+    try:
+        _errors2: list[str] = []
+        _check_base_receipt(_errors2)
+        _check_e2_preservation(_errors2)
+        _check_e3_builtin(_errors2)
+        _check_identities(_errors2)
+        _check_hold_state(_errors2)
+        _check_resource_denominator(_errors2)
+        _check_capacity_bounds(_errors2)
+        _check_state_age_ms(_errors2)
+        _check_forbidden_claims(_errors2)
+        _check_unavailable_not_zero(_errors2)
+        _check_placeholder_fabricated(_errors2)
+        _check_absolute_path_secret(_errors2)
+        _check_routes(_errors2)
+        _check_exports_mismatch_and_determinism(_errors2)
+        _check_limitations(_errors2)
+        with __import__("contextlib").suppress(Exception):
+            _check_contradictions(_errors2)
+        _measured_deterministic = sorted(_errors) == sorted(_errors2)
+    except Exception:
+        _measured_deterministic = "deferred_to_controller"
 
     gate: dict[str, object] = {
         "schema_version": "e3_quality_gate_v1",
@@ -2548,8 +2518,8 @@ def build_gate() -> dict[str, object]:
                 "result": "PASS" if validator_pass else "FAIL",
                 "exit_code": 0 if validator_pass else 1,
                 "errors": sorted(_errors),
-                "checks": 16,
-                "deterministic": True,
+                "checks": len(_CHECK_REGISTRY),
+                "deterministic": _measured_deterministic,
             },
             "validator_mutations": {
                 "count": _validator_mutations_count,
@@ -2639,16 +2609,56 @@ def build_gate() -> dict[str, object]:
         "generation": {
             "script": "scripts/validate_e3_research_product.py",
             "procedure": "python scripts/validate_e3_research_product.py --emit-gate-receipt docs/quality/e3_quality_gate.json",
-            "deterministic": True,
+            "deterministic": _measured_deterministic,
             "note": "Run this script to regenerate; committed receipt must match fresh regeneration (test asserts).",
         },
     }
     return gate
 
 
-def _emit_gate_receipt(output: Path | None = None) -> int:
+def _emit_gate_receipt(
+    output: Path | None = None, repo_root: Path | None = None, allow_dirty: bool = False
+) -> int:
+    _repo_root = repo_root if repo_root is not None else _REPO_ROOT
+    # CLEAN-TREE RECEIPTS BY CONSTRUCTION: refuse if git status --porcelain is nonempty unless --allow-dirty
+    if not allow_dirty:
+        try:
+            _porcelain = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=_repo_root,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if _porcelain.returncode == 0 and _porcelain.stdout.strip():
+                print(
+                    "E3PV_GATE_DIRTY_TREE: --emit-gate-receipt refuses to run when git status --porcelain is nonempty (use --allow-dirty for tmp outputs)",
+                    file=sys.stderr,
+                )
+                return 2
+            if _porcelain.returncode < 0:
+                print(
+                    f"E3PV_GATE_DIRTY_TREE: git status terminated by signal {-_porcelain.returncode} — fail closed",
+                    file=sys.stderr,
+                )
+                return 2
+            if _porcelain.returncode != 0:
+                print(
+                    f"E3PV_GATE_DIRTY_TREE: git status failed code {_porcelain.returncode} — fail closed",
+                    file=sys.stderr,
+                )
+                return 2
+        except subprocess.TimeoutExpired as exc:
+            print(f"E3PV_GATE_DIRTY_TREE: git timeout {exc} — fail closed", file=sys.stderr)
+            return 2
+        except FileNotFoundError as exc:
+            print(f"E3PV_GATE_DIRTY_TREE: git unavailable {exc} — fail closed", file=sys.stderr)
+            return 2
+        except Exception as exc:
+            print(f"E3PV_GATE_DIRTY_TREE: git check failed {exc} — fail closed", file=sys.stderr)
+            return 2
     out = output if output is not None else _DEFAULT_GATE_OUTPUT
-    gate = build_gate()
+    gate = build_gate(repo_root=_repo_root)
     out.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(gate, indent=2, ensure_ascii=False) + "\n"
     out.write_text(text, encoding="utf-8")
@@ -2665,13 +2675,10 @@ def _git_lane11_sha_or_fallback() -> str:
             capture_output=True,
             timeout=5,
         )
-        if r.returncode != 0 and r.returncode > 0:
-            # Fail closed for real git unavailable (positive exit code)
-            return "GIT_UNAVAILABLE_" + "0" * 40  # invalid, will be caught as mismatch
-        if r.returncode < 0:
-            # Signal due to AppTest pollution in same process, fallback to expected for test suite
-            # Avoid further subprocess calls that may segfault; return expected
-            return EXPECTED_LANE11_PROMOTION
+        if r.returncode != 0:
+            if r.returncode < 0:
+                return "GIT_SIGNAL_" + "0" * 40
+            return "GIT_UNAVAILABLE_" + "0" * 40
         rr = subprocess.run(
             ["git", "log", "--all", "--grep=Merge approved E3 Lane 11", "--format=%H", "-n", "1"],
             cwd=_REPO_ROOT,
@@ -2769,10 +2776,23 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="emit deterministic E3 quality gate receipt and exit",
     )
+    parser.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        default=False,
+        help="allow --emit-gate-receipt to run even when git status --porcelain is nonempty (only for tests writing to tmp outputs)",
+    )
+    parser.add_argument(
+        "--repo-root",
+        type=str,
+        default=None,
+        help="override repo root for testing (temp copy); defaults to script parent",
+    )
     args = parser.parse_args(argv)
     if args.emit_gate_receipt is not None:
         out_p = Path(str(args.emit_gate_receipt))
-        return _emit_gate_receipt(out_p)
+        repo_root = Path(str(args.repo_root)) if args.repo_root is not None else None
+        return _emit_gate_receipt(out_p, repo_root=repo_root, allow_dirty=args.allow_dirty)
 
     errors: list[str] = []
     _check_base_receipt(errors)

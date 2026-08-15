@@ -412,7 +412,7 @@ def test_tracked_gate_receipt_matches_fresh_regeneration(tmp_path: Path) -> None
     tracked = Path("docs/quality/e3_quality_gate.json")
     assert tracked.exists(), "tracked gate receipt must exist"
     before = tracked.read_bytes()
-    # Fresh regeneration via subprocess to avoid AppTest fork pollution
+    # Fresh regeneration via subprocess to avoid AppTest fork pollution — use --allow-dirty for tmp outputs
     fresh = tmp_path / "fresh_gate.json"
     rc = subprocess.run(
         [
@@ -420,6 +420,7 @@ def test_tracked_gate_receipt_matches_fresh_regeneration(tmp_path: Path) -> None
             "scripts/validate_e3_research_product.py",
             "--emit-gate-receipt",
             str(fresh),
+            "--allow-dirty",
         ],
         capture_output=True,
         text=True,
@@ -435,6 +436,7 @@ def test_tracked_gate_receipt_matches_fresh_regeneration(tmp_path: Path) -> None
             "scripts/validate_e3_research_product.py",
             "--emit-gate-receipt",
             str(fresh2),
+            "--allow-dirty",
         ],
         capture_output=True,
         text=True,
@@ -1663,7 +1665,7 @@ def test_gate_tamper_then_regenerate_fails(tmp_path: Path, monkeypatch: pytest.M
     import scripts.validate_e3_research_product as v
 
     fresh = tmp_path / "tampered_gate.json"
-    rc = v.main(["--emit-gate-receipt", str(fresh)])
+    rc = v.main(["--emit-gate-receipt", str(fresh), "--allow-dirty"])
     assert rc == 0  # gate generation still succeeds but should record FAIL verdict
     fresh_data = json.loads(fresh.read_text(encoding="utf-8"))
     assert fresh_data["verdict"] == "FAIL"
@@ -2184,7 +2186,7 @@ def test_b2_injection_fails_typed(
 def test_b2_validator_own_diagnostics_still_exempt(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Validator's own diagnostics arrays (errors[*] and tested_categories[*]) must remain exempt."""
+    """Validator's own diagnostics arrays (errors[*] and gates.*.errors[*]) must remain exempt; tested_categories is NOT exempt."""
     real_gate = Path("docs/quality/e3_quality_gate.json").read_text(encoding="utf-8")
     gate_data = json.loads(real_gate)
     gate_data["gates"]["validator_real_tree"]["errors"] = [
@@ -2199,7 +2201,7 @@ def test_b2_validator_own_diagnostics_still_exempt(
 
     monkeypatch.setattr(Path, "read_text", fake_read)
     rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
-    assert rc == 0, f"exempt path should not fail but got {errs}"
+    assert rc == 0, f"errors exempt should not fail but got {errs}"
     gate_data2 = json.loads(real_gate)
     gate_data2["gates"]["validator_real_tree"]["tested_categories"] = [
         "Kubernetes deployment is live"
@@ -2214,7 +2216,8 @@ def test_b2_validator_own_diagnostics_still_exempt(
     mp2.setattr(Path, "read_text", fake_read2)
     try:
         rc2, errs2, _ = _run_validator_cli(mp2, tmp_path)
-        assert rc2 == 0, f"tested_categories exempt should not fail but got {errs2}"
+        assert rc2 != 0, f"tested_categories should NOT be exempt and must fail but got {errs2}"
+        assert any(e.startswith("E3PV_") for e in errs2)
     finally:
         mp2.undo()
 
@@ -2223,59 +2226,48 @@ def test_b2_validator_own_diagnostics_still_exempt(
 def test_emit_scope_check_reflects_out_of_scope_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Out-of-scope file must appear in emitted scope_check lists."""
+    """Out-of-scope file must appear in emitted scope_check lists — via temp copy, no mocked-git."""
     import subprocess
+    import tempfile
+    import shutil
     import scripts.validate_e3_research_product as v
 
-    # Create a real out-of-scope file on disk
-    out_of_scope_path = Path("surprise_outside.txt")
-    try:
-        out_of_scope_path.write_text("surprise", encoding="utf-8")
-        gate = v.build_gate()
+    # Create a temp copy of the repo (including .git) and plant an out-of-scope file there
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        # Use git to create a clean temp copy via copytree ignoring .venv but including .git
+        src_root = Path(".").resolve()
+        dst = td_path / "copy"
+        shutil.copytree(
+            src_root,
+            dst,
+            symlinks=True,
+            ignore=shutil.ignore_patterns(
+                ".venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "*.pyc"
+            ),
+        )
+        # Plant out-of-scope file in temp copy
+        (dst / "surprise_outside.txt").write_text("surprise", encoding="utf-8")
+        # Emit gate from temp copy via --repo-root (real measurement, no mock)
+        out = td_path / "gate.json"
+        rc = subprocess.run(
+            [
+                ".venv/bin/python",
+                "scripts/validate_e3_research_product.py",
+                "--emit-gate-receipt",
+                str(out),
+                "--repo-root",
+                str(dst),
+                "--allow-dirty",
+            ],
+            cwd=str(src_root),
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).returncode
+        assert rc == 0, f"emit with temp copy failed {rc}"
+        gate = json.loads(out.read_text(encoding="utf-8"))
         scope = gate["gates"]["scope_check"]
-        if "surprise_outside.txt" not in scope.get("found_out_of_scope", []):
-            orig_run = subprocess.run
-
-            def fake_git(cmd: Any, *args: Any, **kwargs: Any) -> Any:
-                if isinstance(cmd, list) and cmd[:2] == ["git", "status"]:
-
-                    class R:
-                        returncode = 0
-                        stdout = "?? surprise_outside.txt\n"
-                        stderr = ""
-
-                    return R()
-                if isinstance(cmd, list) and cmd[:2] == ["git", "diff"]:
-
-                    class R2:
-                        returncode = 0
-                        stdout = "surprise_outside.txt\n"
-                        stderr = ""
-
-                    return R2()
-                if isinstance(cmd, list) and cmd == ["echo", "test"]:
-
-                    class RE:
-                        returncode = 0
-                        stdout = "test"
-                        stderr = ""
-
-                    return RE()
-                try:
-                    return orig_run(cmd, *args, **kwargs)
-                except Exception:
-
-                    class RF:
-                        returncode = 0
-                        stdout = ""
-                        stderr = ""
-
-                    return RF()
-
-            monkeypatch.setattr("scripts.validate_e3_research_product.subprocess.run", fake_git)
-            monkeypatch.setattr(subprocess, "run", fake_git)
-            gate = v.build_gate()
-            scope = gate["gates"]["scope_check"]
         assert (
             "surprise_outside.txt" in scope.get("found_untracked", [])
             or "surprise_outside.txt" in scope.get("found_changed", [])
@@ -2287,78 +2279,342 @@ def test_emit_scope_check_reflects_out_of_scope_file(
         )
         assert scope["all_allowed"] is False
         assert scope["result"] == "FAIL"
-    finally:
-        if out_of_scope_path.exists():
-            out_of_scope_path.unlink()
+        # Also ensure real worktree was never touched
+        assert not Path("surprise_outside.txt").exists()
 
 
 def test_emit_no_abs_reflects_users_literal(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Planted Users literal in checked file must be reflected in emitted gate."""
+    """Planted Users literal in checked file must be reflected in emitted gate — via temp copy."""
     import subprocess
-    import scripts.validate_e3_research_product as v
+    import tempfile
+    import shutil
 
     literal = "/" + "Users" + "/" + "planted"
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        src_root = Path(".").resolve()
+        dst = td_path / "copy"
+        shutil.copytree(
+            src_root,
+            dst,
+            symlinks=True,
+            ignore=shutil.ignore_patterns(
+                ".venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "*.pyc"
+            ),
+        )
+        # Plant Users literal in the copied doc file
+        doc_path = dst / "docs/e3_dynamic_resource_v2_product.md"
+        orig = doc_path.read_text(encoding="utf-8")
+        doc_path.write_text(orig + "\n\n" + literal + "\n", encoding="utf-8")
+        out = td_path / "gate.json"
+        rc = subprocess.run(
+            [
+                ".venv/bin/python",
+                "scripts/validate_e3_research_product.py",
+                "--emit-gate-receipt",
+                str(out),
+                "--repo-root",
+                str(dst),
+                "--allow-dirty",
+            ],
+            cwd=str(src_root),
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).returncode
+        assert rc == 0, f"emit with temp copy failed {rc}"
+        gate = json.loads(out.read_text(encoding="utf-8"))
+        no_abs = gate["gates"]["no_absolute_path_literals"]
+        assert "docs/e3_dynamic_resource_v2_product.md" in no_abs.get("violations", [])
+        assert no_abs["result"] == "FAIL"
+        # Ensure real worktree untouched
+        assert ("/" + "Users" + "/" + "planted") not in Path(
+            "docs/e3_dynamic_resource_v2_product.md"
+        ).read_text(encoding="utf-8")
+        # Also verify validator fails on that literal via direct injection (without temp copy)
+        orig_read = Path.read_text
+
+        def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+            if str(self).endswith("docs/e3_dynamic_resource_v2_product.md"):
+                real = orig_read(self, *args, **kwargs)
+                return real + "\n\n" + literal + "\n"
+            return orig_read(self, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "read_text", fake_read)
+        rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+        assert rc != 0
+        assert any("PATH_LEAKAGE" in e or "absolute" in e.lower() for e in errs)
+
+
+# ---- New Lane 12 Opus review 5 additions: clean-tree, exact exemptions, sentence-unit, temp-copy ----
+
+
+def test_emit_gate_refuses_when_dirty_without_allow(tmp_path: Path) -> None:
+    """--emit-gate-receipt must REFUSE when git status --porcelain is nonempty without --allow-dirty."""
+    import subprocess
+
+    dirty = Path("tmp_dirty_for_gate_test.txt")
+    try:
+        dirty.write_text("dirty", encoding="utf-8")
+        out = tmp_path / "gate_dirty.json"
+        rc = subprocess.run(
+            [
+                ".venv/bin/python",
+                "scripts/validate_e3_research_product.py",
+                "--emit-gate-receipt",
+                str(out),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        ).returncode
+        # Should refuse with typed error code 2
+        assert rc == 2, f"expected refuse code 2 got {rc} stderr {rc}"
+        assert not out.exists() or out.read_text(encoding="utf-8") == "", (
+            "should not write file when dirty without allow"
+        )
+        # With --allow-dirty, it should succeed for tmp output
+        out2 = tmp_path / "gate_dirty2.json"
+        rc2 = subprocess.run(
+            [
+                ".venv/bin/python",
+                "scripts/validate_e3_research_product.py",
+                "--emit-gate-receipt",
+                str(out2),
+                "--allow-dirty",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        ).returncode
+        assert rc2 == 0, f"allow-dirty should succeed got {rc2}"
+        assert out2.exists()
+    finally:
+        if dirty.exists():
+            dirty.unlink()
+        for f in [tmp_path / "gate_dirty.json", tmp_path / "gate_dirty2.json"]:
+            if f.exists():
+                f.unlink()
+
+
+def test_exemptions_exact_per_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Only gate/verdict $.errors[*] and $.gates.*.errors[*] are exempt; traceability and e2 base have NO exemptions; tested_categories not exempt."""
+    # Traceability $.errors[0] must fail
+    real_trace = Path("docs/closure/e3_product_traceability.json").read_text(encoding="utf-8")
+    trace_data = json.loads(real_trace)
+    trace_data["errors"] = ["Kubernetes deployment is live"]
+    orig_read = Path.read_text
+
+    def fake_trace(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_product_traceability.json"):
+            return json.dumps(trace_data)
+        return orig_read(self, *args, **kwargs)
+
+    mp = pytest.MonkeyPatch()
+    mp.setattr(Path, "read_text", fake_trace)
+    try:
+        rc, errs, _ = _run_validator_cli(mp, tmp_path)
+        assert rc != 0, "traceability $.errors[0] should not be exempt"
+        assert any(e.startswith("E3PV_KUBERNETES_CLAIM") for e in errs)
+    finally:
+        mp.undo()
+
+    # Gate $.tested_categories[0] must fail (no longer exempt)
+    real_gate = Path("docs/quality/e3_quality_gate.json").read_text(encoding="utf-8")
+    gate_data = json.loads(real_gate)
+    gate_data["tested_categories"] = ["Supervisor approval already granted for release"]
+
+    def fake_gate(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_quality_gate.json"):
+            return json.dumps(gate_data)
+        return orig_read(self, *args, **kwargs)
+
+    mp2 = pytest.MonkeyPatch()
+    mp2.setattr(Path, "read_text", fake_gate)
+    try:
+        rc2, errs2, _ = _run_validator_cli(mp2, tmp_path)
+        assert rc2 != 0, "gate $.tested_categories[0] should fail after removing exemption"
+        assert any(e.startswith("E3PV_SUPERVISOR_CLAIM") for e in errs2)
+    finally:
+        mp2.undo()
+
+    # Verdict $.tested_categories[0] must fail
+    real_verdict = Path("docs/quality/e3_validator_verdict.json").read_text(encoding="utf-8")
+    verdict_data = json.loads(real_verdict)
+    verdict_data["tested_categories"] = ["Supervisor approval already granted"]
+
+    def fake_verdict(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e3_validator_verdict.json"):
+            return json.dumps(verdict_data)
+        return orig_read(self, *args, **kwargs)
+
+    mp3 = pytest.MonkeyPatch()
+    mp3.setattr(Path, "read_text", fake_verdict)
+    try:
+        rc3, errs3, _ = _run_validator_cli(mp3, tmp_path)
+        assert rc3 != 0, "verdict $.tested_categories[0] should fail"
+        assert any(e.startswith("E3PV_SUPERVISOR_CLAIM") for e in errs3)
+    finally:
+        mp3.undo()
+
+    # E2 base $.tested_categories[0] must fail
+    real_e2 = Path("docs/closure/e2_product_lane12_base_receipt.json").read_text(encoding="utf-8")
+    e2_data = json.loads(real_e2)
+    e2_data["tested_categories"] = ["Supervisor approval already granted"]
+
+    def fake_e2(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e2_product_lane12_base_receipt.json"):
+            return json.dumps(e2_data)
+        return orig_read(self, *args, **kwargs)
+
+    mp4 = pytest.MonkeyPatch()
+    mp4.setattr(Path, "read_text", fake_e2)
+    try:
+        rc4, errs4, _ = _run_validator_cli(mp4, tmp_path)
+        assert rc4 != 0, "e2 base $.tested_categories[0] should fail"
+        assert any(e.startswith("E3PV_SUPERVISOR_CLAIM") for e in errs4)
+    finally:
+        mp4.undo()
+
+    # E2 base $.errors[0] must also fail (no exemptions)
+    e2_data2 = json.loads(real_e2)
+    e2_data2["errors"] = ["Kubernetes deployment is live"]
+
+    def fake_e2b(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith("e2_product_lane12_base_receipt.json"):
+            return json.dumps(e2_data2)
+        return orig_read(self, *args, **kwargs)
+
+    mp5 = pytest.MonkeyPatch()
+    mp5.setattr(Path, "read_text", fake_e2b)
+    try:
+        rc5, errs5, _ = _run_validator_cli(mp5, tmp_path)
+        assert rc5 != 0, "e2 base $.errors[0] should not be exempt"
+        assert any(e.startswith("E3PV_KUBERNETES_CLAIM") for e in errs5)
+    finally:
+        mp5.undo()
+
+
+_NEW_REVIEWER_PHRASES: list[tuple[str, str]] = [
+    ("With no further delay, research workloads were launched.", "E3PV_WORKLOADS_CONTRADICTION"),
+    ("Nine research workloads (v2.1) were launched.", "E3PV_WORKLOADS_CONTRADICTION"),
+    (
+        "Research workloads across the ten RSU cells of the frozen design were launched.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    (
+        "The system launched nine research workloads after initialization.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    (
+        "We have executed research workloads for the final evaluation.",
+        "E3PV_WORKLOADS_CONTRADICTION",
+    ),
+    ("Hosted CI was green on the final merge.", "E3PV_HOSTED_CI_CONTRADICTION"),
+    ("GitHub Actions checks passed successfully.", "E3PV_HOSTED_CI_CONTRADICTION"),
+    ("Confirmed E3 outcomes are now verified and available.", "E3PV_CONTRADICTION"),
+]
+
+_FIVE_SURFACES_NEW: list[str] = [
+    "docs/e3_dynamic_resource_v2_product.md",
+    "docs/closure/e3_product_traceability.json",
+    "docs/quality/e3_quality_gate.json",
+    "docs/quality/e3_validator_verdict.json",
+    "docs/closure/e2_product_lane12_base_receipt.json",
+]
+
+
+@pytest.mark.parametrize("phrase,expected_code", _NEW_REVIEWER_PHRASES)
+@pytest.mark.parametrize("surface", _FIVE_SURFACES_NEW)
+def test_new_reviewer_phrasing_fails_typed_on_each_surface(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    phrase: str,
+    expected_code: str,
+    surface: str,
+) -> None:
+    """Each new reviewer phrasing must fail typed on each of five surfaces (sentence-unit, no window)."""
     orig_read = Path.read_text
 
     def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
-        if str(self).endswith("docs/e3_dynamic_resource_v2_product.md"):
+        if str(self).endswith(surface):
             real = orig_read(self, *args, **kwargs)
-            return real + "\n\n" + literal + "\n"
+            if surface.endswith(".json"):
+                try:
+                    data = json.loads(real)
+                    data["reviewer_injection"] = phrase
+                    return json.dumps(data)
+                except Exception:
+                    return real + "\n" + phrase + "\n"
+            else:
+                return real + "\n\n" + phrase + "\n"
         return orig_read(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", fake_read)
-    # Mock git to avoid segfault when calling build_gate after AppTest pollution
-    orig_run = subprocess.run
+    rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+    assert rc != 0, f"new phrase {phrase!r} on {surface!r} should fail"
+    assert any(e.startswith(expected_code + ":") for e in errs), (
+        f"expected {expected_code} got {errs} for {phrase!r} on {surface!r}"
+    )
 
-    def fake_git_ok(cmd: Any, *args: Any, **kwargs: Any) -> Any:
-        if isinstance(cmd, list) and cmd[:2] == ["git", "status"]:
 
-            class R:
-                returncode = 0
-                stdout = ""
-                stderr = ""
+@pytest.mark.parametrize("surface", _FIVE_SURFACES_NEW)
+def test_new_reviewer_truthful_controls_pass_on_each_surface(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, surface: str
+) -> None:
+    """Truthful controls must still pass on each surface after sentence-unit changes."""
+    truth_map: dict[str, str] = {
+        "docs/e3_dynamic_resource_v2_product.md": "research_workloads_launched = 0",
+        "docs/closure/e3_product_traceability.json": "HOSTED_CI_UNAVAILABLE",
+        "docs/quality/e3_quality_gate.json": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+        "docs/quality/e3_validator_verdict.json": "research_workloads_launched = 0",
+        "docs/closure/e2_product_lane12_base_receipt.json": "HOSTED_CI_UNAVAILABLE",
+    }
+    truth_phrase = truth_map.get(surface, "research_workloads_launched = 0")
+    orig_read = Path.read_text
 
-            return R()
-        if isinstance(cmd, list) and cmd[:2] == ["git", "diff"]:
+    def fake_read(self: Path, *args: Any, **kwargs: Any) -> str:
+        if str(self).endswith(surface):
+            real = orig_read(self, *args, **kwargs)
+            if surface.endswith(".json"):
+                try:
+                    data = json.loads(real)
+                    data["truthful_injection"] = truth_phrase
+                    return json.dumps(data)
+                except Exception:
+                    return real
+            else:
+                return real + "\n\n" + truth_phrase + "\n"
+        return orig_read(self, *args, **kwargs)
 
-            class R2:
-                returncode = 0
-                stdout = ""
-                stderr = ""
-
-            return R2()
-        if isinstance(cmd, list) and cmd == ["echo", "test"]:
-
-            class RE:
-                returncode = 0
-                stdout = "test"
-                stderr = ""
-
-            return RE()
-        # For other git calls, let real run but catch segfault risk: use popen fallback
-        try:
-            return orig_run(cmd, *args, **kwargs)
-        except Exception:
-
-            class RF:
-                returncode = 0
-                stdout = ""
-                stderr = ""
-
-            return RF()
-
-    # Apply mock only for build_gate
-    monkeypatch.setattr("scripts.validate_e3_research_product.subprocess.run", fake_git_ok)
-    monkeypatch.setattr(subprocess, "run", fake_git_ok)
-    gate = v.build_gate()
-    no_abs = gate["gates"]["no_absolute_path_literals"]
-    assert "docs/e3_dynamic_resource_v2_product.md" in no_abs.get("violations", [])
-    assert no_abs["result"] == "FAIL"
-    # Restore for validator check which needs real git for pin but should handle polluted
-    monkeypatch.undo()
     monkeypatch.setattr(Path, "read_text", fake_read)
     rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
-    assert rc != 0
-    assert any("PATH_LEAKAGE" in e or "absolute" in e.lower() for e in errs)
+    assert rc == 0, f"truthful {truth_phrase!r} on {surface!r} should pass but got {errs}"
+
+
+def test_no_unmeasured_values_in_gate(tmp_path: Path) -> None:
+    """Gate must have no unmeasured literals: deferred_to_controller has no number, checks derived, deterministic measured."""
+    import scripts.validate_e3_research_product as v
+
+    gate = v.build_gate()
+    # validator_mutations count should be either int measured or deferred string, never literal 145 when deferred? Check that if deferred, it's string
+    vm = gate["gates"]["validator_mutations"]
+    count = vm["count"]
+    # If it's deferred, it must be exactly "deferred_to_controller" with no number
+    if isinstance(count, str):
+        assert count == "deferred_to_controller"
+        assert "145" not in str(vm) or isinstance(
+            count, int
+        )  # ensure not literal 145 when deferred
+    else:
+        assert isinstance(count, int) and count > 0
+        assert count >= 0  # measured count, 145 is okay if derived
+    # checks should be len of registry
+    assert gate["gates"]["validator_real_tree"]["checks"] == len(v._CHECK_REGISTRY)
+    # deterministic should be bool True/False or deferred string, not hard literal without measurement
+    det = gate["gates"]["validator_real_tree"]["deterministic"]
+    assert det in (True, False, "deferred_to_controller")
+    # Sweep: ensure no other literal unmeasured values like hardcoded 145 when unavailable — we already check
+    # For this test, we just ensure the gate was built without exception
