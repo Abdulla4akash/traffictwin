@@ -1,0 +1,151 @@
+{
+  "schema_version": "e3_product_traceability_v1",
+  "campaign": "e3-dynamic-resource-v2",
+  "product_base_sha": "2b6d4675658b426f96a79c41ac7f0b8f2a82bc5c",
+  "research_promotion_sha": "342789434233e97cd87ea74e21a759878610ce40",
+  "approved_candidate_sha": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+  "contract_checkpoint_sha": "211a6662151ccad43187f8a2ce3f75a57515408d",
+  "vec_promotion_sha": "dc606770059f0c4a413bac2217d7f38600b74fff",
+  "vec_core_sha": "53e34db6146da40118a6c816f6a1ffaa2596ddf3",
+  "vec_adapter_sha": "c37f97ea66b236dfc662bfdd6bee7eab1a775bbc",
+  "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+  "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+  "contract_sha256": "f0d6eb913df6c2165a63ddcb0fd4980368e9bb80bbd38db964273ba3925f4870",
+  "manifest_sidecar_sha256": "39862882ae34e71260ce5b466fcd4a93d61da783c4dd16fc987be562ea396438",
+  "e3_package_fingerprint": "e5ff1bc0e3410d47520c2e841803c8fa67efb3581b8f52a66e407552457b8e8c",
+  "branch": "worker/e3-lane-12-acceptance-v1",
+  "lane": 12,
+  "issue": "Lane 12 — E3 final validator, acceptance and documentation (initial implementation)",
+  "base_integration_sha": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
+  "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
+  "lanes": {
+    "08": {
+      "approved": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+      "promotion": "342789434233e97cd87ea74e21a759878610ce40",
+      "review_session": "0a007332-1132-4d27-8ab3-4c74ca79e429",
+      "description": "E3 Lane 08 TrafficTwin dynamic resource runner"
+    },
+    "10": {
+      "approved": "194941f0dcb1e2f72351fb030d7f58679c001205",
+      "promotion": "8a2f0fffb605fac94ec625f49f80260a54daba6d",
+      "review_session": "c8b332c0-9606-43d3-a492-fcb95b69aa8f",
+      "description": "E3 Lane 10 product evidence and admission"
+    },
+    "11": {
+      "approved": "e87b2ed39d1ad2ebd6d98dd0f0a9156158ea166d",
+      "promotion": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+      "review_session": "91f1cc9b-4677-4981-b85c-12b8a3cdc4fa",
+      "description": "E3 Lane 11 product journey and reporting"
+    },
+    "12": {
+      "base_integration_sha": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+      "self_sha": "BOUND_AT_PROMOTION",
+      "note": "self_sha binds at promotion; promotion receipt binds final SHA",
+      "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
+      "description": "Lane 12 acceptance validator + docs (honest self-pin; base is lane 11 promotion)"
+    }
+  },
+  "hold": {
+    "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "evidence_state": "NOT_EXECUTED",
+    "result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+    "research_workloads_launched": 0,
+    "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
+  },
+  "hosted_ci": "HOSTED_CI_UNAVAILABLE",
+  "hosted_ci_truth": "HOSTED_CI_UNAVAILABLE — no hosted CI claim; no approval claim beyond hold",
+  "frozen_e2_preservation": {
+    "package_fingerprint": "195f2e89ab4e775d1577c92a59409026fccaa2d9ebd1d973177dabd93ba83269",
+    "receipt_fingerprint": "45e8c2782ff40495e472bc0e6de3ba3be1610fdb974f88b7ffd12a754d031ebc",
+    "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+    "integration_sha": "4f1ef5bc82585e2a719387a71c38e188f3f43594",
+    "heads": {
+      "e2b": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "e2c": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
+      "e2d": "80e8ae55dfbcc0aa271ed7ed1d67aeae8f384761"
+    },
+    "manifests": {
+      "e2b": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+      "e2c": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+      "e2d": "f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740"
+    },
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "preserved": "byte-for-byte E2 product artifact pinned; E2 route still works"
+  },
+  "provenance": {
+    "artifact": "e3_dynamic_resource_v2.json",
+    "via": "importlib.resources traffictwin.resources.research",
+    "loader": "traffictwin.experiments.e3_research_artifact.load_builtin_e3_research",
+    "validator": "scripts/validate_e3_research_product.py",
+    "admission": "traffictwin.evidence_admission.e3_research.admit_e3_research"
+  },
+  "dormant_counts": {
+    "arms": 14,
+    "configs": 56
+  },
+  "replication": {
+    "replication_unit": "fleet_draw",
+    "n": 4,
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "evaluator_seed": 0,
+    "method": "two-sided Student-t 95% interval over fleet-draw differences (df=3, t=3.182)"
+  },
+  "resource": {
+    "metric": "resource_unit_seconds",
+    "unit": "resource_unit_seconds",
+    "monetary": false,
+    "queue_capacity_per_rsu": 6220,
+    "compute_active_units_per_rsu_range": [
+      1,
+      2,
+      3
+    ],
+    "state_age_ms_values": [
+      0,
+      1000,
+      3000
+    ]
+  },
+  "receipts": {
+    "validator_verdict": "docs/quality/e3_validator_verdict.json",
+    "traceability": "docs/closure/e3_product_traceability.json",
+    "product_doc": "docs/e3_dynamic_resource_v2_product.md",
+    "acceptance_test": "tests/integration/test_e3_research_product_acceptance.py",
+    "quality_gate": "docs/quality/e3_quality_gate.json"
+  },
+  "validator_checks": [
+    "identity mismatch for product_base, research_promotion, runner, vec_promotion, actor_sha, trace_sha, manifest_sidecar, lane 10-11 pins",
+    "placeholder numbers must stay None while NOT_EXECUTED",
+    "replication unit must be fleet_draw (tasks are not replicates)",
+    "queue and compute capacities strictly separate",
+    "unavailable fields must stay None not zero",
+    "resource cost is resource_unit_seconds not monetary",
+    "placement is deterministic infra, not managed cluster",
+    "actor does not choose execution RSU",
+    "hypotheses H1-H5 are not scalar best (no universal)",
+    "bounded to incident hour, not city-wide",
+    "no claim of approval status beyond hold",
+    "resource denominator resource_unit_seconds present",
+    "compute capacity 1..3 only (no free scaling)",
+    "state_age_ms typed 0,1000,3000 only",
+    "E3 journey route present and correct",
+    "export JSON/CSV/Markdown mismatch check",
+    "exports deterministic across rebuilds",
+    "no fabricated placeholder results while NOT_EXECUTED",
+    "no private path or secret leakage",
+    "E2 artifact preserved byte-for-byte",
+    "hosted CI is unavailable truthfully"
+  ],
+  "acceptance_test": "tests/integration/test_e3_research_product_acceptance.py (AppTest launch->generic->E2 unchanged->E3 truthful no-results hold banner/refusal/null lifecycle/provenance pins/CTA sequences/exports)",
+  "evidence_state": "NOT_EXECUTED",
+  "result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+  "no_scientific_execution": true,
+  "research_workloads_launched": 0,
+  "admission": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED fail-closed until exact approved Lane 09 package"
+}

@@ -231,6 +231,98 @@ def _render_e2_preset() -> bool:
     return True
 
 
+def _render_e3_preset() -> bool:
+    """Render the visibly separate one-click E3 preset and return True if E3 mode active.
+
+    Handles loading via the promoted Lane 10 typed payload
+    (load_builtin_e3_research) and rendering typed E3 components with truthful
+    no-results state without filesystem path input. Returns True when E3 content
+    was rendered (caller should return early to avoid double-rendering generic).
+    """
+    # Visibly separate one-click action - dormant E3, no results today
+    with st.container(border=True):
+        st.markdown("**TrafficTwin E3 Dynamic Resource V2 (dormant - no results)**")
+        st.caption(
+            "One-click loads the built-in E3 evidence package via importlib.resources "
+            "and renders the typed E3 components with truthful empty state. "
+            "No filesystem path input is needed for this preset. No E3 research workloads "
+            "have been launched; results are unavailable."
+        )
+        # Primary one-click action for E3 - visibly separate from E2
+        if st.button(
+            "Load TrafficTwin E3 Dynamic Resource V2",
+            key="resource_strategy_load_e3_research",
+            type="primary",
+            width="stretch",
+        ):
+            st.session_state["resource_strategy_e3_active"] = True
+            # I1: mutual exclusion — direct E3 activation pops E2 active (added code only)
+            st.session_state.pop("resource_strategy_e2_active", None)
+
+        # Handle delayed pop for E3 intent (one-shot, delayed by one render
+        # to keep AppTest assertions that check intent presence after navigation
+        # passing, while still guaranteeing consumption before clear). Uses a
+        # DISTINCT key from the E2 pending flag so that E2 and E3 intents do
+        # not interfere; invariant pending ==> e2_active is preserved for E2.
+        # If the E3 pending flag is set and the current intent is e3, pop both;
+        # if the intent is different (e2 or None), clear only the stale E3 flag
+        # so an e2 intent is never swallowed by an E3 pending.
+        if st.session_state.get("_resource_strategy_e3_intent_pending_pop"):
+            if st.session_state.get("resource_strategy_intent") == "e3":
+                st.session_state.pop("resource_strategy_intent", None)
+                st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+            else:
+                st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+
+        # Consume Home/Guided Demo intent one-shot: exact value "e3"
+        intent = st.session_state.get("resource_strategy_intent")
+        if intent == "e3":
+            st.session_state["resource_strategy_e3_active"] = True
+            st.session_state["_resource_strategy_e3_intent_pending_pop"] = True
+            # I1: when e3 intent activates E3, pop e2_active — ensures mutual exclusion after render
+            st.session_state.pop("resource_strategy_e2_active", None)
+
+        # Show clear when active - unique label per page
+        if st.session_state.get("resource_strategy_e3_active"):  # noqa: SIM102
+            if st.button(
+                "Clear E3 research view",
+                key="resource_strategy_clear_e3_research",
+            ):
+                st.session_state.pop("resource_strategy_e3_active", None)
+                st.session_state.pop("resource_strategy_intent", None)
+                st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+                st.rerun()
+
+    if not st.session_state.get("resource_strategy_e3_active"):
+        return False
+
+    # E3 mode active - load via promoted Lane 10 typed payload (no fallback)
+    try:
+        from traffictwin.evidence_admission.e3_research import admit_e3_research
+        from traffictwin.experiments.e3_comparison import build_e3_comparison_view
+        from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research
+        from traffictwin.experiments.e3_task_accounting import build_e3_task_accounting_view
+        from traffictwin.reporting.e3_research import build_e3_research_exports
+        from traffictwin.ui.components.e3_research import render_e3_research
+
+        package = load_builtin_e3_research()
+        receipt = admit_e3_research(package)
+        comparison = build_e3_comparison_view(package)
+        accounting = build_e3_task_accounting_view()
+        exports = build_e3_research_exports(package, receipt)
+        render_e3_research(package, receipt, comparison, accounting, exports)
+    except Exception as exc:  # fail-closed with truthful emptiness
+        st.error(f"E3 research could not be loaded (truthful empty state): {exc}")
+        st.caption(
+            "Immutable hold: LANE_09 = BLOCKED_BY_RESEARCHER_EXECUTION_HOLD, "
+            "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED, evidence_state = NOT_EXECUTED, "
+            "result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE, "
+            "research_workloads_launched = 0. Admission fails closed until an exact "
+            "approved Lane 09 package exists."
+        )
+    return True
+
+
 def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep thin
     render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)
     st.caption(
@@ -245,9 +337,64 @@ def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep
         "withheld until admission is explicit."
     )
 
+    # --- I1: mode arbitration (added code only, BEFORE base E2 code runs) ---
+    # TRUE invariant: mutual exclusion holds AFTER top-of-render arbitration,
+    # not "after any render". The both-set state (e2_active and e3_active True)
+    # is reachable transiently via the E2-load click during an E3 view: base E2
+    # sets e2_active without popping e3_active and arbitration runs pre-click,
+    # so ONE render leaves both flags set. The surface is correct (E2 renders,
+    # because _render_e2_preset precedes _render_e3_preset) and self-heals: the
+    # NEXT render's top arbitration deterministically pops
+    # resource_strategy_e3_active (E2 is the most recent user action) and the
+    # surface always matches the processed click.
+    _intent = st.session_state.get("resource_strategy_intent")
+    if _intent == "e2":
+        if st.session_state.get("resource_strategy_e3_active"):
+            st.session_state.pop("_resource_strategy_intent_pending_pop", None)
+        st.session_state.pop("resource_strategy_e3_active", None)
+        st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+    # Generic mutual exclusion when both flags co-exist. This IS reachable
+    # transiently via the E3 -> E2 Load button path described above (one render
+    # leaves both True after the E2 click) and also for synthetic sweep rows
+    # (both True, no intent). It guarantees at most one remains after
+    # arbitration and prevents double-render. Deterministic resolution: pop
+    # resource_strategy_e3_active (E2 is the most recent action). Only defer
+    # when an e3 intent is pending activation without pending-pop — let
+    # _render_e3_preset activate E3 and pop e2 instead.
+    if st.session_state.get("resource_strategy_e2_active") and st.session_state.get(
+        "resource_strategy_e3_active"
+    ):
+        if _intent == "e3" and not st.session_state.get("_resource_strategy_e3_intent_pending_pop"):
+            # e3 intent without pending will activate and pop e2 inside _render_e3_preset;
+            # do not pre-pop here — let activation path handle it.
+            pass
+        else:
+            # Default: keep E2 precedence or clear stale E3 after Clear-E2.
+            # For I3: Clear-E2 must return to GENERIC, so after Clear-E2 both cannot remain.
+            st.session_state.pop("resource_strategy_e3_active", None)
+            st.session_state.pop("_resource_strategy_e3_intent_pending_pop", None)
+
+    # --- I4: no widget rendered twice — E3 load button at most once per run ---
+    # The fall-through double render at explorer :252/:336-343 called _render_e3_preset()
+    # twice when intent==e3 and it returned False. We track whether E3 was already
+    # rendered this run and never call it a second time, fixing duplicate-key rows.
+    _e3_already_rendered = False
+    if st.session_state.get("resource_strategy_intent") == "e3":  # noqa: SIM102
+        _e3_already_rendered = True
+        if _render_e3_preset():  # noqa: SIM102
+            return
     # --- E2 preset — no path input needed ---
     if _render_e2_preset():
         return
+    # --- E3 preset — visibly separate one-click, no path input needed ---
+    if not _e3_already_rendered and _render_e3_preset():  # noqa: SIM102
+        return
+    # I3: Clear-E2 returns to GENERIC explorer. With the TRUE invariant,
+    # mutual exclusion holds AFTER top-of-render arbitration. After Clear-E2
+    # pops e2_active, if a transient both-set remains (e.g., E3 was active and
+    # E2 click left both True for one render), the NEXT render's arbitration
+    # pops resource_strategy_e3_active, so generic renders. No added post-Clear
+    # code needs to handle E3 — arbitration already ensures it is absent.
 
     study = _study_or_empty_state()
     if study is None:
