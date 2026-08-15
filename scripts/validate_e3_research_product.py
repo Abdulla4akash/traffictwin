@@ -90,6 +90,17 @@ EXPECTED_LANE10_APPROVED: str = "194941f0dcb1e2f72351fb030d7f58679c001205"
 EXPECTED_LANE10_PROMOTION: str = "8a2f0fffb605fac94ec625f49f80260a54daba6d"
 EXPECTED_LANE11_APPROVED: str = "e87b2ed39d1ad2ebd6d98dd0f0a9156158ea166d"
 EXPECTED_LANE11_PROMOTION: str = "6edf8f447244ede8bcc942c4d6a7c03fef45a606"
+EXPECTED_LANE11_REVIEW_SESSION: str = "91f1cc9b-4677-4981-b85c-12b8a3cdc4fa"
+EXPECTED_LANE12_APPROVED: str = "4d35a80407268877323fc073e3027a37fc42f63d"
+EXPECTED_LANE12_PROMOTION: str = "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+EXPECTED_LANE12_REVIEW_SESSION: str = "0ea42bab-9e48-4829-bee7-d15f7b9db193"
+# Frozen release composition identities
+EXPECTED_FROZEN_DYNAMIC_TIP: str = "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+EXPECTED_FROZEN_EXPANSION_TIP: str = "85a6d98464ba5065f578632fd97456b91fa6ab0e"
+EXPECTED_MAIN_TIP_AT_COMPOSITION: str = "eb33ae8fc4d2f88518ee1009c0057bac77d2c6d6"
+EXPECTED_DOCS_COMMIT: str = "75c8d2a2434c8406c87ac5888a57eb18df7d607a"
+EXPECTED_RELEASE_COMPOSITION_SHA: str = "abf914583b94ea42ca2b973f4001e062543cb6a7"
+EXPECTED_COMPOSED_SHA_BINDING: str = "BOUND_BY_FINAL_AUDIT_VERDICT"
 
 # Hold verbatim
 LANE_09: str = "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD"
@@ -742,27 +753,233 @@ def _check_identities(errors: list[str]) -> None:
                             errors,
                             f"E3PV_LANE_PIN_MISMATCH: git verification failed for {base_sha!r}: {exc}",
                         )
-            # Verify self_sha is exactly sentinel, never invented hex
+            # Verify self_sha is exactly sentinel, never invented hex (both states)
             self_sha = lane12.get("self_sha")
             if self_sha != "BOUND_AT_PROMOTION":
                 _fail(
                     errors,
                     f"E3PV_LANE_PIN_MISMATCH: lane_12 self_sha must be 'BOUND_AT_PROMOTION' got {self_sha!r}",
                 )
-            # Also ensure no fake WORKTREE_UNCOMMITTED remains
-            for k in ("approved", "promotion"):
-                v = lane12.get(k)
-                if isinstance(v, str) and "WORKTREE_UNCOMMITTED" in v:
+            # Lane 12 TWO-STATE pin rules (fail-closed)
+            # Detect presence of bound fields (approved/promotion/review_session)
+            _present_approved = (
+                isinstance(lane12.get("approved"), str) and lane12.get("approved", "").strip() != ""
+            )
+            _present_promotion = (
+                isinstance(lane12.get("promotion"), str)
+                and lane12.get("promotion", "").strip() != ""
+            )
+            _present_review = (
+                isinstance(lane12.get("review_session"), str)
+                and lane12.get("review_session", "").strip() != ""
+            )
+            _bound_count = int(_present_approved) + int(_present_promotion) + int(_present_review)
+            if _bound_count == 0:
+                # PRE-PROMOTION (existing): no hex in approved/promotion, self_sha sentinel only
+                for k in ("approved", "promotion"):
+                    v = lane12.get(k)
+                    if isinstance(v, str) and "WORKTREE_UNCOMMITTED" in v:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: lane_12 {k} contains fake WORKTREE_UNCOMMITTED {v!r}",
+                        )
+                    if isinstance(v, str) and re.fullmatch(r"[0-9a-f]{7,40}", v):
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: lane_12 {k} invented hex {v!r} not allowed",
+                        )
+                if (
+                    isinstance(lane12.get("review_session"), str)
+                    and lane12.get("review_session", "").strip() != ""
+                ):
                     _fail(
                         errors,
-                        f"E3PV_LANE_PIN_MISMATCH: lane_12 {k} contains fake WORKTREE_UNCOMMITTED {v!r}",
+                        f"E3PV_LANE_PIN_MISMATCH: lane_12 review_session present in pre-promotion state {lane12.get('review_session')!r} not allowed",
                     )
-                if isinstance(v, str) and re.fullmatch(r"[0-9a-f]{7,40}", v):
+            elif _bound_count == 3:
+                # BOUND (new): all three present, 40-hex, byte-equal frozen, git ancestry, fail-closed on git unavailability
+                approved = lane12.get("approved")
+                promotion = lane12.get("promotion")
+                review_session = lane12.get("review_session")
+                # WORKTREE_UNCOMMITTED still forbidden
+                for k, v in (
+                    ("approved", approved),
+                    ("promotion", promotion),
+                    ("review_session", review_session),
+                ):
+                    if isinstance(v, str) and "WORKTREE_UNCOMMITTED" in v:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: lane_12 {k} contains fake WORKTREE_UNCOMMITTED {v!r}",
+                        )
+                # approved must be 40-hex and byte-equal frozen
+                if not isinstance(approved, str) or not re.fullmatch(r"[0-9a-f]{40}", approved):
                     _fail(
                         errors,
-                        f"E3PV_LANE_PIN_MISMATCH: lane_12 {k} invented hex {v!r} not allowed",
+                        f"E3PV_LANE_PIN_MISMATCH: lane_12 approved {approved!r} not 40 hex",
                     )
-            note = lane12.get("note", "")
+                elif approved != EXPECTED_LANE12_APPROVED:
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: lane_12 approved mismatch expected {EXPECTED_LANE12_APPROVED!r} got {approved!r}",
+                    )
+                # promotion must be 40-hex and byte-equal frozen
+                if not isinstance(promotion, str) or not re.fullmatch(r"[0-9a-f]{40}", promotion):
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: lane_12 promotion {promotion!r} not 40 hex",
+                    )
+                elif promotion != EXPECTED_LANE12_PROMOTION:
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: lane_12 promotion mismatch expected {EXPECTED_LANE12_PROMOTION!r} got {promotion!r}",
+                    )
+                # review_session must be UUID and byte-equal frozen
+                if not isinstance(review_session, str) or not re.fullmatch(
+                    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", review_session
+                ):
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: lane_12 review_session {review_session!r} not UUID",
+                    )
+                elif review_session != EXPECTED_LANE12_REVIEW_SESSION:
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISMATCH: lane_12 review_session mismatch expected {EXPECTED_LANE12_REVIEW_SESSION!r} got {review_session!r}",
+                    )
+                # Git ancestry checks (fail-closed)
+                # 1) approved is ancestor of promotion
+                if (
+                    isinstance(approved, str)
+                    and isinstance(promotion, str)
+                    and re.fullmatch(r"[0-9a-f]{40}", approved or "")
+                    and re.fullmatch(r"[0-9a-f]{40}", promotion or "")
+                ):
+                    try:
+                        r = _git_run(
+                            ["git", "rev-parse", "--git-dir"],
+                            cwd=_REPO_ROOT,
+                            capture_output=True,
+                            timeout=5,
+                        )
+                        if r.returncode != 0:
+                            if r.returncode < 0:
+                                _fail(
+                                    errors,
+                                    f"E3PV_LANE_PIN_MISMATCH: git unavailable (signal {-r.returncode}) for lane12 approved->promotion check — fail closed",
+                                )
+                            else:
+                                _fail(
+                                    errors,
+                                    f"E3PV_LANE_PIN_MISMATCH: git unavailable for lane12 ancestor check (rev-parse failed code {r.returncode}) — fail closed",
+                                )
+                        else:
+                            rc = _git_run(
+                                ["git", "merge-base", "--is-ancestor", approved, promotion],
+                                cwd=_REPO_ROOT,
+                                capture_output=True,
+                                timeout=5,
+                            )
+                            if rc.returncode != 0:
+                                if rc.returncode < 0:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_LANE_PIN_MISMATCH: git signal {-rc.returncode} for approved is-ancestor promotion — fail closed",
+                                    )
+                                else:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_LANE_PIN_MISMATCH: lane_12 approved {approved!r} not ancestor of promotion {promotion!r} (git merge-base --is-ancestor failed code {rc.returncode})",
+                                    )
+                    except FileNotFoundError as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git unavailable for lane12 approved->promotion: {exc} — fail closed",
+                        )
+                    except subprocess.TimeoutExpired as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git timeout for lane12 approved->promotion: {exc} — fail closed",
+                        )
+                    except Exception as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git verification failed for lane12 approved->promotion: {exc} — fail closed",
+                        )
+                # 2) promotion is ancestor of HEAD (or equals HEAD lineage)
+                if isinstance(promotion, str) and re.fullmatch(r"[0-9a-f]{40}", promotion or ""):
+                    try:
+                        r = _git_run(
+                            ["git", "rev-parse", "--git-dir"],
+                            cwd=_REPO_ROOT,
+                            capture_output=True,
+                            timeout=5,
+                        )
+                        if r.returncode != 0:
+                            if r.returncode < 0:
+                                _fail(
+                                    errors,
+                                    f"E3PV_LANE_PIN_MISMATCH: git unavailable (signal {-r.returncode}) for promotion->HEAD check — fail closed",
+                                )
+                            else:
+                                _fail(
+                                    errors,
+                                    f"E3PV_LANE_PIN_MISMATCH: git unavailable for promotion->HEAD check (code {r.returncode}) — fail closed",
+                                )
+                        else:
+                            rc2 = _git_run(
+                                ["git", "merge-base", "--is-ancestor", promotion, "HEAD"],
+                                cwd=_REPO_ROOT,
+                                capture_output=True,
+                                timeout=5,
+                            )
+                            if rc2.returncode != 0:
+                                # Also allow promotion == HEAD (git merge-base --is-ancestor succeeds when equal, but check rev-parse)
+                                head_r = _git_run(
+                                    ["git", "rev-parse", "HEAD"],
+                                    cwd=_REPO_ROOT,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=5,
+                                )
+                                head_sha = (
+                                    head_r.stdout.strip().splitlines()[0].strip()
+                                    if head_r.stdout
+                                    else ""
+                                )
+                                if promotion != head_sha:
+                                    if rc2.returncode < 0:
+                                        _fail(
+                                            errors,
+                                            f"E3PV_LANE_PIN_MISMATCH: git signal {-rc2.returncode} for promotion is-ancestor HEAD — fail closed",
+                                        )
+                                    else:
+                                        _fail(
+                                            errors,
+                                            f"E3PV_LANE_PIN_MISMATCH: lane_12 promotion {promotion!r} not ancestor of HEAD {head_sha!r} (code {rc2.returncode})",
+                                        )
+                    except FileNotFoundError as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git unavailable for promotion->HEAD: {exc} — fail closed",
+                        )
+                    except subprocess.TimeoutExpired as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git timeout for promotion->HEAD: {exc} — fail closed",
+                        )
+                    except Exception as exc:
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: git verification failed for promotion->HEAD: {exc} — fail closed",
+                        )
+            else:
+                # Mixed/partial binding is a typed error
+                _fail(
+                    errors,
+                    f"E3PV_LANE_PIN_MISMATCH: lane_12 mixed/partial binding (approved={lane12.get('approved')!r}, promotion={lane12.get('promotion')!r}, review_session={lane12.get('review_session')!r}) — all three must be present together or none",
+                )
+            note: Any = lane12.get("note", "")
             if (
                 not isinstance(note, str)
                 or "promotion" not in note.lower()
@@ -772,6 +989,119 @@ def _check_identities(errors: list[str]) -> None:
                     errors,
                     "E3PV_LANE_PIN_MISSING: lane_12 note must mention promotion receipt binds final SHA",
                 )
+            # Also verify lane-12 blocks in verdict and gate receipts (must be bound similarly, with sentinel note history)
+            for _rrel, _rlabel in [
+                ("docs/quality/e3_validator_verdict.json", "verdict"),
+                ("docs/quality/e3_quality_gate.json", "gate"),
+            ]:
+                _rpath = _REPO_ROOT / _rrel
+                if not _rpath.exists():
+                    _fail(errors, f"E3PV_LANE_PIN_MISSING: {_rlabel} receipt missing at {_rrel}")
+                    continue
+                try:
+                    _rdata = json.loads(_rpath.read_text(encoding="utf-8"))
+                except Exception as exc:
+                    _fail(errors, f"E3PV_LANE_PIN_MISSING: {_rlabel} invalid json: {exc}")
+                    continue
+                # verdict has top-level lanes, gate has provenance.lanes or top-level lanes / gates
+                _rlanes = None
+                if isinstance(_rdata, dict):
+                    # Try top-level lanes
+                    if isinstance(_rdata.get("lanes"), dict):
+                        _rlanes = _rdata.get("lanes")
+                    # Gate provenance.lanes
+                    elif isinstance(_rdata.get("provenance"), dict) and isinstance(
+                        _rdata.get("provenance", {}).get("lanes"), dict
+                    ):
+                        _rlanes = _rdata.get("provenance", {}).get("lanes")
+                    # Gate gates.provenance.lanes? fallback search
+                    else:
+                        # Search for any dict containing lane 12-like structure
+                        for v in _rdata.values():
+                            if (
+                                isinstance(v, dict)
+                                and "lanes" in v
+                                and isinstance(v["lanes"], dict)
+                            ):
+                                _rlanes = v["lanes"]
+                                break
+                if not isinstance(_rlanes, dict):
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISSING: {_rlabel} lanes block missing or not a dict",
+                    )
+                    continue
+                _rlane12 = _rlanes.get("12")
+                if _rlane12 is None:
+                    _rlane12 = _rlanes.get("lane_12") or _rlanes.get("lane12")
+                if not isinstance(_rlane12, dict):
+                    _fail(
+                        errors,
+                        f"E3PV_LANE_PIN_MISSING: {_rlabel} lane 12 entry missing or not a dict",
+                    )
+                    continue
+                # Check bound vs pre-promotion for receipt — must be bound if traceability is bound, or allow sentinel if traceability is sentinel?
+                # Task requires bound values in all three receipts; enforce bound when traceability is bound
+                # Detect traceability bound state via earlier _bound_count
+                if _bound_count == 3:
+                    # Expect bound in receipts as well
+                    for k, exp in [
+                        ("approved", EXPECTED_LANE12_APPROVED),
+                        ("promotion", EXPECTED_LANE12_PROMOTION),
+                        ("review_session", EXPECTED_LANE12_REVIEW_SESSION),
+                    ]:
+                        _got: Any = _rlane12.get(k)
+                        if _got != exp:
+                            _fail(
+                                errors,
+                                f"E3PV_LANE_PIN_MISMATCH: {_rlabel} lane_12 {k} expected {exp!r} got {_got!r}",
+                            )
+                    # self_sha must still be sentinel
+                    if _rlane12.get("self_sha") != "BOUND_AT_PROMOTION":
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: {_rlabel} lane_12 self_sha must be 'BOUND_AT_PROMOTION' got {_rlane12.get('self_sha')!r}",
+                        )
+                    # base_integration_sha must still be valid
+                    bsha = _rlane12.get("base_integration_sha")
+                    if bsha is not None and not re.fullmatch(r"[0-9a-f]{40}", str(bsha)):
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: {_rlabel} lane_12 base_integration_sha {bsha!r} not 40 hex",
+                        )
+                    # Note must still mention promotion/binds
+                    n = _rlane12.get("note", "")
+                    if (
+                        not isinstance(n, str)
+                        or "promotion" not in n.lower()
+                        or "binds" not in n.lower()
+                    ):
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISSING: {_rlabel} lane_12 note must mention promotion receipt binds final SHA",
+                        )
+                elif _bound_count == 0:
+                    # Pre-promotion receipts should also be sentinel and no hex
+                    if _rlane12.get("self_sha") != "BOUND_AT_PROMOTION":
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: {_rlabel} lane_12 self_sha must be 'BOUND_AT_PROMOTION' got {_rlane12.get('self_sha')!r}",
+                        )
+                    for k in ("approved", "promotion"):
+                        v = _rlane12.get(k)
+                        if isinstance(v, str) and re.fullmatch(r"[0-9a-f]{7,40}", v):
+                            _fail(
+                                errors,
+                                f"E3PV_LANE_PIN_MISMATCH: {_rlabel} lane_12 {k} invented hex {v!r} not allowed in pre-promotion",
+                            )
+                    if (
+                        isinstance(_rlane12.get("review_session"), str)
+                        and _rlane12.get("review_session", "").strip()
+                    ):
+                        _fail(
+                            errors,
+                            f"E3PV_LANE_PIN_MISMATCH: {_rlabel} lane_12 review_session present in pre-promotion {_rlane12.get('review_session')!r}",
+                        )
 
         if len(pkg.dormant_arms) != 14:
             _fail(
@@ -1183,6 +1513,7 @@ def _check_forbidden_claims(errors: list[str]) -> None:
             ("docs/quality/e3_quality_gate.json", "gate"),
             ("docs/quality/e3_validator_verdict.json", "verdict"),
             ("docs/closure/e2_product_lane12_base_receipt.json", "e2_base_receipt"),
+            ("docs/closure/e3_release_receipt.json", "release_receipt"),
         ]:
             _rpath = _REPO_ROOT / _receipt_rel
             if not _rpath.exists():
@@ -1522,6 +1853,7 @@ def _check_absolute_path_secret(errors: list[str]) -> None:
             _REPO_ROOT / "docs/closure/e3_product_traceability.json",
             _REPO_ROOT / "docs/quality/e3_quality_gate.json",
             _REPO_ROOT / "docs/quality/e3_validator_verdict.json",
+            _REPO_ROOT / "docs/closure/e3_release_receipt.json",
         ]:
             if not p.exists():
                 _fail(errors, f"E3PV_PATH_LEAKAGE: missing {p}")
@@ -2194,6 +2526,7 @@ def _check_contradictions(errors: list[str]) -> None:
             (_REPO_ROOT / "docs/quality/e3_quality_gate.json", "gate"),
             (_REPO_ROOT / "docs/quality/e3_validator_verdict.json", "verdict"),
             (_REPO_ROOT / "docs/closure/e2_product_lane12_base_receipt.json", "e2_base_receipt"),
+            (_REPO_ROOT / "docs/closure/e3_release_receipt.json", "release_receipt"),
         ]
         for rp, label in surfaces:
             if not rp.exists():
@@ -2224,6 +2557,381 @@ def _check_contradictions(errors: list[str]) -> None:
                 )
     except Exception as exc:
         _fail(errors, f"E3PV_CONTRADICTION_CHECK_FAILED: {exc}")
+
+
+def _check_release_receipt(errors: list[str]) -> None:
+    """Validate docs/closure/e3_release_receipt.json — frozen bindings, free-text, ancestry via git."""
+    try:
+        receipt_path = _REPO_ROOT / "docs/closure/e3_release_receipt.json"
+        if not receipt_path.exists():
+            _fail(
+                errors, "E3PV_RELEASE_RECEIPT_MISSING: docs/closure/e3_release_receipt.json missing"
+            )
+            return
+        try:
+            data = json.loads(receipt_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            _fail(errors, f"E3PV_RELEASE_RECEIPT_INVALID: invalid json {exc}")
+            return
+        # Schema and campaign
+        if data.get("schema_version") != "e3_release_receipt_v1":
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: schema_version expected e3_release_receipt_v1 got {data.get('schema_version')!r}",
+            )
+        if data.get("campaign") != EXPECTED_CAMPAIGN:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: campaign expected {EXPECTED_CAMPAIGN!r} got {data.get('campaign')!r}",
+            )
+        # Frozen tips
+        frozen = data.get("frozen_tips", {})
+        # Support both nested and flat keys
+        dyn_tip = frozen.get("dynamic") if isinstance(frozen, dict) else None
+        exp_tip = frozen.get("expansion") if isinstance(frozen, dict) else None
+        # Fallbacks for flat representation
+        if not dyn_tip:
+            dyn_tip = data.get("frozen_dynamic_tip") or data.get("dynamic_frozen_tip")
+        if not exp_tip:
+            exp_tip = data.get("frozen_expansion_tip") or data.get("expansion_frozen_tip")
+        if dyn_tip != EXPECTED_FROZEN_DYNAMIC_TIP:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: frozen_dynamic_tip expected {EXPECTED_FROZEN_DYNAMIC_TIP!r} got {dyn_tip!r}",
+            )
+        if exp_tip != EXPECTED_FROZEN_EXPANSION_TIP:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: frozen_expansion_tip expected {EXPECTED_FROZEN_EXPANSION_TIP!r} got {exp_tip!r}",
+            )
+        # Main tip and docs commit — support multiple key names
+        main_tip = (
+            data.get("main_tip")
+            or data.get("main_tip_at_composition")
+            or (data.get("main_tip", {}) if isinstance(data.get("main_tip"), dict) else None)
+        )
+        if isinstance(main_tip, dict):
+            main_tip = main_tip.get("sha") or main_tip.get("tip")
+        docs_commit = data.get("docs_commit") or data.get("docs_commit_sha")
+        # Also support nested main_tip object
+        if not main_tip and isinstance(data.get("main_tip_at_composition"), str):
+            main_tip = data.get("main_tip_at_composition")
+        if main_tip != EXPECTED_MAIN_TIP_AT_COMPOSITION:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: main_tip expected {EXPECTED_MAIN_TIP_AT_COMPOSITION!r} got {main_tip!r}",
+            )
+        if docs_commit != EXPECTED_DOCS_COMMIT:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: docs_commit expected {EXPECTED_DOCS_COMMIT!r} got {docs_commit!r}",
+            )
+        # Research promotion
+        rp = (
+            data.get("research_promotion_sha")
+            or data.get("research_promotion")
+            or (
+                data.get("frozen_tips", {}).get("research_promotion")
+                if isinstance(data.get("frozen_tips"), dict)
+                else None
+            )
+        )
+        if rp != EXPECTED_RESEARCH_PROMOTION_SHA:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: research_promotion_sha expected {EXPECTED_RESEARCH_PROMOTION_SHA!r} got {rp!r}",
+            )
+        # Lanes — all four
+        lanes = data.get("lanes")
+        if not isinstance(lanes, dict):
+            _fail(errors, "E3PV_RELEASE_RECEIPT_MISSING: lanes block missing or not a dict")
+        else:
+            for lane_num, exp_approved, exp_promotion, exp_review in [
+                (
+                    "08",
+                    EXPECTED_LANE08_APPROVED,
+                    EXPECTED_LANE08_PROMOTION,
+                    "0a007332-1132-4d27-8ab3-4c74ca79e429",
+                ),
+                (
+                    "10",
+                    EXPECTED_LANE10_APPROVED,
+                    EXPECTED_LANE10_PROMOTION,
+                    "c8b332c0-9606-43d3-a492-fcb95b69aa8f",
+                ),
+                (
+                    "11",
+                    EXPECTED_LANE11_APPROVED,
+                    EXPECTED_LANE11_PROMOTION,
+                    EXPECTED_LANE11_REVIEW_SESSION,
+                ),
+                (
+                    "12",
+                    EXPECTED_LANE12_APPROVED,
+                    EXPECTED_LANE12_PROMOTION,
+                    EXPECTED_LANE12_REVIEW_SESSION,
+                ),
+            ]:
+                entry = lanes.get(lane_num)
+                if entry is None:
+                    entry = lanes.get(f"lane_{lane_num}") or lanes.get(f"lane{lane_num}")
+                if not isinstance(entry, dict):
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISSING: lane {lane_num} entry missing or not a dict",
+                    )
+                    continue
+                ap = entry.get("approved")
+                pr = entry.get("promotion")
+                rs = entry.get("review_session")
+                if ap != exp_approved:
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: lane_{lane_num}_approved expected {exp_approved!r} got {ap!r}",
+                    )
+                if pr != exp_promotion:
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: lane_{lane_num}_promotion expected {exp_promotion!r} got {pr!r}",
+                    )
+                if rs != exp_review:
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: lane_{lane_num}_review_session expected {exp_review!r} got {rs!r}",
+                    )
+        # composed_sha_binding
+        if data.get("composed_sha_binding") != EXPECTED_COMPOSED_SHA_BINDING:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: composed_sha_binding expected {EXPECTED_COMPOSED_SHA_BINDING!r} got {data.get('composed_sha_binding')!r}",
+            )
+        # Hold block — immutable
+        hold = data.get("hold")
+        if not isinstance(hold, dict):
+            _fail(errors, "E3PV_RELEASE_RECEIPT_MISSING: hold block missing or not a dict")
+        else:
+            if hold.get("lane_09") != LANE_09:
+                _fail(
+                    errors, f"E3PV_RELEASE_RECEIPT_MISMATCH: hold lane_09 {hold.get('lane_09')!r}"
+                )
+            if hold.get("evidence_state") != NOT_EXECUTED:
+                _fail(
+                    errors,
+                    f"E3PV_RELEASE_RECEIPT_MISMATCH: hold evidence_state {hold.get('evidence_state')!r}",
+                )
+            if hold.get("result_availability") != NO_E3_RESULTS:
+                _fail(
+                    errors,
+                    f"E3PV_RELEASE_RECEIPT_MISMATCH: hold result_availability {hold.get('result_availability')!r}",
+                )
+            if hold.get("research_workloads_launched") != RESEARCH_WORKLOADS_LAUNCHED:
+                _fail(
+                    errors,
+                    f"E3PV_RELEASE_RECEIPT_MISMATCH: hold research_workloads_launched {hold.get('research_workloads_launched')!r}",
+                )
+            if hold.get("status") != E3_STATUS:
+                _fail(errors, f"E3PV_RELEASE_RECEIPT_MISMATCH: hold status {hold.get('status')!r}")
+        if data.get("hosted_ci") != HOSTED_CI_UNAVAILABLE:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: hosted_ci expected {HOSTED_CI_UNAVAILABLE!r} got {data.get('hosted_ci')!r}",
+            )
+        if data.get("research_workloads_launched") != RESEARCH_WORKLOADS_LAUNCHED:
+            # Some receipts duplicate top-level workloads
+            if "research_workloads_launched" in data:
+                _fail(
+                    errors,
+                    f"E3PV_RELEASE_RECEIPT_MISMATCH: research_workloads_launched expected 0 got {data.get('research_workloads_launched')!r}",
+                )
+        # Ancestry statements — must contain phrase "is an ancestor of the release composition"
+        ancestry = data.get("ancestry")
+        # Support both dict and list
+        ancestry_texts: list[str] = []
+        if isinstance(ancestry, dict):
+            for k, v in ancestry.items():
+                if isinstance(v, str):
+                    ancestry_texts.append(v)
+                # key itself may contain phrase
+                ancestry_texts.append(str(k))
+                ancestry_texts.append(str(v))
+        elif isinstance(ancestry, list):
+            for item in ancestry:
+                if isinstance(item, str):
+                    ancestry_texts.append(item)
+                elif isinstance(item, dict):
+                    for kv in item.values():
+                        if isinstance(kv, str):
+                            ancestry_texts.append(kv)
+        # Also check top-level ancestry_statements
+        for key in ("ancestry_statements", "ancestry_statements_text"):
+            val = data.get(key)
+            if isinstance(val, list):
+                for it in val:
+                    if isinstance(it, str):
+                        ancestry_texts.append(it)
+            elif isinstance(val, str):
+                ancestry_texts.append(val)
+        joined = " ".join(ancestry_texts).lower()
+        if "is an ancestor of the release composition" not in joined:
+            _fail(
+                errors,
+                "E3PV_RELEASE_RECEIPT_MISSING: ancestry statements must contain 'is an ancestor of the release composition'",
+            )
+        else:
+            # Check each expected ancestor phrase present
+            for sha, label in [
+                (EXPECTED_FROZEN_DYNAMIC_TIP, "dynamic"),
+                (EXPECTED_FROZEN_EXPANSION_TIP, "expansion"),
+                (EXPECTED_MAIN_TIP_AT_COMPOSITION, "main_tip"),
+            ]:
+                if sha.lower() not in joined:
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: ancestry missing {label} SHA {sha!r}",
+                    )
+        # Free-text scan of all string values in release receipt (exempt only diagnostics if any)
+        try:
+            from traffictwin.experiments.e3_research_evidence import (
+                _contains_affirming_forbidden_any as _forbidden,
+            )
+            from traffictwin.experiments.e3_research_artifact import load_builtin_e3_research  # noqa: F401
+
+            def _scan(obj: object, cur_path: str = "$") -> None:  # noqa: ANN401
+                if isinstance(obj, str):
+                    forb = _forbidden(obj)
+                    if forb is not None:
+                        code = _forbidden_code_for_match(forb)
+                        _fail(
+                            errors,
+                            f"{code}: release_receipt {cur_path} contains {forb!r} in {obj!r}",
+                        )
+                elif isinstance(obj, dict):
+                    for k, v in obj.items():
+                        if isinstance(k, str):
+                            forb_k = _forbidden(k)
+                            if forb_k is not None:
+                                code_k = _forbidden_code_for_match(forb_k)
+                                _fail(
+                                    errors,
+                                    f"{code_k}: release_receipt {cur_path}.{k} key contains {forb_k!r}",
+                                )
+                        _scan(v, f"{cur_path}.{k}")
+                elif isinstance(obj, (list, tuple)):
+                    for idx, v in enumerate(obj):
+                        _scan(v, f"{cur_path}[{idx}]")
+
+            _scan(data)
+        except Exception as exc:
+            _fail(errors, f"E3PV_RELEASE_RECEIPT_FORBIDDEN_CHECK_FAILED: {exc}")
+        # Ancestry via git where checkable — verify dynamic tip is ancestor of release composition
+        try:
+            r = _git_run(
+                ["git", "rev-parse", "--git-dir"], cwd=_REPO_ROOT, capture_output=True, timeout=5
+            )
+            if r.returncode != 0:
+                if r.returncode < 0:
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable (signal {-r.returncode}) for release ancestry check — fail closed",
+                    )
+                else:
+                    _fail(
+                        errors,
+                        f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for release ancestry (code {r.returncode}) — fail closed",
+                    )
+            else:
+                # Derive release composition SHA via git log --all --grep
+                rr = _git_run(
+                    [
+                        "git",
+                        "log",
+                        "--all",
+                        "--grep=Merge frozen Dynamic Resource V2 into the release composition",
+                        "--format=%H",
+                        "-n",
+                        "1",
+                    ],
+                    cwd=_REPO_ROOT,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                release_sha = rr.stdout.strip().splitlines()[0].strip() if rr.stdout.strip() else ""
+                if not release_sha or not re.fullmatch(r"[0-9a-f]{40}", release_sha):
+                    # Fallback to expected constant if not found (e.g., limited history)
+                    release_sha = EXPECTED_RELEASE_COMPOSITION_SHA
+                    # Try to verify via cat-file that expected exists
+                    cat = _git_run(
+                        ["git", "cat-file", "-e", release_sha],
+                        cwd=_REPO_ROOT,
+                        capture_output=True,
+                        timeout=5,
+                    )
+                    if cat.returncode != 0:
+                        _fail(
+                            errors,
+                            f"E3PV_RELEASE_RECEIPT_MISMATCH: release composition SHA {release_sha!r} not found in repo",
+                        )
+                        return
+                # Check dynamic tip ancestry
+                for tip, label in [
+                    (EXPECTED_FROZEN_DYNAMIC_TIP, "dynamic"),
+                    (EXPECTED_FROZEN_EXPANSION_TIP, "expansion"),
+                    (EXPECTED_MAIN_TIP_AT_COMPOSITION, "main_tip"),
+                ]:
+                    # Ensure tip exists
+                    ce = _git_run(
+                        ["git", "cat-file", "-e", tip],
+                        cwd=_REPO_ROOT,
+                        capture_output=True,
+                        timeout=5,
+                    )
+                    if ce.returncode != 0:
+                        if ce.returncode < 0:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-ce.returncode} for tip {label} {tip!r} — fail closed",
+                            )
+                        else:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: tip {label} {tip!r} not found in repo (code {ce.returncode})",
+                            )
+                        continue
+                    mb = _git_run(
+                        ["git", "merge-base", "--is-ancestor", tip, release_sha],
+                        cwd=_REPO_ROOT,
+                        capture_output=True,
+                        timeout=5,
+                    )
+                    if mb.returncode != 0:
+                        if mb.returncode < 0:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: git signal {-mb.returncode} for {label} ancestor check — fail closed",
+                            )
+                        else:
+                            _fail(
+                                errors,
+                                f"E3PV_RELEASE_RECEIPT_MISMATCH: {label} tip {tip!r} not ancestor of release composition {release_sha!r} (code {mb.returncode})",
+                            )
+        except FileNotFoundError as exc:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: git unavailable for release ancestry {exc} — fail closed",
+            )
+        except subprocess.TimeoutExpired as exc:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: git timeout for release ancestry {exc} — fail closed",
+            )
+        except Exception as exc:
+            _fail(
+                errors,
+                f"E3PV_RELEASE_RECEIPT_MISMATCH: git check failed for release ancestry {exc} — fail closed",
+            )
+    except Exception as exc:
+        _fail(errors, f"E3PV_RELEASE_RECEIPT_FAILED: {exc}")
 
 
 # ---- E3 quality gate generation (deterministic, no timestamps) ----------------
@@ -2272,6 +2980,8 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
 
         with contextlib.suppress(Exception):
             _check_contradictions(_errors)
+        with contextlib.suppress(Exception):
+            _check_release_receipt(_errors)
         validator_pass = len(_errors) == 0
         # Restore global before provenance building that needs package (package is import-based, not file-based, so root not needed)
     finally:
@@ -2296,19 +3006,62 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
             _tr = json.loads(_trace_path.read_text(encoding="utf-8"))
             _ln = _tr.get("lanes", {})
             if isinstance(_ln, dict):
-                for _k in ("08", "10", "11"):
+                for _k in ("08", "10", "11", "12"):
                     if _k in _ln and isinstance(_ln[_k], dict):
-                        _lanes_prov[_k] = {
-                            "approved": _ln[_k].get("approved"),
-                            "promotion": _ln[_k].get("promotion"),
+                        entry = _ln[_k]
+                        prov: dict[str, object] = {
+                            "approved": entry.get("approved"),
+                            "promotion": entry.get("promotion"),
                         }
+                        # Include review_session for all lanes and lane12 bound fields
+                        if entry.get("review_session"):
+                            prov["review_session"] = entry.get("review_session")
+                        # For lane 12, include full bound fields from traceability
+                        if _k == "12":
+                            for extra in (
+                                "base_integration_sha",
+                                "self_sha",
+                                "campaign_base",
+                                "note",
+                            ):
+                                if entry.get(extra) is not None:
+                                    prov[extra] = entry.get(extra)
+                            # Ensure self_sha and note defaults if missing
+                            if "self_sha" not in prov:
+                                prov["self_sha"] = "BOUND_AT_PROMOTION"
+                            if "note" not in prov:
+                                prov["note"] = (
+                                    "self_sha binds at promotion; promotion receipt binds final SHA (sentinel form existed pre-promotion)"
+                                )
+                        _lanes_prov[_k] = prov
         except Exception:
             _lanes_prov = {}
     if not _lanes_prov:
         _lanes_prov = {
-            "08": {"approved": EXPECTED_LANE08_APPROVED, "promotion": EXPECTED_LANE08_PROMOTION},
-            "10": {"approved": EXPECTED_LANE10_APPROVED, "promotion": EXPECTED_LANE10_PROMOTION},
-            "11": {"approved": EXPECTED_LANE11_APPROVED, "promotion": EXPECTED_LANE11_PROMOTION},
+            "08": {
+                "approved": EXPECTED_LANE08_APPROVED,
+                "promotion": EXPECTED_LANE08_PROMOTION,
+                "review_session": "0a007332-1132-4d27-8ab3-4c74ca79e429",
+            },
+            "10": {
+                "approved": EXPECTED_LANE10_APPROVED,
+                "promotion": EXPECTED_LANE10_PROMOTION,
+                "review_session": "c8b332c0-9606-43d3-a492-fcb95b69aa8f",
+            },
+            "11": {
+                "approved": EXPECTED_LANE11_APPROVED,
+                "promotion": EXPECTED_LANE11_PROMOTION,
+                "review_session": EXPECTED_LANE11_REVIEW_SESSION,
+            },
+            "12": {
+                "approved": EXPECTED_LANE12_APPROVED,
+                "promotion": EXPECTED_LANE12_PROMOTION,
+                "review_session": EXPECTED_LANE12_REVIEW_SESSION,
+                "base_integration_sha": _git_lane11_sha_or_fallback(),
+                "self_sha": "BOUND_AT_PROMOTION",
+                "campaign_base": EXPECTED_E2_CAMPAIGN_BASE,
+                "note": "self_sha binds at promotion; promotion receipt binds final SHA (sentinel form existed pre-promotion)",
+            },
         }
     _provenance: dict[str, object] = {
         "product_base_sha": _pkg.product_base_sha,
@@ -2331,6 +3084,7 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json",
+        "docs/closure/e3_release_receipt.json",
         "docs/quality/e3_",
     ]
     _found_untracked: list[str] = []
@@ -2422,6 +3176,7 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json",
+        "docs/closure/e3_release_receipt.json",
         "docs/quality/e3_quality_gate.json",
         "docs/quality/e3_validator_verdict.json",
     ]
@@ -2543,6 +3298,8 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         _check_limitations(_errors2)
         with __import__("contextlib").suppress(Exception):
             _check_contradictions(_errors2)
+        with __import__("contextlib").suppress(Exception):
+            _check_release_receipt(_errors2)
         _measured_deterministic = sorted(_errors) == sorted(_errors2)
     except Exception:
         _measured_deterministic = "deferred_to_controller"
@@ -2826,14 +3583,29 @@ def build_verdict(errors: list[str]) -> dict[str, Any]:
         },
         "dormant_counts": {"arms": 14, "configs": 56},
         "lanes": {
-            "08": {"approved": EXPECTED_LANE08_APPROVED, "promotion": EXPECTED_LANE08_PROMOTION},
-            "10": {"approved": EXPECTED_LANE10_APPROVED, "promotion": EXPECTED_LANE10_PROMOTION},
-            "11": {"approved": EXPECTED_LANE11_APPROVED, "promotion": EXPECTED_LANE11_PROMOTION},
+            "08": {
+                "approved": EXPECTED_LANE08_APPROVED,
+                "promotion": EXPECTED_LANE08_PROMOTION,
+                "review_session": "0a007332-1132-4d27-8ab3-4c74ca79e429",
+            },
+            "10": {
+                "approved": EXPECTED_LANE10_APPROVED,
+                "promotion": EXPECTED_LANE10_PROMOTION,
+                "review_session": "c8b332c0-9606-43d3-a492-fcb95b69aa8f",
+            },
+            "11": {
+                "approved": EXPECTED_LANE11_APPROVED,
+                "promotion": EXPECTED_LANE11_PROMOTION,
+                "review_session": EXPECTED_LANE11_REVIEW_SESSION,
+            },
             "12": {
+                "approved": EXPECTED_LANE12_APPROVED,
+                "promotion": EXPECTED_LANE12_PROMOTION,
+                "review_session": EXPECTED_LANE12_REVIEW_SESSION,
                 "base_integration_sha": _git_lane11_sha_or_fallback(),
                 "self_sha": "BOUND_AT_PROMOTION",
                 "campaign_base": EXPECTED_E2_CAMPAIGN_BASE,
-                "note": "self_sha binds at promotion; promotion receipt binds final SHA",
+                "note": "self_sha binds at promotion; promotion receipt binds final SHA (sentinel form existed pre-promotion)",
             },
         },
         "e2_preservation": {
@@ -2908,6 +3680,7 @@ def main(argv: list[str] | None = None) -> int:
     _check_exports_mismatch_and_determinism(errors)
     _check_limitations(errors)
     _check_contradictions(errors)
+    _check_release_receipt(errors)
 
     verdict: dict[str, Any] = build_verdict(errors)
     json_text: str = json.dumps(verdict, sort_keys=True, separators=(",", ":"), ensure_ascii=False)

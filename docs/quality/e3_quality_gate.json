@@ -102,10 +102,18 @@
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json",
+        "docs/closure/e3_release_receipt.json",
         "docs/quality/e3_"
       ],
-      "found_untracked": [],
-      "found_changed": [],
+      "found_untracked": [
+        "docs/closure/e3_release_receipt.json"
+      ],
+      "found_changed": [
+        "docs/closure/e3_product_traceability.json",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json",
+        "scripts/validate_e3_research_product.py"
+      ],
       "found_out_of_scope": [],
       "all_allowed": true,
       "result": "PASS"
@@ -116,11 +124,13 @@
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json",
+        "docs/closure/e3_release_receipt.json",
         "docs/quality/e3_quality_gate.json",
         "docs/quality/e3_validator_verdict.json"
       ],
       "actually_checked": [
         "docs/closure/e3_product_traceability.json",
+        "docs/closure/e3_release_receipt.json",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/quality/e3_quality_gate.json",
         "docs/quality/e3_validator_verdict.json",
@@ -138,11 +148,13 @@
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json",
+        "docs/closure/e3_release_receipt.json",
         "docs/quality/e3_quality_gate.json",
         "docs/quality/e3_validator_verdict.json"
       ],
       "actually_checked": [
         "docs/closure/e3_product_traceability.json",
+        "docs/closure/e3_release_receipt.json",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/quality/e3_quality_gate.json",
         "docs/quality/e3_validator_verdict.json",
@@ -175,15 +187,27 @@
     "lanes": {
       "08": {
         "approved": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
-        "promotion": "342789434233e97cd87ea74e21a759878610ce40"
+        "promotion": "342789434233e97cd87ea74e21a759878610ce40",
+        "review_session": "0a007332-1132-4d27-8ab3-4c74ca79e429"
       },
       "10": {
         "approved": "194941f0dcb1e2f72351fb030d7f58679c001205",
-        "promotion": "8a2f0fffb605fac94ec625f49f80260a54daba6d"
+        "promotion": "8a2f0fffb605fac94ec625f49f80260a54daba6d",
+        "review_session": "c8b332c0-9606-43d3-a492-fcb95b69aa8f"
       },
       "11": {
         "approved": "e87b2ed39d1ad2ebd6d98dd0f0a9156158ea166d",
-        "promotion": "6edf8f447244ede8bcc942c4d6a7c03fef45a606"
+        "promotion": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+        "review_session": "91f1cc9b-4677-4981-b85c-12b8a3cdc4fa"
+      },
+      "12": {
+        "approved": "4d35a80407268877323fc073e3027a37fc42f63d",
+        "promotion": "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a",
+        "review_session": "0ea42bab-9e48-4829-bee7-d15f7b9db193",
+        "base_integration_sha": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+        "self_sha": "BOUND_AT_PROMOTION",
+        "campaign_base": "6e3fd0d385c20c7262e096f2d7da4995a7d9c21b",
+        "note": "self_sha binds at promotion; promotion receipt binds final SHA (sentinel form existed pre-promotion)"
       }
     }
   },

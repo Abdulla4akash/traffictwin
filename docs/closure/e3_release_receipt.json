@@ -1,0 +1,58 @@
+{
+  "schema_version": "e3_release_receipt_v1",
+  "campaign": "e3-dynamic-resource-v2",
+  "frozen_tips": {
+    "dynamic": "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a",
+    "expansion": "85a6d98464ba5065f578632fd97456b91fa6ab0e"
+  },
+  "main_tip_at_composition": "eb33ae8fc4d2f88518ee1009c0057bac77d2c6d6",
+  "docs_commit": "75c8d2a2434c8406c87ac5888a57eb18df7d607a",
+  "research_promotion_sha": "342789434233e97cd87ea74e21a759878610ce40",
+  "lanes": {
+    "08": {
+      "approved": "c5d66ef7e77f3b7d1f3fde084feea45a83f5c178",
+      "promotion": "342789434233e97cd87ea74e21a759878610ce40",
+      "review_session": "0a007332-1132-4d27-8ab3-4c74ca79e429",
+      "description": "E3 Lane 08 TrafficTwin dynamic resource runner"
+    },
+    "10": {
+      "approved": "194941f0dcb1e2f72351fb030d7f58679c001205",
+      "promotion": "8a2f0fffb605fac94ec625f49f80260a54daba6d",
+      "review_session": "c8b332c0-9606-43d3-a492-fcb95b69aa8f",
+      "description": "E3 Lane 10 product evidence and admission"
+    },
+    "11": {
+      "approved": "e87b2ed39d1ad2ebd6d98dd0f0a9156158ea166d",
+      "promotion": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+      "review_session": "91f1cc9b-4677-4981-b85c-12b8a3cdc4fa",
+      "description": "E3 Lane 11 product journey and reporting"
+    },
+    "12": {
+      "approved": "4d35a80407268877323fc073e3027a37fc42f63d",
+      "promotion": "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a",
+      "review_session": "0ea42bab-9e48-4829-bee7-d15f7b9db193",
+      "description": "Lane 12 acceptance validator + docs (honest self-pin; base is lane 11 promotion)",
+      "base_integration_sha": "6edf8f447244ede8bcc942c4d6a7c03fef45a606",
+      "self_sha": "BOUND_AT_PROMOTION"
+    }
+  },
+  "ancestry": {
+    "dynamic_tip_is_ancestor_of_release_composition": "5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a is an ancestor of the release composition abf914583b94ea42ca2b973f4001e062543cb6a7",
+    "expansion_tip_is_ancestor_of_release_composition": "85a6d98464ba5065f578632fd97456b91fa6ab0e is an ancestor of the release composition abf914583b94ea42ca2b973f4001e062543cb6a7",
+    "main_tip_is_ancestor_of_release_composition": "eb33ae8fc4d2f88518ee1009c0057bac77d2c6d6 is an ancestor of the release composition abf914583b94ea42ca2b973f4001e062543cb6a7",
+    "research_promotion_is_ancestor_of_dynamic_tip": "342789434233e97cd87ea74e21a759878610ce40 is an ancestor of the dynamic tip 5f47050c51ebdc4320aed2a9d9a9a068b9c62c7a"
+  },
+  "composed_sha_binding": "BOUND_BY_FINAL_AUDIT_VERDICT",
+  "release_composition_sha": "abf914583b94ea42ca2b973f4001e062543cb6a7",
+  "hold": {
+    "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
+    "evidence_state": "NOT_EXECUTED",
+    "result_availability": "NO_E3_RESEARCH_RESULTS_AVAILABLE",
+    "research_workloads_launched": 0,
+    "status": "E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED"
+  },
+  "hosted_ci": "HOSTED_CI_UNAVAILABLE",
+  "research_workloads_launched": 0,
+  "no_scientific_execution": true,
+  "notes": "Tree cannot contain its own merge SHA \u2014 the final audit's exact-SHA verdict and the controller promotion receipt bind it. Sentinel form for lane 12 existed pre-promotion: self_sha was BOUND_AT_PROMOTION before promotion."
+}
