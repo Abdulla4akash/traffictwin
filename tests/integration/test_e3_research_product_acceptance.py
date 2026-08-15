@@ -1,4 +1,4 @@
-# ruff: noqa: ANN401, ANN202, ANN002, ANN003, E501, S108, SIM102, SIM115, F841, S110, I001, F401, B023, S603, S607
+# ruff: noqa: ANN401, ANN202, ANN002, ANN003, E501, S108, SIM102, SIM115, F841, S110, I001, F401, B023, S603, S607, S324
 """End-to-end E3 research product acceptance — Lane 12.
 
 AppTest journey: generic state, E2 journey unchanged, E3 journey truthful
@@ -2228,33 +2228,64 @@ def test_b2_validator_own_diagnostics_still_exempt(
 def test_emit_scope_check_reflects_out_of_scope_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Out-of-scope file must appear in emitted scope_check lists — via temp copy, no mocked-git."""
+    """Out-of-scope file must appear in emitted scope_check lists — via git clone temp copy measured against the clone's own git state."""
+    import hashlib
     import subprocess
     import tempfile
-    import shutil
     import scripts.validate_e3_research_product as v
 
-    # Create a temp copy of the repo (including .git) and plant an out-of-scope file there
+    repo_root = Path(__file__).resolve().parents[2]
+    initial_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir = Path(_gitdir_out)
+    if not _gitdir.is_absolute():
+        _gitdir = (repo_root / _gitdir).resolve()
+    _index_path = _gitdir / "index"
+    initial_index_md5 = (
+        hashlib.md5(_index_path.read_bytes()).hexdigest() if _index_path.exists() else None
+    )
+    head_sha = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    assert len(head_sha) == 40 and all(c in "0123456789abcdef" for c in head_sha)
     with tempfile.TemporaryDirectory() as td:
         td_path = Path(td)
-        # Use git to create a clean temp copy via copytree ignoring .venv but including .git
-        src_root = Path(".").resolve()
         dst = td_path / "copy"
-        shutil.copytree(
-            src_root,
-            dst,
-            symlinks=True,
-            ignore=shutil.ignore_patterns(
-                ".venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "*.pyc"
-            ),
+        rc_clone = subprocess.run(
+            ["git", "clone", "-q", "--no-hardlinks", str(repo_root), str(dst)],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
-        # Plant out-of-scope file in temp copy
+        assert rc_clone.returncode == 0, f"git clone failed {rc_clone.stderr[:500]}"
+        rc_checkout = subprocess.run(
+            ["git", "-C", str(dst), "checkout", "-q", head_sha],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        assert rc_checkout.returncode == 0, f"git checkout failed {rc_checkout.stderr[:500]}"
+        assert (dst / ".git").is_dir(), "clone must have its own .git directory"
+        assert not (dst / ".git").is_file(), "dst .git must be a directory, not a pointer file"
+        # Plant out-of-scope file in clone only — measured against the clone's git state
         (dst / "surprise_outside.txt").write_text("surprise", encoding="utf-8")
-        # Emit gate from temp copy via --repo-root (real measurement, no mock)
         out = td_path / "gate.json"
         rc = subprocess.run(
             [
-                ".venv/bin/python",
+                str(repo_root / ".venv/bin/python"),
                 "scripts/validate_e3_research_product.py",
                 "--emit-gate-receipt",
                 str(out),
@@ -2262,12 +2293,12 @@ def test_emit_scope_check_reflects_out_of_scope_file(
                 str(dst),
                 "--allow-dirty",
             ],
-            cwd=str(src_root),
+            cwd=str(repo_root),
             capture_output=True,
             text=True,
             timeout=30,
         ).returncode
-        assert rc == 0, f"emit with temp copy failed {rc}"
+        assert rc == 0, f"emit with clone temp copy failed {rc}"
         gate = json.loads(out.read_text(encoding="utf-8"))
         scope = gate["gates"]["scope_check"]
         assert (
@@ -2285,39 +2316,98 @@ def test_emit_scope_check_reflects_out_of_scope_file(
         assert gate["verdict"] == "FAIL"
         # Specifically e2_preservation's own result should remain PASS here (scope failure not e2)
         assert gate["gates"]["e2_preservation"]["result"] == "PASS"
-        # Also ensure real worktree was never touched
+        # Ensure clone measurement, not real worktree
         assert not Path("surprise_outside.txt").exists()
+        assert not (repo_root / "surprise_outside.txt").exists()
+        # Clone's .git is independent — verify scope measurement came from clone
+        assert (dst / ".git").is_dir()
+    # Guard: real repo's git status --porcelain and gitdir index unchanged
+    final_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out2 = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir2 = Path(_gitdir_out2)
+    if not _gitdir2.is_absolute():
+        _gitdir2 = (repo_root / _gitdir2).resolve()
+    _index_path2 = _gitdir2 / "index"
+    final_index_md5 = (
+        hashlib.md5(_index_path2.read_bytes()).hexdigest() if _index_path2.exists() else None
+    )
+    assert final_status == initial_status, "real repo git status --porcelain mutated"
+    assert final_index_md5 == initial_index_md5, "real repo gitdir index mutated"
 
 
 def test_emit_no_abs_reflects_users_literal(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Planted Users literal in checked file must be reflected in emitted gate — via temp copy."""
+    """Planted Users literal in checked file must be reflected in emitted gate — via git clone temp copy measured against the clone's git state."""
+    import hashlib
     import subprocess
     import tempfile
-    import shutil
 
     literal = "/" + "Users" + "/" + "planted"
+    repo_root = Path(__file__).resolve().parents[2]
+    initial_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir = Path(_gitdir_out)
+    if not _gitdir.is_absolute():
+        _gitdir = (repo_root / _gitdir).resolve()
+    _index_path = _gitdir / "index"
+    initial_index_md5 = (
+        hashlib.md5(_index_path.read_bytes()).hexdigest() if _index_path.exists() else None
+    )
+    head_sha = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    assert len(head_sha) == 40 and all(c in "0123456789abcdef" for c in head_sha)
     with tempfile.TemporaryDirectory() as td:
         td_path = Path(td)
-        src_root = Path(".").resolve()
         dst = td_path / "copy"
-        shutil.copytree(
-            src_root,
-            dst,
-            symlinks=True,
-            ignore=shutil.ignore_patterns(
-                ".venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "*.pyc"
-            ),
+        rc_clone = subprocess.run(
+            ["git", "clone", "-q", "--no-hardlinks", str(repo_root), str(dst)],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
-        # Plant Users literal in the copied doc file
+        assert rc_clone.returncode == 0, f"git clone failed {rc_clone.stderr[:500]}"
+        rc_checkout = subprocess.run(
+            ["git", "-C", str(dst), "checkout", "-q", head_sha],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        assert rc_checkout.returncode == 0, f"git checkout failed {rc_checkout.stderr[:500]}"
+        assert (dst / ".git").is_dir(), "clone must have its own .git directory"
+        assert not (dst / ".git").is_file(), "dst .git must be a directory, not a pointer file"
+        # Plant Users literal in the cloned doc file — measured against clone
         doc_path = dst / "docs/e3_dynamic_resource_v2_product.md"
         orig = doc_path.read_text(encoding="utf-8")
         doc_path.write_text(orig + "\n\n" + literal + "\n", encoding="utf-8")
         out = td_path / "gate.json"
         rc = subprocess.run(
             [
-                ".venv/bin/python",
+                str(repo_root / ".venv/bin/python"),
                 "scripts/validate_e3_research_product.py",
                 "--emit-gate-receipt",
                 str(out),
@@ -2325,20 +2415,24 @@ def test_emit_no_abs_reflects_users_literal(
                 str(dst),
                 "--allow-dirty",
             ],
-            cwd=str(src_root),
+            cwd=str(repo_root),
             capture_output=True,
             text=True,
             timeout=30,
         ).returncode
-        assert rc == 0, f"emit with temp copy failed {rc}"
+        assert rc == 0, f"emit with clone temp copy failed {rc}"
         gate = json.loads(out.read_text(encoding="utf-8"))
         no_abs = gate["gates"]["no_absolute_path_literals"]
         assert "docs/e3_dynamic_resource_v2_product.md" in no_abs.get("violations", [])
         assert no_abs["result"] == "FAIL"
-        # Ensure real worktree untouched
+        # Ensure real worktree untouched — measurement was against clone
         assert ("/" + "Users" + "/" + "planted") not in Path(
             "docs/e3_dynamic_resource_v2_product.md"
         ).read_text(encoding="utf-8")
+        assert ("/" + "Users" + "/" + "planted") not in (
+            repo_root / "docs/e3_dynamic_resource_v2_product.md"
+        ).read_text(encoding="utf-8")
+        assert (dst / ".git").is_dir()
         # Also verify validator fails on that literal via direct injection (without temp copy)
         orig_read = Path.read_text
 
@@ -2349,46 +2443,101 @@ def test_emit_no_abs_reflects_users_literal(
             return orig_read(self, *args, **kwargs)
 
         monkeypatch.setattr(Path, "read_text", fake_read)
-        rc, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
-        assert rc != 0
+        rc2, errs, _ = _run_validator_cli(monkeypatch, tmp_path)
+        assert rc2 != 0
         assert any("PATH_LEAKAGE" in e or "absolute" in e.lower() for e in errs)
+    # Guard: real repo's git status --porcelain and gitdir index unchanged
+    final_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out2 = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir2 = Path(_gitdir_out2)
+    if not _gitdir2.is_absolute():
+        _gitdir2 = (repo_root / _gitdir2).resolve()
+    _index_path2 = _gitdir2 / "index"
+    final_index_md5 = (
+        hashlib.md5(_index_path2.read_bytes()).hexdigest() if _index_path2.exists() else None
+    )
+    assert final_status == initial_status, "real repo git status --porcelain mutated"
+    assert final_index_md5 == initial_index_md5, "real repo gitdir index mutated"
 
 
 # ---- New Lane 12 Opus review 5 additions: clean-tree, exact exemptions, sentence-unit, temp-copy ----
 
 
 def test_emit_gate_refuses_when_dirty_without_allow(tmp_path: Path) -> None:
-    """--emit-gate-receipt must REFUSE when git status --porcelain is nonempty without --allow-dirty (temp-copy, no real writes)."""
+    """--emit-gate-receipt must REFUSE when git status --porcelain is nonempty without --allow-dirty (git clone temp copy with own .git, no real worktree writes; guard-asserts real repo unchanged)."""
+    import hashlib
     import subprocess
     import tempfile
-    import shutil
 
-    # Use temp-copy pattern so we never write into the real repo root
-    src_root = Path(".").resolve()
+    repo_root = Path(__file__).resolve().parents[2]
+    initial_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir = Path(_gitdir_out)
+    if not _gitdir.is_absolute():
+        _gitdir = (repo_root / _gitdir).resolve()
+    _index_path = _gitdir / "index"
+    initial_index_md5 = (
+        hashlib.md5(_index_path.read_bytes()).hexdigest() if _index_path.exists() else None
+    )
+    head_sha = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    assert len(head_sha) == 40 and all(c in "0123456789abcdef" for c in head_sha)
     with tempfile.TemporaryDirectory() as td:
         td_path = Path(td)
         dst = td_path / "copy"
-        shutil.copytree(
-            src_root,
-            dst,
-            symlinks=True,
-            ignore=shutil.ignore_patterns(
-                ".venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "*.pyc"
-            ),
+        rc_clone = subprocess.run(
+            ["git", "clone", "-q", "--no-hardlinks", str(repo_root), str(dst)],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
-        # Plant dirty file inside the temp copy only
+        assert rc_clone.returncode == 0, f"git clone failed {rc_clone.stderr[:500]}"
+        rc_checkout = subprocess.run(
+            ["git", "-C", str(dst), "checkout", "-q", head_sha],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        assert rc_checkout.returncode == 0, f"git checkout failed {rc_checkout.stderr[:500]}"
+        assert (dst / ".git").is_dir(), "clone must have its own .git directory"
+        assert not (dst / ".git").is_file(), "dst .git must be a directory, not a pointer file"
+        # Plant dirty file inside the clone only — clone's own git status must be dirty
         (dst / "tmp_dirty_for_gate_test.txt").write_text("dirty", encoding="utf-8")
         out = Path(td) / "gate_dirty.json"
         rc = subprocess.run(
             [
-                ".venv/bin/python",
+                str(repo_root / ".venv/bin/python"),
                 "scripts/validate_e3_research_product.py",
                 "--emit-gate-receipt",
                 str(out),
                 "--repo-root",
                 str(dst),
             ],
-            cwd=str(src_root),
+            cwd=str(repo_root),
             capture_output=True,
             text=True,
             timeout=10,
@@ -2397,11 +2546,11 @@ def test_emit_gate_refuses_when_dirty_without_allow(tmp_path: Path) -> None:
         assert not out.exists() or out.read_text(encoding="utf-8") == "", (
             "should not write file when dirty without allow"
         )
-        # With --allow-dirty, it should succeed for tmp output via temp copy
+        # With --allow-dirty, it should succeed for tmp output via clone's git state
         out2 = Path(td) / "gate_dirty2.json"
         rc2 = subprocess.run(
             [
-                ".venv/bin/python",
+                str(repo_root / ".venv/bin/python"),
                 "scripts/validate_e3_research_product.py",
                 "--emit-gate-receipt",
                 str(out2),
@@ -2409,16 +2558,40 @@ def test_emit_gate_refuses_when_dirty_without_allow(tmp_path: Path) -> None:
                 str(dst),
                 "--allow-dirty",
             ],
-            cwd=str(src_root),
+            cwd=str(repo_root),
             capture_output=True,
             text=True,
             timeout=10,
         ).returncode
         assert rc2 == 0, f"allow-dirty should succeed got {rc2}"
         assert out2.exists()
+        assert (dst / ".git").is_dir()
     # Ensure real worktree was never touched
     assert not Path("tmp_dirty_for_gate_test.txt").exists()
+    assert not (repo_root / "tmp_dirty_for_gate_test.txt").exists()
     assert not (Path(".") / "tmp_dirty_for_gate_test.txt").exists()
+    # Guard: real repo's git status --porcelain and gitdir index unchanged
+    final_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out2 = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir2 = Path(_gitdir_out2)
+    if not _gitdir2.is_absolute():
+        _gitdir2 = (repo_root / _gitdir2).resolve()
+    _index_path2 = _gitdir2 / "index"
+    final_index_md5 = (
+        hashlib.md5(_index_path2.read_bytes()).hexdigest() if _index_path2.exists() else None
+    )
+    assert final_status == initial_status, "real repo git status --porcelain mutated"
+    assert final_index_md5 == initial_index_md5, "real repo gitdir index mutated"
 
 
 def test_exemptions_exact_per_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -3088,33 +3261,66 @@ def test_b1_portable_receipt_no_absolute_paths_and_archive_regeneration(tmp_path
 
 # ---- B2 honest temp-copy emit regression ----
 def test_b2_honest_temp_copy_emit_shows_measured_or_deferred_errors(tmp_path: Path) -> None:
-    """B2: temp-copy emit with planted failing check must show measured errors or explicit deferral, never 0/[] with FAIL."""
+    """B2: clone temp copy emit with planted failing check must show measured errors or explicit deferral, never 0/[] with FAIL."""
+    import hashlib
+    import json
     import subprocess
     import tempfile
-    import shutil
-    import json
 
-    src_root = Path(".").resolve()
+    repo_root = Path(__file__).resolve().parents[2]
+    initial_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir = Path(_gitdir_out)
+    if not _gitdir.is_absolute():
+        _gitdir = (repo_root / _gitdir).resolve()
+    _index_path = _gitdir / "index"
+    initial_index_md5 = (
+        hashlib.md5(_index_path.read_bytes()).hexdigest() if _index_path.exists() else None
+    )
+    head_sha = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    assert len(head_sha) == 40 and all(c in "0123456789abcdef" for c in head_sha)
     with tempfile.TemporaryDirectory() as td:
         td_path = Path(td)
         dst = td_path / "copy"
-        shutil.copytree(
-            src_root,
-            dst,
-            symlinks=True,
-            ignore=shutil.ignore_patterns(
-                ".venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "*.pyc"
-            ),
+        rc_clone = subprocess.run(
+            ["git", "clone", "-q", "--no-hardlinks", str(repo_root), str(dst)],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
-        # Plant a failing check: inject forbidden claim into product doc
+        assert rc_clone.returncode == 0, f"git clone failed {rc_clone.stderr[:500]}"
+        rc_checkout = subprocess.run(
+            ["git", "-C", str(dst), "checkout", "-q", head_sha],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        assert rc_checkout.returncode == 0, f"git checkout failed {rc_checkout.stderr[:500]}"
+        assert (dst / ".git").is_dir(), "clone must have its own .git directory"
+        assert not (dst / ".git").is_file(), "dst .git must be a directory, not a pointer file"
+        # Plant a failing check: inject forbidden claim into cloned product doc — measured against clone
         doc_path = dst / "docs/e3_dynamic_resource_v2_product.md"
         orig = doc_path.read_text(encoding="utf-8")
-        # Inject a Kubernetes claim that validator will catch
         doc_path.write_text(orig + "\n\nKubernetes deployment is live.\n", encoding="utf-8")
         out = td_path / "gate_b2.json"
         result = subprocess.run(
             [
-                str(src_root / ".venv/bin/python"),
+                str(repo_root / ".venv/bin/python"),
                 "scripts/validate_e3_research_product.py",
                 "--emit-gate-receipt",
                 str(out),
@@ -3122,12 +3328,14 @@ def test_b2_honest_temp_copy_emit_shows_measured_or_deferred_errors(tmp_path: Pa
                 str(dst),
                 "--allow-dirty",
             ],
-            cwd=str(src_root),
+            cwd=str(repo_root),
             capture_output=True,
             text=True,
             timeout=30,
         )
-        assert result.returncode == 0, f"emit with temp copy failed {result} {result.stderr[:500]}"
+        assert result.returncode == 0, (
+            f"emit with clone temp copy failed {result} {result.stderr[:500]}"
+        )
         gate = json.loads(out.read_text(encoding="utf-8"))
         vrt = gate["gates"]["validator_real_tree"]
         # Must have portable labeling
@@ -3139,15 +3347,15 @@ def test_b2_honest_temp_copy_emit_shows_measured_or_deferred_errors(tmp_path: Pa
         # No absolute paths in gate
         gate_txt = out.read_text(encoding="utf-8")
         assert ("/" + "Users" + "/") not in gate_txt
-        # Headline should be FAIL due to planted failure
+        # Headline should be FAIL due to planted failure — measured against clone
         assert gate["verdict"] == "FAIL", (
-            f"planted failure should cause FAIL verdict got {gate['verdict']}"
+            f"planted failure should cause FAIL verdict got {gate['verdict']!r}"
         )
         # And validator_real_tree should not be fabricated 0/[] with FAIL
         # Either measured (exit_code 1 and errors non-empty) OR deferred (both strings)
         exit_code = vrt.get("exit_code")
         errors = vrt.get("errors")
-        result = vrt.get("result")
+        result_val = vrt.get("result")
         # Fail verdict must not have exit_code 0 with empty errors
         is_deferred = exit_code == "deferred_to_controller" and errors == "deferred_to_controller"
         is_measured_fail = exit_code == 1 and isinstance(errors, list) and len(errors) > 0
@@ -3157,10 +3365,33 @@ def test_b2_honest_temp_copy_emit_shows_measured_or_deferred_errors(tmp_path: Pa
                 f"expected typed error in {errors}"
             )
         assert is_deferred or is_measured_fail, (
-            f"B2 honest temp-copy: with FAIL verdict, exit_code/errors must be measured fail or deferred, "
-            f"got exit_code={exit_code!r} errors={errors!r} result={result!r} verdict={gate['verdict']!r}"
+            f"B2 honest clone temp-copy: with FAIL verdict, exit_code/errors must be measured fail or deferred, "
+            f"got exit_code={exit_code!r} errors={errors!r} result={result_val!r} verdict={gate['verdict']!r}"
         )
         # Never fabricated 0/[] alongside FAIL
         assert not (exit_code == 0 and errors == [] and gate["verdict"] == "FAIL"), (
             "fabricated 0/[] with FAIL is forbidden"
         )
+        assert (dst / ".git").is_dir()
+    # Guard: real repo's git status --porcelain and gitdir index unchanged
+    final_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout
+    _gitdir_out2 = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--git-dir"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    _gitdir2 = Path(_gitdir_out2)
+    if not _gitdir2.is_absolute():
+        _gitdir2 = (repo_root / _gitdir2).resolve()
+    _index_path2 = _gitdir2 / "index"
+    final_index_md5 = (
+        hashlib.md5(_index_path2.read_bytes()).hexdigest() if _index_path2.exists() else None
+    )
+    assert final_status == initial_status, "real repo git status --porcelain mutated"
+    assert final_index_md5 == initial_index_md5, "real repo gitdir index mutated"
