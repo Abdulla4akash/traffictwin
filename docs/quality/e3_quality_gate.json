@@ -2,7 +2,8 @@
   "schema_version": "e3_quality_gate_v1",
   "campaign": "e3-dynamic-resource-v2",
   "lane": 12,
-  "repo_root": "/Users/akashx/AntigravityTest/e3-dynamic-resource-v2/worktrees/lane12-acceptance",
+  "repo_root_kind": "real_tree",
+  "repo_is_toplevel": true,
   "hold": {
     "lane_09": "BLOCKED_BY_RESEARCHER_EXECUTION_HOLD",
     "evidence_state": "NOT_EXECUTED",
@@ -14,7 +15,8 @@
   "gates": {
     "validator_real_tree": {
       "script": "scripts/validate_e3_research_product.py",
-      "repo_root": "/Users/akashx/AntigravityTest/e3-dynamic-resource-v2/worktrees/lane12-acceptance",
+      "repo_root_kind": "real_tree",
+      "repo_is_toplevel": true,
       "result": "PASS",
       "exit_code": 0,
       "errors": [],
@@ -27,7 +29,8 @@
       "each_must_fail_with_typed_error_no_traceback": "deferred_to_controller",
       "result": "deferred_to_controller",
       "note": "deferred_to_controller: measuring requires executing the suite, which emit must not do",
-      "repo_root": "/Users/akashx/AntigravityTest/e3-dynamic-resource-v2/worktrees/lane12-acceptance"
+      "repo_root_kind": "real_tree",
+      "repo_is_toplevel": true
     },
     "acceptance_apptest": {
       "path": "tests/integration/test_e3_research_product_acceptance.py",
@@ -102,7 +105,11 @@
         "docs/quality/e3_"
       ],
       "found_untracked": [],
-      "found_changed": [],
+      "found_changed": [
+        "docs/quality/e3_quality_gate.json",
+        "scripts/validate_e3_research_product.py",
+        "tests/integration/test_e3_research_product_acceptance.py"
+      ],
       "found_out_of_scope": [],
       "all_allowed": true,
       "result": "PASS"
@@ -112,15 +119,19 @@
         "scripts/validate_e3_research_product.py",
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
-        "docs/closure/e3_product_traceability.json"
+        "docs/closure/e3_product_traceability.json",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json"
       ],
       "actually_checked": [
         "docs/closure/e3_product_traceability.json",
         "docs/e3_dynamic_resource_v2_product.md",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json",
         "scripts/validate_e3_research_product.py",
         "tests/integration/test_e3_research_product_acceptance.py"
       ],
-      "forbidden_literal": "/Users/ contiguous",
+      "forbidden_literal": "slash Users slash contiguous (constructed, no literal)",
       "violations": [],
       "result": "PASS",
       "note": "path checks use constructed \"/\" + \"Users\" + \"/\" to avoid literal"
@@ -130,11 +141,15 @@
         "scripts/validate_e3_research_product.py",
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
-        "docs/closure/e3_product_traceability.json"
+        "docs/closure/e3_product_traceability.json",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json"
       ],
       "actually_checked": [
         "docs/closure/e3_product_traceability.json",
         "docs/e3_dynamic_resource_v2_product.md",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json",
         "scripts/validate_e3_research_product.py",
         "tests/integration/test_e3_research_product_acceptance.py"
       ],

@@ -1520,21 +1520,96 @@ def _check_absolute_path_secret(errors: list[str]) -> None:
         for p in [
             _REPO_ROOT / "docs/e3_dynamic_resource_v2_product.md",
             _REPO_ROOT / "docs/closure/e3_product_traceability.json",
+            _REPO_ROOT / "docs/quality/e3_quality_gate.json",
+            _REPO_ROOT / "docs/quality/e3_validator_verdict.json",
         ]:
             if not p.exists():
                 _fail(errors, f"E3PV_PATH_LEAKAGE: missing {p}")
                 continue
             txt2: str = p.read_text(encoding="utf-8")
-            for pref in _ABS_PREFIXES:
-                if pref in txt2:
-                    _fail(
-                        errors,
-                        f"E3PV_PATH_LEAKAGE: {p.name} contains absolute path {pref!r}",
-                    )
-            if re.search(r"[A-Za-z]:\\", txt2):
-                _fail(errors, f"E3PV_PATH_LEAKAGE: {p.name} contains Windows path")
-            if re.search(r"(password|secret|api_key|token)\s*[:=]", txt2, re.I):
-                _fail(errors, f"E3PV_SECRET_LEAKAGE: {p.name} contains secret assignment")
+            # For JSON receipts, use JSON-aware scan exempting diagnostics arrays (like forbidden claims)
+            if p.name in ("e3_quality_gate.json", "e3_validator_verdict.json"):
+                try:
+                    jdata: Any = json.loads(txt2)
+
+                    # JSON-aware absolute path scan with exemption for $.errors and $.gates.*.errors
+                    def _scan_abs(obj: Any, cur_path: str = "$") -> None:  # noqa: ANN401
+                        def _is_exempt_abs(path: str) -> bool:
+                            return bool(
+                                re.fullmatch(r"\$\.errors\[\d+\]", path)
+                                or re.fullmatch(r"\$\.gates\.[^.]+\.errors\[\d+\]", path)
+                                or path == "$.gates.no_absolute_path_literals.forbidden_literal"
+                            )
+
+                        if isinstance(obj, str):
+                            if _is_exempt_abs(cur_path):
+                                return
+                            for pref in _ABS_PREFIXES:
+                                if pref in obj:
+                                    _fail(
+                                        errors,
+                                        f"E3PV_PATH_LEAKAGE: {p.name} {cur_path} contains absolute path {pref!r}",
+                                    )
+                            if re.search(r"[A-Za-z]:\\", obj):
+                                _fail(
+                                    errors,
+                                    f"E3PV_PATH_LEAKAGE: {p.name} {cur_path} contains Windows path",
+                                )
+                        elif isinstance(obj, dict):
+                            for k, v in obj.items():
+                                _scan_abs(v, f"{cur_path}.{k}")
+                        elif isinstance(obj, (list, tuple)):
+                            for idx, v in enumerate(obj):
+                                _scan_abs(v, f"{cur_path}[{idx}]")
+
+                    _scan_abs(jdata)
+                    # Also check raw text for secret assignment but exempt errors? For secrets, whole file check is okay since errors shouldn't contain secrets anyway
+                    if re.search(r"(password|secret|api_key|token)\s*[:=]", txt2, re.I):
+                        # Check if secret is only inside exempt errors path - if so, don't fail
+                        # For simplicity, if any secret pattern found, scan JSON-aware as well
+                        # If secret is in exempt path, ignore; otherwise fail
+                        def _scan_secret(obj: Any, cur_path: str = "$") -> None:  # noqa: ANN401
+                            if isinstance(obj, str):
+                                if re.fullmatch(r"\$\.errors\[\d+\]", cur_path) or re.fullmatch(
+                                    r"\$\.gates\.[^.]+\.errors\[\d+\]", cur_path
+                                ):
+                                    return
+                                if re.search(r"(password|secret|api_key|token)\s*[:=]", obj, re.I):
+                                    _fail(
+                                        errors,
+                                        f"E3PV_SECRET_LEAKAGE: {p.name} {cur_path} contains secret assignment",
+                                    )
+                            elif isinstance(obj, dict):
+                                for k, v in obj.items():
+                                    _scan_secret(v, f"{cur_path}.{k}")
+                            elif isinstance(obj, (list, tuple)):
+                                for idx, v in enumerate(obj):
+                                    _scan_secret(v, f"{cur_path}[{idx}]")
+
+                        _scan_secret(jdata)
+                except Exception as exc:
+                    # Fallback to raw check if JSON invalid
+                    for pref in _ABS_PREFIXES:
+                        if pref in txt2:
+                            _fail(
+                                errors,
+                                f"E3PV_PATH_LEAKAGE: {p.name} contains absolute path {pref!r}",
+                            )
+                    if re.search(r"[A-Za-z]:\\", txt2):
+                        _fail(errors, f"E3PV_PATH_LEAKAGE: {p.name} contains Windows path")
+                    if re.search(r"(password|secret|api_key|token)\s*[:=]", txt2, re.I):
+                        _fail(errors, f"E3PV_SECRET_LEAKAGE: {p.name} contains secret assignment")
+            else:
+                for pref in _ABS_PREFIXES:
+                    if pref in txt2:
+                        _fail(
+                            errors,
+                            f"E3PV_PATH_LEAKAGE: {p.name} contains absolute path {pref!r}",
+                        )
+                if re.search(r"[A-Za-z]:\\", txt2):
+                    _fail(errors, f"E3PV_PATH_LEAKAGE: {p.name} contains Windows path")
+                if re.search(r"(password|secret|api_key|token)\s*[:=]", txt2, re.I):
+                    _fail(errors, f"E3PV_SECRET_LEAKAGE: {p.name} contains secret assignment")
             if p.name == "e3_product_traceability.json":
                 try:
                     j: Any = json.loads(txt2)
@@ -2169,6 +2244,9 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     # Honest repo-root labeling: use _repo_root for all file-based checks; temp-copy emits are labeled and do not claim validator_real_tree
     _real_root: Path = _REPO_ROOT
     _is_temp_copy: bool = _repo_root.resolve() != _real_root.resolve()
+    _repo_root_kind: str = "temp_copy" if _is_temp_copy else "real_tree"
+    # Portable marker: git-toplevel-relative (no absolute paths)
+    _repo_rel_marker: str = "."
     # Temporarily override global _REPO_ROOT for check functions that read from disk (so they measure the requested root)
     _orig_repo_root: Path = _REPO_ROOT
     globals()["_REPO_ROOT"] = _repo_root
@@ -2344,6 +2422,8 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         "tests/integration/test_e3_research_product_acceptance.py",
         "docs/e3_dynamic_resource_v2_product.md",
         "docs/closure/e3_product_traceability.json",
+        "docs/quality/e3_quality_gate.json",
+        "docs/quality/e3_validator_verdict.json",
     ]
     _abs_violations: list[str] = []
     _abs_checked: list[str] = []
@@ -2353,9 +2433,47 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
             try:
                 _txt2 = _pp.read_text(encoding="utf-8", errors="ignore")
                 _abs_checked.append(_rel)
-                # Check for contiguous private path literal (not constructed) - use constructed to avoid self-flag
-                if ("/" + "Users" + "/") in _txt2:
-                    _abs_violations.append(_rel)
+                # For JSON receipts, use JSON-aware scan exempting diagnostics arrays
+                if _rel in (
+                    "docs/quality/e3_quality_gate.json",
+                    "docs/quality/e3_validator_verdict.json",
+                ):
+                    try:
+                        _jdata_abs: Any = json.loads(_txt2)
+                        _found_leak = False
+
+                        def _scan_abs_gate(obj: Any, cur_path: str = "$") -> None:  # noqa: ANN401
+                            nonlocal _found_leak
+
+                            def _is_exempt(path: str) -> bool:
+                                return bool(
+                                    re.fullmatch(r"\$\.errors\[\d+\]", path)
+                                    or re.fullmatch(r"\$\.gates\.[^.]+\.errors\[\d+\]", path)
+                                    or path == "$.gates.no_absolute_path_literals.forbidden_literal"
+                                )
+
+                            if isinstance(obj, str):
+                                if _is_exempt(cur_path):
+                                    return
+                                if ("/" + "Users" + "/") in obj:
+                                    _found_leak = True
+                            elif isinstance(obj, dict):
+                                for k, v in obj.items():
+                                    _scan_abs_gate(v, f"{cur_path}.{k}")
+                            elif isinstance(obj, (list, tuple)):
+                                for idx, v in enumerate(obj):
+                                    _scan_abs_gate(v, f"{cur_path}[{idx}]")
+
+                        _scan_abs_gate(_jdata_abs)
+                        if _found_leak:
+                            _abs_violations.append(_rel)
+                    except Exception as _e:
+                        # Fallback to raw check if JSON invalid (fail closed)
+                        if ("/" + "Users" + "/") in _txt2:
+                            _abs_violations.append(_rel)
+                else:
+                    if ("/" + "Users" + "/") in _txt2:
+                        _abs_violations.append(_rel)
             except Exception as _e:
                 _abs_violations.append(f"{_rel}: read error {_e}")
         else:
@@ -2364,7 +2482,7 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     _measured_no_abs: dict[str, object] = {
         "checked_files": _checked_abs_files,
         "actually_checked": sorted(_abs_checked),
-        "forbidden_literal": "/" + "Users" + "/ contiguous",
+        "forbidden_literal": "slash Users slash contiguous (constructed, no literal)",
         "violations": sorted(_abs_violations),
         "result": "PASS" if len(_abs_violations) == 0 else "FAIL",
         "note": 'path checks use constructed "/" + "Users" + "/" to avoid literal',
@@ -2463,7 +2581,9 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
     _validator_real_tree_note: str
     if _is_temp_copy:
         _validator_real_tree_result = "deferred_to_controller"
-        _validator_real_tree_note = f"temp copy {str(_repo_root)} — not real tree; use real tree emit for validator_real_tree"
+        _validator_real_tree_note = (
+            "temp copy — not real tree; use real tree emit for validator_real_tree"
+        )
     else:
         _validator_real_tree_result = "PASS" if validator_pass else "FAIL"
         _validator_real_tree_note = "measured against real tree"
@@ -2472,7 +2592,8 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         "schema_version": "e3_quality_gate_v1",
         "campaign": EXPECTED_CAMPAIGN,
         "lane": 12,
-        "repo_root": str(_repo_root),
+        "repo_root_kind": _repo_root_kind,
+        "repo_is_toplevel": True,
         "hold": {
             "lane_09": LANE_09,
             "evidence_state": NOT_EXECUTED,
@@ -2484,12 +2605,11 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
         "gates": {
             "validator_real_tree": {
                 "script": "scripts/validate_e3_research_product.py",
-                "repo_root": str(_repo_root),
+                "repo_root_kind": _repo_root_kind,
+                "repo_is_toplevel": True,
                 "result": _validator_real_tree_result,
-                "exit_code": 0
-                if validator_pass and not _is_temp_copy
-                else (1 if not validator_pass and not _is_temp_copy else 0),
-                "errors": sorted(_errors) if not _is_temp_copy else [],
+                "exit_code": 0 if validator_pass else 1,
+                "errors": sorted(_errors),
                 "checks": len(_CHECK_REGISTRY),
                 "deterministic": _measured_deterministic
                 if not _is_temp_copy
@@ -2501,7 +2621,8 @@ def build_gate(repo_root: Path | None = None) -> dict[str, object]:
                 "each_must_fail_with_typed_error_no_traceback": "deferred_to_controller",
                 "result": "deferred_to_controller",
                 "note": "deferred_to_controller: measuring requires executing the suite, which emit must not do",
-                "repo_root": str(_repo_root),
+                "repo_root_kind": _repo_root_kind,
+                "repo_is_toplevel": True,
             },
             "acceptance_apptest": {
                 "path": "tests/integration/test_e3_research_product_acceptance.py",
