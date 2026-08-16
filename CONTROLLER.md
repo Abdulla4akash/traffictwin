@@ -1,31 +1,52 @@
 # TrafficTwin controller entrypoint
 
-**READ THIS BEFORE ORCHESTRATING ANY MULTI-AGENT CAMPAIGN IN THIS REPOSITORY.**
+**READ THIS BEFORE ORCHESTRATING ANY MULTI-AGENT WORK IN THIS REPOSITORY.**
 
-Current owner-authorized controller policy:
+## Current authority
+
+Authoritative `main` release:
+
+`337f1624e5ffe188393554b1110a35ababcce8e1`
+
+The Dynamic Resource V2 + Expansion V1 composition is merged. The previous Lane 08/10/11/12 campaign and global-integration campaign are closed historical work. Do not reopen them simply because historical prompts, issues, or receipts describe them as active.
+
+Current owner-authorized orchestration policy remains:
 
 `docs/quality/controller_concurrent_orchestration_policy_v6.md`
 
-V6 supersedes V5 for scheduling/concurrency. V5 trust rules remain preserved through V6.
+V6 governs scheduling/concurrency; the exact-SHA trust rules remain mandatory.
 
 ## Required operating model
 
-1. Maintain a dependency DAG with `BLOCKED`, `PREPARABLE`, `READY`, `RUNNING`, `REVIEWING`, `REQUEST_CHANGES`, `APPROVED`, `PROMOTED`, and `FROZEN` states.
-2. Keep the exact-SHA trust chain serial only where evidence identity requires it.
-3. When any critical-path child is waiting, immediately dispatch safe READY/PREPARABLE work in isolated worktrees instead of idling the factory.
+1. Start new work from current `main` unless the owner/task explicitly names another reviewed base.
+2. Maintain a dependency DAG with explicit states such as `BLOCKED`, `PREPARABLE`, `READY`, `RUNNING`, `REVIEWING`, `REQUEST_CHANGES`, `APPROVED`, `PROMOTED`, and `FROZEN`.
+3. Keep exact-SHA trust serial where evidence identity requires it, but do not idle unrelated safe work while another child waits.
 4. Never run two source-changing workers in the same worktree.
-5. Future-lane speculative work is allowed only in an isolated branch/worktree, is never authoritative, and must be reconciled onto the actual promoted dependency head before fresh gates/review.
-6. Every promotable source-changing SHA needs a fresh independent read-only exact-SHA review. Any source change invalidates predecessor approval.
-7. Use focused/adversarial/static gates during remediation loops. Run the expensive broad suite once at the stable approved-candidate boundary.
-8. Turn reproducible reviewer exploits into permanent regressions.
-9. Cache expensive checks only when their exact identity inputs are unchanged.
-10. Consume completed background tasks automatically; `Waiting for task` describes one child, not the whole factory.
-11. Use resource-aware concurrency: one heavy repo-wide suite at a time by default, multiple safe lightweight/preflight workers where useful.
-12. Final global source receives complete global gates plus a fresh independent exact-SHA integration audit before merge to `main`.
+5. Every promotable source-changing SHA requires a fresh independent read-only exact-SHA review. Any source change invalidates prior approval.
+6. A controller that edits source becomes a builder for that SHA and cannot self-approve it.
+7. Use focused/adversarial/static gates during remediation; use the expensive broad suite at stable candidate boundaries.
+8. Turn concrete reviewer exploits into permanent biting regressions.
+9. Cache checks only when exact source/dependency/environment identity is unchanged.
+10. Prefer one heavy repo-wide suite at a time; parallelise safe lightweight/preflight work where useful.
+11. Never rebase reviewed histories or force-push `main`.
+12. Final global source receives complete gates plus a fresh independent bounded integration audit before merge.
 
-## Current E3 hold
+`MUSE_EXIT_CODE=0` and `REVIEW_EXIT_CODE=0` are process statuses only. Approval requires an explicit terminal verdict bound to the exact SHA.
 
-Until the owner explicitly lifts it, preserve exactly:
+## Bounded final-review rule
+
+A final integration reviewer may block only a concrete defect that:
+
+- affects the final composed exact SHA;
+- concerns functionality, safety, truthfulness, provenance, security, deterministic build/reproduction, or cross-feature integration;
+- is new or reintroduced by the current composition; and
+- has a concrete reproduction, failing probe, exact contradiction, or surviving mutation.
+
+Style, optional refactors, alternate architecture preferences, unrelated debt, speculative hardening, and generic requests for additional tests without a surviving defect are non-blocking. Already-approved lane-local design must not be reopened unless composition invalidates it.
+
+## E3 execution hold — still absolute
+
+The merged software does **not** authorise E3 scientific execution. Preserve exactly:
 
 - `LANE_09 = BLOCKED_BY_RESEARCHER_EXECUTION_HOLD`
 - `E3_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED`
@@ -33,12 +54,17 @@ Until the owner explicitly lifts it, preserve exactly:
 - `result_availability = NO_E3_RESEARCH_RESULTS_AVAILABLE`
 - `research_workloads_launched = 0`
 
-Do not launch E3 scientific workloads.
+Do not launch E3 scientific workloads unless the owner explicitly changes this policy.
 
-## Current campaign concurrency example
+## Current design/read order
 
-While Lane 11 is under independent review, do not just wait. In separate isolated state, prepare Lane 12 validator/hostile cases, preflight frozen Expansion vs current main, forecast global conflicts, prepare global gates/ancestry/provenance, and cache safe base-existing checks.
+Before dispatching architectural work, read:
 
-While Lane 12 is under review, preflight global integration and final audit inputs without treating provisional Dynamic as frozen.
+1. `AGENTS.md`
+2. `docs/traffictwin_product_design_v3.md`
+3. `docs/traffictwin_use_cases_v3.md`
+4. `docs/architecture_current_release.md`
+5. `docs/quality/final_release_status_20260815.md`
+6. the task-specific issue/contract/tests/receipts
 
-The canonical V6 file contains the full rules. If this entrypoint and another historical controller document disagree on scheduling, V6 wins unless a newer owner-authorized policy explicitly supersedes it.
+Historical V5/V6 campaign examples, v0.7/v0.8 handoffs, and lane receipts remain evidence of how the release was produced, not instructions to resume a closed campaign.
