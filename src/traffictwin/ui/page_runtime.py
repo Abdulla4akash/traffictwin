@@ -79,6 +79,7 @@ from traffictwin.ui.pages import (
     tradeoff_explorer,
     triviality,
     vec_workbench,
+    whatif_challenge,
     whatif_studio,
     workspace_activation,
 )
@@ -259,6 +260,16 @@ def run_next_investigation_page_script() -> None:
         "Deterministic recommendation over the Analyst finding; optional AI prose only explains it."
     )
     next_investigation.render(load_ui_config())
+
+
+def run_whatif_challenge_page_script() -> None:
+    """Execute the additive What-If Challenge page outside the normative inventory."""
+
+    st.session_state["_active_ui_route"] = "whatif-challenge"
+    st.sidebar.caption(
+        "Deterministic challenge planning over the recommendation; nothing is ever run from here."
+    )
+    whatif_challenge.render(load_ui_config())
 
 
 def run_platform_composer_page_script() -> None:
