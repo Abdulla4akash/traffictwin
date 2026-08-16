@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_recommendation_agent_page_script
+
+run_recommendation_agent_page_script()
