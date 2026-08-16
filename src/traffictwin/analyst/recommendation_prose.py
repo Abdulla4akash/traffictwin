@@ -205,9 +205,9 @@ def _guard_marked_phrases(
             raise AnalystProseError(code, f"{reason} ({marker!r})")
 
 
-def _guard_recommendation_output(
-    text: str, request_json: str, request: RecommendationProseRequest
-) -> None:
+def guard_bounded_investigation_output(text: str, request_json: str) -> None:
+    """Shared bounded-wording guards for investigation-family prose."""
+
     guard_prose_output(text, request_json)
     _guard_marked_phrases(
         text,
@@ -244,6 +244,12 @@ def _guard_recommendation_output(
         "LLM_UNSUPPORTED_EXECUTION_CLAIM",
         "the prose claimed an execution that did not happen",
     )
+
+
+def _guard_recommendation_output(
+    text: str, request_json: str, request: RecommendationProseRequest
+) -> None:
+    guard_bounded_investigation_output(text, request_json)
     allowed = {request.category, request.alternative_category or ""}
     lowered = text.lower()
     for category, display in CATEGORY_DISPLAY_NAMES.items():

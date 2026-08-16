@@ -167,6 +167,14 @@ NEXT_INVESTIGATION_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/explore:",
 )
 
+WHATIF_CHALLENGE_PAGE_SPEC = V07AdditivePageSpec(
+    title="What-If Challenge",
+    group="Platform",
+    script="app_pages/whatif_challenge.py",
+    url_path="whatif-challenge",
+    icon=":material/science:",
+)
+
 MANCHESTER_GATE_D_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Gate-D",
     group="Platform",
@@ -649,6 +657,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         PLATFORM_XAI_AUDIT_PAGE_SPEC,
         ANALYST_PAGE_SPEC,
         NEXT_INVESTIGATION_PAGE_SPEC,
+        WHATIF_CHALLENGE_PAGE_SPEC,
         MANCHESTER_GATE_D_PAGE_SPEC,
         *_expansion_specs,
     )
@@ -762,6 +771,7 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                 PLATFORM_XAI_AUDIT_PAGE_SPEC,
                 ANALYST_PAGE_SPEC,
                 NEXT_INVESTIGATION_PAGE_SPEC,
+                WHATIF_CHALLENGE_PAGE_SPEC,
                 MANCHESTER_GATE_D_PAGE_SPEC,
             ):
                 group_pages.append(

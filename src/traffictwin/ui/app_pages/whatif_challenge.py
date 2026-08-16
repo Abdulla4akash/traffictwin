@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_whatif_challenge_page_script
+
+run_whatif_challenge_page_script()

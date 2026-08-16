@@ -32,6 +32,7 @@ from traffictwin.ui.navigation_v07 import (
     V07_NAVIGATION_GROUPS,
     V07_NORMATIVE_GROUPS,
     V07_PAGE_SPECS,
+    WHATIF_CHALLENGE_PAGE_SPEC,
     V07PageSpec,
     legacy_navigation_requested,
     page_script_for,
@@ -70,6 +71,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         PLATFORM_XAI_AUDIT_PAGE_SPEC,
         ANALYST_PAGE_SPEC,
         NEXT_INVESTIGATION_PAGE_SPEC,
+        WHATIF_CHALLENGE_PAGE_SPEC,
         MANCHESTER_GATE_D_PAGE_SPEC,
     )
     assert [spec.title for spec in platform_specs] == [
@@ -83,6 +85,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         "Decision Audit",
         "Analyst",
         "Next Investigation",
+        "What-If Challenge",
         "Manchester Gate-D",
     ]
     assert all(spec.group == "Platform" for spec in platform_specs)

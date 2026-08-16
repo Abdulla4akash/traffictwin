@@ -6,6 +6,23 @@ maps existing rule outcomes onto a bounded signal; optional LLM prose
 rendering comes last and can never change any of it.
 """
 
+from traffictwin.analyst.challenge import (
+    CHALLENGE_DISPLAY_NAMES,
+    ChallengeCategory,
+    ChallengeReadiness,
+    ChallengeTrack,
+    WhatIfChallengeSpec,
+    build_challenge_prefill,
+    plan_challenge,
+    resolve_scenario_track,
+)
+from traffictwin.analyst.challenge_prose import (
+    ChallengeProse,
+    ChallengeProseRequest,
+    build_challenge_prose_request,
+    challenge_prose_status,
+    render_challenge_prose,
+)
 from traffictwin.analyst.classify import classify_packet
 from traffictwin.analyst.models import (
     SIGNAL_DISPLAY_NAMES,
@@ -41,6 +58,7 @@ from traffictwin.analyst.recommendation_prose import (
 
 __all__ = [
     "CATEGORY_DISPLAY_NAMES",
+    "CHALLENGE_DISPLAY_NAMES",
     "SIGNAL_DISPLAY_NAMES",
     "AnalystClassification",
     "AnalystEvidencePacket",
@@ -50,6 +68,12 @@ __all__ = [
     "AnalystRefusalCode",
     "AnalystRefusalError",
     "AnalystSignal",
+    "ChallengeCategory",
+    "ChallengeProse",
+    "ChallengeProseRequest",
+    "ChallengeReadiness",
+    "ChallengeTrack",
+    "WhatIfChallengeSpec",
     "RecommendationCategory",
     "RecommendationEvidencePacket",
     "RecommendationProse",
@@ -58,10 +82,16 @@ __all__ = [
     "analyst_prose_status",
     "build_analyst_packet",
     "build_prose_request",
+    "build_challenge_prefill",
+    "build_challenge_prose_request",
     "build_recommendation_prose_request",
+    "challenge_prose_status",
     "classify_packet",
+    "plan_challenge",
     "recommendation_prose_status",
+    "render_challenge_prose",
     "render_recommendation_prose",
+    "resolve_scenario_track",
     "select_recommendation",
     "render_analyst_prose",
 ]
