@@ -11,6 +11,7 @@ from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import redirect_pending_v07_page, render_sidebar_context
 from traffictwin.ui.pages import (
     about,
+    analyst,
     baseline_registry,
     bundle_import,
     bus_sessions,
@@ -237,6 +238,16 @@ def run_platform_forecasts_page_script() -> None:
     st.session_state["_active_ui_route"] = "platform-forecasts"
     st.sidebar.caption("Bus-fleet climatology with support counts; a forecast is never evidence.")
     platform_forecasts.render(load_ui_config())
+
+
+def run_analyst_page_script() -> None:
+    """Execute the additive TrafficTwin Analyst page outside the normative inventory."""
+
+    st.session_state["_active_ui_route"] = "analyst"
+    st.sidebar.caption(
+        "Deterministic diagnosis first; optional AI prose renders the result without changing it."
+    )
+    analyst.render(load_ui_config())
 
 
 def run_platform_composer_page_script() -> None:

@@ -17,6 +17,7 @@ from traffictwin.ui.expansion_routes import (
 )
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation_v07 import (
+    ANALYST_PAGE_SPEC,
     MANCHESTER_GATE_D_PAGE_SPEC,
     PLATFORM_ANALYTICS_PAGE_SPEC,
     PLATFORM_COMPOSER_PAGE_SPEC,
@@ -66,6 +67,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         PLATFORM_OBSERVATORY_PAGE_SPEC,
         PLATFORM_DECISION_SAFETY_PAGE_SPEC,
         PLATFORM_XAI_AUDIT_PAGE_SPEC,
+        ANALYST_PAGE_SPEC,
         MANCHESTER_GATE_D_PAGE_SPEC,
     )
     assert [spec.title for spec in platform_specs] == [
@@ -77,6 +79,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         "Mechanism Observatory",
         "Decision Safety",
         "Decision Audit",
+        "Analyst",
         "Manchester Gate-D",
     ]
     assert all(spec.group == "Platform" for spec in platform_specs)
