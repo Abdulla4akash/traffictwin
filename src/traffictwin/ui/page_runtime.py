@@ -39,6 +39,7 @@ from traffictwin.ui.pages import (
     manifest_inference,
     match_review,
     metric_contract_registry,
+    next_investigation,
     operations,
     parameter_sweep,
     participant_evaluation,
@@ -248,6 +249,16 @@ def run_analyst_page_script() -> None:
         "Deterministic diagnosis first; optional AI prose renders the result without changing it."
     )
     analyst.render(load_ui_config())
+
+
+def run_next_investigation_page_script() -> None:
+    """Execute the additive Next Investigation page outside the normative inventory."""
+
+    st.session_state["_active_ui_route"] = "next-investigation"
+    st.sidebar.caption(
+        "Deterministic recommendation over the Analyst finding; optional AI prose only explains it."
+    )
+    next_investigation.render(load_ui_config())
 
 
 def run_platform_composer_page_script() -> None:
