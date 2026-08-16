@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_next_investigation_page_script
+
+run_next_investigation_page_script()

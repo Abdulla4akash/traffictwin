@@ -24,8 +24,23 @@ from traffictwin.analyst.prose import (
     build_prose_request,
     render_analyst_prose,
 )
+from traffictwin.analyst.recommendation import (
+    CATEGORY_DISPLAY_NAMES,
+    RecommendationCategory,
+    RecommendationEvidencePacket,
+    RecommendationSource,
+    select_recommendation,
+)
+from traffictwin.analyst.recommendation_prose import (
+    RecommendationProse,
+    RecommendationProseRequest,
+    build_recommendation_prose_request,
+    recommendation_prose_status,
+    render_recommendation_prose,
+)
 
 __all__ = [
+    "CATEGORY_DISPLAY_NAMES",
     "SIGNAL_DISPLAY_NAMES",
     "AnalystClassification",
     "AnalystEvidencePacket",
@@ -35,9 +50,18 @@ __all__ = [
     "AnalystRefusalCode",
     "AnalystRefusalError",
     "AnalystSignal",
+    "RecommendationCategory",
+    "RecommendationEvidencePacket",
+    "RecommendationProse",
+    "RecommendationProseRequest",
+    "RecommendationSource",
     "analyst_prose_status",
     "build_analyst_packet",
     "build_prose_request",
+    "build_recommendation_prose_request",
     "classify_packet",
+    "recommendation_prose_status",
+    "render_recommendation_prose",
+    "select_recommendation",
     "render_analyst_prose",
 ]

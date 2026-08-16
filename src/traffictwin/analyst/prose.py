@@ -165,7 +165,7 @@ def analyst_prose_status(environment: Mapping[str, str] | None = None) -> dict[s
     }
 
 
-def _default_transport(
+def default_deepseek_transport(
     url: str, headers: Mapping[str, str], body: bytes, timeout_seconds: float
 ) -> bytes:
     request = Request(url, data=body, headers=dict(headers), method="POST")  # noqa: S310
@@ -191,21 +191,23 @@ def _default_transport(
     return raw
 
 
-def _screen_request(serialised: str) -> None:
+def screen_prose_payload(
+    serialised: str, *, max_characters: int = ANALYST_MAX_INPUT_CHARACTERS
+) -> None:
     if any(pattern.search(serialised) for pattern in _PRIVATE_PATTERNS):
         raise AnalystProseError(
             "PRIVATE_CONTENT_REFUSED",
             "the prose request contains private, credential, participant or "
             "raw-data material; nothing was sent",
         )
-    if len(serialised) > ANALYST_MAX_INPUT_CHARACTERS:
+    if len(serialised) > max_characters:
         raise AnalystProseError(
             "LLM_INPUT_TOO_LARGE",
-            f"the prose request exceeds {ANALYST_MAX_INPUT_CHARACTERS} characters",
+            f"the prose request exceeds {max_characters} characters",
         )
 
 
-def _response_content(raw: bytes) -> str:
+def parse_deepseek_response_content(raw: bytes) -> str:
     try:
         payload = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -233,7 +235,7 @@ def _response_content(raw: bytes) -> str:
     return content
 
 
-def _guard_output(text: str, request_json: str) -> None:
+def guard_prose_output(text: str, request_json: str) -> None:
     """Refuse prose that invents numbers, claims, or standing."""
 
     allowed_numbers = set(_NUMBER_PATTERN.findall(request_json))
@@ -265,7 +267,7 @@ def render_analyst_prose(
     request: AnalystProseRequest,
     *,
     api_key: str | None = None,
-    transport: AnalystTransport = _default_transport,
+    transport: AnalystTransport = default_deepseek_transport,
 ) -> AnalystProse:
     """Render prose, or raise a typed :class:`AnalystProseError`.
 
@@ -274,7 +276,7 @@ def render_analyst_prose(
     """
 
     serialised = request.canonical_json()
-    _screen_request(serialised)
+    screen_prose_payload(serialised)
     key = api_key or os.environ.get("DEEPSEEK_API_KEY")
     if not key:
         raise AnalystProseError(
@@ -301,7 +303,7 @@ def render_analyst_prose(
         "Content-Type": "application/json",
     }
     raw = transport(ANALYST_DEEPSEEK_API_URL, headers, body, ANALYST_TIMEOUT_SECONDS)
-    content = _response_content(raw)
+    content = parse_deepseek_response_content(raw)
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as error:
@@ -326,9 +328,9 @@ def render_analyst_prose(
             "LLM_MALFORMED_RESPONSE",
             f"explanation exceeds {ANALYST_MAX_EXPLANATION_CHARACTERS} characters",
         )
-    _guard_output(explanation, serialised)
+    guard_prose_output(explanation, serialised)
     if next_investigation is not None:
-        _guard_output(next_investigation, serialised)
+        guard_prose_output(next_investigation, serialised)
     return AnalystProse(
         prompt_template_digest=ANALYST_PROMPT_TEMPLATE_DIGEST,
         input_digest=sha256(serialised.encode("utf-8")).hexdigest(),

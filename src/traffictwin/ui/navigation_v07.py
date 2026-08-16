@@ -159,6 +159,14 @@ ANALYST_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/psychology:",
 )
 
+NEXT_INVESTIGATION_PAGE_SPEC = V07AdditivePageSpec(
+    title="Next Investigation",
+    group="Platform",
+    script="app_pages/next_investigation.py",
+    url_path="next-investigation",
+    icon=":material/explore:",
+)
+
 MANCHESTER_GATE_D_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Gate-D",
     group="Platform",
@@ -640,6 +648,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         PLATFORM_DECISION_SAFETY_PAGE_SPEC,
         PLATFORM_XAI_AUDIT_PAGE_SPEC,
         ANALYST_PAGE_SPEC,
+        NEXT_INVESTIGATION_PAGE_SPEC,
         MANCHESTER_GATE_D_PAGE_SPEC,
         *_expansion_specs,
     )
@@ -752,6 +761,7 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                 PLATFORM_DECISION_SAFETY_PAGE_SPEC,
                 PLATFORM_XAI_AUDIT_PAGE_SPEC,
                 ANALYST_PAGE_SPEC,
+                NEXT_INVESTIGATION_PAGE_SPEC,
                 MANCHESTER_GATE_D_PAGE_SPEC,
             ):
                 group_pages.append(
