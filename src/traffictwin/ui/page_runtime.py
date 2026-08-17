@@ -54,6 +54,7 @@ from traffictwin.ui.pages import (
     portfolio_explorer,
     preregistration_studio,
     provenance_explorer,
+    recommendation_agent,
     reports,
     reproducibility_replay,
     resource_strategy_explorer,
@@ -270,6 +271,16 @@ def run_whatif_challenge_page_script() -> None:
         "Deterministic challenge planning over the recommendation; nothing is ever run from here."
     )
     whatif_challenge.render(load_ui_config())
+
+
+def run_recommendation_agent_page_script() -> None:
+    """Execute the additive Recommendation Agent page outside the normative inventory."""
+
+    st.session_state["_active_ui_route"] = "recommendation-agent"
+    st.sidebar.caption(
+        "Deterministic decision support with a strict retraining gate; advisory only, no execution."
+    )
+    recommendation_agent.render(load_ui_config())
 
 
 def run_platform_composer_page_script() -> None:
