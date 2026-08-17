@@ -175,6 +175,14 @@ WHATIF_CHALLENGE_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/science:",
 )
 
+RECOMMENDATION_AGENT_PAGE_SPEC = V07AdditivePageSpec(
+    title="Recommendation Agent",
+    group="Platform",
+    script="app_pages/recommendation_agent.py",
+    url_path="recommendation-agent",
+    icon=":material/recommend:",
+)
+
 CHALLENGE_DESIGNER_PAGE_SPEC = V07AdditivePageSpec(
     title="Challenge Designer",
     group="Platform",
@@ -666,6 +674,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         ANALYST_PAGE_SPEC,
         NEXT_INVESTIGATION_PAGE_SPEC,
         WHATIF_CHALLENGE_PAGE_SPEC,
+        RECOMMENDATION_AGENT_PAGE_SPEC,
         CHALLENGE_DESIGNER_PAGE_SPEC,
         MANCHESTER_GATE_D_PAGE_SPEC,
         *_expansion_specs,
@@ -781,6 +790,7 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                 ANALYST_PAGE_SPEC,
                 NEXT_INVESTIGATION_PAGE_SPEC,
                 WHATIF_CHALLENGE_PAGE_SPEC,
+                RECOMMENDATION_AGENT_PAGE_SPEC,
                 CHALLENGE_DESIGNER_PAGE_SPEC,
                 MANCHESTER_GATE_D_PAGE_SPEC,
             ):

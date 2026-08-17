@@ -29,6 +29,7 @@ from traffictwin.ui.navigation_v07 import (
     PLATFORM_INVENTORY_PAGE_SPEC,
     PLATFORM_OBSERVATORY_PAGE_SPEC,
     PLATFORM_XAI_AUDIT_PAGE_SPEC,
+    RECOMMENDATION_AGENT_PAGE_SPEC,
     V07_NAVIGATION_ENV,
     V07_NAVIGATION_GROUPS,
     V07_NORMATIVE_GROUPS,
@@ -73,6 +74,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         ANALYST_PAGE_SPEC,
         NEXT_INVESTIGATION_PAGE_SPEC,
         WHATIF_CHALLENGE_PAGE_SPEC,
+        RECOMMENDATION_AGENT_PAGE_SPEC,
         CHALLENGE_DESIGNER_PAGE_SPEC,
         MANCHESTER_GATE_D_PAGE_SPEC,
     )
@@ -88,6 +90,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         "Analyst",
         "Next Investigation",
         "What-If Challenge",
+        "Recommendation Agent",
         "Challenge Designer",
         "Manchester Gate-D",
     ]
