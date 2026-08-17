@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_challenge_designer_page_script
+
+run_challenge_designer_page_script()

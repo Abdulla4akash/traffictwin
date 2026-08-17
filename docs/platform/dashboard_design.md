@@ -68,7 +68,7 @@ One new "Platform" group is appended to the existing seven-group navigation; the
 groups and every current route remain unchanged. Pages are ordered Inventory → Forecasts
 → What-If → Analytics Quality → Evidence Matrix → Mechanism Observatory → Decision Safety
 → Decision Audit → Analyst → Next Investigation → What-If Challenge → Recommendation Agent
-→ Manchester Gate-D with
+→ Challenge Designer → Manchester Gate-D with
 unique scripts, URL paths and labels. Each page opens with a one-line scope
 banner naming what is and is not claimed — the user-facing articulation of the label
 ceilings the project already enforces internally. Producer-derived prediction/measurement
