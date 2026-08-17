@@ -17,6 +17,7 @@ from traffictwin.ui.pages import (
     bus_sessions,
     calibration_workbench,
     campaigns,
+    challenge_designer,
     compare,
     consequence_lenses,
     contract_drafting,
@@ -270,6 +271,16 @@ def run_whatif_challenge_page_script() -> None:
         "Deterministic challenge planning over the recommendation; nothing is ever run from here."
     )
     whatif_challenge.render(load_ui_config())
+
+
+def run_challenge_designer_page_script() -> None:
+    """Execute the additive Challenge Designer page outside the normative inventory."""
+
+    st.session_state["_active_ui_route"] = "challenge-designer"
+    st.sidebar.caption(
+        "Deterministic candidate scenario design; candidates are proposals, never evidence."
+    )
+    challenge_designer.render(load_ui_config())
 
 
 def run_platform_composer_page_script() -> None:
