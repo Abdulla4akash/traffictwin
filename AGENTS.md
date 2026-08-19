@@ -23,13 +23,14 @@ Read, in order, before architectural or source-changing work:
 
 Historical documents remain evidence and design history; they must not silently override the current release overlay.
 
-## Dissertation, report, rubric, and video authority
+## Dissertation, report, rubric, methodology, and video authority
 
-Before any dissertation drafting, report review, rubric analysis, word-budget planning, experiment-prioritisation for the MSc report, or video planning, read:
+Before any dissertation drafting, report review, rubric analysis, word-budget planning, experiment-prioritisation for the MSc report, methodology drafting/review, or video planning, read:
 
 1. **`docs/dissertation/comp66060_rubric_readiness_2026-08-19.md`** — the current rubric-grounded dissertation writing authority.
-2. `docs/evaluation/chatgpt_5_6_pro_suggestions_2026-08-19.md` — the ranked future-experiment roadmap and compute/backend planning note.
-3. The exact frozen E0–E2d scientific evidence and task-specific source documents needed for the section being written.
+2. **`docs/dissertation/chatgpt_5_6_pro_methodology_writing_guide_2026-08-19.md`** — the binding methodology source hierarchy, evidence-map workflow, prompts, structure, figures, and acceptance checks.
+3. `docs/evaluation/chatgpt_5_6_pro_suggestions_2026-08-19.md` — the ranked future-experiment roadmap and compute/backend planning note.
+4. The exact frozen E0–E2d scientific evidence and task-specific source documents needed for the section being written.
 
 The dissertation authority file is binding for structure and readiness. In particular:
 
@@ -42,7 +43,18 @@ The dissertation authority file is binding for structure and readiness. In parti
 - no agent may invent a result for an experiment that has not run;
 - the 6–8 minute video must complement the report rather than simply repeat it.
 
-This section overrides generic dissertation templates and earlier plans that proposed a separate Background chapter or treated another experiment as a prerequisite for writing.
+For Methodology work, the methodology guide is binding. Agents must:
+
+- build and obtain approval for an evidence map before drafting long-form prose;
+- treat the rubric, frozen source/manifests/evidence, approved reports, and Randy’s confirmations as higher authority than architecture summaries or model-generated research notes;
+- use raw Claude, ChatGPT, Gemini, Fable, or other deep-search outputs only as secondary discovery notes;
+- cite the underlying primary papers rather than model-generated reports;
+- explain what was done, why it was suitable, what alternative existed, why it was not selected, and what limitation follows;
+- preserve the exact distinctions among action, communication target, ingress, placement, admission, execution, rejection, forwarding, and deadline success;
+- never treat individual tasks as independent statistical replicates;
+- run a fresh adversarial audit before accepting the Methodology.
+
+This section overrides generic dissertation templates, raw deep-search prose, and earlier plans that proposed a separate Background chapter or treated another experiment as a prerequisite for writing.
 
 ## Roles and trust model
 
