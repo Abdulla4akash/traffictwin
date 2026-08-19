@@ -2,11 +2,15 @@
 
 ## Current release authority
 
-The authoritative repository state is `main` at:
+The authoritative repository state is the **current head of `main`**.
+
+The integrated TrafficTwin release baseline was:
 
 `337f1624e5ffe188393554b1110a35ababcce8e1`
 
-This is the integrated TrafficTwin release composition containing the frozen Expansion V1 product and the final frozen Dynamic Resource V2 product. Do not treat older v0.6/v0.7/v0.8 campaign branches, alpha tags, lane worktrees, handoff prompts, or historical ownership grants as the current source of truth.
+Approved additive product and documentation work has moved `main` since that baseline. Resolve the current `main` head at the start of every task; do not treat the historical release-baseline SHA as the live repository head.
+
+The release composition contains the frozen Expansion V1 product and the final frozen Dynamic Resource V2 product. Do not treat older v0.6/v0.7/v0.8 campaign branches, alpha tags, lane worktrees, handoff prompts, or historical ownership grants as the current source of truth.
 
 Read, in order, before architectural or source-changing work:
 
@@ -19,9 +23,30 @@ Read, in order, before architectural or source-changing work:
 
 Historical documents remain evidence and design history; they must not silently override the current release overlay.
 
+## Dissertation, report, rubric, and video authority
+
+Before any dissertation drafting, report review, rubric analysis, word-budget planning, experiment-prioritisation for the MSc report, or video planning, read:
+
+1. **`docs/dissertation/comp66060_rubric_readiness_2026-08-19.md`** — the current rubric-grounded dissertation writing authority.
+2. `docs/evaluation/chatgpt_5_6_pro_suggestions_2026-08-19.md` — the ranked future-experiment roadmap and compute/backend planning note.
+3. The exact frozen E0–E2d scientific evidence and task-specific source documents needed for the section being written.
+
+The dissertation authority file is binding for structure and readiness. In particular:
+
+- the report must remain within the rubric’s **7,000–9,000 word** range;
+- the new COMP66060 format has **no separate Background section**;
+- concise related work belongs inside the **Introduction** and should prioritise depth over breadth;
+- **Abstract** and **Conclusion** must remain separate sections;
+- the complete E0–E2d dissertation should be written now;
+- optional staleness, forwarding-cost, cross-trace, V2V, action-masking, or retraining studies must not block the core report;
+- no agent may invent a result for an experiment that has not run;
+- the 6–8 minute video must complement the report rather than simply repeat it.
+
+This section overrides generic dissertation templates and earlier plans that proposed a separate Background chapter or treated another experiment as a prerequisite for writing.
+
 ## Roles and trust model
 
-- **Human owner:** final authority over scope, scientific execution, release decisions, and policy changes.
+- **Human owner:** final authority over scope, scientific execution, release decisions, dissertation decisions, and policy changes.
 - **Controller/integrator:** Fable 5 or another explicitly designated controller. Coordinates the DAG, composes reviewed work, runs deterministic gates, and preserves exact-SHA provenance. A controller may also be designated as a source-changing builder, but must never self-approve that source.
 - **Builder/remediator:** a designated source-changing worker such as Muse (`meta / muse-spark-1.2-contributor / xhigh`) or Fable 5 xhigh. Builder output is untrusted until gates and independent review pass.
 - **Independent reviewer:** fresh Claude Opus 5 xhigh, read-only, reviewing the exact pushed SHA. Reviewer findings must be concrete and reproducible; reviewer code edits are forbidden.
