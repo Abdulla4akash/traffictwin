@@ -44,7 +44,16 @@ The video must be **6–8 minutes** and must complement rather than merely repea
 
 ### Report readiness
 
-Approximately **80–85% of the report content can be written now at near-final quality**.
+Approximately **85–88% of the report can be drafted now**, and approximately **70–75% can already be written at near-final quality**.
+
+For an approximately 8,000-word report, the current evidence supports:
+
+- **6,500–7,000 words** of substantive drafting now;
+- **5,700–6,200 words** that can already be brought close to final form;
+- approximately **800–1,200 words** that should remain provisional;
+- probably **fewer than 700 words** that are genuinely blocked by future decisions or unrun experiments.
+
+These are writing-readiness estimates, not predicted marks.
 
 This is not a rough project-proposal stage. The core scientific and technical evidence already exists:
 
@@ -348,6 +357,43 @@ Agents must:
 10. Write the Abstract last.
 11. Run the final structure, reference, caption, consistency, and word-count audit.
 12. Produce the 6–8 minute complementary video.
+
+---
+
+## 13. Quantified writing-volume estimate
+
+For planning purposes, agents should use the following current estimate:
+
+| Writing state | Approximate amount |
+|---|---:|
+| Substantive dissertation prose that can be drafted now | **6,500–7,000 words** |
+| Prose that can already be brought close to final form | **5,700–6,200 words** |
+| Material that should remain provisional | **800–1,200 words** |
+| Material genuinely blocked by future decisions or results | **fewer than approximately 700 words** |
+
+### Near-final now
+
+The following can be written to near-final standard immediately:
+
+- Introduction context, motivation, aims, objectives, questions, and bounded contribution;
+- concise related work and exact literature gap;
+- complete methodology and TrafficTwin architecture;
+- full E0–E2d experimental progression and results;
+- mechanism analysis based on existing evidence;
+- reproducibility and technical-achievement evidence;
+- current limitations and threats to validity.
+
+### Provisional now
+
+The following should be drafted but kept visibly provisional:
+
+- the final abstract;
+- the final synthesis in the conclusion;
+- the final ordering of future work;
+- any subsection reserved for an optional new experiment;
+- final screenshots, demonstration identity, formatting, reference audit, and proofread.
+
+The quantified estimate does not make another experiment necessary. It confirms that the report should be written immediately around the completed E0–E2d evidence.
 
 The core instruction is:
 
