@@ -146,7 +146,7 @@ Use these to improve justification, framing, and diagrams:
 - 35-paper literature decision matrix;
 - publication-strategy/novelty report;
 - 6–10 closest primary papers;
-- Sandra’s emails on the layered architecture and scheduler-semantics contribution;
+- [Sandra's emails on the layered architecture and scheduler-semantics contribution](../correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md) (17-18 August 2026; the thread also contains Randy's implementation confirmations on PDF pages 1-2);
 - current TrafficTwin architecture diagrams;
 - reproducibility, validation, and public-evidence documents;
 - exact experiment tables and mechanism plots.

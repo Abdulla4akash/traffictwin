@@ -305,6 +305,7 @@ Four draws:
 ### Source of recommendation
 
 - Sandra directly proposed testing 100 ms, 500 ms, and 1-second state delay.
+- Primary correspondence: [Sandra's 18 August 2026 reply, PDF page 4](../correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md#pdf-page-4), transcribed from the owner-supplied Outlook PDF. The complete thread also includes her 17 August architecture discussion and Randy's 18 August implementation confirmations.
 
 ### Value
 
