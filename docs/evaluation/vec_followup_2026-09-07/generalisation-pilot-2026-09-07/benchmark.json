@@ -1,0 +1,9 @@
+{
+  "linear_upper_estimate_total_full_simulation_s": 547.2,
+  "note": "Short-run wall time includes JIT compilation; linear extrapolation is conservative, not a measured full-run runtime.",
+  "preflight_steps": 300,
+  "wall_s_by_condition": {
+    "fresh": 7.4,
+    "ingress": 7.8
+  }
+}

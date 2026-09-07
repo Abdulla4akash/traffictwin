@@ -1,0 +1,20 @@
+{
+  "cell_elapsed_s": 165.1,
+  "cell_pid": null,
+  "cell_started_at": "2026-09-07T10:00:33.758557+00:00",
+  "completed": [
+    "fresh",
+    "ingress"
+  ],
+  "conditions": 2,
+  "current": null,
+  "current_output": "/Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001",
+  "finished_at": "2026-09-07T10:03:34.461959+00:00",
+  "manifest_sha256": "17e5687b6dc62504a5f64c74165e4d243f2f5d1e91b0fe06a1fd3b43c8259352",
+  "pid": 53211,
+  "report": "/Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/RESULTS.md",
+  "started_at": "2026-09-07T09:57:32.936260+00:00",
+  "status": "completed",
+  "steps": 10800,
+  "updated_at": "2026-09-07T10:03:33.922062+00:00"
+}

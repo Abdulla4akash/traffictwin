@@ -6,6 +6,17 @@
 
 **Authority boundary:** this document governs dissertation drafting. It does not authorise a new scientific campaign, modify frozen E0–E2d evidence, or turn unrun future work into findings.
 
+> **Source-pack update, 7 September 2026:** use the
+> [follow-up evidence map](vec_evidence_map_2026-09-07.md) and
+> [private evidence archive](../evaluation/vec_followup_2026-09-07/README.md)
+> alongside the frozen E0–E2d sources. The completed additions are a one-draw
+> state-delay pilot, a qualified one-draw fixed-forwarding-cost analysis,
+> an exploratory morning pilot, and four new morning fleet draws across
+> three arms. Their [integrated evaluation](vec_results_integration_2026-09-07.md)
+> is available for manuscript revision. Preserve the batched-arrival timing
+> limitation, live admission, pilot exclusion and separate inference contracts.
+> This results integration does not claim approval of a new long-form Methodology.
+
 ---
 
 ## 1. Rubric contract

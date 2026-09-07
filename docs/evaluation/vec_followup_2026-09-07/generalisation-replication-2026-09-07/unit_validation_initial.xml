@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="4" time="19.261" timestamp="2026-09-07T11:27:52.496863+01:00" hostname="Ss-MacBook-Air.local"><testcase classname="test_analysis_checks" name="test_primary_interval_rejects_pilot_pooled_as_fifth_draw" time="0.000" /><testcase classname="test_analysis_checks" name="test_uncertainty_retains_inconclusive_mixed_draws" time="0.000" /><testcase classname="test_analysis_checks" name="test_reversing_contrast_reverses_interval_endpoints" time="0.000" /><testcase classname="test_analysis_checks" name="test_work_conservation_detects_removed_admission" time="0.766"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'Reconstructed .* RSU service-work total differs|Reconstructed RSU queue endpoint differs'&#10; Input: 'Reconstructed pre-drain work differs by 105.36192321777344 ms'">tmp_path = PosixPath('/private/var/folders/mw/d73f0mp15rv4n3jygpd8j5mm0000gn/T/pytest-of-akashx/pytest-0/test_work_conservation_detects0')
+
+    def test_work_conservation_detects_removed_admission(tmp_path):
+        import workload_checks
+        root = Path(__file__).resolve().parent
+        pilot = root.parent / "generalisation-pilot-2026-09-07"
+        manifest = json.loads((pilot / "manifest.json").read_text())
+        source = pilot / "preflight/fresh/attempt_001"
+        for name in ("summary.json", "per_step.npz"):
+            shutil.copyfile(source/name, tmp_path/name)
+        with np.load(source/"per_task.npz") as z:
+            arrays = dict(z)
+        where = np.flatnonzero(arrays["task_v2i_admitted"])
+        assert len(where) &gt; 100
+        arrays["task_v2i_admitted"].flat[where[:100]] = False
+        np.savez_compressed(tmp_path/"per_task.npz", **arrays)
+        with pytest.raises(RuntimeError, match="Reconstructed .* RSU service-work total differs|Reconstructed RSU queue endpoint differs"):
+&gt;           workload_checks.validate(tmp_path, manifest, manifest["cells"][0], 300)
+
+test_analysis_checks.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/private/var/folders/mw/d73f0mp15rv4n3jygpd8j5mm0000gn/T/pytest-of-akashx/pytest-0/test_work_conservation_detects0')
+m = {'actor': {'path': '/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__se...: 'ingress_dla', 'name': 'ingress'}], 'code_checkout': '/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run', ...}
+cell = {'delay_ms': 0, 'mode': 'per_task_dla', 'name': 'fresh'}, steps = 300
+reference_file = PosixPath('/Users/akashx/Downloads/diss_mat/generalisation-replication-2026-09-07/service_reference.npz')
+write_to = None
+
+    def validate(directory, m, cell, steps, reference_file=None, write_to=None):
+        directory = Path(directory)
+        reference_file = Path(reference_file or ROOT / "service_reference.npz")
+        summary = json.loads((directory / "summary.json").read_text())
+        with np.load(reference_file) as z:
+            work, types = z["service_ms"][:steps], z["task_type"][:steps]
+        with np.load(directory / "per_task.npz") as task:
+            if not np.array_equal(task["task_type"], types):
+                raise RuntimeError("Task-type stream differs from independent reference")
+            admitted = task["task_v2i_admitted"]
+            execution = task["task_execution_rsu"]
+            selected = task["task_selected_execution_rsu"]
+            offered = task["task_ingress_rsu"] &gt;= 0
+        arrays = replay(jnp.asarray(work), jnp.asarray(admitted), jnp.asarray(execution))
+        start, pre, remaining, load, served, substart, increments = [np.asarray(a) for a in arrays]
+        tolerance = m["validation"]
+        with np.load(directory / "per_step.npz") as step:
+            error = float(np.max(np.abs(remaining.astype(np.float64)-step["rsu_busy_ms"])))
+            if error &gt; tolerance["queue_endpoint_atol_ms"]:
+                raise RuntimeError(f"Reconstructed RSU queue endpoint differs by {error} ms")
+            if not np.array_equal(load, step["rsu_load"]):
+                raise RuntimeError("Reconstructed RSU task-count carry differs")
+            pre_error = None
+            if "rsu_pre_drain_busy_ms" in step:
+                pre_error = float(np.max(np.abs(pre.astype(np.float64)-step["rsu_pre_drain_busy_ms"])))
+                if pre_error &gt; tolerance["queue_endpoint_atol_ms"]:
+&gt;                   raise RuntimeError(f"Reconstructed pre-drain work differs by {pre_error} ms")
+E                   RuntimeError: Reconstructed pre-drain work differs by 105.36192321777344 ms
+
+workload_checks.py:96: RuntimeError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/private/var/folders/mw/d73f0mp15rv4n3jygpd8j5mm0000gn/T/pytest-of-akashx/pytest-0/test_work_conservation_detects0')
+
+    def test_work_conservation_detects_removed_admission(tmp_path):
+        import workload_checks
+        root = Path(__file__).resolve().parent
+        pilot = root.parent / "generalisation-pilot-2026-09-07"
+        manifest = json.loads((pilot / "manifest.json").read_text())
+        source = pilot / "preflight/fresh/attempt_001"
+        for name in ("summary.json", "per_step.npz"):
+            shutil.copyfile(source/name, tmp_path/name)
+        with np.load(source/"per_task.npz") as z:
+            arrays = dict(z)
+        where = np.flatnonzero(arrays["task_v2i_admitted"])
+        assert len(where) &gt; 100
+        arrays["task_v2i_admitted"].flat[where[:100]] = False
+        np.savez_compressed(tmp_path/"per_task.npz", **arrays)
+&gt;       with pytest.raises(RuntimeError, match="Reconstructed .* RSU service-work total differs|Reconstructed RSU queue endpoint differs"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'Reconstructed .* RSU service-work total differs|Reconstructed RSU queue endpoint differs'
+E        Input: 'Reconstructed pre-drain work differs by 105.36192321777344 ms'
+
+test_analysis_checks.py:43: AssertionError</failure></testcase></testsuite></testsuites>

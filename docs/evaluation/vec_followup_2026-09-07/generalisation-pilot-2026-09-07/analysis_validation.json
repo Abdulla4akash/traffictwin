@@ -1,0 +1,132 @@
+{
+  "additional_deadline_met_tasks": 51503,
+  "difference_from_ingress_pp": 2.952957257430122,
+  "full_evaluator_wall_s": 313.1,
+  "interpretation": "Descriptive single-draw matched comparison in canonical working-day scenario; no replicate-level interval.",
+  "manifest_sha256": "17e5687b6dc62504a5f64c74165e4d243f2f5d1e91b0fe06a1fd3b43c8259352",
+  "records": {
+    "fresh": {
+      "execution_count_per_rsu": [
+        35139,
+        35307,
+        34933,
+        35135,
+        35540,
+        35140,
+        35134,
+        35302,
+        34872
+      ],
+      "per_type": [
+        {
+          "attainment": 0.8220114884900228,
+          "met": 286919,
+          "offered": 349045,
+          "type": 1
+        },
+        {
+          "attainment": 0.9892000917676749,
+          "met": 517411,
+          "offered": 523060,
+          "type": 2
+        },
+        {
+          "attainment": 0.9582849298919395,
+          "met": 835635,
+          "offered": 872011,
+          "type": 3
+        }
+      ],
+      "summary": {
+        "admitted": 1742275,
+        "avg_energy_j_per_offered_task": 0.5199114838118566,
+        "cap_rejected": 0,
+        "condition": "fresh",
+        "deadline_attainment": 0.9402843618199707,
+        "deadline_met": 1639965,
+        "difference_from_ingress_pp": 2.952957257430122,
+        "forwarded": 280857,
+        "gate_rejected": 417,
+        "offered": 1744116,
+        "v2i_admitted": 316502,
+        "v2i_attempts": 316953,
+        "wall_s": 140.0
+      },
+      "task_outcomes": [
+        9865884,
+        1639965,
+        102310,
+        417,
+        0,
+        192,
+        1198,
+        34,
+        0
+      ],
+      "validation_sha256": "24361b1e581f11934b2c126fe3d11b42fca2a0e69bbe41164cf5e7d1ae44fdb2"
+    },
+    "ingress": {
+      "execution_count_per_rsu": [
+        67635,
+        32134,
+        36103,
+        28486,
+        16631,
+        11912,
+        43476,
+        7279,
+        29661
+      ],
+      "per_type": [
+        {
+          "attainment": 0.7665344010084659,
+          "met": 267555,
+          "offered": 349045,
+          "type": 1
+        },
+        {
+          "attainment": 0.9891867089817612,
+          "met": 517404,
+          "offered": 523060,
+          "type": 2
+        },
+        {
+          "attainment": 0.9214367708664225,
+          "met": 803503,
+          "offered": 872011,
+          "type": 3
+        }
+      ],
+      "summary": {
+        "admitted": 1699090,
+        "avg_energy_j_per_offered_task": 0.5198574808097627,
+        "cap_rejected": 0,
+        "condition": "ingress",
+        "deadline_attainment": 0.9107547892456694,
+        "deadline_met": 1588462,
+        "difference_from_ingress_pp": 0.0,
+        "forwarded": 0,
+        "gate_rejected": 43602,
+        "offered": 1744116,
+        "v2i_admitted": 273317,
+        "v2i_attempts": 316953,
+        "wall_s": 173.1
+      },
+      "task_outcomes": [
+        9865884,
+        1588462,
+        110628,
+        43602,
+        0,
+        192,
+        1198,
+        34,
+        0
+      ],
+      "validation_sha256": "0768f4433453ac802c0fb1c9b4d0c352d96b64f2d3bd003b13f80d2019ac9187"
+    }
+  },
+  "runner_elapsed_s_including_probes_and_validation": 361.525699,
+  "status": "passed",
+  "summary_script_sha256": "65ba27878ed1346bf3722a07cb608a6517e8aee899a9c28a92cae8da6ac22fde"
+}

@@ -1,0 +1,4 @@
+arm,placement,deadline_gate,offered_tasks,admitted_tasks,deadline_met_tasks,offered_deadline_attainment,admitted_deadline_attainment,v2i_admitted,gate_rejected,forwarded
+off,strongest_link,off,13076234,11661973,8939165,0.683619228594,0.766522525820,1818131,0,0
+jsq,inherited_least_busy,off,13076234,12140886,8835373,0.675681775043,0.727737086074,2297044,0,2067204
+dla,common_target_least_busy,on,13076234,10122571,9087197,0.694939919246,0.897716301521,278729,2373522,232729

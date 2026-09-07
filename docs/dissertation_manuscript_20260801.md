@@ -6,6 +6,14 @@
 **Evidence cut-off:** 30 July 2026
 **Prepared:** 1 August 2026
 
+> **7 September 2026 integration note:** this manuscript retains the earlier
+> latency-study framing and 30 July evidence cut-off. Use the
+> [current integrated E0–E2d and follow-up results](dissertation/vec_results_integration_2026-09-07.md)
+> and [evidence map](dissertation/vec_evidence_map_2026-09-07.md) for the later
+> offered-task deadline-attainment programme. The new section is replacement
+> material for a coordinated revision, not an appendix to add to this word count.
+> The historical scientific results below have not been rewritten.
+
 **Working report word count:** **8,396** whitespace-delimited words from Abstract through
 Conclusion, including headings and excluding front matter, references and the evidence map. The
 University template's counter and convention remain authoritative.

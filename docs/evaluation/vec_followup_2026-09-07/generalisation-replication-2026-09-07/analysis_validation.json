@@ -1,0 +1,158 @@
+{
+  "analysis_script_sha256": "e1e5c61581f87f213178743b1bff62e7a209ed74ef0882c4dc18cffa042cb8e2",
+  "full_evaluator_wall_s": 2212.7,
+  "historical_reversal_in_arm_means": true,
+  "historical_reversal_in_individual_draws": 4,
+  "historical_reversal_supported_by_simultaneous_intervals": true,
+  "limits": "Four fleet draws; paired t intervals conditional on distributional assumptions, fixed task seed and canonical Manchester morning scenario. Pilot excluded from primary.",
+  "manifest_sha256": "53327aa7f015d595c17d21f598d4bb1b2cdd21cb1511c2dec706dfc258360fc7",
+  "primary_arm_summary": [
+    {
+      "arm": "ingress",
+      "mean_attainment_pct": 88.88684869584361,
+      "n_fleet_draws": 4,
+      "sd_attainment_pct": 1.0600494046183133
+    },
+    {
+      "arm": "common_target",
+      "mean_attainment_pct": 85.65459522187744,
+      "n_fleet_draws": 4,
+      "sd_attainment_pct": 1.6487400260338212
+    },
+    {
+      "arm": "per_task",
+      "mean_attainment_pct": 92.7853709271631,
+      "n_fleet_draws": 4,
+      "sd_attainment_pct": 0.5617352326739263
+    }
+  ],
+  "primary_contrasts": [
+    {
+      "ci95_high_pp": 4.702695995585062,
+      "ci95_low_pp": 3.0943484670538886,
+      "contrast": "per_task_minus_ingress",
+      "family95_high_pp": 5.125753105350608,
+      "family95_low_pp": 2.671291357288343,
+      "max_pp": 4.523953681979862,
+      "mean_pp": 3.8985222313194754,
+      "min_pp": 3.2861919734696556,
+      "n_fleet_draws": 4,
+      "sd_pp": 0.5053808844664209
+    },
+    {
+      "ci95_high_pp": -2.288968536422015,
+      "ci95_low_pp": -4.175538411510342,
+      "contrast": "common_target_minus_ingress",
+      "family95_high_pp": -1.7927282745586453,
+      "family95_low_pp": -4.671778673373711,
+      "max_pp": -2.5531558680729773,
+      "mean_pp": -3.2322534739661783,
+      "min_pp": -3.9985872499306225,
+      "n_fleet_draws": 4,
+      "sd_pp": 0.5928049349822866
+    },
+    {
+      "ci95_high_pp": 8.87686445619494,
+      "ci95_low_pp": 5.384686954376367,
+      "contrast": "per_task_minus_common_target",
+      "family95_high_pp": 9.795441128524496,
+      "family95_low_pp": 4.466110282046811,
+      "max_pp": 8.522540931910484,
+      "mean_pp": 7.130775705285654,
+      "min_pp": 5.839347841542633,
+      "n_fleet_draws": 4,
+      "sd_pp": 1.097324877412898
+    }
+  ],
+  "primary_paired": [
+    {
+      "common_target_minus_ingress_pp": -3.1569574500778685,
+      "common_target_pct": 85.65961209002153,
+      "fleet_seed": 0,
+      "historical_reversal_order": true,
+      "ingress_pct": 88.8165695400994,
+      "per_task_minus_common_target_pp": 7.045001593930692,
+      "per_task_minus_ingress_pp": 3.8880441438528237,
+      "per_task_pct": 92.70461368395222
+    },
+    {
+      "common_target_minus_ingress_pp": -3.9985872499306225,
+      "common_target_pct": 83.53716151907328,
+      "fleet_seed": 2,
+      "historical_reversal_order": true,
+      "ingress_pct": 87.5357487690039,
+      "per_task_minus_common_target_pp": 8.522540931910484,
+      "per_task_minus_ingress_pp": 4.523953681979862,
+      "per_task_pct": 92.05970245098376
+    },
+    {
+      "common_target_minus_ingress_pp": -3.220313327783245,
+      "common_target_pct": 85.86217889177095,
+      "fleet_seed": 3,
+      "historical_reversal_order": true,
+      "ingress_pct": 89.0824922195542,
+      "per_task_minus_common_target_pp": 7.116212453758806,
+      "per_task_minus_ingress_pp": 3.8958991259755607,
+      "per_task_pct": 92.97839134552976
+    },
+    {
+      "common_target_minus_ingress_pp": -2.5531558680729773,
+      "common_target_pct": 87.55942838664402,
+      "fleet_seed": 4,
+      "historical_reversal_order": true,
+      "ingress_pct": 90.11258425471699,
+      "per_task_minus_common_target_pp": 5.839347841542633,
+      "per_task_minus_ingress_pp": 3.2861919734696556,
+      "per_task_pct": 93.39877622818665
+    }
+  ],
+  "primary_seeds": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "status": "passed",
+  "supplementary_including_pilot": {
+    "maximum_pp": 4.523953681979862,
+    "mean_difference_pp": 3.709409236541606,
+    "minimum_pp": 2.9529572574301284,
+    "rows": [
+      {
+        "difference_pp": 3.8880441438528237,
+        "fleet_seed": 0,
+        "ingress_pct": 88.8165695400994,
+        "per_task_pct": 92.70461368395222,
+        "role": "new primary draw"
+      },
+      {
+        "difference_pp": 2.9529572574301284,
+        "fleet_seed": 1,
+        "ingress_pct": 91.07547892456694,
+        "per_task_pct": 94.02843618199707,
+        "role": "already inspected exploratory pilot"
+      },
+      {
+        "difference_pp": 4.523953681979862,
+        "fleet_seed": 2,
+        "ingress_pct": 87.5357487690039,
+        "per_task_pct": 92.05970245098376,
+        "role": "new primary draw"
+      },
+      {
+        "difference_pp": 3.8958991259755607,
+        "fleet_seed": 3,
+        "ingress_pct": 89.0824922195542,
+        "per_task_pct": 92.97839134552976,
+        "role": "new primary draw"
+      },
+      {
+        "difference_pp": 3.2861919734696556,
+        "fleet_seed": 4,
+        "ingress_pct": 90.11258425471699,
+        "per_task_pct": 93.39877622818665,
+        "role": "new primary draw"
+      }
+    ]
+  }
+}

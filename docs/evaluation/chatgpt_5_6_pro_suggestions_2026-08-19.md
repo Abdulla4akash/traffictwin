@@ -6,6 +6,18 @@
 
 **Purpose:** collect the credible future research directions available from the current TrafficTwin VEC setup, with the research question, hypothesis, proposed design, compute estimate, backend suitability, source of the recommendation, and likely value for publication and the MSc dissertation.
 
+> **Completion overlay, 7 September 2026:** the
+> [private follow-up archive](vec_followup_2026-09-07/README.md) records the
+> completed five-cell incident state-delay pilot, qualified fixed-overhead
+> forwarding sensitivity, two-cell morning pilot and twelve-cell three-arm
+> morning replication. The replication used new fleet seeds 0, 2, 3 and 4,
+> excluding inspected pilot seed 1 from primary inference. It took 41.43 minutes
+> including probes, validation and analysis, excluding preparation and figures.
+> The incident-derived hours-per-cell forecasts below must not be applied to
+> that completed morning campaign. These are bounded implementations of selected
+> directions, not completion of every larger design proposed below. Current
+> findings and limits are in the [integrated dissertation section](../dissertation/vec_results_integration_2026-09-07.md).
+
 ## 1. Current scientific position
 
 E0, E1, E2, E2b, E2c, and E2d are complete. The frozen result already supports a publishable construct-validity and systems-evaluation paper:

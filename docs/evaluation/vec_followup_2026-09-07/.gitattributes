@@ -1,0 +1,8 @@
+# Immutable evidence copies: retain original CRLF, generated SVG whitespace and logs.
+# Current archive documentation and verifiers retain normal whitespace checks.
+state-delay-pilot-2026-09-07/** -text -whitespace
+forwarding-sensitivity-2026-09-07/** -text -whitespace
+generalisation-pilot-2026-09-07/** -text -whitespace
+generalisation-replication-2026-09-07/** -text -whitespace
+historical_e0_e2d/** -text -whitespace
+frozen_evaluator/** -text -whitespace

@@ -1,0 +1,124 @@
+{
+  "actor": {
+    "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+    "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+  },
+  "audit_script_sha256": "33196e3d3052ae37c2e49cf1d2295a8f4574886e4362f35d471f5cb4043429a5",
+  "cells": [
+    {
+      "delay_ms": 0,
+      "mode": "per_task_dla",
+      "name": "fresh"
+    },
+    {
+      "delay_ms": null,
+      "mode": "ingress_dla",
+      "name": "ingress"
+    }
+  ],
+  "code_checkout": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run",
+  "code_commit": "908bd10f86542de94fc38af90dd56c2ccc08cf9b",
+  "comparison": "Fresh per-task least-busy minus ingress DLA, percentage points of all offered-task deadline attainment.",
+  "concurrency": 1,
+  "created_at_utc": "2026-09-07T09:56:35.888415+00:00",
+  "differences_from_incident": {
+    "capacity": "fixed absolute 6220; avoids unintended reduction to 538 from the old 2.5-times-N command",
+    "date_window": "working-day 2024-10-15 08:00\u201311:00 vs incident 2024-03-15 20:00\u201321:00",
+    "duration_steps": [
+      10800,
+      3600
+    ],
+    "fleet_draw": "same seed and preset; different padded fleet width means different realised fleet, paired only within each scenario",
+    "rsu_positions": "canonical morning layout rather than incident-specific layout",
+    "rsus": [
+      9,
+      10
+    ],
+    "vehicle_queue_reset": "canonical enter markers and deterministic slot assignment; old incident used legacy trace without entry markers",
+    "vehicle_slots": [
+      215,
+      2488
+    ]
+  },
+  "environment": {
+    "JAX_ENABLE_X64": "false",
+    "JAX_PLATFORMS": "cpu",
+    "PYTHONHASHSEED": "0",
+    "VEC_JAX_K_MAX": "5",
+    "VEC_JAX_K_MIN": "0",
+    "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+    "VEC_JAX_MODEL_C": "1",
+    "VEC_JAX_PRIORITY_ALPHA": "0",
+    "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+    "VEC_JAX_STRESS_ARRIVAL": "1",
+    "VEC_JAX_STRESS_LANES": "0",
+    "VEC_JAX_STRESS_SPEED": "0"
+  },
+  "evaluator_seed": 0,
+  "fixed_controls": {
+    "actor": "frozen baseline onehot17 seed100",
+    "admission": "inherited live backlog-only strict deadline gate plus capacity admission",
+    "forwarding_ms": 0,
+    "lambda_arrival": 1.5,
+    "queue": "sequential 3 iterations; explicit rejection; vehicle queue conserved; per-visit reset enabled; SoC not reset on entry",
+    "rsu_capacity_tasks": 6220,
+    "rsu_service_multiplier": 1,
+    "scaling": "off",
+    "state_delay_ms": 0,
+    "training_configuration": "Model C phase4_iid synthetic mobility; MAPPO 128 environments, learning rate 0.003, 25k episodes (recorded source docs/DATA_CONVENTIONS.md)"
+  },
+  "fleet": "uk2030",
+  "fleet_seed": 1,
+  "input_validation_sha256": "0da9f36901216ffc68fbb282f1cea26ad751ac549dfa2992959e2ab39fbff71a",
+  "maxN": 215,
+  "max_cell_wall_seconds": 10800,
+  "minimum_free_bytes": 21474836480,
+  "original_harness": {
+    "path": "/Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/run_pilot.py",
+    "sha256": "9733790811aa2ec393256fdfa3547c7f2451aa3ab37642a7b29e3b29c20cc17c"
+  },
+  "preflight_steps": 300,
+  "primary_outcome": "deadline-met / all offered tasks",
+  "python": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+  "resume": "Only completed validated cells may be reused after hash verification. Incomplete cells restart in a new attempt; no within-cell checkpoints.",
+  "rsu_capacity_tasks": 6220,
+  "rsus": 9,
+  "runner_sha256": "3f41f64ba699ee7f71f21b85283fa1f06a056bf8374d1e7933f5d84e41a6f3c1",
+  "runtime": {
+    "machine": "arm64",
+    "packages": {
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "ml_dtypes": "0.5.4",
+      "numpy": "1.26.4",
+      "opt_einsum": "3.4.0",
+      "scipy": "1.17.1"
+    },
+    "python": "3.11.15"
+  },
+  "schema_version": "working_day_matched_generalisation_pilot_v1",
+  "scope": "Exploratory two-arm, one-fleet-draw scenario transfer within Manchester. Full 15 October 2024 08:00\u201311:00 morning trace; no independent geographic generalisation or replicate-level inference.",
+  "selection": "Canonical full working-day AM trace chosen before scheduler outcome inspection; shorter complete ordinary-traffic window with verified source data.",
+  "source_sha256": {
+    "eval/e2d_per_task_placement.py": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09",
+    "eval/eval_sumo_stage1_mc.py": "2824d9c2ef09e7748cd420d1ab2f0526d28157b8986605dc831397b6c618c07e",
+    "eval/rsu_state_delay.py": "b4cf128d3eddf2fb11b0d58dde790c7441a38cfdd12fc82859e7c5a1c6d4f751",
+    "jaxmarl/env/vec_jax.py": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+  },
+  "steps": 10800,
+  "stopping": "Stop on input/source/runtime identity drift, failed probe, failed pairing, count/accounting failure, insufficient free disk, evaluator error or three-hour cell timeout. Preserve failed attempts; no automatic retries.",
+  "trace": {
+    "path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+    "sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628"
+  },
+  "validation": {
+    "accumulated_work_atol_ms": 1,
+    "accumulated_work_rtol": 0.0001,
+    "actor_actions": "exact",
+    "actor_logit_atol": 1e-05,
+    "queue_endpoint_atol_ms": 0.1,
+    "task_fleet_identity": "exact",
+    "tolerances": "Declared before launch. Floating aggregate ledger check supplements independent endpoint conservation; no tolerances for task counts, report ages or action identity."
+  },
+  "validation_policy": "Declare tolerances before runs. Validate both 300-step probes and matched identities before full runs. Preserve exact task counts, actions, task types, ingress and fleet across arms; actor logits atol 1e-5. Fresh RSU endpoint conservation and independent task taxonomy. Full task prefix must equal same-arm probe."
+}

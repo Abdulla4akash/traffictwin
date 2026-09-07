@@ -1,0 +1,3 @@
+condition,offered,deadline_met,deadline_attainment,admitted,v2i_attempts,v2i_admitted,forwarded,gate_rejected,cap_rejected,avg_energy_j_per_offered_task,wall_s,difference_from_ingress_pp
+fresh,1744116,1639965,0.9402843618199707,1742275,316953,316502,280857,417,0,0.5199114838118566,140.0,2.952957257430122
+ingress,1744116,1588462,0.9107547892456694,1699090,316953,273317,0,43602,0,0.5198574808097627,173.1,0.0

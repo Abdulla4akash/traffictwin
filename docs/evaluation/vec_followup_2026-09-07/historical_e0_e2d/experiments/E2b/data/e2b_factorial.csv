@@ -1,0 +1,5 @@
+placement,deadline_gate,arm,offered_deadline_attainment
+strongest_link,off,off,0.683619228594
+inherited_least_busy,off,jsq,0.675681775043
+strongest_link,on,ingress_dla,0.715773211155
+common_target_least_busy,on,dla,0.694939919246

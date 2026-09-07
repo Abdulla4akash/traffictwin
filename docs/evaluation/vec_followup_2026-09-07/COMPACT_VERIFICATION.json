@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "full_runs": 12,
+  "preflight_probes": 12,
+  "historical_reversal_draws": 4,
+  "contrasts": [
+    {
+      "contrast": "per_task_minus_ingress",
+      "mean_pp": 3.8985222313194754
+    },
+    {
+      "contrast": "common_target_minus_ingress",
+      "mean_pp": -3.2322534739661783
+    },
+    {
+      "contrast": "per_task_minus_common_target",
+      "mean_pp": 7.130775705285654
+    }
+  ],
+  "pilot_kept_separate": true,
+  "state_delay_rows": 5,
+  "forwarding_rows": 5,
+  "scope": "Compact arithmetic, saved controls and receipts; no new raw-array reanalysis or simulations",
+  "verifier_sha256": "3775c2318520db7f4c87059ce923d2126025aeb416176cafa1a71c94f2bc6583",
+  "historical_statistics": "PASS: 5 statistical checks\n  E1 mean=-0.000109435178, CI=[-0.000246462456, 0.000027592099]\n  E2b interaction=-0.012895838358\n  E2c mean=-0.021222260936, CI=[-0.022335254070, -0.020109267801]\n  E2d primary mean=0.005271433656, CI=[0.004422143925, 0.006120723387]\n  E2d secondary mean=0.026493694591, CI=[0.026210763951, 0.026776625232]\n"
+}

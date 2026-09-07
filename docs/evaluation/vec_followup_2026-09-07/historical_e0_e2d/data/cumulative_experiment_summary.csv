@@ -1,0 +1,7 @@
+study,question,replication,intervention,primary_contrast,mean_difference,ci_lower,ci_upper,status
+E0,Can evaluator accounting be trusted?,validation,accounting_and_conservation,,,,,closed_validity_foundation
+E1,Does larger waiting-room capacity help?,5_fleet_draws,queue_cap,40x_minus_0p75_offered_attainment,-0.000109435178,-0.000246462456,0.000027592099,inconclusive_at_this_replication_size
+E2,Does inherited least-busy placement help?,1_fleet_draw,infrastructure_placement,jsq_minus_off_offered_attainment,-0.007937453551,,,descriptive_pilot
+E2b,Placement or admission?,1_fleet_draw,factorial_missing_cell,dla_minus_ingress_dla_offered_attainment,-0.020833291910,,,hypothesis_generating
+E2c,Does the common-target same-gate deficit replicate?,4_new_fleet_draws,common_target_per_substep_placement,dla_minus_ingress_dla_offered_attainment,-0.021222260935,-0.022335254070,-0.020109267800,bounded_matched_replication
+E2d,Does the result survive per-task dispatch?,4_matched_fleet_draws,per_task_sequential_placement,per_task_dla_minus_ingress_dla_offered_attainment,0.005271433656,0.004422143925,0.006120723387,bounded_construct_validity_result

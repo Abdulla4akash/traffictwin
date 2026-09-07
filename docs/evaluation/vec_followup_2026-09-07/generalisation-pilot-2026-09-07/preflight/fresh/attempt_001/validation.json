@@ -1,0 +1,28 @@
+{
+  "condition": {
+    "delay_ms": 0,
+    "mode": "per_task_dla",
+    "name": "fresh"
+  },
+  "input_identity": {
+    "slot_is_ev": "6535cf6ec442d02d3aba65c629960a6d1cc1194bb0b4bb80065053d2e689c96c",
+    "slot_tier": "4c1a6dd0864958508f0b7be8e75b0d7ecf9b307964077f12455a699e78e52e19",
+    "task_active": "5e777872c78ebae8f8f87d3bc764f889efc3f9333e39a34b040cbaaf4f135818",
+    "task_ingress_rsu": "9528a2b9a2d27a81081ac349e2dcde5a3f5fc865d77746ae7d22316ed6396efd",
+    "task_type": "9061cc84f54cde99a85aead840e2fad9075cca292b38bf6fea49b7db804d90c7",
+    "veh_action": "3147f7433a84e36af091534f228ada7cc72517944e037014b873c7de946f3f1f",
+    "veh_k": "7069373b36c08934abd44643c6430705602f8078be07ca2f3bb7295516bc0e58"
+  },
+  "reference": null,
+  "sha256": {
+    "command.json": "d63ccd202f3a7abbf03897c1c01a6b293df469ed0c6d6d7d112c3d9f1f47a150",
+    "per_step.npz": "7c1ca71ff11b523efe8cf008290f0a9c53181f266d40233d09b52bfd81972712",
+    "per_task.npz": "7d4e434203146029e26e9347379c807a5d04f6af772296db6679359e2d8651ad",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "2616d473e07cf7bd5cb168ca666b4cf67dec4576e3306bc49307941930df59aa",
+    "summary.json": "0c5958fa64cddfc3c643caea66556a14db8d59664ba7c8f4a4dc32d195965232"
+  },
+  "status": "passed",
+  "steps": 300,
+  "validated_at": "2026-09-07T09:57:48.063045+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "analysis_sha256": "f08018f1330474db43f214c182749aaed17e4bcdb4fc322e58a62ec0acc8158b",
+  "campaign_elapsed_minutes": 41.43436118333333,
+  "figure_visual_review": "passed: both PNG figures inspected; matching SVG exports included",
+  "final_verification": "source identities, archived-output hashes, draw-level arithmetic and report links passed",
+  "full_runs": 12,
+  "manifest_sha256": "53327aa7f015d595c17d21f598d4bb1b2cdd21cb1511c2dec706dfc258360fc7",
+  "pilot_seed_excluded_from_primary": 1,
+  "preflight_probes": 12,
+  "primary_seeds": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "publication_summary_sha256": "d8b61027b0a821711b48b6264846d1a1985b9c6129c12fabb26241931c6c7937",
+  "status": "complete"
+}

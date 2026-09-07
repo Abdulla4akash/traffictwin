@@ -1,0 +1,4 @@
+cap_label,cap_tasks_per_rsu,n_fleet_draws,mean_admitted_tasks,mean_admitted_latency_ms,mean_offered_deadline_attainment,mean_admitted_deadline_attainment,mean_rejected_or_unavailable_tasks
+0.75x,1866,5,11587059.2,3770.000152797262,0.678273729271,0.765446543477,1489174.8
+2.5x,6220,5,11617138.0,12191.437405783781,0.678164294093,0.763340848967,1459096.0
+40x,99520,5,12108173.8,132488.3923597738,0.678164294093,0.732369756373,968060.2

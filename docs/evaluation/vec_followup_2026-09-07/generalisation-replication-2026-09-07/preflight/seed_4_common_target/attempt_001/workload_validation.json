@@ -1,0 +1,85 @@
+{
+  "admitted_summary_difference_ms": 0.0037665367126464844,
+  "admitted_work_ms": 118024.57407903671,
+  "admitted_work_ms_per_rsu": [
+    57275.50134277344,
+    36358.264377593994,
+    16344.631402730942,
+    6144.979026079178,
+    1901.1979155540466,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "admitted_work_share_per_rsu": [
+    0.48528454177144664,
+    0.3080567302674864,
+    0.1384849852859167,
+    0.05206525060373369,
+    0.01610849207141657,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "balance_error_ms": 1.430511474609375e-05,
+  "common_target_checks": {
+    "maximum_excess_above_minimum_ms": 0.0,
+    "single_destination_per_substep": "exact"
+  },
+  "final_remaining_ms": 0.0,
+  "maximum_post_batch_workload_ms_per_rsu": [
+    392.7139892578125,
+    299.4064636230469,
+    179.25595092773438,
+    136.8867645263672,
+    74.58888244628906,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "maximum_pre_drain_error_ms": null,
+  "maximum_queue_endpoint_error_ms": 0.0,
+  "mean_post_batch_workload_ms_per_rsu": [
+    190.9183378092448,
+    121.19421459197999,
+    54.482104675769804,
+    20.483263420263928,
+    6.337326385180155,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "offered_work_ms": 133078.87082123756,
+  "p95_post_batch_workload_ms_per_rsu": [
+    296.3237930297852,
+    215.31781845092777,
+    119.33223114013673,
+    65.31583938598638,
+    36.76778030395508,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "served_work_ms": 118024.5740647316,
+  "service_reference_sha256": "f76a95735ce38fcdcd95dc8cbcd44c2d0dbaae7a52dd48c99bbef0d061f74887",
+  "service_utilisation_per_rsu": [
+    0.1909183378092448,
+    0.12119421459197999,
+    0.054482104675769805,
+    0.020483263420263926,
+    0.006337326385180155,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "status": "passed",
+  "steps": 300,
+  "task_count_carry": "exact",
+  "workload_check_script_sha256": "5c9ecb9e9e6f7bef3e7fa64a561050df8c2b4378553fe6490da743f55c697b00"
+}

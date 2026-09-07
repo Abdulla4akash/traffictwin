@@ -1,0 +1,13 @@
+{
+  "launched_at_utc": "2026-09-07T00:04:34.493099+00:00",
+  "launcher_pid": 40842,
+  "command": [
+    "/usr/bin/caffeinate",
+    "-is",
+    "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+    "-u",
+    "/Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/run_pilot.py"
+  ],
+  "status_file": "/Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/status.json",
+  "log_file": "/Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/pilot.log"
+}

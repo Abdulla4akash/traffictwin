@@ -1,0 +1,31 @@
+{
+  "condition": {
+    "delay_ms": null,
+    "fleet_seed": 3,
+    "id": "seed_3_common_target",
+    "mode": "dla",
+    "name": "common_target"
+  },
+  "input_identity": {
+    "slot_is_ev": "ffd7069aa3ce2c4ed31d4cc18a85d7e643a94c52d19e74be312abc413d2e231e",
+    "slot_tier": "7db9e51c8c65249d102adfc1683d461e78dbfa3feb737fa8aa2cf8e221ece516",
+    "task_active": "5e777872c78ebae8f8f87d3bc764f889efc3f9333e39a34b040cbaaf4f135818",
+    "task_ingress_rsu": "94334da005a7d39cf5ab1843a4b60492f0eaa0f691c45ffbfdfc8b24bca54895",
+    "task_type": "9061cc84f54cde99a85aead840e2fad9075cca292b38bf6fea49b7db804d90c7",
+    "veh_action": "f3b16587b1022cb00684543d57a778e4a5b94d25c0be3fb7ff63594b4e4140d6",
+    "veh_k": "7069373b36c08934abd44643c6430705602f8078be07ca2f3bb7295516bc0e58"
+  },
+  "reference": "/Users/akashx/Downloads/diss_mat/generalisation-replication-2026-09-07/preflight/seed_3_per_task/attempt_001",
+  "sha256": {
+    "command.json": "63a4691c718c59bcd19ab5d074f93ccf4e0ace553604d3f81088887ee588507e",
+    "per_step.npz": "37141fc4fd7cdb0215a56a8d97f4140add655c3d7967ef967d6e041a7cba05f5",
+    "per_task.npz": "994af8331ca8e0df86a36ecc978b4ddec6f9caf8a0544bf73d5552e97c0525a0",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "b886a0085ac31a347621f95b9cbb2c5944811fb7b2e6d34ae0c87d4c8080c5fc",
+    "summary.json": "6739fc9f8f1d056083be6bcf124ef00865a8bcf8a8d62be87d787193639fc366",
+    "workload_validation.json": "eda675a4872cb110297a9280041c6e4f7a2df7a2a03044115b2a6c81016fc17b"
+  },
+  "status": "passed",
+  "steps": 300,
+  "validated_at": "2026-09-07T10:32:10.674156+00:00"
+}

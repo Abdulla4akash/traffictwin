@@ -477,6 +477,8 @@ This index points only to documentation and repository paths that exist in the c
 
 ## Evaluation And Reproducibility
 
+- [Completed VEC follow-ups: private evidence archive (7 September 2026)](evaluation/vec_followup_2026-09-07/README.md)
+- [Four-draw, three-arm morning replication: results and figures](evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/PUBLICATION_SUMMARY.md)
 - [Reproducibility guide](reproducibility.md)
 - [Testing strategy](testing_strategy.md)
 - [Common-seed paired statistical studies](statistical_studies.md)
@@ -497,7 +499,10 @@ This index points only to documentation and repository paths that exist in the c
 
 ## Dissertation Support
 
-- [Complete dissertation manuscript: auditable QoS metric reversal (1 August 2026)](dissertation_manuscript_20260801.md)
+- [Current integrated VEC evaluation: E0–E2d and completed follow-ups (7 September 2026)](dissertation/vec_results_integration_2026-09-07.md)
+- [September VEC evidence map and manuscript integration boundaries](dissertation/vec_evidence_map_2026-09-07.md)
+- [Sandra/Randy follow-up update: draft, not sent](correspondence/sandra_randy_vec_followup_update_draft_2026-09-07.md)
+- [Historical dissertation manuscript: earlier QoS metric reversal framing (1 August 2026)](dissertation_manuscript_20260801.md)
 - [Dissertation literature and claim matrix (100-source audit, 2 August 2026)](dissertation_literature_matrix_20260801.md)
 - [Dissertation BibTeX source (100 verified candidates, 2 August 2026)](dissertation_references_20260802.bib)
 - [Supervisor checkpoint deck (editable PowerPoint, 2 August 2026)](presentations/traffictwin_supervisor_checkpoint_20260802.pptx)

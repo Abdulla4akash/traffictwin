@@ -6,6 +6,16 @@
 
 **Purpose:** state what can be written now as near-final dissertation prose, what must remain provisional, how the report should be structured, and which claims are allowed. This document is about the MSc report. It does not authorise a new scientific campaign.
 
+> **Completed-evidence update, 7 September 2026:** the state-delay pilot,
+> fixed-overhead forwarding sensitivity, morning pilot and twelve-run morning
+> replication are now complete. See the [integrated results section](vec_results_integration_2026-09-07.md),
+> [source evidence map](vec_evidence_map_2026-09-07.md) and
+> [private archive](../evaluation/vec_followup_2026-09-07/README.md).
+> The new replication excludes its inspected pilot from primary inference.
+> Earlier references below to these studies as optional/unrun describe the
+> 19 August planning state; use the linked records for their completed scope
+> and limitations. Rubric, structure and word limits remain applicable.
+
 ---
 
 ## 1. Binding rubric facts

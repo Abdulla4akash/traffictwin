@@ -1,0 +1,9 @@
+2026-09-07T09:57:32.966140+00:00 Starting fresh (300 simulated seconds): /Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/preflight/fresh/attempt_001
+2026-09-07T09:57:48.063293+00:00 Validated fresh (300 simulated seconds)
+2026-09-07T09:57:48.095943+00:00 Starting ingress (300 simulated seconds): /Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/preflight/ingress/attempt_001
+2026-09-07T09:58:03.199910+00:00 Validated ingress (300 simulated seconds)
+2026-09-07T09:58:03.228157+00:00 Starting fresh (10800 simulated seconds): /Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001
+2026-09-07T10:00:33.654958+00:00 Validated fresh (10800 simulated seconds)
+2026-09-07T10:00:33.756119+00:00 Starting ingress (10800 simulated seconds): /Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001
+2026-09-07T10:03:34.401608+00:00 Validated ingress (10800 simulated seconds)
+2026-09-07T10:03:34.462095+00:00 Completed pilot. Report: /Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/RESULTS.md

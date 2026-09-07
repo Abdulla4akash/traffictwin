@@ -1,0 +1,13 @@
+2026-09-07T00:04:35.197705+00:00 Starting ingress_smoke (10 simulated seconds): /Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/preflight/attempt_001
+2026-09-07T00:05:05.236304+00:00 Validated ingress_smoke (10 simulated seconds)
+2026-09-07T00:05:05.312951+00:00 Starting fresh (3600 simulated seconds): /Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001
+2026-09-07T01:54:42.374743+00:00 Validated fresh (3600 simulated seconds)
+2026-09-07T01:54:42.507904+00:00 Starting delay_100 (3600 simulated seconds): /Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001
+2026-09-07T03:48:20.775572+00:00 Validated delay_100 (3600 simulated seconds)
+2026-09-07T03:48:20.902508+00:00 Starting delay_500 (3600 simulated seconds): /Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001
+2026-09-07T05:43:14.113714+00:00 Validated delay_500 (3600 simulated seconds)
+2026-09-07T05:43:14.247681+00:00 Starting delay_1000 (3600 simulated seconds): /Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001
+2026-09-07T07:23:06.128040+00:00 Validated delay_1000 (3600 simulated seconds)
+2026-09-07T07:23:06.239577+00:00 Starting ingress (3600 simulated seconds): /Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001
+2026-09-07T09:05:11.220228+00:00 Validated ingress (3600 simulated seconds)
+2026-09-07T09:05:11.226570+00:00 Completed pilot. Report: /Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/RESULTS.md

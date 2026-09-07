@@ -1,0 +1,93 @@
+{
+  "active_vehicle_seconds": 1166439,
+  "active_vehicles": {
+    "maximum": 215,
+    "mean": 108.00361111111111,
+    "minimum": 64
+  },
+  "canonical_occupancy": {
+    "path": "/Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/occupancy_wd_am_canonical.csv",
+    "sha256": "9cd12fef84756152fce0863a01cddc5f9e5b05f130847c630d5f2684506c42fb"
+  },
+  "date": "2024-10-15",
+  "fcd_positions_speed_mask_enter_timestamps": "exact_all_10800_rows",
+  "geometric_coverage_at_500m": 1.0,
+  "immediate_slot_handovers": 1722,
+  "interpretation": "Same-region scenario transfer, not independent geography or traffic-only intervention. Nine RSUs and per-visit vehicle-queue reset differ from the old incident trace; both new comparison arms share them. Geometric coverage is not a guaranteed radio admission rate.",
+  "legacy_comparison": {
+    "active_counts_per_second": "exact",
+    "note": "Legacy slot order differs; do not use its occupancy table with canonical arrays.",
+    "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_wd_am_fullrsu.npz",
+    "per_array_equal": {
+      "T": true,
+      "dt": true,
+      "mask": false,
+      "maxN": true,
+      "pos_x": false,
+      "pos_y": false,
+      "rsu_xy": true,
+      "speed": false,
+      "sumo_seed": true,
+      "times": true,
+      "window": true
+    },
+    "sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee"
+  },
+  "local_window": "08:00\u201311:00",
+  "maxN": 215,
+  "maximum_nearest_rsu_distance_m": 467.9662215213419,
+  "rsu_xy": [
+    [
+      1525.0,
+      775.0
+    ],
+    [
+      775.0,
+      1075.0
+    ],
+    [
+      525.0,
+      425.0
+    ],
+    [
+      2025.0,
+      1075.0
+    ],
+    [
+      1175.0,
+      75.0
+    ],
+    [
+      75.0,
+      925.0
+    ],
+    [
+      725.0,
+      1425.0
+    ],
+    [
+      25.0,
+      175.0
+    ],
+    [
+      1725.0,
+      525.0
+    ]
+  ],
+  "rsus": 9,
+  "selection": "Full canonical working-day morning window; chosen before scheduler outcomes",
+  "sources": {
+    "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/PROVENANCE.md": "013b9a07c47585ee448b0f1dbe9168d9fc6e886933a611ae6531337d57a01140",
+    "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/README.md": "c8bb34f5929cffc460c3a68b36c44dabeeffd77aa58bde6d149ce729d30ea0da",
+    "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/SHA256SUMS": "690a35f2f008fd79f0cfac6decba914bce9cb151fbfa020419f1f92d97e43e38",
+    "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/fcd_wd_am_0800_1100.xml.gz": "26a0d0d6b0d1f532db4ddfe68361f96c84de9647e3eb6ff99cb20b6a3ad8a0eb"
+  },
+  "status": "passed",
+  "steps": 10800,
+  "sumo_seed": 42,
+  "trace": {
+    "path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+    "sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628"
+  },
+  "visit_count": 5381
+}

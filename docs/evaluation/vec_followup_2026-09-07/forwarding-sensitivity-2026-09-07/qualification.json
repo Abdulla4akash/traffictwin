@@ -1,0 +1,74 @@
+{
+  "created_at_utc": "2026-09-07T09:37:24.331502+00:00",
+  "direct_probes": [
+    {
+      "cost_ms": 1,
+      "deadline_met": 26936,
+      "evaluator_wall_s": 12.6,
+      "files_sha256": {
+        "command.json": "405fbce862516a1b17ad0f096b01069e28f3f17c388925f064528e0fb8043a5d",
+        "per_step.npz": "d91875e83dfe8afa44f9879dad40f39a0c24229a0b8088dbe3f256e3fe7fd803",
+        "per_task.npz": "01a7d07d122f5ec7a35814ffdb21b335fba0c65e3db991cc60f2fe0067da0161",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.log": "7c2ab7e9ecc98da9ea9d70b3820786abcdf7d658dfc2aadce5a2fa4f531b9f5c",
+        "summary.json": "4839f11553adb8b6b36daadfdaccebf72dd73f55a2fdb8cd622ba098d34eef7e"
+      },
+      "latency_and_outcomes": "shape_dtype_bytes_exact",
+      "status": "passed",
+      "unchanged_state_fields": "all_existing_fields_except_done_veh_done_lat_sum_exact"
+    },
+    {
+      "cost_ms": 2.5,
+      "deadline_met": 26931,
+      "evaluator_wall_s": 12.8,
+      "files_sha256": {
+        "command.json": "0493503c742f5c748f25cb08865c4a062f1e97a303f179795ffdbdbda89281fb",
+        "per_step.npz": "b94a2733b7c7b1e175237e10e99dc45e0ea68a26ddd5da2d24aa5c1a0fcd1521",
+        "per_task.npz": "6cf15bd0f434a73267709aeb74f8f15741a988d7e0404218860c5e8f35f1c8d5",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.log": "560b32df68a39eb6ce8d1d01cfe3c73f871a32429b2d051312607b607ee05708",
+        "summary.json": "d0a2b5c23c59b634d372321e583a551baca8a45eec149678a21725014447c357"
+      },
+      "latency_and_outcomes": "shape_dtype_bytes_exact",
+      "status": "passed",
+      "unchanged_state_fields": "all_existing_fields_except_done_veh_done_lat_sum_exact"
+    },
+    {
+      "cost_ms": 5,
+      "deadline_met": 26914,
+      "evaluator_wall_s": 13.8,
+      "files_sha256": {
+        "command.json": "a290137b3346f45ee457407c87f3437a24a96ea7287cff92aa87a9e09125fc17",
+        "per_step.npz": "61f676e0a9eb2a363400da134507e2720bbc37e72769e9b1249fe1ce9132617e",
+        "per_task.npz": "8ab1907b0017b1a90211603f3f1b0d2da14704adb966cdcca3d46d915313d9c1",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.log": "e1a955d19fdf20818edf2fb0d84c0cbb7593664c9d0bcd5ab3c8b5778ac77edd",
+        "summary.json": "945adf7d2cbd881b27dbed07f84f8a5228046957f098969906221862d822b5a6"
+      },
+      "latency_and_outcomes": "shape_dtype_bytes_exact",
+      "status": "passed",
+      "unchanged_state_fields": "all_existing_fields_except_done_veh_done_lat_sum_exact"
+    },
+    {
+      "cost_ms": 10,
+      "deadline_met": 26879,
+      "evaluator_wall_s": 13.2,
+      "files_sha256": {
+        "command.json": "ebdf24a24dddf24a47abd6995354f77dbbbf2fc3ce0027bf6ddf310d5409624f",
+        "per_step.npz": "5edea0d51d5faaae2a8abfd87f470115f14a2636ee597581a743b626dee23c17",
+        "per_task.npz": "ffeaa77a03498522cf5fafac41833da05a75fed91845e8f2890da712951ba85a",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.log": "48e2d4af88ce72116333e4f5e3c4f67c019f4554f6aa7426b03de1e89ccf3150",
+        "summary.json": "1c1a232633b121f886bf40c2ebf1ba2345ef9b457cb413893e50bb35ca284a32"
+      },
+      "latency_and_outcomes": "shape_dtype_bytes_exact",
+      "status": "passed",
+      "unchanged_state_fields": "all_existing_fields_except_done_veh_done_lat_sum_exact"
+    }
+  ],
+  "full_run_prefix": "exact",
+  "manifest_sha256": "7230e5284b290879da99f4532574ec564c5b12f64a6d289d7debb8c5fabe1bda",
+  "script_sha256": "afba67ffdf1d37e2d13ef86e254cb751070181f168b51ef884b8c49230aedca9",
+  "status": "passed",
+  "zero_reconstruction": "exact"
+}

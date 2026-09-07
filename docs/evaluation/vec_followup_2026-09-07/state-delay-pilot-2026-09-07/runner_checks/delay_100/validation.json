@@ -1,0 +1,25 @@
+{
+  "condition": {
+    "delay_ms": 100,
+    "mode": "per_task_dla",
+    "name": "delay_100"
+  },
+  "input_identity": {
+    "slot_is_ev": "5bde530779fc991db70929e4de53b6c12e03bcb39dcb8f517aa5cf3673a07d71",
+    "slot_tier": "42f89d67d7df0a468cd3174e6af91778cea93698b9a7e758229bf32c12ef72e0",
+    "task_active": "10e47b930986497570a309261ae5ccae7925df288f6df38c5ee4b5d775b01d13",
+    "task_ingress_rsu": "bee03c32018cca7119d9b215fa2c1d15b583e9607731a12f7e16f1b183076507",
+    "task_type": "65e516181c66c82dab267e12f86ad564204c108a21d17d00fcf0e8b6c6f6488f",
+    "veh_action": "379b9311417fcf5eb74c6ff496b2e60a2c31ef5d7c3c95a4bf1c64df6f6d65ff",
+    "veh_k": "ae80c2bdad6d8075b53175d37b2862feed9605549a7e7b4613f1eecce73efad3"
+  },
+  "reference": "/Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/runner_checks/fresh",
+  "sha256": {
+    "per_step.npz": "c357cc0a273563cdc4d51f2624f90ada20d96ed2e206616362d330b7d53abc2b",
+    "per_task.npz": "8844c80049ab229cc7fc7128563c042df56d5c40d30e632cc2949c4a85a4f83f",
+    "summary.json": "b0835f248e3d5f3ddb9806579c0d6b64299bb9b5f45c4334b8eac1187d0aee35"
+  },
+  "status": "passed",
+  "steps": 10,
+  "validated_at": "2026-09-07T00:03:56.190721+00:00"
+}

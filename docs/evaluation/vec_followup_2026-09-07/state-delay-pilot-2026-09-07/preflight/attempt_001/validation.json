@@ -1,0 +1,28 @@
+{
+  "condition": {
+    "delay_ms": null,
+    "mode": "ingress_dla",
+    "name": "ingress_smoke"
+  },
+  "input_identity": {
+    "slot_is_ev": "5bde530779fc991db70929e4de53b6c12e03bcb39dcb8f517aa5cf3673a07d71",
+    "slot_tier": "42f89d67d7df0a468cd3174e6af91778cea93698b9a7e758229bf32c12ef72e0",
+    "task_active": "10e47b930986497570a309261ae5ccae7925df288f6df38c5ee4b5d775b01d13",
+    "task_ingress_rsu": "bee03c32018cca7119d9b215fa2c1d15b583e9607731a12f7e16f1b183076507",
+    "task_type": "65e516181c66c82dab267e12f86ad564204c108a21d17d00fcf0e8b6c6f6488f",
+    "veh_action": "379b9311417fcf5eb74c6ff496b2e60a2c31ef5d7c3c95a4bf1c64df6f6d65ff",
+    "veh_k": "ae80c2bdad6d8075b53175d37b2862feed9605549a7e7b4613f1eecce73efad3"
+  },
+  "reference": null,
+  "sha256": {
+    "command.json": "751eb1424370fb96a6f2cd4addeb54d9c5c35641b5832a41d71e7217cb982dde",
+    "per_step.npz": "fb7ab4ace99946f2e4c14bf784dcfdce1130087ca0a1d7a30ec4c21509e8abcf",
+    "per_task.npz": "318788eefcf8016943b1f671a1e616f21fb7f0d77aa52271fad43178603dfcc5",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "5323315eac5d82269c71b2bf9f1a8eaab7b023c738f695fbfc522da33651682e",
+    "summary.json": "f36885ceb6d12f86b22d87321084c4da23f345e382573e878150ae62c19709b8"
+  },
+  "status": "passed",
+  "steps": 10,
+  "validated_at": "2026-09-07T00:05:05.235703+00:00"
+}
