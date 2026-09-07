@@ -2,6 +2,14 @@
 
 This index points only to documentation and repository paths that exist in the current project.
 
+## Complete dissertation draft — 7 September 2026
+
+- [Complete revised TrafficTwin dissertation and checks](dissertation/complete_draft_2026-09-07/README.md)
+- [Editable full manuscript](dissertation/complete_draft_2026-09-07/TrafficTwin_Dissertation.md)
+- [Review PDF](dissertation/complete_draft_2026-09-07/TrafficTwin_Dissertation.pdf)
+
+This whole-report revision uses evidence baseline `04f3b6a`; the historical August manuscript and original experimental artifacts remain preserved. The earlier September results integration is supporting material, not an extra chapter to append to the complete draft.
+
 ## Getting Started
 
 - [Root README](../README.md)

@@ -1,0 +1,4 @@
+# ReportLab's ASCII-encoded PDF is a binary artifact, not source text.
+*.pdf binary
+# The cover uses intentional two-space Markdown hard line breaks.
+TrafficTwin_Dissertation.md whitespace=-blank-at-eol

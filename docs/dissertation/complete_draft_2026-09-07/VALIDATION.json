@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "evidence_baseline": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+  "draft_sha256": "499957a0365b33f1512727bc7a518eb34f56916c6e3c22086ffa0a772e682d77",
+  "word_count": {
+    "total": 7424,
+    "sections": {
+      "Abstract": 273,
+      "1. Introduction": 1417,
+      "2. Methodology": 2322,
+      "3. Evaluation and Reflection": 2775,
+      "4. Conclusion": 637
+    },
+    "rule": "Whitespace-delimited rendered text from Abstract through Conclusion; includes headings, table cells and algorithm; excludes cover, contents, captions, images, references and appendix; link URLs and Markdown syntax are not words."
+  },
+  "references": 8,
+  "evidence_source_entries": 12,
+  "figure_captions": 5,
+  "table_captions": 5,
+  "internal_links_checked": 41,
+  "relative_links_checked": 75,
+  "images_checked": 5,
+  "primary_table_numeric_cells_checked": 55,
+  "historical_manuscript_unchanged": true,
+  "tracked_changes_outside_package": [
+    "docs/index.md"
+  ],
+  "scope": "Draft structure, word count, local links, numbered cross-references, archived CSV-to-table arithmetic, preservation. No simulations, evaluator execution, raw-array reanalysis or complete figure regeneration."
+}
