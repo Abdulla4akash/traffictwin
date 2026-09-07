@@ -477,6 +477,8 @@ This index points only to documentation and repository paths that exist in the c
 
 ## Evaluation And Reproducibility
 
+- [Completed five-RSU mechanism audit: observations, reconstruction and limits](evaluation/common_target_mechanism_audit_2026-09-07/README.md)
+- [Optional two-prefix rotating tie-break test: proposed, not run](evaluation/common_target_mechanism_audit_2026-09-07/TIEBREAK_PREFIX_PROPOSAL.md)
 - [Completed VEC follow-ups: private evidence archive (7 September 2026)](evaluation/vec_followup_2026-09-07/README.md)
 - [Four-draw, three-arm morning replication: results and figures](evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/PUBLICATION_SUMMARY.md)
 - [Reproducibility guide](reproducibility.md)

@@ -26,6 +26,8 @@ source and manifest identities.
 | Exploratory morning pilot | [Pilot results](../evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/RESULTS.md) | Seed 1 was inspected before replication and is excluded from primary inference. |
 | Four new draws and three-arm reversal | [Protocol](../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/PROTOCOL.md), [paired differences](../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_differences.csv), [intervals](../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv) | Seeds 0, 2, 3, 4; locally prespecified before new outcomes, not externally preregistered; fleet-draw inference, conditional on one trace and task seed. |
 | Workload and rejection diagnostic | [RSU workload distribution](../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/rsu_workload_distribution.csv), [run metrics](../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/runs.csv) | Descriptive mechanism evidence; does not identify a single cause of the cross-scenario effect-size difference. |
+| Fixed five-RSU identities: completed post-hoc audit | [Audit report](../evaluation/common_target_mechanism_audit_2026-09-07/evidence/REPORT.md), [findings and input hashes](../evaluation/common_target_mechanism_audit_2026-09-07/evidence/audit_results.json), [per-second records](../evaluation/common_target_mechanism_audit_2026-09-07/evidence/per_second_targets.csv.gz) | Endpoints/targets are recorded; intermediate workloads are reconstructed. Explains repeated low-index destinations under audited conditions, not all deadline losses. Distinct from the 100 ms state-delay audit. |
+| Rotating tie-break falsification test | [Separate prospective proposal](../evaluation/common_target_mechanism_audit_2026-09-07/TIEBREAK_PREFIX_PROPOSAL.md) | Two 30-second prefixes, not implemented or run; predictions are not findings. Does not block writing. |
 
 ## Integration structure
 
@@ -35,6 +37,10 @@ two bounded incident sensitivity studies, and critical reflection. The morning
 replication is the principal addition; the two single-draw sensitivities provide
 supporting evidence and limitations. The full tables, controls and validation
 receipts remain in the archive, avoiding a long command ledger in the report body.
+
+The subsequent five-RSU audit is now complete and archived separately. Its
+observations, reconstruction and deductions are integrated into the results
+section; the optional tie-break test remains a separately documented proposal.
 
 Use this section when revising the Evaluation/Reflection chapter within its
 existing word allocation. It replaces overlapping draft evaluation material;

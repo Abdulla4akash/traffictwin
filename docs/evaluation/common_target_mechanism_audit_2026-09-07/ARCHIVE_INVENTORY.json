@@ -1,0 +1,63 @@
+{
+  "schema_version": "common_target_audit_archive_v1",
+  "date": "2026-09-07",
+  "preceding_consolidation_commit": "f17298eba29d2d536cb342687e89af43014193d9",
+  "audit_status": "complete",
+  "falsification_test_status": "proposed_not_executed",
+  "files": [
+    {
+      "path": "evidence/README.md",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/README.md",
+      "sha256": "851bb04ebbd2b2d6ccd5ab4057ee601b8a535ff30cd18120102432da9d43d40f",
+      "bytes": 2137
+    },
+    {
+      "path": "evidence/REPORT.md",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/REPORT.md",
+      "sha256": "1de866e513599f7a867f343efb97bba44a5d7335c081b618f43db2e66864778b",
+      "bytes": 11092
+    },
+    {
+      "path": "evidence/SHA256SUMS",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/SHA256SUMS",
+      "sha256": "7f8ee8330d912b176ccb00f2ded7283266aed424579343f1e11d36c86c0528b6",
+      "bytes": 665
+    },
+    {
+      "path": "evidence/audit.py",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/audit.py",
+      "sha256": "91331aeea0dd2b9c89e882d223bac21b374e7360ff2caccfdf82aa5b4700f707",
+      "bytes": 13928
+    },
+    {
+      "path": "evidence/audit_results.json",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/audit_results.json",
+      "sha256": "fd6b86a3c3336b4455f1f56d3b08b40d2ac638f07842ede67b24500e39712629",
+      "bytes": 22605
+    },
+    {
+      "path": "evidence/per_second_targets.csv.gz",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/per_second_targets.csv.gz",
+      "sha256": "35f8728bc71891c67f90c321e5bd914c58d861507404f06de230c1c586db8416",
+      "bytes": 956609
+    },
+    {
+      "path": "evidence/per_substep_summary.csv",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/per_substep_summary.csv",
+      "sha256": "f5879c87fa2ee06d6e86a69bc8c76e8063e42e495395c32e7a4340d42f04b943",
+      "bytes": 1381
+    },
+    {
+      "path": "evidence/verification.json",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/verification.json",
+      "sha256": "def4f96a104518c565501c166c92cd897f3e24b4ec76ca6123d6798ff6847569",
+      "bytes": 387
+    },
+    {
+      "path": "evidence/worked_examples.json",
+      "source_path": "/Users/akashx/Downloads/diss_mat/common-target-mechanism-audit-2026-09-07/worked_examples.json",
+      "sha256": "26d8290971992f9b785b63188abf578e0d07a40963b742137a8acb7985f126d2",
+      "bytes": 12664
+    }
+  ]
+}

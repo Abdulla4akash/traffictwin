@@ -162,6 +162,45 @@ incident-based runtime forecast for this completed campaign.
 [Analysis receipt](../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/analysis_validation.json),
 [completion receipt](../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/completion.json).
 
+### Why the same five RSUs receive work
+
+A separate post-hoc audit examined the saved common-target records across all
+four morning draws: **43,200 seconds and 216,000 task substeps**. Every recorded
+end-of-second RSU workload and task count was zero. All **179,427 observable
+target selections** followed substep `k` → RSU `k`, with zero exceptions.
+The remaining 36,573 substeps had no recorded V2I attempt; their internal
+targets were not directly observed. Common-target used all five RSUs in
+15,803 seconds and fewer in the others.
+
+The frozen code makes one common-target choice per substep and drains queues
+only after all five substeps. With an empty workload vector, the lowest-index
+tie-break selects RSU 0. Positive admitted work removes it from the zero-workload
+tie, so the next choice is RSU 1, and the process continues. If no work is
+admitted, the minimum does not advance. The five decisions limit new placements
+to at most five RSUs within a second; repeated empty starts and lowest-index
+ties explain why the same prefix, RSUs 0–4, recurs across seconds.
+
+Intermediate workloads were reconstructed from archived admissions, destinations
+and the bound service-work reference. Every saved endpoint matched exactly;
+all reconstructed pre-drain workloads were below 1,000 ms. At each of the
+**511,684 gate-rejected tasks**, at least five other RSUs remained idle with
+spare admission capacity. There were zero RSU-capacity rejections. The
+6,220-task waiting-room ceiling was therefore not the observed bottleneck.
+
+This audit explains the fixed destination identities under the recorded
+conditions. It does not establish that all rejected tasks would meet deadlines
+after redistribution or that this mechanism alone explains the performance
+contrast. Candidate-level working offsets and intermediate admission masks
+were not saved; matching empty endpoints alone would not establish every
+intermediate decision. The reconstruction also depends on the frozen service
+reference and enqueue semantics. [Complete mechanism audit and evidence](../evaluation/common_target_mechanism_audit_2026-09-07/README.md).
+
+A separate [two-prefix tie-break test](../evaluation/common_target_mechanism_audit_2026-09-07/TIEBREAK_PREFIX_PROPOSAL.md)
+would rotate the preferred RSU index across seconds while retaining the five
+common-target decisions. It predicts all nine identities across the prefix
+but at most five within any second. This is an unrun proposal; no improved
+balance, unchanged deadline outcome or other test result is claimed.
+
 ## Bounded incident sensitivity studies
 
 The state-information pilot evaluated fresh placement and workload-report ages
@@ -226,5 +265,8 @@ of deterministic RSU dispatch can reverse the deadline-performance comparison
 with ingress execution under a frozen vehicle policy**. The replicated morning
 result strengthens that conclusion, while the state-delay audit identifies a
 timing boundary and the forwarding analysis measures a bounded cost sensitivity.
+The separate morning mechanism audit explains why common-target repeatedly
+selects the same five RSU identities, while preserving the distinction between
+that explanation and attribution of the whole performance difference.
 Further studies should address these specific limits. They are not prerequisites
 for reporting the completed programme.

@@ -1,0 +1,806 @@
+[
+  {
+    "fleet_seed": 0,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 0,
+    "observed_target": 0,
+    "argmin_from_reconstruction": 0,
+    "workload_before_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      187.8362579345703,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 14,
+    "gate_rejections": 1,
+    "other_idle_rsus_with_capacity": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 0,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 1,
+    "observed_target": 1,
+    "argmin_from_reconstruction": 1,
+    "workload_before_ms": [
+      187.8362579345703,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      115.67210388183594,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 6,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 0,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 2,
+    "observed_target": 2,
+    "argmin_from_reconstruction": 2,
+    "workload_before_ms": [
+      187.8362579345703,
+      115.67210388183594,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      7.4947004318237305,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 3,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 0,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 3,
+    "observed_target": 3,
+    "argmin_from_reconstruction": 3,
+    "workload_before_ms": [
+      187.8362579345703,
+      115.67210388183594,
+      7.4947004318237305,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      70.47172546386719,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 2,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 0,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 4,
+    "observed_target": -1,
+    "argmin_from_reconstruction": 4,
+    "workload_before_ms": [
+      187.8362579345703,
+      115.67210388183594,
+      7.4947004318237305,
+      70.47172546386719,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 0,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 2,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 0,
+    "observed_target": 0,
+    "argmin_from_reconstruction": 0,
+    "workload_before_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      321.8405456542969,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 17,
+    "gate_rejections": 5,
+    "other_idle_rsus_with_capacity": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 2,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 1,
+    "observed_target": 1,
+    "argmin_from_reconstruction": 1,
+    "workload_before_ms": [
+      321.8405456542969,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      134.24363708496094,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 5,
+    "gate_rejections": 3,
+    "other_idle_rsus_with_capacity": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 2,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 2,
+    "observed_target": 2,
+    "argmin_from_reconstruction": 2,
+    "workload_before_ms": [
+      321.8405456542969,
+      134.24363708496094,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      7.500336170196533,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 3,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 2,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 3,
+    "observed_target": 3,
+    "argmin_from_reconstruction": 3,
+    "workload_before_ms": [
+      321.8405456542969,
+      134.24363708496094,
+      7.500336170196533,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      35.13166427612305,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 1,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 2,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 4,
+    "observed_target": -1,
+    "argmin_from_reconstruction": 4,
+    "workload_before_ms": [
+      321.8405456542969,
+      134.24363708496094,
+      7.500336170196533,
+      35.13166427612305,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 0,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 3,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 0,
+    "observed_target": 0,
+    "argmin_from_reconstruction": 0,
+    "workload_before_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      172.3221893310547,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 7,
+    "gate_rejections": 1,
+    "other_idle_rsus_with_capacity": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 3,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 1,
+    "observed_target": 1,
+    "argmin_from_reconstruction": 1,
+    "workload_before_ms": [
+      172.3221893310547,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      76.11921691894531,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 4,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 3,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 2,
+    "observed_target": -1,
+    "argmin_from_reconstruction": 2,
+    "workload_before_ms": [
+      172.3221893310547,
+      76.11921691894531,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 0,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 3,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 3,
+    "observed_target": -1,
+    "argmin_from_reconstruction": 2,
+    "workload_before_ms": [
+      172.3221893310547,
+      76.11921691894531,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 0,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 3,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 4,
+    "observed_target": -1,
+    "argmin_from_reconstruction": 2,
+    "workload_before_ms": [
+      172.3221893310547,
+      76.11921691894531,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 0,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 4,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 0,
+    "observed_target": 0,
+    "argmin_from_reconstruction": 0,
+    "workload_before_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      230.774169921875,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 13,
+    "gate_rejections": 2,
+    "other_idle_rsus_with_capacity": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 4,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 1,
+    "observed_target": 1,
+    "argmin_from_reconstruction": 1,
+    "workload_before_ms": [
+      230.774169921875,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      70.40734100341797,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 7,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 4,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 2,
+    "observed_target": 2,
+    "argmin_from_reconstruction": 2,
+    "workload_before_ms": [
+      230.774169921875,
+      70.40734100341797,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      2.5909390449523926,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 1,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 4,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 3,
+    "observed_target": -1,
+    "argmin_from_reconstruction": 3,
+    "workload_before_ms": [
+      230.774169921875,
+      70.40734100341797,
+      2.5909390449523926,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 0,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "fleet_seed": 4,
+    "example_step": 0,
+    "trace_timestamp_s": 28800.0,
+    "task_substep": 4,
+    "observed_target": -1,
+    "argmin_from_reconstruction": 3,
+    "workload_before_ms": [
+      230.774169921875,
+      70.40734100341797,
+      2.5909390449523926,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_work_increment_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "admitted_tasks": 0,
+    "gate_rejections": 0,
+    "other_idle_rsus_with_capacity": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  }
+]

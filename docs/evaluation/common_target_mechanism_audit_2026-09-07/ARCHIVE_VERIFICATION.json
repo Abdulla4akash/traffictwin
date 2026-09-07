@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "copied_original_files": 9,
+  "source_files_byte_identical": true,
+  "original_audit_ledger_entries": 8,
+  "exported_second_rows_checked": 43200,
+  "observed_targets_checked": 179427,
+  "gate_rejections_checked": 511684,
+  "relative_file_links_checked": 81,
+  "prior_evidence_archive_unchanged": true,
+  "new_simulation_runs": 0,
+  "falsification_test_status": "proposed_not_implemented_not_executed",
+  "validation_scope": "Archive bytes, exported record reconciliation and documentation checks; no fresh raw-array reanalysis or figure regeneration"
+}

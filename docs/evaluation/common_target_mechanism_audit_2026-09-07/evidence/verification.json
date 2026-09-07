@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "per_second_rows": 43200,
+  "observed_targets": 179427,
+  "gate_rejections": 511684,
+  "all_observed_targets_equal_substep": true,
+  "all_observed_tie_sizes_equal_9_minus_substep": true,
+  "all_gate_rejections_have_at_least_five_other_idle_rsus": true,
+  "source_and_arrays_unchanged": true,
+  "new_simulation_runs": 0,
+  "falsification_test_executed": false
+}

@@ -18,6 +18,13 @@
 > directions, not completion of every larger design proposed below. Current
 > findings and limits are in the [integrated dissertation section](../dissertation/vec_results_integration_2026-09-07.md).
 
+> **Mechanism-audit closure, 7 September 2026:** the separate
+> [common-target five-RSU audit](common_target_mechanism_audit_2026-09-07/README.md)
+> is complete and integrated into the results section. It inspected saved raw
+> records without launching simulations. The
+> [two-prefix rotating tie-break proposal](common_target_mechanism_audit_2026-09-07/TIEBREAK_PREFIX_PROPOSAL.md)
+> remains optional and unrun; it is not a prerequisite for dissertation writing.
+
 ## 1. Current scientific position
 
 E0, E1, E2, E2b, E2c, and E2d are complete. The frozen result already supports a publishable construct-validity and systems-evaluation paper:
