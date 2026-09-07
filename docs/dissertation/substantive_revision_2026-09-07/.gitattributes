@@ -1,0 +1,6 @@
+# PDF streams are binary even when ReportLab's ASCII encoding contains no NUL.
+*.pdf binary
+# Matplotlib emits trailing spaces in SVG path coordinate streams.
+*.svg -whitespace
+# Markdown uses two trailing spaces for intentional title-page line breaks.
+*.md whitespace=-blank-at-eol

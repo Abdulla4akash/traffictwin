@@ -1,0 +1,210 @@
+{
+  "status": "passed",
+  "review_date": "2026-09-08",
+  "pdf_sha256": "fde62fd2ffa46b68cd5c542d22a776243dc435487796870102485b4ac655d4a1",
+  "manuscript_sha256": "dcabfe70f25b285b23365b887fa10ab50a5b4f5a3559f294168760ea1be9abfa",
+  "pages": 26,
+  "renderer": "Poppler pdftoppm -scale-to 1500 -png",
+  "render_location": "/Users/akashx/Downloads/diss_mat/traffictwin-revision-doc-tools/pdf-review",
+  "render_prefix": "criticfixed-",
+  "review_type": "Primary-agent visual inspection, distinct from separate AI critique",
+  "method": "Every current page covered. All 19 changed pages after the review response were opened individually; seven unchanged pages match pixel hashes from individually inspected pages of this new revision. No starting-draft PDF passed status reused.",
+  "checks": [
+    {
+      "page": 1,
+      "png_sha256": "ae35d639c5bb1ab708ff82e9d1166c28f8dd9bbb35d1c105ebcf94d8dbdc8e6a",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 2,
+      "png_sha256": "428c7b13f2b0b3b77fbc6e3d411234946332e9cb19ea823c8444b131feb59e23",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 3,
+      "png_sha256": "7fd8cc6915698708ee07b16c58a0cd8718a83c3fcc30e211ebf2d6e45c190b29",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 4,
+      "png_sha256": "7943852a79acf103a413a5124bc83cddfa5ef659ecfef81e86717de0fed5d755",
+      "inspection": "current render pixel-identical to a previously inspected image from this revision",
+      "matched_reviewed_image": "prereview-04.png",
+      "result": "clean"
+    },
+    {
+      "page": 5,
+      "png_sha256": "1542b09e1ea23a96b2f945ffdb4fbd472a4825fad825d661444f1cff3faa7c53",
+      "inspection": "current render pixel-identical to a previously inspected image from this revision",
+      "matched_reviewed_image": "prereview-05.png",
+      "result": "clean"
+    },
+    {
+      "page": 6,
+      "png_sha256": "13eb7d9f85b6e95e3a401389dcdcb45441d8f87ad17e187d4de91fe7ea1f0ca2",
+      "inspection": "current render pixel-identical to a previously inspected image from this revision",
+      "matched_reviewed_image": "prereview-06.png",
+      "result": "clean"
+    },
+    {
+      "page": 7,
+      "png_sha256": "437f9d223154bc779dbd8ab2212493f258f27310b22a112c33cb3175533a5502",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 8,
+      "png_sha256": "e8e6d9f2c03ed8143a7e3793ab2f1045a96c4a43273506ea9e46b3fb81709f47",
+      "inspection": "current render pixel-identical to a previously inspected image from this revision",
+      "matched_reviewed_image": "prereview-08.png",
+      "result": "clean"
+    },
+    {
+      "page": 9,
+      "png_sha256": "788f5702655ad2d39eb60b9a2a880c3b830d8ee5ac814eff6d5eee94317f3067",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 10,
+      "png_sha256": "e076b0ffba7776c6e0a9e68bc04b231179faf6015b7beda98e888d3c083a434d",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 11,
+      "png_sha256": "ee58ccb4846da7fc25f6254c0a5caf7be5288663af83f89dd8b228a693492525",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 12,
+      "png_sha256": "f04887ee196779dc8503234509bb86b9d2111d38f43285b4e9044f3863dccafd",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 13,
+      "png_sha256": "81add77d6227bbeec8e40c34a0978f62b32dc122b58b3a467e03e04d924d87e7",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 14,
+      "png_sha256": "4243ac0a6cae7bf3c8bce7782bcd5ac937bf4bf5b6628becfefdb0f1d171686b",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 15,
+      "png_sha256": "784c2218d236c2d3488237e517640b15125a9863b9b14174e653ee5488c7722b",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 16,
+      "png_sha256": "67aa25b3b5916f0ba4088fe2eaac2b83baebb02928b1945878835f1bae0365a8",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 17,
+      "png_sha256": "a374ef191ce7d478a4912cf2b86f8baf60fba2c41ef067c1ee3fa151d4bc8b57",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 18,
+      "png_sha256": "ed55c42c052d3e444817bbe0c184b8b37fdea9a04dd2774b0236f05f4f5fe06c",
+      "inspection": "current render pixel-identical to a previously inspected image from this revision",
+      "matched_reviewed_image": "prereview-18.png",
+      "result": "clean"
+    },
+    {
+      "page": 19,
+      "png_sha256": "cc9665cb63718d084a40a8c5aa6da35d5cc8ecf1fc9bfd94647c9bbca4b1ba07",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 20,
+      "png_sha256": "28836a9a04cbb6b5e4b889d2c71604bda6dc48c86c4f18892728c4be2deec09a",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 21,
+      "png_sha256": "167a831f52e72f3011ae54a29b2363be8271224d56b9b2bae0de245bfb16a7d0",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 22,
+      "png_sha256": "25ba09f7a531e5fd792d09752a40f952833abaca2538f441ccd50a0010641ccc",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 23,
+      "png_sha256": "132a76597314d517e34566ce4a243676154b8ccab1fb0083eadd3cbcbc86d7fa",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 24,
+      "png_sha256": "0de6459282ba143c4ed6c1589486038c1dae94039a50feda8b6d13fd4c3dcce3",
+      "inspection": "opened current image",
+      "matched_reviewed_image": null,
+      "result": "clean"
+    },
+    {
+      "page": 25,
+      "png_sha256": "bf4f87f252a3c65415b39b7c11e4611848919225964d3f4d0dc9a800ab78887a",
+      "inspection": "current render pixel-identical to a previously inspected image from this revision",
+      "matched_reviewed_image": "prereview-25.png",
+      "result": "clean"
+    },
+    {
+      "page": 26,
+      "png_sha256": "83b481f8fdcd2beb5251640a72d062f4337db3a9b18009402c08fbe37366bf87",
+      "inspection": "current render pixel-identical to a previously inspected image from this revision",
+      "matched_reviewed_image": "prereview-26.png",
+      "result": "clean"
+    }
+  ],
+  "reviewed_features": [
+    "No cropping, overlap or missing glyphs",
+    "Readable figure labels and table text",
+    "Algorithms remain together; table continuation repeats headings",
+    "No orphan headings; required separate Abstract and Conclusion pages",
+    "Consistent typography, numbering and captions",
+    "Contents/outline and citation destinations checked separately in validate_document.py"
+  ],
+  "layout_notes": [
+    "Table 7 continues onto page 22 with repeated column headings.",
+    "Table 8 occupies page 23 with preservation discussion; keeping it together leaves some lower-page whitespace.",
+    "No blank spillover pages."
+  ],
+  "separate_reviewer_visual_scope": "Initial revised PDF pages 12, 18 and 22 only; not current every-page coverage."
+}
