@@ -27,6 +27,9 @@ jobs:
       - name: Dependency lock consistency
         run: uv lock --check
 
+      - name: Immutable research archive integrity
+        run: uv run python scripts/verify_research_archives.py
+
       - name: Ruff format check
         run: uv run ruff format --check .
 

@@ -77,6 +77,18 @@ markers = [
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
+# Exact historical packages: preserve bytes and check them with verify_research_archives.py.
+# New dissertation packages and maintained documentation tools remain in Ruff scope.
+extend-exclude = [
+    "docs/dissertation/complete_draft_2026-09-07",
+    "docs/dissertation/substantive_revision_2026-09-07",
+    "docs/dissertation/gap_closure_2026-09-08",
+    "docs/dissertation/production_mechanism_2026-09-08",
+    "docs/dissertation/empirical_extension_2026-09-08",
+    "docs/dissertation/joint_confirmation_2026-09-08",
+    "docs/evaluation/common_target_mechanism_audit_2026-09-07",
+    "docs/evaluation/vec_followup_2026-09-07",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "ANN", "S", "C4", "SIM"]
