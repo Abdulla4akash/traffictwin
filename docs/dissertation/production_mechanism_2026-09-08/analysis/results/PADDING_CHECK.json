@@ -1,0 +1,464 @@
+{
+  "additional_inputs": 4,
+  "followup_protocol_sha256": "8dd83c877939f3cd4e28f534dd6bc105ae8cf7f3afde6b97c9c96312f657415f",
+  "script_sha256": "9ecf449e080beb38f1d5687f7cd62042172f5f3e6eb965e6e50375ad7bff5fbe",
+  "results": [
+    {
+      "N": 215,
+      "R": 9,
+      "active_block": "start",
+      "active_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "services": [
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        21.11111068725586
+      ],
+      "deadline": 100,
+      "W0": 82.32322692871094,
+      "Q0": 4,
+      "capacity": 6220,
+      "production_active_mask": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "active_mirror_masks": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "active_final_offsets_ms": [
+        0.0,
+        2.5252525806427,
+        5.050505638122559,
+        7.57575798034668,
+        10.1010103225708,
+        12.626262664794922,
+        15.151515007019043,
+        17.676767349243164
+      ],
+      "active_gate_failures": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "capacity_failure_count": 1.0,
+      "fourth_changes": true,
+      "differs_from_exact": true
+    },
+    {
+      "N": 215,
+      "R": 9,
+      "active_block": "end",
+      "active_indices": [
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214
+      ],
+      "services": [
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        21.11111068725586
+      ],
+      "deadline": 100,
+      "W0": 82.32322692871094,
+      "Q0": 4,
+      "capacity": 6220,
+      "production_active_mask": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "active_mirror_masks": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "active_final_offsets_ms": [
+        0.0,
+        2.5252525806427,
+        5.050505638122559,
+        7.57575798034668,
+        10.1010103225708,
+        12.626262664794922,
+        15.151515007019043,
+        17.676767349243164
+      ],
+      "active_gate_failures": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "capacity_failure_count": 1.0,
+      "fourth_changes": true,
+      "differs_from_exact": true
+    },
+    {
+      "N": 2488,
+      "R": 10,
+      "active_block": "start",
+      "active_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "services": [
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        21.11111068725586
+      ],
+      "deadline": 100,
+      "W0": 82.32322692871094,
+      "Q0": 4,
+      "capacity": 6220,
+      "production_active_mask": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "active_mirror_masks": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "active_final_offsets_ms": [
+        0.0,
+        2.5252525806427,
+        5.050505638122559,
+        7.57575798034668,
+        10.1010103225708,
+        12.626262664794922,
+        15.151515007019043,
+        17.676767349243164
+      ],
+      "active_gate_failures": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "capacity_failure_count": 1.0,
+      "fourth_changes": true,
+      "differs_from_exact": true
+    },
+    {
+      "N": 2488,
+      "R": 10,
+      "active_block": "end",
+      "active_indices": [
+        2480,
+        2481,
+        2482,
+        2483,
+        2484,
+        2485,
+        2486,
+        2487
+      ],
+      "services": [
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        21.11111068725586
+      ],
+      "deadline": 100,
+      "W0": 82.32322692871094,
+      "Q0": 4,
+      "capacity": 6220,
+      "production_active_mask": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "active_mirror_masks": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "active_final_offsets_ms": [
+        0.0,
+        2.5252525806427,
+        5.050505638122559,
+        7.57575798034668,
+        10.1010103225708,
+        12.626262664794922,
+        15.151515007019043,
+        17.676767349243164
+      ],
+      "active_gate_failures": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "capacity_failure_count": 1.0,
+      "fourth_changes": true,
+      "differs_from_exact": true
+    }
+  ],
+  "scope": "Exact equivalence of inactive padding follows from zero contributions. Production arrays use actual N/R dimensions; fixed target0 is imposed. No least-workload-selection, complete-model reachability or observed-frequency claim."
+}
