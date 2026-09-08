@@ -1,0 +1,25 @@
+block,fleet_seed,evaluator_seed,contrast,effect_pp
+0,100,200,per_task_dla minus ingress_dla,4.541538927108078
+1,101,201,per_task_dla minus ingress_dla,4.2435538808825015
+2,102,202,per_task_dla minus ingress_dla,5.0202226936226
+3,103,203,per_task_dla minus ingress_dla,3.8392365213931328
+4,104,204,per_task_dla minus ingress_dla,3.594354751749947
+5,105,205,per_task_dla minus ingress_dla,3.4376686887348313
+6,106,206,per_task_dla minus ingress_dla,3.996050732020933
+7,107,207,per_task_dla minus ingress_dla,4.422544995191259
+0,100,200,dla minus ingress_dla,-3.8130723921499765
+1,101,201,dla minus ingress_dla,-3.6313664221669484
+2,102,202,dla minus ingress_dla,-4.280092200556311
+3,103,203,dla minus ingress_dla,-3.1819826203814046
+4,104,204,dla minus ingress_dla,-3.016775605626435
+5,105,205,dla minus ingress_dla,-3.027314538375933
+6,106,206,dla minus ingress_dla,-3.4569871333078908
+7,107,207,dla minus ingress_dla,-3.624146148828885
+0,100,200,per_task_dla minus causal_round_robin,0.7062285321599973
+1,101,201,per_task_dla minus causal_round_robin,0.6629637500933399
+2,102,202,per_task_dla minus causal_round_robin,0.8262455830135167
+3,103,203,per_task_dla minus causal_round_robin,0.5415006188987945
+4,104,204,per_task_dla minus causal_round_robin,0.5158062821339371
+5,105,205,per_task_dla minus causal_round_robin,0.5192891091401179
+6,106,206,per_task_dla minus causal_round_robin,0.5944566742915924
+7,107,207,per_task_dla minus causal_round_robin,0.6776933208462879

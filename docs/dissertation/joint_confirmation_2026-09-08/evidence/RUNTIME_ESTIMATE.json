@@ -1,0 +1,9 @@
+{
+  "after_block": 0,
+  "simulation_s": 728.8095449160319,
+  "cell_validation_s": 5.057008625823073,
+  "block_validation_s": 1.149051749962382,
+  "remaining_blocks": 7,
+  "remaining_seconds_estimate": 5145.110800662311,
+  "uses_outcome_values": false
+}

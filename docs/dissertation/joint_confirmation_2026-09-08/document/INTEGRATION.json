@@ -1,0 +1,12 @@
+{
+  "reversal_criterion": true,
+  "per_task_vs_round_robin": "better",
+  "policy_matching": {
+    "veh_observations": 21,
+    "veh_actor_logits": 21,
+    "veh_action": 24
+  },
+  "action_changes_summed_over_arms": 0,
+  "completed_cells": 32,
+  "completed_blocks": 8
+}

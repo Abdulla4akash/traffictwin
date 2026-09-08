@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "new_numeric_values_checked": 225,
+  "old_tables_preserved": 15,
+  "allowed_table_change": "Table 3 adds cyclic mode; Table 11 updates AI attribution; Table 12 updates sampling scope. Other historical table cells unchanged",
+  "rounding_tolerance_pp": 0.0005,
+  "meaning": "Presentation rounding only; no scientific validation tolerance changed",
+  "manuscript_sha256": "773aabbedfcb001fc6d3c6ab07283a9846c6493c8a1fc6c907af5e0a835488ba",
+  "analysis_sha256": "acbfcca8abb10f0f5e5b9c271612f63691311ed687b69f0e93e0d14c0faa6966"
+}

@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-09-08T11:50:52.250155+00:00",
+  "runtime": {
+    "python": "3.11.15",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "x64": false,
+    "devices": [
+      "TFRT_CPU_0"
+    ],
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "processor": "Apple M5",
+    "cpu_count": 10
+  },
+  "python": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+  "python_binary_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+  "runtime_root": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run",
+  "trace": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+  "actor": "/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+  "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+  "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+  "execution_environment": {
+    "JAX_COMPILATION_CACHE_DIR": null,
+    "JAX_ENABLE_X64": "false",
+    "JAX_PLATFORMS": "cpu",
+    "MKL_NUM_THREADS": null,
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null,
+    "PYTHONHASHSEED": "0",
+    "PYTHONHOME": null,
+    "PYTHONOPTIMIZE": null,
+    "PYTHONPATH": null,
+    "VECLIB_MAXIMUM_THREADS": null,
+    "VEC_JAX_K_MAX": "5",
+    "VEC_JAX_K_MIN": "0",
+    "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+    "VEC_JAX_MODEL_C": "1",
+    "VEC_JAX_PRIORITY_ALPHA": "0",
+    "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+    "VEC_JAX_STRESS_ARRIVAL": "1",
+    "VEC_JAX_STRESS_LANES": "0",
+    "VEC_JAX_STRESS_SPEED": "0",
+    "XLA_FLAGS": null
+  },
+  "free_gib": 284.7273483276367
+}

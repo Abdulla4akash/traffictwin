@@ -1,0 +1,17 @@
+{
+  "full_attempts": 32,
+  "valid_blocks": 8,
+  "full_simulation_process_s": 6375.543818167527,
+  "cell_validation_s": 49.59077783301473,
+  "block_validation_s": 10.831583667197265,
+  "analysis_with_completion_checks_s": 3.44389916700311,
+  "evaluator_reported_scan_s": 5844.999999999999,
+  "qualification_simulation_process_s": 68.09423783491366,
+  "qualification_cell_validation_s": 0.18927062524016947,
+  "started_at": "2026-09-08T11:50:52.263014+00:00",
+  "last_cell_finished_at": "2026-09-08T13:38:07.712196+00:00",
+  "interpretation": "Process time includes startup, compilation, evaluation and compressed output writing; evaluator scan time includes JIT/scan synchronisation. Validation and analysis are separate; no new scheduler benchmark.",
+  "campaign_finished_at": "2026-09-08T13:38:12.513644+00:00",
+  "campaign_elapsed_wall_s": 6440.25063,
+  "other_campaign_overhead_s": 4.284450332260349
+}
