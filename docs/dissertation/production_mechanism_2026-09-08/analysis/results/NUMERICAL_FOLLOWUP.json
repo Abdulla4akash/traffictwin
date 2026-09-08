@@ -1,0 +1,741 @@
+{
+  "protocol_sha256": "7b737186bd039073972abdff03125a2f395ef3a04ceb1d224900347436f11432",
+  "initial_diagnostics_sha256": "38f49fc9bf64678633d0cea0dcb325ea0aba497d2180cf79dd44e85a89d85417",
+  "additional_inputs": 4,
+  "original_unstable_id": "near_019_-1",
+  "count_compatible": {
+    "input": {
+      "id": "near_unstable_count4",
+      "s": [
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        2.5252525806427,
+        21.11111068725586
+      ],
+      "d": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "w": [
+        82.32322692871094
+      ],
+      "q": [
+        4
+      ],
+      "C": 6220,
+      "target": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "e": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "task_types": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        0
+      ]
+    },
+    "exact": {
+      "mask": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "masks": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "fixed_by": 0,
+      "bound": 1,
+      "offsets": [
+        0.0,
+        2.5252525806427,
+        5.0505051612854,
+        7.575757741928101,
+        10.1010103225708,
+        12.626262903213501,
+        15.151515483856201,
+        17.6767680644989
+      ],
+      "ranks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "gate": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "met": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "gate_margin": [
+        17.676773071289062,
+        15.151520490646362,
+        12.626267910003662,
+        10.101015329360962,
+        7.575762748718262,
+        5.0505101680755615,
+        2.5252575874328613,
+        5.0067901611328125e-06
+      ]
+    },
+    "production_mask": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ],
+    "production_offsets": [
+      0.0,
+      2.5252525806427,
+      5.050505638122559,
+      7.57575798034668,
+      10.1010103225708,
+      12.626262664794922,
+      15.151515007019043,
+      17.676767349243164
+    ],
+    "production_gate": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "production_gate_count": 0.0,
+    "production_capacity_count": 1.0,
+    "production_trace_mirror": [
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    ],
+    "production_fourth_changes": true,
+    "causal_float32_mask": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ],
+    "causal_float32_offsets": [
+      0.0,
+      2.5252532958984375,
+      5.050506591796875,
+      7.5757598876953125,
+      10.10101318359375,
+      12.626266479492188,
+      15.151519775390625,
+      17.676773071289062
+    ],
+    "prior_scalar_mask": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "prior_scalar_offsets": [
+      0,
+      2.5252525806427,
+      5.0505051612854,
+      7.575757741928101,
+      10.1010103225708,
+      12.626262903213501,
+      15.151515483856201,
+      17.6767680644989
+    ],
+    "production_vs_exact": [
+      7
+    ],
+    "production_vs_causal_float32": [],
+    "prior_vs_exact": false,
+    "max_offset_error_ms": 7.152557373046875e-07,
+    "offset_within_0p001_ms": true
+  },
+  "prefix_construction": {
+    "input": {
+      "id": "local_prefix_four_type1",
+      "s": [
+        20.580806732177734,
+        20.580806732177734,
+        20.580806732177734,
+        20.580806732177734
+      ],
+      "d": [
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "w": [
+        0.0
+      ],
+      "q": [
+        0
+      ],
+      "C": 6220,
+      "target": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "e": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "task_types": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "exact": {
+      "mask": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "masks": [
+        [
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "fixed_by": 0,
+      "bound": 1,
+      "offsets": [
+        0.0,
+        20.580806732177734,
+        41.16161346435547,
+        61.7424201965332
+      ],
+      "ranks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "gate": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "met": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "gate_margin": [
+        100.0,
+        79.41919326782227,
+        58.83838653564453,
+        38.2575798034668
+      ]
+    },
+    "production_mask": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "production_offsets": [
+      0.0,
+      20.580806732177734,
+      41.16161346435547,
+      61.7424201965332
+    ],
+    "production_gate": [
+      false,
+      false,
+      false,
+      false
+    ],
+    "production_gate_count": 0.0,
+    "production_capacity_count": 0.0,
+    "production_trace_mirror": [
+      [
+        true,
+        true,
+        true,
+        true
+      ],
+      [
+        true,
+        true,
+        true,
+        true
+      ],
+      [
+        true,
+        true,
+        true,
+        true
+      ],
+      [
+        true,
+        true,
+        true,
+        true
+      ],
+      [
+        true,
+        true,
+        true,
+        true
+      ]
+    ],
+    "production_fourth_changes": false,
+    "causal_float32_mask": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "causal_float32_offsets": [
+      0.0,
+      20.580806732177734,
+      41.16161346435547,
+      61.7424201965332
+    ],
+    "prior_scalar_mask": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "prior_scalar_offsets": [
+      0,
+      20.580806732177734,
+      41.16161346435547,
+      61.7424201965332
+    ],
+    "production_vs_exact": [],
+    "production_vs_causal_float32": [],
+    "prior_vs_exact": false,
+    "max_offset_error_ms": 0.0,
+    "offset_within_0p001_ms": true
+  },
+  "prefix_noise_multiplier": 0.9748803188926295,
+  "first_discrepancy_id": "near_000_+0",
+  "deletion_trials": [
+    {
+      "input": {
+        "id": "near_first_delete_0",
+        "s": [
+          19.211111068725586
+        ],
+        "d": [
+          100.0
+        ],
+        "w": [
+          97.70201873779297
+        ],
+        "q": [
+          1
+        ],
+        "C": 6220,
+        "target": [
+          0
+        ],
+        "e": [
+          true
+        ],
+        "task_types": [
+          0
+        ]
+      },
+      "exact": {
+        "mask": [
+          true
+        ],
+        "masks": [
+          [
+            true
+          ],
+          [
+            true
+          ],
+          [
+            true
+          ],
+          [
+            true
+          ],
+          [
+            true
+          ]
+        ],
+        "fixed_by": 0,
+        "bound": 1,
+        "offsets": [
+          0.0
+        ],
+        "ranks": [
+          0
+        ],
+        "gate": [
+          false
+        ],
+        "met": [
+          false
+        ],
+        "gate_margin": [
+          2.2979812622070312
+        ]
+      },
+      "production_mask": [
+        true
+      ],
+      "production_offsets": [
+        0.0
+      ],
+      "production_gate": [
+        false
+      ],
+      "production_gate_count": 0.0,
+      "production_capacity_count": 0.0,
+      "production_trace_mirror": [
+        [
+          true
+        ],
+        [
+          true
+        ],
+        [
+          true
+        ],
+        [
+          true
+        ],
+        [
+          true
+        ]
+      ],
+      "production_fourth_changes": false,
+      "causal_float32_mask": [
+        true
+      ],
+      "causal_float32_offsets": [
+        0.0
+      ],
+      "prior_scalar_mask": [
+        true
+      ],
+      "prior_scalar_offsets": [
+        0
+      ],
+      "production_vs_exact": [],
+      "production_vs_causal_float32": [],
+      "prior_vs_exact": false,
+      "max_offset_error_ms": 0.0,
+      "offset_within_0p001_ms": true
+    },
+    {
+      "input": {
+        "id": "near_first_delete_1",
+        "s": [
+          2.2979798316955566
+        ],
+        "d": [
+          100.0
+        ],
+        "w": [
+          97.70201873779297
+        ],
+        "q": [
+          1
+        ],
+        "C": 6220,
+        "target": [
+          0
+        ],
+        "e": [
+          true
+        ],
+        "task_types": [
+          2
+        ]
+      },
+      "exact": {
+        "mask": [
+          true
+        ],
+        "masks": [
+          [
+            true
+          ],
+          [
+            true
+          ],
+          [
+            true
+          ],
+          [
+            true
+          ],
+          [
+            true
+          ]
+        ],
+        "fixed_by": 0,
+        "bound": 1,
+        "offsets": [
+          0.0
+        ],
+        "ranks": [
+          0
+        ],
+        "gate": [
+          false
+        ],
+        "met": [
+          true
+        ],
+        "gate_margin": [
+          2.2979812622070312
+        ]
+      },
+      "production_mask": [
+        true
+      ],
+      "production_offsets": [
+        0.0
+      ],
+      "production_gate": [
+        false
+      ],
+      "production_gate_count": 0.0,
+      "production_capacity_count": 0.0,
+      "production_trace_mirror": [
+        [
+          true
+        ],
+        [
+          true
+        ],
+        [
+          true
+        ],
+        [
+          true
+        ],
+        [
+          true
+        ]
+      ],
+      "production_fourth_changes": false,
+      "causal_float32_mask": [
+        true
+      ],
+      "causal_float32_offsets": [
+        0.0
+      ],
+      "prior_scalar_mask": [
+        true
+      ],
+      "prior_scalar_offsets": [
+        0
+      ],
+      "production_vs_exact": [],
+      "production_vs_causal_float32": [],
+      "prior_vs_exact": false,
+      "max_offset_error_ms": 0.0,
+      "offset_within_0p001_ms": true
+    }
+  ],
+  "scope": "Explicit service arrays establish local two-substep kernel compatibility. No exact PRNG/actor/traffic reachability or empirical frequency established."
+}

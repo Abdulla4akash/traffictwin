@@ -1,0 +1,43 @@
+{
+  "documents": [
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "a39b2a58d7e35f4a2b82ea1cd5b04c17ebfa869761cd5258f16cf0548678282d"
+    }
+  ],
+  "full_run_locators": {
+    "dla": "<private-local-path-redacted>",
+    "jsq": "<private-local-path-redacted>",
+    "off": "<private-local-path-redacted>"
+  },
+  "manifest": {
+    "path": "<private-local-path-redacted>",
+    "sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8"
+  },
+  "raw_checksums": {
+    "path": "<private-local-path-redacted>",
+    "sha256": "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3"
+  },
+  "raw_index": {
+    "path": "<private-local-path-redacted>",
+    "sha256": "8920f45c00975e80d67a2cf0eab9570003c244e21cc59c468b95a5c151f3a280"
+  },
+  "raw_root": "<private-local-path-redacted>",
+  "schema_version": "e2_native_placement_evidence_index_v1"
+}

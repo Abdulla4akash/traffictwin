@@ -1,0 +1,681 @@
+[
+  {
+    "file": "sources/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_comparison_v1.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_comparison_v1.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "b2f7e8bf8769e7359bf5731b4b98d1007d294ed55595ec4977886f976d600ec3"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_comparison_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_comparison_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "ef1821f94739816ac2777323029e1a0711294116d23eba43215e7a5aa1d5c2fd"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/data/e2d_paired_results.csv",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/data/e2d_paired_results.csv",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "bffbcb67e04bae6f5fe6e6017e7894ac36e7745c3ea5aa9cc4e6d3f8d65ac4be"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/generalisation-replication-2026-09-07/runs.csv",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/runs.csv",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "12ca84b319f4147dac5e0138ebc5d6389e3116d85e93baeadf9ab95d950d2843"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "dd29dd512e5b7c839e419be0c4225f032d971d4c6352ce99be05691e4a556320"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/forwarding_sensitivity.csv",
+    "source": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/forwarding_sensitivity.csv",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "fc667384ded4278a8f02c3246835e857085b5a279ef09688f2324de806e84d20"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/comparison.csv",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/comparison.csv",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "e879c6015a53f5fa197b321da5645b79faa877ed1e150874548023ce34618350"
+  },
+  {
+    "file": "sources/common_target_mechanism_audit_2026-09-07/evidence/audit_results.json",
+    "source": "docs/evaluation/common_target_mechanism_audit_2026-09-07/evidence/audit_results.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "fd6b86a3c3336b4455f1f56d3b08b40d2ac638f07842ede67b24500e39712629"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/generalisation-replication-2026-09-07/rsu_workload_distribution.csv",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/rsu_workload_distribution.csv",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "2b8c032bb7fa1aa3c252b414966cf9d593679c84d1ce86b47204cf16b9b3bbe1"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/metrics.csv",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/metrics.csv",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "1ecc471306cfc5294f5940309662c67b76be7275e180bb62a13f712bd21f424c"
+  },
+  {
+    "file": "sources/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "21a06774497c2fdc4304392fcb50e1291bb80592a127f6d770ad45ecd4b53ecf"
+  },
+  {
+    "file": "sources/ARCHIVE_INVENTORY.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/ARCHIVE_INVENTORY.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "2c1f6a756594449432e3848b306732cfe0066437691b9f323b477dd6a16509cc"
+  },
+  {
+    "file": "sources/legacy/E2b/evidence/e2b_placement_admission_factorial_manifest_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_manifest_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "f2af61bf936d77ec8a78c156058e0404a7a2b7bd826705390e5d7b8c3779f701"
+  },
+  {
+    "file": "sources/legacy/E2b/evidence/e2b_placement_admission_evidence_index_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_evidence_index_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "74b041ac254ad4709e1b5de5bd3d80886e461e01978f76a3ef12659c1ba41d6e"
+  },
+  {
+    "file": "sources/legacy/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "c73a23a98342d58ed6a54a26d32b27f702e33705b2489c2ba0ffae9a8eec1389"
+  },
+  {
+    "file": "sources/legacy/E0/evidence/e0_manifest_v1.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_manifest_v1.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93"
+  },
+  {
+    "file": "sources/legacy/E0/evidence/e0_full_reference_validation_v1.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_full_reference_validation_v1.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa"
+  },
+  {
+    "file": "sources/legacy/E0/evidence/e0_full_reference_manifest_v1.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_full_reference_manifest_v1.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f"
+  },
+  {
+    "file": "sources/legacy/E0/evidence/e0_validation_v1.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_validation_v1.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d"
+  },
+  {
+    "file": "sources/legacy/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e"
+  },
+  {
+    "file": "sources/legacy/E2d/evidence/e2d_per_task_placement_robustness_manifest_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_manifest_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "582c5c0b254ab780f75b0c5b1f11829449c17d59bfe65443746724441552e096"
+  },
+  {
+    "file": "sources/legacy/E2d/evidence/e2d_per_task_placement_evidence_index_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_evidence_index_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "76638238c0b6026faf4650a492b5fa4ec3eb86b1d58fc669c7b8e1889b2bd53d"
+  },
+  {
+    "file": "sources/legacy/E2c/evidence/e2c_gated_placement_multidraw_manifest_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_manifest_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "2cb5a05582ac907a630206bffd4de0c2850a20368bd7eb73807992e218f8a7b9"
+  },
+  {
+    "file": "sources/legacy/E2c/evidence/e2c_gated_placement_multidraw_evidence_index_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_evidence_index_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "5d2b39d077b332503d7aec9985fa7145a13c0b54ca465da1f4d4cb5580961f49"
+  },
+  {
+    "file": "sources/legacy/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c"
+  },
+  {
+    "file": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b"
+  },
+  {
+    "file": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "43fafbd73b5e5e0035fe9bf23f4046ff3a50fdd665352a3d6c415f50059fa19d"
+  },
+  {
+    "file": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_evidence_index_v1.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_evidence_index_v1.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "aeecdece2cbfffef4d7e68ac398c42fb2f36af5a6a1256536f58186c547f74e5"
+  },
+  {
+    "file": "sources/legacy/E2/evidence/e2_native_placement_evidence_index_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_evidence_index_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "8431afb31ba7de7960d0c947970ee7d0c627d61d70f293c15f6512c3a177743b"
+  },
+  {
+    "file": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f"
+  },
+  {
+    "file": "sources/legacy/E2/evidence/e2_native_placement_pilot_manifest_v1_public_sanitized.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_manifest_v1_public_sanitized.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "69790a0736bb62bb9cd9822e989cdb52596597fbc047a9bc1770cfc375319939"
+  },
+  {
+    "file": "sources/production/eval_sumo_stage1_mc.py",
+    "source": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/eval_sumo_stage1_mc.py",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "2824d9c2ef09e7748cd420d1ab2f0526d28157b8986605dc831397b6c618c07e"
+  },
+  {
+    "file": "sources/production/e2d_per_task_placement.py",
+    "source": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09"
+  },
+  {
+    "file": "sources/production/0f01f4d_eval_sumo_stage1_mc.py",
+    "source": "eval/eval_sumo_stage1_mc.py",
+    "repository": "Abdulla4akash/vec_env",
+    "commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669"
+  },
+  {
+    "file": "sources/production/e11f444_eval_sumo_stage1_mc.py",
+    "source": "eval/eval_sumo_stage1_mc.py",
+    "repository": "Abdulla4akash/vec_env",
+    "commit": "e11f4445a9cc939a79d4f419c6f48b43ce110664",
+    "sha256": "b58a9cbd1ff1271c10c966210d425906917218b4506037c1c1c1009a88e6e1c6"
+  },
+  {
+    "file": "sources/production/0e5ed2f_eval_sumo_stage1_mc.py",
+    "source": "eval/eval_sumo_stage1_mc.py",
+    "repository": "Abdulla4akash/vec_env",
+    "commit": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+    "sha256": "f9ec488528c52ce7cd6f7bb8b3a6c9c96aef532e5783a538bcac9763508519fe"
+  },
+  {
+    "file": "sources/production/0f01f4d_vec_jax.py",
+    "source": "jaxmarl/env/vec_jax.py",
+    "repository": "Abdulla4akash/vec_env",
+    "commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "41691598a3aea615bbee4a7100438b8b997c587703b7ff1bd367feacb2e557f1"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "fb207195cf7077f50a5bcb7ae6b460bc1ad9acf7d418cd251029d9c0f0c41040"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "27dbb298268450fea9fbcbab5d5be2870e3ae4a0d778f26419fd07d0e874218e"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "32c131f35e19943a66da33ed6e0a5bf655f3882fa151d5796eccd0b1cfd5aa07"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "efa41ddec6387afe09fb4fdcb0fd2a1b0dbd0727c41a37235b8bb2bf0d70c558"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "9ec4426fb44f252bee8a3756425eb833ba92c1f7c616ef077c32106e29d62198"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "f3172030c40eed1207bfe466e38ae6918029878234f0152bcffb88b90273c22b"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "d2d315fd21de998fa49811a8a3aca5a527ba58b4f5ff1556cdde83c5a0d295b1"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "7d62afce843b9ad1a369dd8bcfe03e6e4d110e70bc0803f73753f0af2fbf67ff"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "12cb157046d2839d80a90c297bd1c389f3ac2a3069b65b114cb547e7c805bb33"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "ed9e553ed58c1b0c0fa72c2feb1a8749f5f62667d3dc10a323a2c973b44e85c9"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "d819cf787f676488e3cdcad7b3e438cfd02a16dc38a5013f75f9f8a2d724da2a"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "437101482a442ca0aa7314fe638c2994872349cea7de9e006b44c42403739b99"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "885b8599cc14abca2622d7d8c5d3a7710a80f7275eeb71a72f9d1abb61b070ec"
+  },
+  {
+    "file": "sources/compact/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "ff9cf8736d980226a843618c6fa52d665e994e63b706e158853821d98cddb1cf"
+  },
+  {
+    "file": "sources/compact/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "24361b1e581f11934b2c126fe3d11b42fca2a0e69bbe41164cf5e7d1ae44fdb2"
+  },
+  {
+    "file": "sources/compact/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "c9fda2815cfb429c40d9f1727d2830f818a02cfd4524427125520824c17e1c1b"
+  },
+  {
+    "file": "sources/compact/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837"
+  },
+  {
+    "file": "sources/compact/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "0768f4433453ac802c0fb1c9b4d0c352d96b64f2d3bd003b13f80d2019ac9187"
+  },
+  {
+    "file": "sources/compact/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "3b18410caffb45070810de11d706f2deaa35ece7dfae749ba2104c8b9a7def56"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "c27fef3949d866eab10c0f564324bd2dc5520d755b24087fc0a09a5764ae13f1"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "64ebaa66abdc05da5cb5b750fd050e14634bee42b956e80b1077d672b1bbcca1"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "b7aa7dd1255615b2fd2d46ce06055fad906fb8f6a55041cf1e6fa4db1f8d7bf2"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "17853bf379c24f3805b88fe4e94d1d2f64261e909d8890469672a8fbb09a8bdd"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "32d4b5e22e8a35553c87eb6f7e9a0ebe23cfa94fd46a3ad437a4ee3460c3ba41"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "db7000719b4e2f7edf78e11d92c4621266eb84182dc9c1b88de5d963b71217aa"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "38f6f0e566d592a4aea89f3bd000e181047ea4de3efdebc548565a49c3fde5a1"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "d7ffa15306e38549b3887290305b925482ae0db23362531e5b1fadfbaaea6bae"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "c4c6c494a490d8a5c8ad2e10d29b141ea06bc0134a4240be3db3959ea6eafc43"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "dd65009c7b7b4bcdc6f65b403c9420d4a65602b9d0d8de1747084adff8afa70a"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "c45b39522b3cfd7fc8b89a71619ac09fe5d093dcabe6e7d82dd70a20fd6a0dd7"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "1520f03f779098e85d67e4d2bc239ace681aa585866ed4d87e407c2c06b60543"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "c45b1184ec213152b74254238e9e5ae7702be90248e5e5a284545d24ee5b7625"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "705adabda8786f5f6e9685165e5e42f79f717dcbb33d2dc6b2bea528127f5121"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "cc51a89625c92bf7d59ef1ac95917a75af19e72c43c7619a7a95d9c3c6e6439e"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "0043cbf007a2c7d8ff5e6e8e1d71bc74b8ef27c2dcb63e89512848118c781410"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "b23f2be1512bc7f1c82be6a7e3d1888aa072c349b0fd16b5dcbca03461df04f3"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "4b567e0c71b8232e647f837f2e204c8797a4fab699e42739f6a3abecf2fe9605"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "efaf56d22ccf2054130eaa0c1267cd90ba9f6a21431ddac2dde2baaad89baf73"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "18ffb77bdbbce063791f18b719d813110f2b0e44f3fa873bc7429ac3fadeafd5"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "271104fd87f00b66b8723ece4e227bb50cc957fdd9a06f6a3105c71fbfe088d1"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "d43eaa7ffc1f84c41e9336e983a6379531b7f21c01a98f515acc4c1b78cec73b"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "c9989668c6a0b71bb290983a46f06dbceb6af43997efadb467f4bf39a0c36f4a"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "795fee17aa64111f31ff0bc43906b5537aebb6ccab65dd46cf1e6ce255f860bf"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "bcbd0c8b710bff0c8a9b412e61e883f4187988a695b14b02fbf4a6b846b88b41"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "18074f0ca6a316d012f7c83d8a1f1eb0cddefbc20b3efd6cd6642360ed068cb1"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/validation.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/validation.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "8bc36257a4d6f48d471a2daf9b1818cca7f770c7b19f7928aae619990f288350"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/command.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/command.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "56e05b138231aeda6d95f7741f3eead040e4da8768db64986eecc8895eaae003"
+  },
+  {
+    "file": "sources/compact/state-delay-pilot-2026-09-07/manifest.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/manifest.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "9defec2c7a2b8ad4b3229066d9c0c1f2dde23da79e24d524bf66b43023b7f772"
+  },
+  {
+    "file": "sources/compact/generalisation-pilot-2026-09-07/manifest.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/manifest.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "17e5687b6dc62504a5f64c74165e4d243f2f5d1e91b0fe06a1fd3b43c8259352"
+  },
+  {
+    "file": "sources/compact/generalisation-replication-2026-09-07/manifest.json",
+    "source": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/manifest.json",
+    "repository": "Abdulla4akash/traffictwin",
+    "commit": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+    "sha256": "53327aa7f015d595c17d21f598d4bb1b2cdd21cb1511c2dec706dfc258360fc7"
+  }
+]

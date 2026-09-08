@@ -1,0 +1,44 @@
+{
+  "completed_e2_full_runs": {
+    "dla": "<private-local-path-redacted>",
+    "jsq": "<private-local-path-redacted>",
+    "off": "<private-local-path-redacted>"
+  },
+  "documents": [
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "dd48da132856e6199463cc195d93d007436c2cdb187133f8fa68962710c14c38"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "c9f3cc9d84cfc27db1386c14148b9166dd56d5c2c3726d1e6e8f6057018f7a83"
+    },
+    {
+      "path": "<private-local-path-redacted>",
+      "sha256": "4df0c896b1b8a3a8566043fb8803a2aadf90006e73e9de0dc1a3ef0f736b1d23"
+    }
+  ],
+  "manifest": {
+    "path": "<private-local-path-redacted>",
+    "sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91"
+  },
+  "new_full_run": "<private-local-path-redacted>",
+  "raw_checksums": {
+    "path": "<private-local-path-redacted>",
+    "sha256": "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6"
+  },
+  "raw_index": {
+    "path": "<private-local-path-redacted>",
+    "sha256": "26d74e980ace7b88cfceaa03b2c4e0f8b46b0c50a31adea8b9f680b4a715a389"
+  },
+  "raw_root": "<private-local-path-redacted>",
+  "schema_version": "e2b_placement_admission_evidence_index_v1"
+}

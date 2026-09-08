@@ -1,0 +1,174 @@
+{
+  "status": "document_source_arithmetic_integrity_and_current_visual_checks_passed",
+  "draft_baseline": "f91436af2b8f506b400d815947b3a87bda8cd3fd",
+  "scientific_evidence_baseline": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+  "manuscript_sha256": "dcabfe70f25b285b23365b887fa10ab50a5b4f5a3559f294168760ea1be9abfa",
+  "pdf_sha256": "fde62fd2ffa46b68cd5c542d22a776243dc435487796870102485b4ac655d4a1",
+  "word_count": {
+    "total": 8640,
+    "sections": {
+      "Abstract": 283,
+      "1. Introduction": 1806,
+      "2. Methodology": 2766,
+      "3. Evaluation and Reflection": 3331,
+      "4. Conclusion": 454
+    },
+    "rule": "Whitespace-delimited rendered Markdown text from Abstract through Conclusion, including headings, table cells and algorithm blocks; excludes cover, contents, captions, figures, references and appendix. URLs and markup excluded. Same conservative rule as baseline draft."
+  },
+  "references": 13,
+  "evidence_entries": 13,
+  "figure_captions": 5,
+  "table_captions": 8,
+  "numeric_primary_table_cells": 55,
+  "companion_links_checked": 78,
+  "internal_markdown_links_checked": 49,
+  "baseline_tracked_blobs_verified": 2626,
+  "historical_scientific_artifacts_unchanged": true,
+  "pdf": {
+    "pages": 26,
+    "links": {
+      "internal": 97,
+      "external_or_companion": 54
+    },
+    "outline_heading_agreement": [
+      {
+        "title": "Abstract",
+        "page": 3
+      },
+      {
+        "title": "1. Introduction",
+        "page": 4
+      },
+      {
+        "title": "1.1 Problem and motivation",
+        "page": 4
+      },
+      {
+        "title": "1.2 Related work and the position of this study",
+        "page": 4
+      },
+      {
+        "title": "1.3 Aim, research questions and contribution",
+        "page": 7
+      },
+      {
+        "title": "1.4 Scope and report structure",
+        "page": 7
+      },
+      {
+        "title": "2. Methodology",
+        "page": 8
+      },
+      {
+        "title": "2.1 Research design and evidence hierarchy",
+        "page": 8
+      },
+      {
+        "title": "2.2 Architecture and information boundaries",
+        "page": 8
+      },
+      {
+        "title": "2.3 Scenarios, actor and controlled inputs",
+        "page": 9
+      },
+      {
+        "title": "2.4 Time, queues, admission and outcomes",
+        "page": 10
+      },
+      {
+        "title": "2.5 Placement algorithms and their implementation",
+        "page": 12
+      },
+      {
+        "title": "2.6 Experimental progression and inference",
+        "page": 13
+      },
+      {
+        "title": "2.7 Sensitivities, mechanism audit and validation",
+        "page": 14
+      },
+      {
+        "title": "3. Evaluation and Reflection",
+        "page": 15
+      },
+      {
+        "title": "3.1 Accounting validity and the capacity question",
+        "page": 15
+      },
+      {
+        "title": "3.2 From admission decomposition to the incident reversal",
+        "page": 16
+      },
+      {
+        "title": "3.3 Morning replication with the inspected pilot excluded",
+        "page": 17
+      },
+      {
+        "title": "3.4 Post-hoc explanation of the five-RSU pattern",
+        "page": 18
+      },
+      {
+        "title": "3.5 Bounded state-information and forwarding sensitivities",
+        "page": 20
+      },
+      {
+        "title": "3.6 Technical achievement and attribution",
+        "page": 21
+      },
+      {
+        "title": "4. Conclusion",
+        "page": 24
+      },
+      {
+        "title": "References",
+        "page": 25
+      },
+      {
+        "title": "Appendix A. Evidence sources and reproducibility",
+        "page": 26
+      }
+    ],
+    "current_every_page_visual_review": true
+  },
+  "checks_distinguished": {
+    "arithmetic": "Executed check_arithmetic.py and CSV-to-manuscript checks; original t and Bonferroni formulas recalculated. See ARITHMETIC.json.",
+    "source": "Read frozen algorithms, latency/accounting, ownership history, manifests, primary methods. See CLAIM_SOURCE_MAP.md and REFERENCE_CHECK.md.",
+    "file_integrity": "All baseline tracked blobs compared to Git object identities.",
+    "rendering": "Fresh ReportLab build, Poppler rendering and visual record tied to this PDF hash.",
+    "raw_data_reanalysis": "Not performed. Archived scientific validation/audit receipts inspected, not rerun.",
+    "separate_ai_critique": "Context-isolated reviewer assessed all five requested criteria without a target score, followed by one focused response check. See REVIEW.md.",
+    "independent_scientific_review": "Not claimed. The AI critique is neither human peer review nor experimental replication."
+  },
+  "docx": {
+    "created": false,
+    "attempt": "Current tool/skill discovery and local capability check. No workspace dependency loader/runtime exposed; RUNTIME_NODE/PYTHON/BIN_DIR absent; no LibreOffice/soffice in PATH or Applications. Managed DOCX export could not be started. Pandoc is present but does not supply the document skill required managed runtime or visual renderer.",
+    "skill_requirement": "Documents SKILL.md: Use Codex workspace dependencies for docx artifact work; do not use system runtimes/global/repo-local installs."
+  },
+  "artifacts_sha256": {
+    "validate_document.py": "c230daa383a9df382d2060e2b69875e5caa645dc5b8424c6ae885968b496c0a9",
+    "requirements-pdf.txt": "bb04eb3011453cc509ecd2453acf74317d04c46b293f3c3e66c7e94545544d84",
+    "REFERENCE_CHECK.md": "145d3f42779556625fc646b7d0baa227d0862c1b13374eb29f74130a13891563",
+    "check_arithmetic.py": "34755e60988e8dd9b34ce6d9b859c60262bc3a5136880977188c56f83ccf5099",
+    "README.md": "3de2a141f176e822e6c67a47d2fbfc1fd4cfaeb8a7b1313a113d28439ccd3eda",
+    "CLAIM_SOURCE_MAP.md": "b585ead4a5854552e54b56e9dafa6f9e33b40d7d6d4a8107e430f39ebb57ce1c",
+    "TrafficTwin_Dissertation.pdf": "fde62fd2ffa46b68cd5c542d22a776243dc435487796870102485b4ac655d4a1",
+    ".gitattributes": "ed7bed29dc3520a6e90f78e98fa9aedbb9e797ae2316079ad7b951e9d83f0129",
+    "AUTHOR_INPUTS.md": "98d74d8ea544f1f9feaf0bfc7c67b6b364d231ada302d5a8186530efbfacbd39",
+    "build_pdf.py": "a4ba1c7303fe454857a3241c110aac9ee9d8934b5971421ff69ef35f0c2c290e",
+    "REVIEW.md": "67dc9a90c469a2d4f899c8e992645ca3c7ca90000f85f933cfc343364dc284de",
+    "TrafficTwin_Dissertation.md": "dcabfe70f25b285b23365b887fa10ab50a5b4f5a3559f294168760ea1be9abfa",
+    "ARITHMETIC.json": "19bc7a3ba068fc78d657255aec48fe0618301d6a68039d1097f666eaa4b01eed",
+    "build_figures.py": "afa448a20dab9913987017771e4d6b57adb8937ca2b899b4369c9ca2514122b2",
+    "REVISION_REPORT.md": "cd3b6759860315598f3131bda205bb5b433142aabc936a4d94b82beb17a32762",
+    "assets/primary_replication.svg": "bc39f1ba7617339eeafbeb20c6cedf7df55a6500cc856ec89f59e600d0f0c97d",
+    "assets/rsu_workload_distribution.svg": "46c4c2ea149430345a14a1853dd1de263f33429b77fcf4befc7a58acc296a88f",
+    "assets/dispatch_example.svg": "e083b23d7e8cc5f364506ecbaea60057778edcd8e9f2b2b629df251796469fe4",
+    "assets/architecture.svg": "9db927c50852fd357bf601a8a090d35eef0a79dfb2bddaebccf63a343b9c05e9",
+    "assets/task_accounting.svg": "65764515ebe968a27668175cf02a9acacdfb13e5f31b9e8b9691c55b024a3d13"
+  },
+  "scope_limits": [
+    "No new simulations, evaluator changes, retraining, benchmark or tie-break execution",
+    "No push, merge, upload, publication or submission",
+    "No author approval or unaided authorship inferred"
+  ]
+}

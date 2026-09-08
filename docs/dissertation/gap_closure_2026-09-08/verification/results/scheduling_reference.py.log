@@ -1,0 +1,29 @@
+{
+  "protocol_sha256": "49f59eb744812436111631dc5604346e8fddb5850ed4e4c0611fcc12eef298e6",
+  "script_sha256": "80cee7b4122f436501b0d63731dceb5000c41d9ff18b46858dbb386ea0f4b5d8",
+  "primary_cases": 440,
+  "minimisation_trials": 10,
+  "status": "reference_hand_checks_passed",
+  "fourth_changes_cases": 1,
+  "fourth_changes_substeps": 1,
+  "admission_category_disagreements": 0,
+  "cap_labels_without_capacity_failure": 2,
+  "contrasts": {
+    "A_B": {
+      "success_increase_cases": 0,
+      "success_decrease_cases": 0,
+      "success_unchanged_cases": 440,
+      "admission_increase_cases": 1,
+      "admission_decrease_cases": 0,
+      "admission_unchanged_cases": 439
+    },
+    "B_C": {
+      "success_increase_cases": 69,
+      "success_decrease_cases": 16,
+      "success_unchanged_cases": 355,
+      "admission_increase_cases": 68,
+      "admission_decrease_cases": 18,
+      "admission_unchanged_cases": 354
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "status": "passed",
+  "cases": [
+    {
+      "case": "empty",
+      "selected": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "admitted": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "pointer_after": 0,
+      "pointer_after_second": 0,
+      "status": "passed"
+    },
+    {
+      "case": "nonempty_gate",
+      "selected": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "admitted": [
+        false,
+        true,
+        true,
+        true
+      ],
+      "pointer_after": 0,
+      "pointer_after_second": 0,
+      "status": "passed"
+    },
+    {
+      "case": "radio_and_padding",
+      "selected": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "admitted": [
+        false,
+        false,
+        true,
+        true
+      ],
+      "pointer_after": 1,
+      "pointer_after_second": 1,
+      "status": "passed"
+    },
+    {
+      "case": "capacity",
+      "selected": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "admitted": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "pointer_after": 0,
+      "pointer_after_second": 0,
+      "status": "passed"
+    },
+    {
+      "case": "zero_work",
+      "selected": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "admitted": [
+        true,
+        true,
+        false,
+        false
+      ],
+      "pointer_after": 0,
+      "pointer_after_second": 0,
+      "status": "passed"
+    },
+    {
+      "case": "no_offered",
+      "selected": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "admitted": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "pointer_after": 1,
+      "pointer_after_second": 1,
+      "status": "passed"
+    }
+  ],
+  "one_rsu_original_helper_equality": true,
+  "tolerances": {
+    "atol_ms": 0.001,
+    "rtol": 1e-06,
+    "discrete": "exact"
+  },
+  "full_evaluations": 0,
+  "source_sha256": {
+    "test_comparator.py": "6ff6ca636841eec5f809d61fe9daac5fca16b35aa962056d00621dbd3003cf68",
+    "round_robin.py": "a17335a8c7d6ab82c543e3780c6cd5cfe4e5d7117ae188ce3303a67c3f3f55a0"
+  }
+}

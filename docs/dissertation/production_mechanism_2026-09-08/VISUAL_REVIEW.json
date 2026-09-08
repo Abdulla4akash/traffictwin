@@ -1,0 +1,192 @@
+{
+  "status": "passed",
+  "date": "2026-09-08",
+  "reviewer": "Primary Codex agent; visual inspection, not separate human review",
+  "pdf_sha256": "f9b69d7a9d74795f8e57068f37d43049adbc73dab79a3aa70fa89bc7f9f19b1d",
+  "pages": 30,
+  "method": "Fresh Poppler PNG rendering at1600-pixel longest dimension; every page opened with image viewer. Two local layout fixes: subscripts10/11 and table8 header21. Changed pages reinspected; unchanged final page images verified byte-identical to inspected images. No previous dissertation visual pass reused.",
+  "checks": [
+    {
+      "page": 1,
+      "result": "clean",
+      "note": "Cover title, metadata and author-review qualification fit within margins.",
+      "rendered_png_sha256": "5cb13014af6c288256986338f7921a2c29b0ae80aad647f9d7595a570a2967a0"
+    },
+    {
+      "page": 2,
+      "result": "clean",
+      "note": "Contents hierarchy and all page numbers legible; checked against section starts.",
+      "rendered_png_sha256": "3e4b5061790ab304796b3cf925843c11e4bc3e254d2c528482ef47e4142b1bb7"
+    },
+    {
+      "page": 3,
+      "result": "clean",
+      "note": "Abstract fits on its own page; complete paragraphs and symbols legible.",
+      "rendered_png_sha256": "eaa10e57afae52d29b18d2900f47052ff363a99470d90c30f4ef534b3bd1be78"
+    },
+    {
+      "page": 4,
+      "result": "clean",
+      "note": "Introduction headings and literature text clean; paragraph continues normally.",
+      "rendered_png_sha256": "325a60053c899ed4b969e3fadb7a1420c1905a6dceaded32601efc75aee45ef6"
+    },
+    {
+      "page": 5,
+      "result": "clean",
+      "note": "Literature synthesis legible; table starts on next page with its caption.",
+      "rendered_png_sha256": "111d624eb12a742e0fc7a6b57280b1d61788765ff7c4ca181cf4ba5650758928"
+    },
+    {
+      "page": 6,
+      "result": "clean",
+      "note": "Closest-work table has legible cells, intact rules and accompanying synthesis.",
+      "rendered_png_sha256": "cfaab67a16cdf0552c33ffd7b9446e4c002ea772842b8ef25647fffef814b7cf"
+    },
+    {
+      "page": 7,
+      "result": "clean",
+      "note": "Aim and four questions complete; chapter ending has reasonable whitespace.",
+      "rendered_png_sha256": "893cdfe754dc7c2d9cee89255cab8887fa9863f1142f605da979bda62bc87bd4"
+    },
+    {
+      "page": 8,
+      "result": "clean",
+      "note": "Architecture figure labels/arrows and caption legible; no overlap.",
+      "rendered_png_sha256": "08740a375293dd10031040bc19ddafd2065c2885c4fc5fdaa01e7287f0d2844f"
+    },
+    {
+      "page": 9,
+      "result": "clean",
+      "note": "Scenario table legible; coupled task types and deadline values intact.",
+      "rendered_png_sha256": "39068ed8d39596592560a6b436aeba180b779a7a9f5b9dd0cc88952f8ded02f1"
+    },
+    {
+      "page": 10,
+      "result": "clean",
+      "note": "Equations1\u20133, subscripts and outcome diagram checked after subscript-size/nonbreaking fix; no collisions.",
+      "rendered_png_sha256": "3ae6fe11a073a007a8ff32cd47a33408a128a68282ba5233c3e2b7053168e667"
+    },
+    {
+      "page": 11,
+      "result": "clean",
+      "note": "Latency and conservation equations checked after subscript fix; strict/inclusive symbols intact.",
+      "rendered_png_sha256": "d1e8f970aa64686fdee3ce32160dae3f3335849bdf387dc4262e05b3a5fd0b29"
+    },
+    {
+      "page": 12,
+      "result": "clean",
+      "note": "Infrastructure table and Algorithm1 wholly legible; proof forward reference present.",
+      "rendered_png_sha256": "a4fb19252f2678c1bd5e0d49e2dff0cd293b808edd3cae02013ef5bf4fc48396"
+    },
+    {
+      "page": 13,
+      "result": "clean",
+      "note": "Algorithm2 wholly legible; illustrative figure/caption intact and progression follows.",
+      "rendered_png_sha256": "356afd52b6523a021c95844cc5c113cdd448671e5214908a65760c109aa2a094"
+    },
+    {
+      "page": 14,
+      "result": "clean",
+      "note": "Methodology ends on this page after removing the earlier two-line spill; no orphan heading.",
+      "rendered_png_sha256": "863981b07478c6844422f1985a55f50d0f4bcece75580441cab286a50ab4d178"
+    },
+    {
+      "page": 15,
+      "result": "clean",
+      "note": "Evaluation start and historical scoring qualifications readable; paragraph continues normally.",
+      "rendered_png_sha256": "99c30ced3dff25bff151b826e50647808f3b8b09ad8453e7253824b31f90943f"
+    },
+    {
+      "page": 16,
+      "result": "clean",
+      "note": "Incident table and intervals legible; no clipping.",
+      "rendered_png_sha256": "a10b091cafddedb0314b9bf781f9d14d21192177434f62f76e610659dc1cf51d"
+    },
+    {
+      "page": 17,
+      "result": "clean",
+      "note": "Morning per-draw and interval tables legible; whitespace preserves following figure/caption together.",
+      "rendered_png_sha256": "4d66c142e8638595325010e555291191ce0540be5793de6cfe16992de25a3d29"
+    },
+    {
+      "page": 18,
+      "result": "clean",
+      "note": "Outcome plot labels and interval marks legible; new four-draw gains/losses table fits intact.",
+      "rendered_png_sha256": "cdb0deaffc28842609045fc5b6acfa4cfeee0a4974b3d8c1fd4cc7e971b823ed"
+    },
+    {
+      "page": 19,
+      "result": "clean",
+      "note": "Workload figure and caption legible; destination-bound analysis begins below.",
+      "rendered_png_sha256": "51d135a335f021f2076865d32ca226b4b7d23d88287690cb3ef69fb580a4b9d6"
+    },
+    {
+      "page": 20,
+      "result": "clean",
+      "note": "Exact-bound proof sketch and numerical limitations legible; paragraph continues normally.",
+      "rendered_png_sha256": "fb651e09e165a8c94e6f65fdffcea8dbdaea0128a8b4f3fb5a78380654be7fcc"
+    },
+    {
+      "page": 21,
+      "result": "clean",
+      "note": "Worked-example header widened after inspection; all seven columns, eight rows and miss emphasis legible.",
+      "rendered_png_sha256": "c45b10c7aa67fd1682a572c4473d897aaa7d6e94bb676764ac6f03c604b197cd"
+    },
+    {
+      "page": 22,
+      "result": "clean",
+      "note": "Ownership table begins with caption/header/first row; no stranded caption.",
+      "rendered_png_sha256": "7bee20545bf64b7b08a2b3d97a4248e66efcf093cddba37c33f765f5ca066ab2"
+    },
+    {
+      "page": 23,
+      "result": "clean",
+      "note": "Ownership table continuation repeats headers; all rows and follow-on text fit.",
+      "rendered_png_sha256": "0e961de3ed98e78c98268756f83a14fd32a3e80bc994a1dff86ef504869da466"
+    },
+    {
+      "page": 24,
+      "result": "clean",
+      "note": "Validity table and accurate evidence-access statement fit; consistent typography.",
+      "rendered_png_sha256": "bfbec737936601e5666aaa7a5c4248929abcdd4cdba1c878add36afdaa437c08"
+    },
+    {
+      "page": 25,
+      "result": "clean",
+      "note": "Conclusion stands alone, answers questions and preserves model/measurement limits.",
+      "rendered_png_sha256": "c03b4a678c7d4c1d47d68349c08850afb14bcb26128581e10382f57157f491a7"
+    },
+    {
+      "page": 26,
+      "result": "clean",
+      "note": "All thirteen references legible; full bibliographic entries and links intact.",
+      "rendered_png_sha256": "a63451009d5aca0a73efae75650bee9caafb1d7901bed4565bfba317a3fce03c"
+    },
+    {
+      "page": 27,
+      "result": "clean",
+      "note": "S0\u2013S14 source entries fit on one page; access/AI-assistance statement legible.",
+      "rendered_png_sha256": "bb924d3096c5b5fa78f378f12bd0e18520f882731191f135a1a32e5c32f55277"
+    },
+    {
+      "page": 28,
+      "result": "clean",
+      "note": "Historical/September coverage table complete and readable; no new raw-audit status inferred.",
+      "rendered_png_sha256": "bc5ed746549db692c64f3a7c87ff190dddecd4f58b0ca4ac1d6a3cb585936e4a"
+    },
+    {
+      "page": 29,
+      "result": "clean",
+      "note": "Paired outcome table and prior-suite boundary readable; end-of-appendix whitespace accepted.",
+      "rendered_png_sha256": "3b1284ba2b960e9f5c9a9c35cd613d0ef539f29361abf856d83c693801a50b0d"
+    },
+    {
+      "page": 30,
+      "result": "clean",
+      "note": "Exact-model/numerical appendix complete; masks, decimal values and target-selection qualification legible.",
+      "rendered_png_sha256": "d113318707e759963875d99d4a419764f035e9b041c11dd4f0540c3f38212fd1"
+    }
+  ],
+  "render_images": "Temporary local review images; checksums bind them to the inspected render. They are not an off-machine backup.",
+  "limits": "Visual check covers displayed page layout. Programmatic link/outline checks are separate in VALIDATION.json; no human author approval implied."
+}

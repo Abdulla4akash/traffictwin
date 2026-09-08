@@ -1,0 +1,303 @@
+{
+  "status": "document_source_arithmetic_integrity_and_current_visual_checks_passed",
+  "draft_baseline": "227c95e8e3e6b949eacb2b92c6e32c0ffdcd8133",
+  "scientific_evidence_baseline": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+  "manuscript_sha256": "332f43c877821d61ef3b1ba3dfa058d8dc2b6b18a9f05204c0745e13d1e17c41",
+  "pdf_sha256": "bd67281dc6fc2c3812bdb5f77fd640dfc97062cee1a74799feadf480ac5164c6",
+  "word_count": {
+    "total": 8489,
+    "sections": {
+      "Abstract": 274,
+      "1. Introduction": 1743,
+      "2. Methodology": 2673,
+      "3. Evaluation and Reflection": 3345,
+      "4. Conclusion": 454
+    },
+    "rule": "Whitespace-delimited rendered Markdown text from Abstract through Conclusion, including headings, table cells and algorithm blocks; excludes cover, contents, captions, figures, references and appendix. URLs and markup excluded. Same conservative rule as baseline draft."
+  },
+  "references": 13,
+  "evidence_entries": 14,
+  "figure_captions": 5,
+  "table_captions": 8,
+  "appendix_tables": 2,
+  "numeric_primary_table_cells": 79,
+  "companion_links_checked": 85,
+  "internal_markdown_links_checked": 56,
+  "baseline_tracked_blobs_verified": 2649,
+  "compact_sources_bound_to_git": 97,
+  "historical_scientific_artifacts_unchanged": true,
+  "pdf": {
+    "pages": 28,
+    "links": {
+      "internal": 106,
+      "external_or_companion": 64
+    },
+    "outline_heading_agreement": [
+      {
+        "title": "Abstract",
+        "page": 3
+      },
+      {
+        "title": "1. Introduction",
+        "page": 4
+      },
+      {
+        "title": "1.1 Problem and motivation",
+        "page": 4
+      },
+      {
+        "title": "1.2 Related work and the position of this study",
+        "page": 4
+      },
+      {
+        "title": "1.3 Aim, research questions and contribution",
+        "page": 7
+      },
+      {
+        "title": "1.4 Scope and report structure",
+        "page": 7
+      },
+      {
+        "title": "2. Methodology",
+        "page": 8
+      },
+      {
+        "title": "2.1 Research design and evidence hierarchy",
+        "page": 8
+      },
+      {
+        "title": "2.2 Architecture and information boundaries",
+        "page": 8
+      },
+      {
+        "title": "2.3 Scenarios, actor and controlled inputs",
+        "page": 9
+      },
+      {
+        "title": "2.4 Time, queues, admission and outcomes",
+        "page": 10
+      },
+      {
+        "title": "2.5 Placement algorithms and their implementation",
+        "page": 11
+      },
+      {
+        "title": "2.6 Experimental progression and inference",
+        "page": 13
+      },
+      {
+        "title": "2.7 Sensitivities, mechanism audit and validation",
+        "page": 14
+      },
+      {
+        "title": "3. Evaluation and Reflection",
+        "page": 15
+      },
+      {
+        "title": "3.1 Accounting validity and the capacity question",
+        "page": 15
+      },
+      {
+        "title": "3.2 From admission decomposition to the incident reversal",
+        "page": 16
+      },
+      {
+        "title": "3.3 Morning replication with the inspected pilot excluded",
+        "page": 17
+      },
+      {
+        "title": "3.4 Post-hoc explanation of the five-RSU pattern",
+        "page": 18
+      },
+      {
+        "title": "3.5 Bounded state-information and forwarding sensitivities",
+        "page": 20
+      },
+      {
+        "title": "3.6 Technical achievement and attribution",
+        "page": 21
+      },
+      {
+        "title": "4. Conclusion",
+        "page": 24
+      },
+      {
+        "title": "References",
+        "page": 25
+      },
+      {
+        "title": "Appendix A. Evidence sources and reproducibility",
+        "page": 26
+      },
+      {
+        "title": "Appendix B. Audit coverage and diagnostic boundaries",
+        "page": 27
+      }
+    ],
+    "current_every_page_visual_review": true
+  },
+  "checks_distinguished": {
+    "arithmetic": "Executed relocatable compact_arithmetic.py and revised-table checks; original t and Bonferroni formulas recalculated from summaries. See verification/results/ARITHMETIC.json. Not fresh historical task validation.",
+    "source": "Inspected exact historical/follow-up scoring/energy/queue paths, source hashes, ownership and stream contracts. Existing primary synthesis retained; one targeted waiting-time-definition recheck. See CLAIM_SOURCE_MAP.md and REFERENCE_CHECK.md.",
+    "file_integrity": "All baseline tracked blobs compared to Git object identities.",
+    "rendering": "Fresh ReportLab build, Poppler rendering and visual record tied to this PDF hash.",
+    "raw_data_reanalysis": "Executed authenticated 19-run September audit and all 23 within-study/same-seed paired transitions; historical E0/E1/E2 arrays unavailable, checks not assessable. See verification/results/RAW_AUDIT.json and OUTCOME_TRANSITIONS.json.",
+    "separate_ai_critique": "One separate context-isolated AI reviewer assessed manuscript/evidence without a desired score; supported objections addressed once. See REVIEW.md.",
+    "standalone_algorithm_tests": "440 predeclared cases + 10 deletion trials; unchanged production A/C helper agreement on 1,305 substeps. Explicit synthetic arrays; no actor/full evaluator or physics validation.",
+    "full_simulation_runs": "None executed. Optional full-evaluator tie-break prefixes remain unrun.",
+    "human_author_supervisor_approval": "Not received; attribution and assessment-specific AI permission unresolved.",
+    "independent_scientific_review": "Not claimed. The AI critique is neither human peer review nor experimental replication."
+  },
+  "docx": {
+    "created": false,
+    "attempt": "Current tool/skill discovery, specific runtime/tool lookup and Codex Document Control session listing performed. No managed dependency loader/runtime exposed; runtime variables absent; no connected document session; no LibreOffice or Word application at checked paths. Managed DOCX authoring could not start. Pandoc alone does not meet the skill runtime contract.",
+    "skill_requirement": "Documents SKILL.md: Use Codex workspace dependencies for docx artifact work; do not use system runtimes/global/repo-local installs."
+  },
+  "artifacts_sha256": {
+    "validate_document.py": "0d64e83be7c9d39b0f4db0642ddc80d74247832a3b8481626d0dfabf90a1c366",
+    "requirements-pdf.txt": "bb04eb3011453cc509ecd2453acf74317d04c46b293f3c3e66c7e94545544d84",
+    "REFERENCE_CHECK.md": "3b3d9f613e482cdb85870f1eb32276ee4f32e27f0bd3c6866bcf673db473d01f",
+    "README.md": "db2353cfb3903658cd3b7beac89e28df5d7ed782efba3bbc4b6ee3d5db86dfbf",
+    "CLAIM_SOURCE_MAP.md": "362fa3fde0a56e37bfe9fd0cebab6a1b723f1c24d59e08a4e4a6fd8aa1c8c283",
+    "TrafficTwin_Dissertation.pdf": "bd67281dc6fc2c3812bdb5f77fd640dfc97062cee1a74799feadf480ac5164c6",
+    ".gitattributes": "ed7bed29dc3520a6e90f78e98fa9aedbb9e797ae2316079ad7b951e9d83f0129",
+    "AUTHOR_INPUTS.md": "59c1d2103a391821db1b6deb4c7bb96d9338e1a52081132785826076384337bc",
+    "build_pdf.py": "a05f35850767dcbf99a90781886d87f8fd163b6328d8dc6afdb123fc738096e4",
+    "REVIEW.md": "3f7f70030d25f5738821cd3a6c8301e9c60d327e068d08a7f60a902fb443f9b3",
+    "TrafficTwin_Dissertation.md": "332f43c877821d61ef3b1ba3dfa058d8dc2b6b18a9f05204c0745e13d1e17c41",
+    "GAP_CLOSURE.md": "8a76e8d6206aa980faf13cbdee0086025616abaa92b0bf01774e63ba1e090e9d",
+    "verification/compare_production.py": "1c6e7bbdff39a42af89d28dbf01e86113fb9bd35bf1e5dddf2702f5c297f2ea9",
+    "verification/KERNEL_PROTOCOL.md": "49f59eb744812436111631dc5604346e8fddb5850ed4e4c0611fcc12eef298e6",
+    "verification/compact_arithmetic.py": "a10b4b28c34d532d4c9197c321860404797e4f9c2b1f07d0b7d0fe40a8585df3",
+    "verification/outcome_transitions.py": "3f59b8147cd3328b52eed4fed8ef4b3cbf4f06b50eff7c023ca34f50d7fc73e1",
+    "verification/historical_receipts.py": "4d99a29227ce02c640d7c198c5e9b7560485db21ec13c4445c19b744c7f3dbc2",
+    "verification/README.md": "2a39bf6f68ba9be77dd7cfc2c9d2cefd69f1ec614f2eba9a93bf8e37f95c07f7",
+    "verification/SOURCE_BINDINGS.json": "44769b6d0faa79af163e889a203f86f337974ec485670f6ef5caa47a8894e852",
+    "verification/scheduling_reference.py": "80cee7b4122f436501b0d63731dceb5000c41d9ff18b46858dbb386ea0f4b5d8",
+    "verification/RAW_INPUTS.json": "c1cca720abb79b01c3639df2e52831ecc989d4cb90cf54549fced7e5ac57326e",
+    "verification/requirements-analysis.txt": "6e69ffe6f7841e5d8aea3f05a4bf77c60055d3b0717fcccbb31fd19647e07b7b",
+    "verification/verify.py": "5dfc7c08a235de9b417d09b99d8dfa1a880b4db233d7507ad8c47b7d3110d7df",
+    "verification/raw_audit.py": "5be9c05afe5b973ba535a559ccba928986b4b8a63ca966fc1df5880b425f1fe3",
+    "verification/RUNS.json": "154d60c4e06d0a14538269486e5927b374b70e721dc0fb7d1e4ed23926d4405b",
+    "assets/primary_replication.svg": "bc39f1ba7617339eeafbeb20c6cedf7df55a6500cc856ec89f59e600d0f0c97d",
+    "assets/rsu_workload_distribution.svg": "46c4c2ea149430345a14a1853dd1de263f33429b77fcf4befc7a58acc296a88f",
+    "assets/dispatch_example.svg": "e083b23d7e8cc5f364506ecbaea60057778edcd8e9f2b2b629df251796469fe4",
+    "assets/architecture.svg": "9db927c50852fd357bf601a8a090d35eef0a79dfb2bddaebccf63a343b9c05e9",
+    "assets/task_accounting.svg": "50fe265d9cfabf899e450120ecb4b29342450cb98f4f799709dbe9dc0276e3f5",
+    "verification/results/KERNEL_RESULTS.json": "86890025181122f6bda1157bb9fa3c68b13715551b9dfcae8b5f1e0d1b7db689",
+    "verification/results/VERIFY.json": "d4a28ae66d2adc2a6321576b8da8d4bee6078bc6284b6baae01991054f45aa0b",
+    "verification/results/CENTRAL_TABLES.csv": "ed85ff41cb969648b58ac2df4440011e87d177045a644e1a8d0a8e67ccb0e3e5",
+    "verification/results/HISTORICAL_COVERAGE.json": "4a6489056dd6a2130f28d711bad3ba1e78b7e76963e7eb4aff12afe6f0cf1615",
+    "verification/results/RELOCATION_CHECK.json": "e084be4b80c962abd638091ac06d44000b2c3ca1e329c242e23f6ae6a6a708ff",
+    "verification/results/INVENTORY_CHECK.json": "c0908fd5123ac5afd5b923aef577f78bcf3ee81f825f457ea3c4a97522bb5a9a",
+    "verification/results/OUTCOME_TRANSITIONS.json": "db81ead8203bc1dd9ca6d00ec7e76aaffc8620ebac616fc40bb4db14a8808e79",
+    "verification/results/RAW_AUDIT.json": "87e53625ba46e24d3bb0d6bd49a6a5096f668575dcac769e26ce682ce03fed01",
+    "verification/results/PRODUCTION_AGREEMENT.json": "994008d8a85436e0e802870578be50e629642eedf5b291296248614d29287e83",
+    "verification/results/compact_arithmetic.py.log": "e353e3e6727c7b36478a011a05baafd54d1f8accc9597d2ecb7b711f6d137038",
+    "verification/results/historical_receipts.py.log": "a40d2553a092487dcbd9206b8ef6707a914dcd475c3c7e6fa539712ed80b2462",
+    "verification/results/ARITHMETIC.json": "4e2c0fa0ea2ef094255143e5cc0004f2e79ced89034c03848f5a277a728b1a14",
+    "verification/results/scheduling_reference.py.log": "39ebb01534fd1b8374c72e34ae698e70b2806d43986f4d813ad27b8414fe3371",
+    "verification/sources/ARCHIVE_INVENTORY.json": "2c1f6a756594449432e3848b306732cfe0066437691b9f323b477dd6a16509cc",
+    "verification/sources/production/0f01f4d_eval_sumo_stage1_mc.py": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "verification/sources/production/e2d_per_task_placement.py": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09",
+    "verification/sources/production/0f01f4d_vec_jax.py": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "verification/sources/production/eval_sumo_stage1_mc.py": "2824d9c2ef09e7748cd420d1ab2f0526d28157b8986605dc831397b6c618c07e",
+    "verification/sources/production/e11f444_eval_sumo_stage1_mc.py": "b58a9cbd1ff1271c10c966210d425906917218b4506037c1c1c1009a88e6e1c6",
+    "verification/sources/production/0e5ed2f_eval_sumo_stage1_mc.py": "f9ec488528c52ce7cd6f7bb8b3a6c9c96aef532e5783a538bcac9763508519fe",
+    "verification/sources/legacy/E2b/evidence/e2b_placement_admission_factorial_manifest_v1_public_sanitized.json": "f2af61bf936d77ec8a78c156058e0404a7a2b7bd826705390e5d7b8c3779f701",
+    "verification/sources/legacy/E2b/evidence/e2b_placement_admission_evidence_index_v1_public_sanitized.json": "74b041ac254ad4709e1b5de5bd3d80886e461e01978f76a3ef12659c1ba41d6e",
+    "verification/sources/legacy/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json": "c73a23a98342d58ed6a54a26d32b27f702e33705b2489c2ba0ffae9a8eec1389",
+    "verification/sources/legacy/E0/evidence/e0_manifest_v1.json": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93",
+    "verification/sources/legacy/E0/evidence/e0_full_reference_validation_v1.json": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+    "verification/sources/legacy/E0/evidence/e0_full_reference_manifest_v1.json": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f",
+    "verification/sources/legacy/E0/evidence/e0_validation_v1.json": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d",
+    "verification/sources/legacy/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+    "verification/sources/legacy/E2d/evidence/e2d_per_task_placement_robustness_manifest_v1_public_sanitized.json": "582c5c0b254ab780f75b0c5b1f11829449c17d59bfe65443746724441552e096",
+    "verification/sources/legacy/E2d/evidence/e2d_per_task_placement_evidence_index_v1_public_sanitized.json": "76638238c0b6026faf4650a492b5fa4ec3eb86b1d58fc669c7b8e1889b2bd53d",
+    "verification/sources/legacy/E2c/evidence/e2c_gated_placement_multidraw_manifest_v1_public_sanitized.json": "2cb5a05582ac907a630206bffd4de0c2850a20368bd7eb73807992e218f8a7b9",
+    "verification/sources/legacy/E2c/evidence/e2c_gated_placement_multidraw_evidence_index_v1_public_sanitized.json": "5d2b39d077b332503d7aec9985fa7145a13c0b54ca465da1f4d4cb5580961f49",
+    "verification/sources/legacy/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+    "verification/sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+    "verification/sources/legacy/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json": "43fafbd73b5e5e0035fe9bf23f4046ff3a50fdd665352a3d6c415f50059fa19d",
+    "verification/sources/legacy/E1/evidence/e1_multidraw_physical_campaign_evidence_index_v1.json": "aeecdece2cbfffef4d7e68ac398c42fb2f36af5a6a1256536f58186c547f74e5",
+    "verification/sources/legacy/E2/evidence/e2_native_placement_evidence_index_v1_public_sanitized.json": "8431afb31ba7de7960d0c947970ee7d0c627d61d70f293c15f6512c3a177743b",
+    "verification/sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f",
+    "verification/sources/legacy/E2/evidence/e2_native_placement_pilot_manifest_v1_public_sanitized.json": "69790a0736bb62bb9cd9822e989cdb52596597fbc047a9bc1770cfc375319939",
+    "verification/sources/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/comparison.csv": "e879c6015a53f5fa197b321da5645b79faa877ed1e150874548023ce34618350",
+    "verification/sources/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json": "21a06774497c2fdc4304392fcb50e1291bb80592a127f6d770ad45ecd4b53ecf",
+    "verification/sources/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv": "dd29dd512e5b7c839e419be0c4225f032d971d4c6352ce99be05691e4a556320",
+    "verification/sources/vec_followup_2026-09-07/generalisation-replication-2026-09-07/runs.csv": "12ca84b319f4147dac5e0138ebc5d6389e3116d85e93baeadf9ab95d950d2843",
+    "verification/sources/vec_followup_2026-09-07/generalisation-replication-2026-09-07/rsu_workload_distribution.csv": "2b8c032bb7fa1aa3c252b414966cf9d593679c84d1ce86b47204cf16b9b3bbe1",
+    "verification/sources/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/metrics.csv": "1ecc471306cfc5294f5940309662c67b76be7275e180bb62a13f712bd21f424c",
+    "verification/sources/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/forwarding_sensitivity.csv": "fc667384ded4278a8f02c3246835e857085b5a279ef09688f2324de806e84d20",
+    "verification/sources/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_comparison_v1_public_sanitized.json": "ef1821f94739816ac2777323029e1a0711294116d23eba43215e7a5aa1d5c2fd",
+    "verification/sources/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/data/e2d_paired_results.csv": "bffbcb67e04bae6f5fe6e6017e7894ac36e7745c3ea5aa9cc4e6d3f8d65ac4be",
+    "verification/sources/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_comparison_v1.json": "b2f7e8bf8769e7359bf5731b4b98d1007d294ed55595ec4977886f976d600ec3",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/manifest.json": "9defec2c7a2b8ad4b3229066d9c0c1f2dde23da79e24d524bf66b43023b7f772",
+    "verification/sources/compact/generalisation-replication-2026-09-07/manifest.json": "53327aa7f015d595c17d21f598d4bb1b2cdd21cb1511c2dec706dfc258360fc7",
+    "verification/sources/compact/generalisation-pilot-2026-09-07/manifest.json": "17e5687b6dc62504a5f64c74165e4d243f2f5d1e91b0fe06a1fd3b43c8259352",
+    "verification/sources/compact/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json": "ff9cf8736d980226a843618c6fa52d665e994e63b706e158853821d98cddb1cf",
+    "verification/sources/compact/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json": "c9fda2815cfb429c40d9f1727d2830f818a02cfd4524427125520824c17e1c1b",
+    "verification/sources/compact/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json": "24361b1e581f11934b2c126fe3d11b42fca2a0e69bbe41164cf5e7d1ae44fdb2",
+    "verification/sources/compact/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/summary.json": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837",
+    "verification/sources/compact/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/command.json": "3b18410caffb45070810de11d706f2deaa35ece7dfae749ba2104c8b9a7def56",
+    "verification/sources/compact/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/validation.json": "0768f4433453ac802c0fb1c9b4d0c352d96b64f2d3bd003b13f80d2019ac9187",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/command.json": "271104fd87f00b66b8723ece4e227bb50cc957fdd9a06f6a3105c71fbfe088d1",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/validation.json": "18ffb77bdbbce063791f18b719d813110f2b0e44f3fa873bc7429ac3fadeafd5",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/command.json": "705adabda8786f5f6e9685165e5e42f79f717dcbb33d2dc6b2bea528127f5121",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/validation.json": "c45b1184ec213152b74254238e9e5ae7702be90248e5e5a284545d24ee5b7625",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/summary.json": "c27fef3949d866eab10c0f564324bd2dc5520d755b24087fc0a09a5764ae13f1",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/command.json": "b7aa7dd1255615b2fd2d46ce06055fad906fb8f6a55041cf1e6fa4db1f8d7bf2",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/validation.json": "64ebaa66abdc05da5cb5b750fd050e14634bee42b956e80b1077d672b1bbcca1",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/command.json": "56e05b138231aeda6d95f7741f3eead040e4da8768db64986eecc8895eaae003",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/validation.json": "8bc36257a4d6f48d471a2daf9b1818cca7f770c7b19f7928aae619990f288350",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/summary.json": "d43eaa7ffc1f84c41e9336e983a6379531b7f21c01a98f515acc4c1b78cec73b",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/command.json": "795fee17aa64111f31ff0bc43906b5537aebb6ccab65dd46cf1e6ce255f860bf",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/validation.json": "c9989668c6a0b71bb290983a46f06dbceb6af43997efadb467f4bf39a0c36f4a",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/command.json": "18074f0ca6a316d012f7c83d8a1f1eb0cddefbc20b3efd6cd6642360ed068cb1",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/validation.json": "bcbd0c8b710bff0c8a9b412e61e883f4187988a695b14b02fbf4a6b846b88b41",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/summary.json": "cc51a89625c92bf7d59ef1ac95917a75af19e72c43c7619a7a95d9c3c6e6439e",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/command.json": "b23f2be1512bc7f1c82be6a7e3d1888aa072c349b0fd16b5dcbca03461df04f3",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/validation.json": "0043cbf007a2c7d8ff5e6e8e1d71bc74b8ef27c2dcb63e89512848118c781410",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/command.json": "38f6f0e566d592a4aea89f3bd000e181047ea4de3efdebc548565a49c3fde5a1",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/validation.json": "db7000719b4e2f7edf78e11d92c4621266eb84182dc9c1b88de5d963b71217aa",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/summary.json": "d7ffa15306e38549b3887290305b925482ae0db23362531e5b1fadfbaaea6bae",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/command.json": "dd65009c7b7b4bcdc6f65b403c9420d4a65602b9d0d8de1747084adff8afa70a",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/validation.json": "c4c6c494a490d8a5c8ad2e10d29b141ea06bc0134a4240be3db3959ea6eafc43",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/command.json": "32d4b5e22e8a35553c87eb6f7e9a0ebe23cfa94fd46a3ad437a4ee3460c3ba41",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/validation.json": "17853bf379c24f3805b88fe4e94d1d2f64261e909d8890469672a8fbb09a8bdd",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/command.json": "1520f03f779098e85d67e4d2bc239ace681aa585866ed4d87e407c2c06b60543",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/validation.json": "c45b39522b3cfd7fc8b89a71619ac09fe5d093dcabe6e7d82dd70a20fd6a0dd7",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/command.json": "efaf56d22ccf2054130eaa0c1267cd90ba9f6a21431ddac2dde2baaad89baf73",
+    "verification/sources/compact/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/validation.json": "4b567e0c71b8232e647f837f2e204c8797a4fab699e42739f6a3abecf2fe9605",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/summary.json": "32c131f35e19943a66da33ed6e0a5bf655f3882fa151d5796eccd0b1cfd5aa07",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/command.json": "9ec4426fb44f252bee8a3756425eb833ba92c1f7c616ef077c32106e29d62198",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/validation.json": "efa41ddec6387afe09fb4fdcb0fd2a1b0dbd0727c41a37235b8bb2bf0d70c558",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/summary.json": "d819cf787f676488e3cdcad7b3e438cfd02a16dc38a5013f75f9f8a2d724da2a",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/command.json": "885b8599cc14abca2622d7d8c5d3a7710a80f7275eeb71a72f9d1abb61b070ec",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/validation.json": "437101482a442ca0aa7314fe638c2994872349cea7de9e006b44c42403739b99",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/summary.json": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/command.json": "d2d315fd21de998fa49811a8a3aca5a527ba58b4f5ff1556cdde83c5a0d295b1",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/validation.json": "f3172030c40eed1207bfe466e38ae6918029878234f0152bcffb88b90273c22b",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json": "41691598a3aea615bbee4a7100438b8b997c587703b7ff1bd367feacb2e557f1",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json": "27dbb298268450fea9fbcbab5d5be2870e3ae4a0d778f26419fd07d0e874218e",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json": "fb207195cf7077f50a5bcb7ae6b460bc1ad9acf7d418cd251029d9c0f0c41040",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/summary.json": "7d62afce843b9ad1a369dd8bcfe03e6e4d110e70bc0803f73753f0af2fbf67ff",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/command.json": "ed9e553ed58c1b0c0fa72c2feb1a8749f5f62667d3dc10a323a2c973b44e85c9",
+    "verification/sources/compact/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/validation.json": "12cb157046d2839d80a90c297bd1c389f3ac2a3069b65b114cb547e7c805bb33",
+    "verification/sources/common_target_mechanism_audit_2026-09-07/evidence/audit_results.json": "fd6b86a3c3336b4455f1f56d3b08b40d2ac638f07842ede67b24500e39712629"
+  },
+  "scope_limits": [
+    "No full simulations, historical evaluator/result changes, retraining, benchmark campaign or full-evaluator tie-break execution; standalone synthetic diagnostics explicitly authorised",
+    "No push, merge, upload, publication or submission",
+    "No author approval or unaided authorship inferred"
+  ]
+}

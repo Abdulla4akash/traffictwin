@@ -1,0 +1,28 @@
+{
+  "condition": {
+    "delay_ms": null,
+    "mode": "ingress_dla",
+    "name": "ingress"
+  },
+  "input_identity": {
+    "slot_is_ev": "6535cf6ec442d02d3aba65c629960a6d1cc1194bb0b4bb80065053d2e689c96c",
+    "slot_tier": "4c1a6dd0864958508f0b7be8e75b0d7ecf9b307964077f12455a699e78e52e19",
+    "task_active": "ae9d79eb992a5e534fee23e04f32dcd7051d60db9fb22669eb06898c8fa4886e",
+    "task_ingress_rsu": "206d5a95d13fe9f6a4add7ffd2157e5e4717fd20d8f8fdb06ff4078f2244ae23",
+    "task_type": "3c6ac7a4e834ccb50deff0fbee8833dbf3ac1ddfb34081e3c5073c1dfa605036",
+    "veh_action": "5d27b7975119b3c73ff015ee71ccbdc2529c3da57997af75fdb905615b23f8b4",
+    "veh_k": "b04580da0bc513f709d059bb41fc4f064ad8c4e031437528789fc96584a62cc3"
+  },
+  "reference": "/Users/akashx/Downloads/diss_mat/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001",
+  "sha256": {
+    "command.json": "3b18410caffb45070810de11d706f2deaa35ece7dfae749ba2104c8b9a7def56",
+    "per_step.npz": "f6ab83dbb0f8e85f20367ee269ce6402cdcf6a3afe283c6edd4dc271ff6c92f2",
+    "per_task.npz": "98c5b8d05573c18e0b67ff3a4b2877aa01a4f0212df0a96633702876ac245754",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "8c2ba8a233968e62a2607260b67dfea5e4bf4c8ca03a4924d7fd257a530c687c",
+    "summary.json": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837"
+  },
+  "status": "passed",
+  "steps": 10800,
+  "validated_at": "2026-09-07T10:03:34.401349+00:00"
+}

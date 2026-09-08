@@ -1,0 +1,28 @@
+{
+  "condition": {
+    "delay_ms": 500,
+    "mode": "per_task_dla",
+    "name": "delay_500"
+  },
+  "input_identity": {
+    "slot_is_ev": "5bde530779fc991db70929e4de53b6c12e03bcb39dcb8f517aa5cf3673a07d71",
+    "slot_tier": "42f89d67d7df0a468cd3174e6af91778cea93698b9a7e758229bf32c12ef72e0",
+    "task_active": "d0120762afc84ec56c1eabf1dfd9c3a9ca528aa26f989f99284a3e6e469da31f",
+    "task_ingress_rsu": "502b4718dcac038e38dcf2d2dc585fce50cf1f30c3da6d9d3a206b4322bb7c18",
+    "task_type": "7b9654c9bf898bdbc7de1b1db786c82170d6943123807b55a73f890c95ec6857",
+    "veh_action": "f824c4b54ea13d34a8fce6113062bc23ca6e538465eba3e72039349dccf6ea8f",
+    "veh_k": "bf90e0678ba75d670b2e0ca542850cbb7eeffe439fcbb920d18cdeb9f6db063c"
+  },
+  "reference": "/Users/akashx/Downloads/diss_mat/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001",
+  "sha256": {
+    "command.json": "d2d315fd21de998fa49811a8a3aca5a527ba58b4f5ff1556cdde83c5a0d295b1",
+    "per_step.npz": "4612affbfad8352cba97858b48ea2681233491f0948bc045211540ebb311593b",
+    "per_task.npz": "ac99a1187999f38b5aae57b1c09f8d2f3482aac27e6024dd0ee1165242b8b3cf",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "11851c645c5a0ba1e9dc889c31be474de060a8ae1025c1dc0f79b7c874968212",
+    "summary.json": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909"
+  },
+  "status": "passed",
+  "steps": 3600,
+  "validated_at": "2026-09-07T05:43:14.110693+00:00"
+}

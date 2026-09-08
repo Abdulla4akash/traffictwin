@@ -1,0 +1,2601 @@
+{
+  "source": {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/results/KERNEL_RESULTS.json",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "86890025181122f6bda1157bb9fa3c68b13715551b9dfcae8b5f1e0d1b7db689"
+  },
+  "selected_id": "grid_2_5_0_1_0_4_0",
+  "minimisation_inputs": 10,
+  "transfer_inputs": 12,
+  "trials": [
+    {
+      "reason": "recheck selected archived input",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          60,
+          5,
+          40,
+          15,
+          80,
+          10
+        ],
+        "d": [
+          20,
+          100,
+          20,
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 5,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": true,
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            90,
+            90
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            90,
+            90
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 4,
+          "work_pre_drain": [
+            70,
+            65
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "reduce repeated substeps",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          60,
+          5,
+          40,
+          15,
+          80,
+          10
+        ],
+        "d": [
+          20,
+          100,
+          20,
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 1,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": false,
+      "totals": {
+        "A": {
+          "admitted": 4,
+          "successes": 3,
+          "work_pre_drain": [
+            90,
+            0
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 4,
+          "successes": 3,
+          "work_pre_drain": [
+            90,
+            0
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 5,
+          "successes": 3,
+          "work_pre_drain": [
+            70,
+            60
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "reduce repeated substeps",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          60,
+          5,
+          40,
+          15,
+          80,
+          10
+        ],
+        "d": [
+          20,
+          100,
+          20,
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": true,
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            90,
+            90
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            90,
+            90
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 4,
+          "work_pre_drain": [
+            70,
+            65
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "delete candidate position 0",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          5,
+          40,
+          15,
+          80,
+          10
+        ],
+        "d": [
+          100,
+          20,
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": true,
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            70,
+            70
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            70,
+            70
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 5,
+          "successes": 4,
+          "work_pre_drain": [
+            35,
+            40
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "delete candidate position 0",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          40,
+          15,
+          80,
+          10
+        ],
+        "d": [
+          20,
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": false,
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 4,
+          "work_pre_drain": [
+            65,
+            65
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 4,
+          "work_pre_drain": [
+            65,
+            65
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 4,
+          "work_pre_drain": [
+            75,
+            95
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "delete candidate position 1",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          5,
+          15,
+          80,
+          10
+        ],
+        "d": [
+          100,
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": true,
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            30,
+            30
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            30,
+            30
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 5,
+          "work_pre_drain": [
+            85,
+            45
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "delete candidate position 0",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          15,
+          80,
+          10
+        ],
+        "d": [
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": false,
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 2,
+          "work_pre_drain": [
+            105,
+            105
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 2,
+          "work_pre_drain": [
+            105,
+            105
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 5,
+          "successes": 4,
+          "work_pre_drain": [
+            50,
+            80
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "delete candidate position 1",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          5,
+          80,
+          10
+        ],
+        "d": [
+          100,
+          20,
+          100
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": false,
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 4,
+          "work_pre_drain": [
+            95,
+            95
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 4,
+          "work_pre_drain": [
+            95,
+            95
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 5,
+          "successes": 4,
+          "work_pre_drain": [
+            30,
+            80
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "delete candidate position 2",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          5,
+          15,
+          10
+        ],
+        "d": [
+          100,
+          100,
+          100
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": false,
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            30,
+            30
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            30,
+            30
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            30,
+            30
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "reason": "delete candidate position 3",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          5,
+          15,
+          80
+        ],
+        "d": [
+          100,
+          100,
+          20
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "retains_loss": false,
+      "totals": {
+        "A": {
+          "admitted": 4,
+          "successes": 4,
+          "work_pre_drain": [
+            20,
+            20
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 4,
+          "successes": 4,
+          "work_pre_drain": [
+            20,
+            20
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 5,
+          "successes": 4,
+          "work_pre_drain": [
+            85,
+            35
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      }
+    }
+  ],
+  "minimal_under_checked_deletions": true,
+  "reduced": {
+    "input": {
+      "id": "grid_2_5_0_1_0_4_0",
+      "w": [
+        0,
+        0
+      ],
+      "q": [
+        0,
+        0
+      ],
+      "s": [
+        5,
+        15,
+        80,
+        10
+      ],
+      "d": [
+        100,
+        100,
+        20,
+        100
+      ],
+      "C": 4,
+      "K": 2,
+      "radio": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "a": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    "steps": [
+      {
+        "A": {
+          "selected": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "admitted": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            true,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            5,
+            20,
+            20
+          ],
+          "ranks": [
+            0,
+            1,
+            2,
+            2
+          ],
+          "met": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            3,
+            1
+          ],
+          "masks": [
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              false,
+              false
+            ],
+            [
+              true,
+              true,
+              false,
+              true
+            ],
+            [
+              true,
+              true,
+              false,
+              true
+            ]
+          ],
+          "fourth": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "fourth_changes": false,
+          "admission_category_disagreements": 0,
+          "cap_labels_without_capacity_failure": 0,
+          "work": [
+            30,
+            0
+          ],
+          "load": [
+            3,
+            0
+          ],
+          "base_work": [
+            0,
+            0
+          ],
+          "base_load": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "selected": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "admitted": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            true,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            5,
+            20,
+            20
+          ],
+          "met": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            3,
+            1
+          ],
+          "work": [
+            30,
+            0
+          ],
+          "load": [
+            3,
+            0
+          ],
+          "base_work": [
+            0,
+            0
+          ],
+          "base_load": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "selected": [
+            0,
+            1,
+            0,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            0,
+            5,
+            15
+          ],
+          "met": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            2,
+            1
+          ],
+          "work": [
+            85,
+            25
+          ],
+          "load": [
+            2,
+            2
+          ],
+          "base_work": [
+            0,
+            0
+          ],
+          "base_load": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "A": {
+          "selected": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            true,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            5,
+            20,
+            20
+          ],
+          "ranks": [
+            0,
+            1,
+            2,
+            2
+          ],
+          "met": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            3,
+            1
+          ],
+          "masks": [
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              false,
+              false
+            ],
+            [
+              true,
+              true,
+              false,
+              true
+            ],
+            [
+              true,
+              true,
+              false,
+              true
+            ]
+          ],
+          "fourth": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "fourth_changes": false,
+          "admission_category_disagreements": 0,
+          "cap_labels_without_capacity_failure": 0,
+          "work": [
+            30,
+            30
+          ],
+          "load": [
+            3,
+            3
+          ],
+          "base_work": [
+            30,
+            0
+          ],
+          "base_load": [
+            3,
+            0
+          ]
+        },
+        "B": {
+          "selected": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            true,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            5,
+            20,
+            20
+          ],
+          "met": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            3,
+            1
+          ],
+          "work": [
+            30,
+            30
+          ],
+          "load": [
+            3,
+            3
+          ],
+          "base_work": [
+            30,
+            0
+          ],
+          "base_load": [
+            3,
+            0
+          ]
+        },
+        "C": {
+          "selected": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            false,
+            false
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            true,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            true
+          ],
+          "offsets": [
+            0,
+            5,
+            20,
+            20
+          ],
+          "met": [
+            true,
+            true,
+            false,
+            false
+          ],
+          "outcome": [
+            1,
+            1,
+            3,
+            4
+          ],
+          "work": [
+            85,
+            45
+          ],
+          "load": [
+            2,
+            4
+          ],
+          "base_work": [
+            85,
+            25
+          ],
+          "base_load": [
+            2,
+            2
+          ]
+        }
+      }
+    ],
+    "totals": {
+      "A": {
+        "admitted": 6,
+        "successes": 6,
+        "work_pre_drain": [
+          30,
+          30
+        ],
+        "work_after_drain": [
+          0,
+          0
+        ]
+      },
+      "B": {
+        "admitted": 6,
+        "successes": 6,
+        "work_pre_drain": [
+          30,
+          30
+        ],
+        "work_after_drain": [
+          0,
+          0
+        ]
+      },
+      "C": {
+        "admitted": 6,
+        "successes": 5,
+        "work_pre_drain": [
+          85,
+          45
+        ],
+        "work_after_drain": [
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "hand_table": [
+    {
+      "substep": 1,
+      "candidate": 1,
+      "deadline": 100,
+      "service": 5,
+      "B_target": 0,
+      "B_before": 0,
+      "B_admitted": true,
+      "B_completion": 5,
+      "B_met": true,
+      "C_target": 0,
+      "C_before": 0,
+      "C_admitted": true,
+      "C_completion": 5,
+      "C_met": true
+    },
+    {
+      "substep": 1,
+      "candidate": 2,
+      "deadline": 100,
+      "service": 15,
+      "B_target": 0,
+      "B_before": 5,
+      "B_admitted": true,
+      "B_completion": 20,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 0,
+      "C_admitted": true,
+      "C_completion": 15,
+      "C_met": true
+    },
+    {
+      "substep": 1,
+      "candidate": 3,
+      "deadline": 20,
+      "service": 80,
+      "B_target": 0,
+      "B_before": 20,
+      "B_admitted": false,
+      "B_completion": null,
+      "B_met": false,
+      "C_target": 0,
+      "C_before": 5,
+      "C_admitted": true,
+      "C_completion": 85,
+      "C_met": false
+    },
+    {
+      "substep": 1,
+      "candidate": 4,
+      "deadline": 100,
+      "service": 10,
+      "B_target": 0,
+      "B_before": 20,
+      "B_admitted": true,
+      "B_completion": 30,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 15,
+      "C_admitted": true,
+      "C_completion": 25,
+      "C_met": true
+    },
+    {
+      "substep": 2,
+      "candidate": 1,
+      "deadline": 100,
+      "service": 5,
+      "B_target": 1,
+      "B_before": 0,
+      "B_admitted": true,
+      "B_completion": 5,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 25,
+      "C_admitted": true,
+      "C_completion": 30,
+      "C_met": true
+    },
+    {
+      "substep": 2,
+      "candidate": 2,
+      "deadline": 100,
+      "service": 15,
+      "B_target": 1,
+      "B_before": 5,
+      "B_admitted": true,
+      "B_completion": 20,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 30,
+      "C_admitted": true,
+      "C_completion": 45,
+      "C_met": true
+    },
+    {
+      "substep": 2,
+      "candidate": 3,
+      "deadline": 20,
+      "service": 80,
+      "B_target": 1,
+      "B_before": 20,
+      "B_admitted": false,
+      "B_completion": null,
+      "B_met": false,
+      "C_target": 1,
+      "C_before": 45,
+      "C_admitted": false,
+      "C_completion": null,
+      "C_met": false
+    },
+    {
+      "substep": 2,
+      "candidate": 4,
+      "deadline": 100,
+      "service": 10,
+      "B_target": 1,
+      "B_before": 20,
+      "B_admitted": true,
+      "B_completion": 30,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 45,
+      "C_admitted": false,
+      "C_completion": null,
+      "C_met": false
+    }
+  ],
+  "transfers": [
+    {
+      "form": "original",
+      "xi": 0.91,
+      "types": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          19.211111068725586,
+          32.17171859741211,
+          19.211111068725586,
+          32.17171859741211,
+          19.211111068725586,
+          32.17171859741211
+        ],
+        "d": [
+          100,
+          500,
+          100,
+          500,
+          100,
+          500
+        ],
+        "C": 4,
+        "K": 5,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            102.76565933227539,
+            102.76565933227539
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            102.76565933227539,
+            102.76565933227539
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            89.80505180358887,
+            115.72626686096191
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "form": "original",
+      "xi": 0.91,
+      "types": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          19.211111068725586,
+          32.17171859741211,
+          19.211111068725586,
+          32.17171859741211,
+          19.211111068725586,
+          32.17171859741211
+        ],
+        "d": [
+          100,
+          500,
+          100,
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 5,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 19,
+          "successes": 19,
+          "work_pre_drain": [
+            327.96768951416016,
+            231.45253372192383
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 19,
+          "successes": 19,
+          "work_pre_drain": [
+            327.96768951416016,
+            231.45253372192383
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 20,
+          "successes": 19,
+          "work_pre_drain": [
+            302.0464744567871,
+            276.58485984802246
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "form": "original",
+      "xi": 1.0,
+      "types": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          21.11111068725586,
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633
+        ],
+        "d": [
+          100,
+          500,
+          100,
+          500,
+          100,
+          500
+        ],
+        "C": 4,
+        "K": 5,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            112.92929077148438,
+            112.92929077148438
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            112.92929077148438,
+            112.92929077148438
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            98.6868667602539,
+            127.17171478271484
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "form": "original",
+      "xi": 1.0,
+      "types": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          21.11111068725586,
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633
+        ],
+        "d": [
+          100,
+          500,
+          100,
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 5,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 19,
+          "successes": 19,
+          "work_pre_drain": [
+            360.4040336608887,
+            254.3434295654297
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 19,
+          "successes": 19,
+          "work_pre_drain": [
+            360.4040336608887,
+            254.3434295654297
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 20,
+          "successes": 19,
+          "work_pre_drain": [
+            331.91918563842773,
+            303.9393882751465
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "form": "original",
+      "xi": 1.09,
+      "types": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          23.011110305786133,
+          38.53535461425781,
+          23.011110305786133,
+          38.53535461425781,
+          23.011110305786133,
+          38.53535461425781
+        ],
+        "d": [
+          100,
+          500,
+          100,
+          500,
+          100,
+          500
+        ],
+        "C": 4,
+        "K": 5,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            123.09292984008789,
+            123.09292984008789
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            123.09292984008789,
+            123.09292984008789
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 8,
+          "successes": 7,
+          "work_pre_drain": [
+            107.56868553161621,
+            138.61717414855957
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": true
+    },
+    {
+      "form": "original",
+      "xi": 1.09,
+      "types": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          23.011110305786133,
+          38.53535461425781,
+          23.011110305786133,
+          38.53535461425781,
+          23.011110305786133,
+          38.53535461425781
+        ],
+        "d": [
+          100,
+          500,
+          100,
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 5,
+        "radio": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 19,
+          "successes": 19,
+          "work_pre_drain": [
+            392.8404121398926,
+            277.23434829711914
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 19,
+          "successes": 19,
+          "work_pre_drain": [
+            392.8404121398926,
+            277.23434829711914
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 19,
+          "successes": 18,
+          "work_pre_drain": [
+            338.7808132171631,
+            331.29394721984863
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": true
+    },
+    {
+      "form": "reduced",
+      "xi": 0.91,
+      "types": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          32.17171859741211,
+          32.17171859741211,
+          19.211111068725586,
+          32.17171859741211
+        ],
+        "d": [
+          500,
+          500,
+          100,
+          500
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            115.72626686096191,
+            115.72626686096191
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            115.72626686096191,
+            115.72626686096191
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 8,
+          "successes": 7,
+          "work_pre_drain": [
+            102.76565933227539,
+            128.68687438964844
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": true
+    },
+    {
+      "form": "reduced",
+      "xi": 0.91,
+      "types": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          32.17171859741211,
+          32.17171859741211,
+          19.211111068725586,
+          32.17171859741211
+        ],
+        "d": [
+          500,
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            115.72626686096191,
+            115.72626686096191
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            115.72626686096191,
+            115.72626686096191
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 8,
+          "successes": 7,
+          "work_pre_drain": [
+            102.76565933227539,
+            128.68687438964844
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": true
+    },
+    {
+      "form": "reduced",
+      "xi": 1.0,
+      "types": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          35.35353469848633,
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633
+        ],
+        "d": [
+          500,
+          500,
+          100,
+          500
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            127.17171478271484,
+            127.17171478271484
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            127.17171478271484,
+            127.17171478271484
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 8,
+          "successes": 7,
+          "work_pre_drain": [
+            112.92929077148438,
+            141.4141387939453
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": true
+    },
+    {
+      "form": "reduced",
+      "xi": 1.0,
+      "types": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          35.35353469848633,
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633
+        ],
+        "d": [
+          500,
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            127.17171478271484,
+            127.17171478271484
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 8,
+          "work_pre_drain": [
+            127.17171478271484,
+            127.17171478271484
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 8,
+          "successes": 7,
+          "work_pre_drain": [
+            112.92929077148438,
+            141.4141387939453
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": true
+    },
+    {
+      "form": "reduced",
+      "xi": 1.09,
+      "types": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          38.53535461425781,
+          38.53535461425781,
+          23.011110305786133,
+          38.53535461425781
+        ],
+        "d": [
+          500,
+          500,
+          100,
+          500
+        ],
+        "C": 4,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            138.61717414855957,
+            138.61717414855957
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            138.61717414855957,
+            138.61717414855957
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 7,
+          "successes": 7,
+          "work_pre_drain": [
+            138.61717414855957,
+            115.60606384277344
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "form": "reduced",
+      "xi": 1.09,
+      "types": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          38.53535461425781,
+          38.53535461425781,
+          23.011110305786133,
+          38.53535461425781
+        ],
+        "d": [
+          500,
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            138.61717414855957,
+            138.61717414855957
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 8,
+          "successes": 6,
+          "work_pre_drain": [
+            138.61717414855957,
+            138.61717414855957
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 7,
+          "successes": 7,
+          "work_pre_drain": [
+            138.61717414855957,
+            115.60606384277344
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    }
+  ],
+  "scope": "General synthetic case; production-coupled transfers are separate, all retained. B replays A targets; no optimisation or different offered populations."
+}

@@ -1,0 +1,185 @@
+{
+  "status": "passed",
+  "date": "2026-09-08",
+  "reviewer": "Revising agent, direct visual inspection; not human or independent scientific review",
+  "pdf_sha256": "bd67281dc6fc2c3812bdb5f77fd640dfc97062cee1a74799feadf480ac5164c6",
+  "pages": 28,
+  "render_method": "Fresh Poppler pdftoppm page PNGs; each final page viewed individually in sequence",
+  "checks": [
+    {
+      "page": 1,
+      "result": "clean",
+      "note": "Cover title and supplied identity fit; no invented approval or declaration.",
+      "render_sha256": "240cc3a39e58f7ac59b57d7c7d84fa3b788bbff47798973732618836714d3227"
+    },
+    {
+      "page": 2,
+      "result": "clean",
+      "note": "Contents entries, page numbers and hierarchy legible; Appendix B present.",
+      "render_sha256": "27c8d8ccefd97cf72f6e51f6ba7c45c9bd195bd5c93e250fff3b38649c239e87"
+    },
+    {
+      "page": 3,
+      "result": "clean",
+      "note": "Abstract fits with clear paragraph spacing and no symbol defects.",
+      "render_sha256": "16c9b5c0fd3eb6d06eba43f6c64f71ad2dc8b6adac564a7b19800a68d3efeac4"
+    },
+    {
+      "page": 4,
+      "result": "clean",
+      "note": "Introduction headings, citations and prose legible; continuation natural.",
+      "render_sha256": "c6a8fc228f627fc4f021e471bf1a302468731f85d895d668ee65cdc693eba910"
+    },
+    {
+      "page": 5,
+      "result": "clean",
+      "note": "Related-work synthesis flows; no orphan heading or clipped line.",
+      "render_sha256": "4e134a1c790b2462f75649f1ee8a735d5d2b584b9c843093425a70c3e4f8fc2a"
+    },
+    {
+      "page": 6,
+      "result": "clean",
+      "note": "Wide closest-work table fits; corrected waiting-time label and all columns legible.",
+      "render_sha256": "8924408d61c77eef4ae8953b09f969d1764d14b071cd6d87ce4077cc4063d400"
+    },
+    {
+      "page": 7,
+      "result": "clean",
+      "note": "RQ1\u2013RQ4 and contribution paragraphs fit; scope heading has following text.",
+      "render_sha256": "7d719a1132421b66ec4fe9187f985acd82ef69deb05bd0cf0b7cacb5cabf966c"
+    },
+    {
+      "page": 8,
+      "result": "clean",
+      "note": "Architecture figure labels/arrows and caption readable; methodology headings clear.",
+      "render_sha256": "2b3fcfa670eb075d5dd3f16a1a7fb4141f7e6b08b6c86cd592eef94a4d79d440"
+    },
+    {
+      "page": 9,
+      "result": "clean",
+      "note": "Scenario table, units and source prose fit within margins.",
+      "render_sha256": "9a73e36f01d28b8f30b9a3b377eeaa9e445dd25faa28806465f230a83717ff27"
+    },
+    {
+      "page": 10,
+      "result": "clean",
+      "note": "Accounting equations and outcome-flow figure readable; no cropped subscripts/arrows.",
+      "render_sha256": "22d6d446ec60da0ef13097d9ced2ed37ff2e072086ec71c4fb2ebb37e1fe4e12"
+    },
+    {
+      "page": 11,
+      "result": "clean",
+      "note": "Latency/conservation equations, inequalities and symbols readable; heading has following prose.",
+      "render_sha256": "4418d7d42e8724a82e1a04bb79116a3a631c5573338e3b556800b72721000b4c"
+    },
+    {
+      "page": 12,
+      "result": "clean",
+      "note": "Mode table and complete common-target algorithm readable; code indentation preserved.",
+      "render_sha256": "6f20679ff64c44d2ad720d92cab80d57db4c89030ac486c31b18041d2764e62d"
+    },
+    {
+      "page": 13,
+      "result": "clean",
+      "note": "Complete causal algorithm, illustrative figure and inference opening fit; no split code block.",
+      "render_sha256": "43deec737c7ef74a6f06d1304afe40dd035a413ec1d57d358fd13063bace4c79"
+    },
+    {
+      "page": 14,
+      "result": "clean",
+      "note": "Intervals, raw-audit contract and diagnostic design fit without tiny spillover page.",
+      "render_sha256": "39cd72152ac23efa4e5d57f7b85561dfe3ee0e379384327e130244e415dd8bc7"
+    },
+    {
+      "page": 15,
+      "result": "clean",
+      "note": "E0 example and local E1 scoring qualification legible; paragraph continues naturally.",
+      "render_sha256": "e888c336a18805fca542caeaf2c55c143b5bca7fa8fe754ff2fd8a6ca8f26952"
+    },
+    {
+      "page": 16,
+      "result": "clean",
+      "note": "Incident table and interval signs readable; results retain source qualifications.",
+      "render_sha256": "66eb08b1925f2ae9d9370f8729e0f1adb123ccd0b2d067a8505b646a2efc0569"
+    },
+    {
+      "page": 17,
+      "result": "clean",
+      "note": "Morning per-draw and interval tables fit; negative signs and plus signs correct.",
+      "render_sha256": "b690e4c2f6fdd29645566d330ef6a5ad56eba8ac8e288f6de607340141b94ed4"
+    },
+    {
+      "page": 18,
+      "result": "clean",
+      "note": "Paired plot labels/legend/intervals legible; outcome accounting and mechanism heading fit.",
+      "render_sha256": "03b3fb2771a182218824c9aa77ab9c39f1e71dc903d2a6720d28a9c994d73abb"
+    },
+    {
+      "page": 19,
+      "result": "clean",
+      "note": "RSU workload figure labels and caption legible; conditional mechanism proof fits.",
+      "render_sha256": "1b9fe643d4c75b15dbf5ceec7bdff754d38a2a38a931a964c0a9a7099dd36238"
+    },
+    {
+      "page": 20,
+      "result": "clean",
+      "note": "New kernel counts, masks and capacity example readable; sensitivity section flows.",
+      "render_sha256": "0854d967ada1fd83dad37e453f03f9875735268c9abbb8c6af39eee0df15af16"
+    },
+    {
+      "page": 21,
+      "result": "clean",
+      "note": "Ownership table begins cleanly; rows do not split internally.",
+      "render_sha256": "273fdfaf3e036100419e7477e69e9d6ac396fa2761f992e0e470f9900e3eb3f9"
+    },
+    {
+      "page": 22,
+      "result": "clean",
+      "note": "Ownership table continues with repeated header; engineering trade-offs legible.",
+      "render_sha256": "4ae8acf2bd8c2f7c3fe0c6e37a6676961e40dd95e221b54edcc569b60c1c9fd3"
+    },
+    {
+      "page": 23,
+      "result": "clean",
+      "note": "Validity table and dated evidence-access statement fit without clipping.",
+      "render_sha256": "afa92877bcda71d0131fa0a49899d696185c47b88747a4903ad3df85209c6e9f"
+    },
+    {
+      "page": 24,
+      "result": "clean",
+      "note": "Conclusion fits one page with clear paragraphs and all four questions answered.",
+      "render_sha256": "dcedb9f0fcc42a0de707dc3524516acc22c8b871e887faa85823529f743cd368"
+    },
+    {
+      "page": 25,
+      "result": "clean",
+      "note": "All 13 references readable with consistent typography and link colouring.",
+      "render_sha256": "e5b85206e195de086ea371813f678cf22a950a9607a45388d28d089afbc9fa46"
+    },
+    {
+      "page": 26,
+      "result": "clean",
+      "note": "Appendix A source entries and assistance/access statements fit; S13 present.",
+      "render_sha256": "de9dad2366190742b15a5642ffb0cf9306666e0f9697e01f815d5f523b41620c"
+    },
+    {
+      "page": 27,
+      "result": "clean",
+      "note": "Appendix B heading, B1 coverage table and explanatory paragraphs readable.",
+      "render_sha256": "5b9016f74f891335845b4e79512ed715636b86bb3e3551fe5ba568d93a0ec2a3"
+    },
+    {
+      "page": 28,
+      "result": "clean",
+      "note": "B2 transition table headers/arrows and values legible; final appendix ends naturally.",
+      "render_sha256": "112704010a56546cb879551c00cfab1a38cac5c3dd5d6170842dbf8cf01db0de"
+    }
+  ],
+  "issues_corrected_before_final_review": [
+    "Removed short spillover pages by compressing repeated prose, without shrinking body type",
+    "Restored Appendix B heading and contents entry",
+    "Spaced B2 arrow headers for readable wrapping",
+    "Reduced surplus vertical whitespace in the copied outcome-flow SVG"
+  ],
+  "scope": "All final pages inspected for cropping, overlap, symbols, figure/table legibility, pagination, whitespace and typography. Link destinations are separately checked by validate_document.py. Earlier build status was not reused."
+}

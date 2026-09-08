@@ -1,0 +1,31 @@
+{
+  "condition": {
+    "delay_ms": 0,
+    "fleet_seed": 4,
+    "id": "seed_4_per_task",
+    "mode": "per_task_dla",
+    "name": "per_task"
+  },
+  "input_identity": {
+    "slot_is_ev": "f88243c95e6721adc6f3d05afbb47d4970d5cc040c2f2a70dea6e8ff83d12b70",
+    "slot_tier": "c7cc649e6caee3517dd64bbf81daf91e027c4320efaa9aaeb691d2fe7eea9f03",
+    "task_active": "ae9d79eb992a5e534fee23e04f32dcd7051d60db9fb22669eb06898c8fa4886e",
+    "task_ingress_rsu": "2464ee38c542e54588932ca088e282cc66b8fd921555781b4adbaaa7bfb5809e",
+    "task_type": "3c6ac7a4e834ccb50deff0fbee8833dbf3ac1ddfb34081e3c5073c1dfa605036",
+    "veh_action": "63289ce98eb5f8ca2886772d65b1c1d23ea8904253d99af66feb80a1b558eb93",
+    "veh_k": "b04580da0bc513f709d059bb41fc4f064ad8c4e031437528789fc96584a62cc3"
+  },
+  "reference": null,
+  "sha256": {
+    "command.json": "56e05b138231aeda6d95f7741f3eead040e4da8768db64986eecc8895eaae003",
+    "per_step.npz": "2a92c326e2ba961a7d0c32eda3f7508fb9db62b54928d498e328a8d49fb42042",
+    "per_task.npz": "0785efdc65cc5533933ac2714cd3a00895885f6e71ce80b817816e30f211fe12",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "0e5e9880e59b6be3945636d71599d0d1bf59ad02c7b551455e52d0f7a61e00af",
+    "summary.json": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2",
+    "workload_validation.json": "c225f71d1609b34fe729ab02dbb9bcdb18dc4f3f71c66dfebcf99c4d4520b03d"
+  },
+  "status": "passed",
+  "steps": 10800,
+  "validated_at": "2026-09-07T11:05:20.813609+00:00"
+}

@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "python": "3.11.15",
+  "jax": "0.4.30",
+  "numpy": "1.26.4",
+  "primary_cases": 440,
+  "minimised_cases": 1,
+  "substeps_compared": 1305,
+  "source_sha256": {
+    "sources/production/eval_sumo_stage1_mc.py": "2824d9c2ef09e7748cd420d1ab2f0526d28157b8986605dc831397b6c618c07e",
+    "sources/production/e2d_per_task_placement.py": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09"
+  },
+  "failures": [],
+  "scope": "Exact returned masks/targets/offsets/counts/work agreement for A and C. A uses an explicit-array service/deadline provider; no physical model/RNG/actor/full evaluator validation. Intermediate A masks are reference diagnostics; original helper returns final fields only."
+}

@@ -1,0 +1,13 @@
+{
+  "status": "completed_for_requested_coverage",
+  "compact_files_verified": 97,
+  "compact_arithmetic": "central historical/primary tables regenerated; not task-level validation",
+  "standalone_kernel": "440 cases plus bounded minimisation; no full simulation",
+  "production_helper": "not requested; requires explicit compatible JAX Python",
+  "september_raw": "not requested; requires explicit optional raw root with RAW_INPUTS.json layout",
+  "historical_raw": "not assessable from available records: E0/E1/E2 original raw outputs unavailable; deletion reported by the author; no known backup",
+  "other_historical_raw": "E2b ingress/E2c/E2d original arrays not established available; deletion not inferred",
+  "full_simulation": "not executed",
+  "physical_validation": "not performed",
+  "independent_review": "not supplied by this verifier"
+}

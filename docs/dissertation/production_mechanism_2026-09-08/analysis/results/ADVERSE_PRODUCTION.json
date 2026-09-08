@@ -1,0 +1,1144 @@
+{
+  "input": {
+    "id": "grid_2_5_0_1_0_4_0",
+    "w": [
+      0,
+      0
+    ],
+    "q": [
+      0,
+      0
+    ],
+    "s": [
+      35.35353469848633,
+      35.35353469848633,
+      21.11111068725586,
+      35.35353469848633
+    ],
+    "d": [
+      500,
+      500,
+      100,
+      500
+    ],
+    "C": 6220,
+    "K": 2,
+    "radio": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "a": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "task_types": [
+    2,
+    2,
+    1,
+    2
+  ],
+  "result": {
+    "input": {
+      "id": "grid_2_5_0_1_0_4_0",
+      "w": [
+        0,
+        0
+      ],
+      "q": [
+        0,
+        0
+      ],
+      "s": [
+        35.35353469848633,
+        35.35353469848633,
+        21.11111068725586,
+        35.35353469848633
+      ],
+      "d": [
+        500,
+        500,
+        100,
+        500
+      ],
+      "C": 6220,
+      "K": 2,
+      "radio": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "a": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    "steps": [
+      {
+        "A": {
+          "selected": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "admitted": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            35.35353469848633,
+            70.70706939697266,
+            91.81818008422852
+          ],
+          "ranks": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "met": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "masks": [
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              true,
+              true
+            ]
+          ],
+          "fourth": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "fourth_changes": false,
+          "admission_category_disagreements": 0,
+          "cap_labels_without_capacity_failure": 0,
+          "work": [
+            127.17171478271484,
+            0
+          ],
+          "load": [
+            4,
+            0
+          ],
+          "base_work": [
+            0,
+            0
+          ],
+          "base_load": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "selected": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "admitted": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            35.35353469848633,
+            70.70706939697266,
+            91.81818008422852
+          ],
+          "met": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "work": [
+            127.17171478271484,
+            0
+          ],
+          "load": [
+            4,
+            0
+          ],
+          "base_work": [
+            0,
+            0
+          ],
+          "base_load": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "selected": [
+            0,
+            1,
+            0,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            0,
+            35.35353469848633,
+            35.35353469848633
+          ],
+          "met": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "work": [
+            56.46464538574219,
+            70.70706939697266
+          ],
+          "load": [
+            2,
+            2
+          ],
+          "base_work": [
+            0,
+            0
+          ],
+          "base_load": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "A": {
+          "selected": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            35.35353469848633,
+            70.70706939697266,
+            91.81818008422852
+          ],
+          "ranks": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "met": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "masks": [
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              true,
+              true
+            ],
+            [
+              true,
+              true,
+              true,
+              true
+            ]
+          ],
+          "fourth": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "fourth_changes": false,
+          "admission_category_disagreements": 0,
+          "cap_labels_without_capacity_failure": 0,
+          "work": [
+            127.17171478271484,
+            127.17171478271484
+          ],
+          "load": [
+            4,
+            4
+          ],
+          "base_work": [
+            127.17171478271484,
+            0
+          ],
+          "base_load": [
+            4,
+            0
+          ]
+        },
+        "B": {
+          "selected": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0,
+            35.35353469848633,
+            70.70706939697266,
+            91.81818008422852
+          ],
+          "met": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "work": [
+            127.17171478271484,
+            127.17171478271484
+          ],
+          "load": [
+            4,
+            4
+          ],
+          "base_work": [
+            127.17171478271484,
+            0
+          ],
+          "base_load": [
+            4,
+            0
+          ]
+        },
+        "C": {
+          "selected": [
+            0,
+            1,
+            0,
+            1
+          ],
+          "admitted": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "coarse": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "gate": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "cap": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "offsets": [
+            0.0,
+            0.0,
+            35.35353469848633,
+            35.35353469848633
+          ],
+          "met": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "outcome": [
+            1,
+            1,
+            2,
+            1
+          ],
+          "work": [
+            112.92929077148438,
+            141.4141387939453
+          ],
+          "load": [
+            4,
+            4
+          ],
+          "base_work": [
+            56.46464538574219,
+            70.70706939697266
+          ],
+          "base_load": [
+            2,
+            2
+          ]
+        }
+      }
+    ],
+    "totals": {
+      "A": {
+        "admitted": 8,
+        "successes": 8,
+        "work_pre_drain": [
+          127.17171478271484,
+          127.17171478271484
+        ],
+        "work_after_drain": [
+          0,
+          0
+        ]
+      },
+      "B": {
+        "admitted": 8,
+        "successes": 8,
+        "work_pre_drain": [
+          127.17171478271484,
+          127.17171478271484
+        ],
+        "work_after_drain": [
+          0,
+          0
+        ]
+      },
+      "C": {
+        "admitted": 8,
+        "successes": 7,
+        "work_pre_drain": [
+          112.92929077148438,
+          141.4141387939453
+        ],
+        "work_after_drain": [
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "hand_table": [
+    {
+      "substep": 1,
+      "candidate": 1,
+      "task_type": 2,
+      "deadline": 500,
+      "service": 35.35353469848633,
+      "B_target": 0,
+      "B_before": 0,
+      "B_admitted": true,
+      "B_completion": 35.35353469848633,
+      "B_met": true,
+      "C_target": 0,
+      "C_before": 0,
+      "C_admitted": true,
+      "C_completion": 35.35353469848633,
+      "C_met": true
+    },
+    {
+      "substep": 1,
+      "candidate": 2,
+      "task_type": 2,
+      "deadline": 500,
+      "service": 35.35353469848633,
+      "B_target": 0,
+      "B_before": 35.35353469848633,
+      "B_admitted": true,
+      "B_completion": 70.70706939697266,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 0,
+      "C_admitted": true,
+      "C_completion": 35.35353469848633,
+      "C_met": true
+    },
+    {
+      "substep": 1,
+      "candidate": 3,
+      "task_type": 1,
+      "deadline": 100,
+      "service": 21.11111068725586,
+      "B_target": 0,
+      "B_before": 70.70706939697266,
+      "B_admitted": true,
+      "B_completion": 91.81818008422852,
+      "B_met": true,
+      "C_target": 0,
+      "C_before": 35.35353469848633,
+      "C_admitted": true,
+      "C_completion": 56.46464538574219,
+      "C_met": true
+    },
+    {
+      "substep": 1,
+      "candidate": 4,
+      "task_type": 2,
+      "deadline": 500,
+      "service": 35.35353469848633,
+      "B_target": 0,
+      "B_before": 91.81818008422852,
+      "B_admitted": true,
+      "B_completion": 127.17171478271484,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 35.35353469848633,
+      "C_admitted": true,
+      "C_completion": 70.70706939697266,
+      "C_met": true
+    },
+    {
+      "substep": 2,
+      "candidate": 1,
+      "task_type": 2,
+      "deadline": 500,
+      "service": 35.35353469848633,
+      "B_target": 1,
+      "B_before": 0,
+      "B_admitted": true,
+      "B_completion": 35.35353469848633,
+      "B_met": true,
+      "C_target": 0,
+      "C_before": 56.46464538574219,
+      "C_admitted": true,
+      "C_completion": 91.81818008422852,
+      "C_met": true
+    },
+    {
+      "substep": 2,
+      "candidate": 2,
+      "task_type": 2,
+      "deadline": 500,
+      "service": 35.35353469848633,
+      "B_target": 1,
+      "B_before": 35.35353469848633,
+      "B_admitted": true,
+      "B_completion": 70.70706939697266,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 70.70706939697266,
+      "C_admitted": true,
+      "C_completion": 106.06060409545898,
+      "C_met": true
+    },
+    {
+      "substep": 2,
+      "candidate": 3,
+      "task_type": 1,
+      "deadline": 100,
+      "service": 21.11111068725586,
+      "B_target": 1,
+      "B_before": 70.70706939697266,
+      "B_admitted": true,
+      "B_completion": 91.81818008422852,
+      "B_met": true,
+      "C_target": 0,
+      "C_before": 91.81818008422852,
+      "C_admitted": true,
+      "C_completion": 112.92929077148438,
+      "C_met": false
+    },
+    {
+      "substep": 2,
+      "candidate": 4,
+      "task_type": 2,
+      "deadline": 500,
+      "service": 35.35353469848633,
+      "B_target": 1,
+      "B_before": 91.81818008422852,
+      "B_admitted": true,
+      "B_completion": 127.17171478271484,
+      "B_met": true,
+      "C_target": 1,
+      "C_before": 106.06060409545898,
+      "C_admitted": true,
+      "C_completion": 141.4141387939453,
+      "C_met": true
+    }
+  ],
+  "additional_minimisation_inputs": 5,
+  "deletion_trials": [
+    {
+      "name": "one_substep",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          35.35353469848633,
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633
+        ],
+        "d": [
+          500,
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 1,
+        "radio": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 4,
+          "successes": 4,
+          "work_pre_drain": [
+            127.17171478271484,
+            0
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 4,
+          "successes": 4,
+          "work_pre_drain": [
+            127.17171478271484,
+            0
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 4,
+          "successes": 4,
+          "work_pre_drain": [
+            56.46464538574219,
+            70.70706939697266
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "name": "delete_position_0",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633
+        ],
+        "d": [
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            91.81818008422852,
+            91.81818008422852
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            91.81818008422852,
+            91.81818008422852
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            106.06060409545898,
+            77.57575607299805
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "name": "delete_position_1",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          35.35353469848633,
+          21.11111068725586,
+          35.35353469848633
+        ],
+        "d": [
+          500,
+          100,
+          500
+        ],
+        "C": 6220,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            91.81818008422852,
+            91.81818008422852
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            91.81818008422852,
+            91.81818008422852
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            106.06060409545898,
+            77.57575607299805
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "name": "delete_position_2",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          35.35353469848633,
+          35.35353469848633,
+          35.35353469848633
+        ],
+        "d": [
+          500,
+          500,
+          500
+        ],
+        "C": 6220,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            106.06060409545898,
+            106.06060409545898
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            106.06060409545898,
+            106.06060409545898
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            106.06060409545898,
+            106.06060409545898
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    },
+    {
+      "name": "delete_position_3",
+      "input": {
+        "id": "grid_2_5_0_1_0_4_0",
+        "w": [
+          0,
+          0
+        ],
+        "q": [
+          0,
+          0
+        ],
+        "s": [
+          35.35353469848633,
+          35.35353469848633,
+          21.11111068725586
+        ],
+        "d": [
+          500,
+          500,
+          100
+        ],
+        "C": 6220,
+        "K": 2,
+        "radio": [
+          true,
+          true,
+          true
+        ],
+        "a": [
+          true,
+          true,
+          true
+        ]
+      },
+      "totals": {
+        "A": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            91.81818008422852,
+            91.81818008422852
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "B": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            91.81818008422852,
+            91.81818008422852
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        },
+        "C": {
+          "admitted": 6,
+          "successes": 6,
+          "work_pre_drain": [
+            91.81818008422852,
+            91.81818008422852
+          ],
+          "work_after_drain": [
+            0,
+            0
+          ]
+        }
+      },
+      "retains_loss": false
+    }
+  ],
+  "production_helper_agreement": [
+    {
+      "substep": 1,
+      "A_masks_agree": true,
+      "C_masks_and_targets_agree": true,
+      "A_max_offset_error_ms": 7.62939453125e-06,
+      "C_max_offset_error_ms": 0.0
+    },
+    {
+      "substep": 2,
+      "A_masks_agree": true,
+      "C_masks_and_targets_agree": true,
+      "A_max_offset_error_ms": 7.62939453125e-06,
+      "C_max_offset_error_ms": 3.814697265625e-06
+    }
+  ],
+  "script_sha256": "28288a3b2476325a13d99005cfe211927f3cce6ff84cbb72f7cd23b97183f363",
+  "scope": "Nominal service noise1, production deadlines and C6220; explicit two-RSU/two-substep configuration. K and R are diagnostic sizes, not the historical5-slot/9-or10-RSU configuration. Local service/deadline/capacity compatibility is established; full trajectory reachability and observed frequency are not."
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/TrafficTwin_Dissertation.md",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "332f43c877821d61ef3b1ba3dfa058d8dc2b6b18a9f05204c0745e13d1e17c41"
+  },
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/results/OUTCOME_TRANSITIONS.json",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "db81ead8203bc1dd9ca6d00ec7e76aaffc8620ebac616fc40bb4db14a8808e79"
+  },
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/results/KERNEL_RESULTS.json",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "86890025181122f6bda1157bb9fa3c68b13715551b9dfcae8b5f1e0d1b7db689"
+  },
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/scheduling_reference.py",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "80cee7b4122f436501b0d63731dceb5000c41d9ff18b46858dbb386ea0f4b5d8"
+  },
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/sources/production/eval_sumo_stage1_mc.py",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "2824d9c2ef09e7748cd420d1ab2f0526d28157b8986605dc831397b6c618c07e"
+  },
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/sources/production/e2d_per_task_placement.py",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09"
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/jaxmarl/env/vec_jax.py",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+  }
+]

@@ -1,0 +1,279 @@
+{
+  "status": "passed",
+  "date": "2026-09-08",
+  "reviewer": "primary Codex agent; visual self-review, distinct from separate AI critique",
+  "pdf_sha256": "7354feb1db0313c768331e6d398ff7d8d1fa24eeab2110708e453100fe8403c5",
+  "manuscript_sha256": "3e23ecbb08a210cee4037e806e202ac0d94fb18f5bfe4c8b98efe5a391c3a6a6",
+  "pages": 32,
+  "rendering": "Fresh ReportLab document-only build; Poppler PNGs at1400pixel height; all32pages viewed in this task. Final caption/header amendment changed only pages17and32: both re-viewed individually, other30final PNGs byte-identical to this task\u2019s inspected renders. No older revision receipt reused.",
+  "checks": [
+    {
+      "page": 1,
+      "result": "clean",
+      "png_sha256": "25c6c9991fcbf8db6bedf8580fcd9dfa3c0dab00764923c092bbbed5d871d0d4",
+      "focus": "Title, provenance and author-review status",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 2,
+      "result": "clean",
+      "png_sha256": "f16ef0f4195b93be60a6e7f3b4d4c5be3fe7753ba8b90aec88a2110f33b59c3e",
+      "focus": "Contents and all page numbers",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 3,
+      "result": "clean",
+      "png_sha256": "36acb3089e25d81875e1fb69ca7f6911c7dca867469f8ac6e0c3cd7a8d4b341f",
+      "focus": "Abstract on separate page",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 4,
+      "result": "clean",
+      "png_sha256": "e219b29e61a9ffc550c848a766a19989c9d5d261984b98db2c30c7e2371fe18e",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 5,
+      "result": "clean",
+      "png_sha256": "d9079dc2f4a204597edf910fb2cedefc35d1b854afd8ba4cc983d193cd1351e1",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 6,
+      "result": "clean",
+      "png_sha256": "2648b9b8481ad2a195ae924c96b5a7aa1a1c7f2f0da9bb257c6ddb19c8f13c8b",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 7,
+      "result": "clean",
+      "png_sha256": "05e05aab0c28e8c70f45a0bc6a3e8f25e4e2483206fd4f3823fd1c5a3decba3b",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 8,
+      "result": "clean",
+      "png_sha256": "ecdc3b51db8ff0a9d5a6da91b4cc01645807a3e8507c6d375b0214afded05597",
+      "focus": "Decision-boundary Figure1",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 9,
+      "result": "clean",
+      "png_sha256": "83798f783063c4854d2d334f57b256d9f31f98ded71f4ffc210b3c8eae0581aa",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 10,
+      "result": "clean",
+      "png_sha256": "bd5085f63e0eb5601915cfe708e6e64e447536995df6bf3be673da9163446576",
+      "focus": "Equations1\u20133 and Figure2",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 11,
+      "result": "clean",
+      "png_sha256": "8521a45b6db54304c6da0c59f5db97b182386e3daa07a65aff3730a335bd55c1",
+      "focus": "Latency/work equations4\u20135 and mode table",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 12,
+      "result": "clean",
+      "png_sha256": "f6b518ff3c20c6598ac8138a54d3195ae0177f569b94440c05772ebbd8dfbae2",
+      "focus": "Both operational algorithms, strict predicates and notation",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 13,
+      "result": "clean",
+      "png_sha256": "600ae1d58e8d0f9410ad76c084a9d68aa68d74d44a33b831acb4fcac742dffdd",
+      "focus": "Illustrative dispatch Figure3",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 14,
+      "result": "clean",
+      "png_sha256": "ae25666e5aa424f772699bf626f60154113498730655e7acf0c764d1648100d2",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 15,
+      "result": "clean",
+      "png_sha256": "2e1cdc88792c9dcf46b2073350423cfe750f82abb0de0410a4d7d08f0129f3bf",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 16,
+      "result": "clean",
+      "png_sha256": "4b23f3d6e416e3c15762af19f92f6daf307c3c886bf48e4b81dbf76d3ce50f8b",
+      "focus": "Text flow, headings, symbols, margins and page furniture",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 17,
+      "result": "clean",
+      "png_sha256": "0cb339ba036aff04cc8cc858a8c2ce1ce177c5edea1e144e0a2f133c52ca7b65",
+      "focus": "Primary tables5\u20136 and revised caption",
+      "final_render_agrees_with_this_task_inspected_page": false,
+      "final_changed_page_reinspected": true
+    },
+    {
+      "page": 18,
+      "result": "clean",
+      "png_sha256": "6180488c76d10a8845bf6e4faa63dda26f9b5f9b12761560823029d431a01dd0",
+      "focus": "Paired result Figure4 and gain/loss Table7",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 19,
+      "result": "clean",
+      "png_sha256": "f03fbca7d48487b9d1118972c8056547b301be09a2105582475a1cfe638513f9",
+      "focus": "Type Table8 and workload Figure5",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 20,
+      "result": "clean",
+      "png_sha256": "2ee9344e4ec378a1b8facbb0cfb18944a7d39808c499865d3fa7528c2c02dfe7",
+      "focus": "Proposition and proof sketch",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 21,
+      "result": "clean",
+      "png_sha256": "e221c31bc857653bb23133267cf8217fff0b0de7fe923f678452c838eb697b61",
+      "focus": "Numerical boundary and adverse Table9",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 22,
+      "result": "clean",
+      "png_sha256": "3e4d4773ee89de1439caec2373e7bc2a48760d47e99f018bc07efa6e04af218d",
+      "focus": "Benchmark Table10, units and labels",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 23,
+      "result": "clean",
+      "png_sha256": "18e2e64d65f5bc918d75e23b5fb0b3be84245cc74d036a650dd910cbc3d7da31",
+      "focus": "Ownership Table11 caption and first rows",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 24,
+      "result": "clean",
+      "png_sha256": "2f0842b1b45d490ee12bd04f68c7a777370acbe41bb2103d28ec31c3737e1758",
+      "focus": "Repeated table headings and validity-table split",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 25,
+      "result": "clean",
+      "png_sha256": "167310cff307211ed296c74320e3b4a4ca0b421023b82434ca8981e7c79452ba",
+      "focus": "Validity continuation and unrun protocol",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 26,
+      "result": "clean",
+      "png_sha256": "ae5e12e2a3da05ee41bdf5977866fdc07e88880c4990f6e54aeefbf1229020e3",
+      "focus": "Separate conclusion",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 27,
+      "result": "clean",
+      "png_sha256": "2e4acd71d4844c11f57f62f5557e2cadea3bcabb4266eed697b118c652c6638f",
+      "focus": "Fourteen references and links",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 28,
+      "result": "clean",
+      "png_sha256": "3d5a6ff456291ef75e3fbc3bef437b9dbdc451a451dfb1b5c99f4257dcede912",
+      "focus": "Evidence sources and assistance fit one page",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 29,
+      "result": "clean",
+      "png_sha256": "31a8674639275ef198ae0cd6ef3143894076f29c2ee36c8af6cdfab9148992f2",
+      "focus": "Historical availability TableB1",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 30,
+      "result": "clean",
+      "png_sha256": "cca05008981f53d23cf5d477ffc4cb3a0999d94327f6b6e49c1ab83b86ba965a",
+      "focus": "Prior transition TableB2 and scope",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 31,
+      "result": "clean",
+      "png_sha256": "ddf83a5c6ac2f373aae2da1b90859a245449dec86c80217393a7719ee9a8d63b",
+      "focus": "Exact-model and numerical appendix",
+      "final_render_agrees_with_this_task_inspected_page": true,
+      "final_changed_page_reinspected": false
+    },
+    {
+      "page": 32,
+      "result": "clean",
+      "png_sha256": "41e1b4e9f0dfeb4a154aa686c6329d7998918a4605ae6be7b9165c37e9df23e4",
+      "focus": "All24 type rows; fixed Arm header",
+      "final_render_agrees_with_this_task_inspected_page": false,
+      "final_changed_page_reinspected": true
+    }
+  ],
+  "issues_fixed": [
+    "Avoided near-empty protocol spill page by splitting validity table with repeated headings",
+    "Compressed evidence appendix and adjusted reference spacing to avoid near-empty spill page",
+    "ShortenedTable6caption to remove orphan final numeral",
+    "Widened AppendixD Arm header to avoid word splitting"
+  ],
+  "boundaries": [
+    "Typography, cropping, overlaps, symbol rendering, figures/tables, page breaks, contents and references checked visually",
+    "Normal white space remains at chapter endings and before intact figures/tables",
+    "Visual review is not proof of scientific correctness or human approval"
+  ],
+  "raw_render_directory": "/tmp/traffictwin-empirical-pdf-checked"
+}

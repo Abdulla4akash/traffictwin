@@ -1,0 +1,94 @@
+{
+  "additional_input_budget": 800,
+  "additional_inputs_executed": 697,
+  "adverse_minimisation_inputs": 10,
+  "adverse_transfer_inputs": 12,
+  "numeric_followup_inputs": 4,
+  "adverse_reduced_input": {
+    "id": "grid_2_5_0_1_0_4_0",
+    "w": [
+      0,
+      0
+    ],
+    "q": [
+      0,
+      0
+    ],
+    "s": [
+      5,
+      15,
+      80,
+      10
+    ],
+    "d": [
+      100,
+      100,
+      20,
+      100
+    ],
+    "C": 4,
+    "K": 2,
+    "radio": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "a": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "adverse_reduced_totals": {
+    "A": {
+      "admitted": 6,
+      "successes": 6,
+      "work_pre_drain": [
+        30,
+        30
+      ],
+      "work_after_drain": [
+        0,
+        0
+      ]
+    },
+    "B": {
+      "admitted": 6,
+      "successes": 6,
+      "work_pre_drain": [
+        30,
+        30
+      ],
+      "work_after_drain": [
+        0,
+        0
+      ]
+    },
+    "C": {
+      "admitted": 6,
+      "successes": 5,
+      "work_pre_drain": [
+        85,
+        45
+      ],
+      "work_after_drain": [
+        0,
+        0
+      ]
+    }
+  },
+  "production_transfer_losses": 6,
+  "morning_counts": {
+    "offered": 6976464,
+    "gain_gate": 211734,
+    "gain_admitted_miss": 73087,
+    "loss_terminal": 1044,
+    "loss_admitted_miss": 11798,
+    "gains": 284821,
+    "losses": 12842,
+    "net": 271979
+  },
+  "script_sha256": "57baff4fa255bf5449513ccc6bd978d7499ad91f6bbe510b09ff93356426fdf9"
+}

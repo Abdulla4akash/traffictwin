@@ -1,0 +1,64 @@
+{
+  "source": {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/results/OUTCOME_TRANSITIONS.json",
+    "commit": "1b6a8555c27901ec95ad8b123c413453ecdb5620",
+    "sha256": "db81ead8203bc1dd9ca6d00ec7e76aaffc8620ebac616fc40bb4db14a8808e79"
+  },
+  "rows": [
+    {
+      "seed": 0,
+      "offered": 1744116,
+      "gain_gate": 53061,
+      "gain_admitted_miss": 18091,
+      "loss_terminal": 395,
+      "loss_admitted_miss": 2945,
+      "gains": 71152,
+      "losses": 3340,
+      "net": 67812
+    },
+    {
+      "seed": 2,
+      "offered": 1744116,
+      "gain_gate": 64418,
+      "gain_admitted_miss": 19125,
+      "loss_terminal": 496,
+      "loss_admitted_miss": 4144,
+      "gains": 83543,
+      "losses": 4640,
+      "net": 78903
+    },
+    {
+      "seed": 3,
+      "offered": 1744116,
+      "gain_gate": 52432,
+      "gain_admitted_miss": 18430,
+      "loss_terminal": 105,
+      "loss_admitted_miss": 2808,
+      "gains": 70862,
+      "losses": 2913,
+      "net": 67949
+    },
+    {
+      "seed": 4,
+      "offered": 1744116,
+      "gain_gate": 41823,
+      "gain_admitted_miss": 17441,
+      "loss_terminal": 48,
+      "loss_admitted_miss": 1901,
+      "gains": 59264,
+      "losses": 1949,
+      "net": 57315
+    }
+  ],
+  "totals": {
+    "offered": 6976464,
+    "gain_gate": 211734,
+    "gain_admitted_miss": 73087,
+    "loss_terminal": 1044,
+    "loss_admitted_miss": 11798,
+    "gains": 284821,
+    "losses": 12842,
+    "net": 271979
+  },
+  "scope": "Re-extraction/arithmetic of existing authenticated paired outcomes. No new raw audit or joins; four fleet draws remain replications; later queue divergence prevents decision-level causal attribution."
+}

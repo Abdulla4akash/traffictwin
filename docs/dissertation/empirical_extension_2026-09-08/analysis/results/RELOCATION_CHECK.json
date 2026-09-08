@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "method": "Export baseline tracked docs to a clean temporary checkout, copy new package, run verifier from a separate empty cwd",
+  "temporary_checkout": "/var/folders/mw/d73f0mp15rv4n3jygpd8j5mm0000gn/T/traffictwin-relocation-t7yv8i2t/relocated",
+  "working_directory": "/var/folders/mw/d73f0mp15rv4n3jygpd8j5mm0000gn/T/traffictwin-relocation-t7yv8i2t/empty-working-directory",
+  "private_raw_inputs_copied": 0,
+  "actor_or_trace_loaded": false,
+  "full_evaluations": 0,
+  "compact_checks": {
+    "status": "passed",
+    "source_bindings": 21,
+    "task_type_rows": 24,
+    "paired_type_rows": 12,
+    "benchmark_calls_checked": 1600,
+    "full_evaluations": 0,
+    "raw_record_check": "not requested; compact checks do not revalidate raw task outcomes",
+    "missing_private_inputs": "Historical E0/E1/E2 originals unavailable: not assessable. Optional September raw aggregation requires explicit root; actor/trace required only for future campaign preflight.",
+    "seal_sha256": "0ca2ef2b2dc9e25c0cedd6e4a39daeb26b72b66c03a2c5efe8b3f0b1a973fcd8"
+  }
+}

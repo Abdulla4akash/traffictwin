@@ -1,0 +1,10 @@
+# Document-only environment; do not install into the scientific evaluator runtime.
+reportlab==5.0.1
+pypdf==6.18.0
+pillow==12.3.0
+markdown-it-py==4.2.0
+svglib==2.2.0
+# Figure redraw and original-interval arithmetic, also document-only.
+matplotlib==3.11.1
+scipy==1.18.1
+numpy==2.5.3

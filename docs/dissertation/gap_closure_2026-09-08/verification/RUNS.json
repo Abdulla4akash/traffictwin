@@ -1,0 +1,173 @@
+[
+  {
+    "id": "state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001",
+    "group": "state-delay-pilot-2026-09-07",
+    "files": {
+      "per_task.npz": "state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/per_task.npz",
+      "per_step.npz": "state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json"
+  },
+  {
+    "id": "state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001",
+    "group": "state-delay-pilot-2026-09-07",
+    "files": {
+      "per_task.npz": "state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/per_task.npz",
+      "per_step.npz": "state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/summary.json"
+  },
+  {
+    "id": "state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001",
+    "group": "state-delay-pilot-2026-09-07",
+    "files": {
+      "per_task.npz": "state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/per_task.npz",
+      "per_step.npz": "state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/summary.json"
+  },
+  {
+    "id": "state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001",
+    "group": "state-delay-pilot-2026-09-07",
+    "files": {
+      "per_task.npz": "state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/per_task.npz",
+      "per_step.npz": "state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/summary.json"
+  },
+  {
+    "id": "state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001",
+    "group": "state-delay-pilot-2026-09-07",
+    "files": {
+      "per_task.npz": "state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/per_task.npz",
+      "per_step.npz": "state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001",
+    "group": "generalisation-pilot-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001",
+    "group": "generalisation-pilot-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json"
+  },
+  {
+    "id": "generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001",
+    "group": "generalisation-replication-2026-09-07",
+    "files": {
+      "per_task.npz": "generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/per_task.npz",
+      "per_step.npz": "generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/per_step.npz"
+    },
+    "summary": "sources/compact/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json"
+  }
+]

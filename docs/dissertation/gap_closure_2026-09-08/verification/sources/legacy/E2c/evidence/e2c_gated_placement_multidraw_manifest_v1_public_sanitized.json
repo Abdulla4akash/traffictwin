@@ -1,0 +1,496 @@
+{
+  "schema_version": "e2c_gated_placement_multidraw_manifest_v1",
+  "created_utc": "2026-08-10T13:39:19Z",
+  "status": "predeclared_before_first_e2c_smoke",
+  "statistical_status": "matched four-new-fleet-draw replication; seed 0 is prior descriptive pilot evidence and individual tasks are not replicates",
+  "closed_prerequisites": {
+    "e1": {
+      "status": "closed",
+      "checkout": "<private-local-path-redacted>",
+      "branch": "agent/e1-multidraw-physical-v1",
+      "final_commit": "a1423e604078f70c95d4115287d3f0391348becf",
+      "manifest_path": "<private-local-path-redacted>",
+      "manifest_sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d"
+    },
+    "e2": {
+      "status": "closed",
+      "checkout": "<private-local-path-redacted>",
+      "branch": "agent/e2-native-placement-pilot-v1",
+      "final_commit": "c05736125a401b8176c53212b3915ec57b95fdc3",
+      "manifest_path": "<private-local-path-redacted>",
+      "manifest_sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+      "raw_root": "<private-local-path-redacted>",
+      "root_checksum_path": "<private-local-path-redacted>",
+      "root_checksum_sha256": "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3"
+    },
+    "e2b": {
+      "status": "closed",
+      "checkout": "<private-local-path-redacted>",
+      "branch": "agent/e2b-placement-admission-factorial-v1",
+      "reviewed_execution_commit": "f4e1897d6c17cf106880303a6be839407abe663e",
+      "final_commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "manifest_path": "<private-local-path-redacted>",
+      "manifest_sha256": "9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91",
+      "raw_root": "<private-local-path-redacted>",
+      "root_checksum_path": "<private-local-path-redacted>",
+      "root_checksum_sha256": "a0198c9f38295db8ee0aa34b2b4c786ebcb5c034450cb59b616f4a11076ea5c6"
+    }
+  },
+  "repositories": {
+    "traffictwin": {
+      "parent_branch": "agent/e2b-placement-admission-factorial-v1",
+      "parent_commit": "fe2ed4e9bd9043b19b96a5f179390db629b01ccb",
+      "branch": "agent/e2c-gated-placement-multidraw-v1",
+      "remote": "<private-repository-url-redacted>",
+      "draft_pr_base": "agent/e2b-placement-admission-factorial-v1",
+      "reviewed_execution_commit_binding": "the exact clean TrafficTwin HEAD must equal the independent Claude APPROVE verdict; the manifest is immutable and cannot self-reference its containing commit"
+    },
+    "vec_env": {
+      "branch": "agent/e2b-ingress-deadline-admission-v1",
+      "commit": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+      "remote": "<private-repository-url-redacted>",
+      "modification_allowed": false,
+      "evaluator_sha256": "f9ec488528c52ce7cd6f7bb8b3a6c9c96aef532e5783a538bcac9763508519fe",
+      "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+      "resolved_imported_vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+    },
+    "tos_data": {
+      "commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "modification_allowed": false
+    }
+  },
+  "paths": {
+    "traffictwin_checkout": "<private-local-path-redacted>",
+    "vec_env_checkout": "<private-local-path-redacted>",
+    "tos_data_checkout": "<private-local-path-redacted>",
+    "evaluator": "<private-local-path-redacted>",
+    "vec_jax": "<private-local-path-redacted>",
+    "imported_vec_jax_entrypoint": "<private-local-path-redacted>",
+    "resolved_imported_vec_jax": "<private-local-path-redacted>",
+    "runner": "<private-local-path-redacted>",
+    "validator": "<private-local-path-redacted>",
+    "analyzer": "<private-local-path-redacted>"
+  },
+  "inputs": {
+    "scenario": "Manchester incident trace",
+    "date": "2024-03-15",
+    "window_local": "20:00-21:00 Europe/London",
+    "actor": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "training_seed": 100,
+      "observation_dimensions": 17,
+      "actions": [
+        "Local",
+        "V2I",
+        "V2V"
+      ],
+      "observes_current_rsu_load": false,
+      "selects_execution_rsu": false,
+      "frozen": true
+    },
+    "trace": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    }
+  },
+  "design": {
+    "steps": 3600,
+    "smoke_steps": 10,
+    "padded_fleet_width": 2488,
+    "rsus": 10,
+    "evaluator_seed": 0,
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "fleet": "uk2030",
+    "fleet_status": "provisional",
+    "arrival_lambda": 1.5,
+    "waiting_room_cap_per_vehicle": 2.5,
+    "resolved_cap_tasks_per_rsu": 6220,
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "rsu_service_multiplier": 1.0,
+    "scaling": "off",
+    "backhaul_ms": 0.0,
+    "replication_unit": "fleet_seed",
+    "primary_replication_set": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "pilot_seed_excluded_from_primary_inference": 0
+  },
+  "arms": {
+    "ingress_dla": {
+      "human_label": "strongest-link execution + deadline-aware admission",
+      "rsu_lb": "ingress_dla",
+      "placement": "selected execution is strongest-link ingress",
+      "admission": "the exact existing live per-substep DLA gate and fixed-point reconciliation",
+      "forwarding": "structurally false for admitted tasks because execution equals ingress"
+    },
+    "dla": {
+      "human_label": "JSQ execution placement + deadline-aware admission",
+      "rsu_lb": "dla",
+      "placement": "existing current-backlog JSQ execution target",
+      "admission": "the exact same live per-substep DLA gate and fixed-point reconciliation",
+      "forwarding": "admitted tasks are forwarded when execution differs from ingress; charged latency remains zero"
+    }
+  },
+  "full_cell_order": [
+    {
+      "cell_index": 1,
+      "fleet_seed": 1,
+      "arm": "ingress_dla"
+    },
+    {
+      "cell_index": 2,
+      "fleet_seed": 1,
+      "arm": "dla"
+    },
+    {
+      "cell_index": 3,
+      "fleet_seed": 2,
+      "arm": "ingress_dla"
+    },
+    {
+      "cell_index": 4,
+      "fleet_seed": 2,
+      "arm": "dla"
+    },
+    {
+      "cell_index": 5,
+      "fleet_seed": 3,
+      "arm": "ingress_dla"
+    },
+    {
+      "cell_index": 6,
+      "fleet_seed": 3,
+      "arm": "dla"
+    },
+    {
+      "cell_index": 7,
+      "fleet_seed": 4,
+      "arm": "ingress_dla"
+    },
+    {
+      "cell_index": 8,
+      "fleet_seed": 4,
+      "arm": "dla"
+    }
+  ],
+  "command_template": [
+    "<private-local-path-redacted>",
+    "<private-local-path-redacted>",
+    "--trace",
+    "<private-local-path-redacted>",
+    "--actor",
+    "<private-local-path-redacted>",
+    "--max-steps",
+    "{MAX_STEPS}",
+    "--seed",
+    "0",
+    "--fleet",
+    "uk2030",
+    "--fleet-seed",
+    "{FLEET_SEED}",
+    "--rsu-cap-per-veh",
+    "2.5",
+    "--lambda-arrival",
+    "1.5",
+    "--rsu-service-mult",
+    "1.0",
+    "--rsu-lb",
+    "{ARM}",
+    "--rsu-backhaul-ms",
+    "0.0",
+    "--substep-queue",
+    "sequential",
+    "--substep-queue-iters",
+    "3",
+    "--veh-queue",
+    "conserved",
+    "--rsu-cap-mode",
+    "reject",
+    "--k8s-scale",
+    "off",
+    "--out-json",
+    "{RUN_DIR}/summary.json",
+    "--per-step-out",
+    "{RUN_DIR}/per_step.npz",
+    "--per-task-out",
+    "{RUN_DIR}/per_task.npz"
+  ],
+  "environment": {
+    "id": "macos_arm64_cpu_jax_0_4_30",
+    "platform_system": "Darwin",
+    "platform_machine": "arm64",
+    "python_version": "3.11.15",
+    "python_executable": "<private-local-path-redacted>",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "packages": {
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "ml_dtypes": "0.5.4",
+      "opt_einsum": "3.4.0",
+      "scipy": "1.17.1"
+    },
+    "backend": "cpu",
+    "devices": [
+      "TFRT_CPU_0"
+    ],
+    "jax_enable_x64": false,
+    "concurrency": 1,
+    "variables": {
+      "JAX_PLATFORMS": "cpu",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    },
+    "rejected_backend_evidence": {
+      "decision": "A100_REJECTED",
+      "report": "<private-local-path-redacted>",
+      "report_sha256": "78f3ce6b323ce3a9341b6a002a5c075bfb3541165985a0252c9fa6bfb9cb0438"
+    }
+  },
+  "path_schema": {
+    "shape": [
+      "T",
+      "KMAX",
+      "N"
+    ],
+    "inactive_index_sentinel": -1,
+    "fields": {
+      "task_ingress_rsu": "int16",
+      "task_selected_execution_rsu": "int16",
+      "task_execution_rsu": "int16",
+      "task_forwarded": "bool",
+      "task_forwarding_latency_ms": "float32",
+      "task_v2i_admitted": "bool",
+      "task_outcome": "int8",
+      "task_active": "bool",
+      "task_type": "int8",
+      "task_lat_ms": "float32",
+      "task_met": "bool"
+    }
+  },
+  "seed0_reuse": {
+    "statistical_role": "prior descriptive pilot evidence; excluded from the primary four-draw interval",
+    "ingress_dla": {
+      "root": "<private-local-path-redacted>",
+      "source_commit": "f4e1897d6c17cf106880303a6be839407abe663e",
+      "summary_sha256": "894696e0c76ca9ba78c0cec69b1ecd300007cdf6b0deae65afd9f6f6a7e7120f",
+      "per_step_sha256": "5bedb5317e04e3ef599ff8d3e9fc23e6eb600f96153f4a5c1279f6937f3703f7",
+      "per_task_sha256": "8ebd2361f4cde2d931bba21223f13918528b10558ca376fad2b54c2dd1062f50",
+      "checksums_sha256": "d168c564c1ed1d2d6c33d355f24f7cfee40160fad064068551421252e21fff32",
+      "command_sha256": "acba0e22629bedccc95300dba811d1599e391e766db8f28a48fb1cdd1bd61a17",
+      "run_validation_sha256": "8326b1facdcde28b28489541b5617691cafff6b911864bb94fff9c370320fcd2"
+    },
+    "dla": {
+      "root": "<private-local-path-redacted>",
+      "source_commit": "b2ce160c64a3ce6e9fef9f23cdb52c9ee1940dbb",
+      "summary_sha256": "7d64193ff4a2501b7e8a83fc098abe28f4cb1f15143252edce8ff9d1291db172",
+      "per_step_sha256": "787edf3d0dd4d26404af2d97588b6d1efe3e2f0747e48e24a04fcf521781bd58",
+      "per_task_sha256": "c08e2119814822b0a768ed6ffc51345e346e458fa730595d9e932b3127ff3381",
+      "checksums_sha256": "45355a7363030e3658365ea124f7c1dec6b4cf726cb3f459125bf5253a0897f8",
+      "command_sha256": "847d3baded919de2fea6cc49a70330059f3f10666ab26132ef564de02a099c30",
+      "run_validation_sha256": "24282e17d62636e5db561f70bcd34018e282f8bfabd8481fbc1c255e34133db8"
+    },
+    "pilot_difference_dla_minus_ingress_dla": -0.02083329190958194,
+    "supporting_documents": [
+      {
+        "path": "<private-local-path-redacted>",
+        "sha256": "8d35e55e2952d71b1c04479b310d1f5b48da7cf7bc2e171a1ca6359c9fa98aaf"
+      },
+      {
+        "path": "<private-local-path-redacted>",
+        "sha256": "e45ee4016887596476032b441762c38a92e0faed83738c30fbf590385243d8c1"
+      },
+      {
+        "path": "<private-local-path-redacted>",
+        "sha256": "dd48da132856e6199463cc195d93d007436c2cdb187133f8fa68962710c14c38"
+      },
+      {
+        "path": "<private-local-path-redacted>",
+        "sha256": "aedc625696f2c2fd9939ddaefd846aab94341810d4f39062a660a217b8f3e0c8"
+      }
+    ]
+  },
+  "cross_arm_contract": {
+    "exact": [
+      "offered task count",
+      "task_active shape, dtype and bytes",
+      "task_type shape, dtype and bytes",
+      "slot_tier shape, dtype and bytes",
+      "slot_is_ev shape, dtype and bytes",
+      "veh_action shape, dtype and bytes",
+      "actor action counts"
+    ],
+    "logit_diagnostic": {
+      "field": "veh_actor_logits",
+      "absolute_tolerance": 0.00001,
+      "relative_tolerance": 0.0,
+      "interpretation": "shape and float32 dtype must match; report byte identity and maximum absolute difference; tolerance cannot excuse any action difference and cannot be widened after outcomes"
+    }
+  },
+  "smoke_gate": {
+    "serial_repeats_per_cell": 2,
+    "steps": 10,
+    "total_runs": 16,
+    "requirements": [
+      "scientific summary exact excluding wall_s within cell",
+      "all per-step and per-task arrays shape, dtype and bytes exact within cell",
+      "task accounting and V2I/vehicle service-work conservation",
+      "path reconciliation and mode-specific path semantics",
+      "finite and nonnegative values except explicit documented sentinels",
+      "no silent loss and no overwrite",
+      "cross-arm task, fleet and vehicle-action identity within fleet seed",
+      "cross-arm actor logits satisfy the frozen diagnostic tolerance"
+    ]
+  },
+  "analysis": {
+    "primary_outcome": "deadline-met tasks / all offered tasks",
+    "primary_per_seed_estimand": "offered_deadline_attainment_dla - offered_deadline_attainment_ingress_dla",
+    "primary_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "primary_summary": [
+      "four raw paired differences",
+      "negative/zero/positive sign counts",
+      "mean",
+      "sample standard deviation",
+      "standard error",
+      "two-sided 95% Student-t confidence interval with 3 degrees of freedom",
+      "median",
+      "minimum",
+      "maximum"
+    ],
+    "decision_rule": "interval excludes zero => evidence of directional difference within this bounded four-draw replication; otherwise inconclusive at this replication size",
+    "combined_descriptive": "separately labelled combined descriptive pilot-plus-replication summary for seeds 0-4; never a held-out confirmatory test",
+    "secondary_metrics": [
+      "admitted-task attainment",
+      "deadline-met task count",
+      "admitted-task count",
+      "V2I admitted count",
+      "gate-rejected count",
+      "cap-rejected count",
+      "offered-task latency",
+      "admitted-task latency",
+      "deadline-met latency",
+      "energy per offered task",
+      "forwarded count",
+      "forwarded share",
+      "execution-share range",
+      "maximum execution share"
+    ],
+    "mechanism_metrics": [
+      "selected-target count by RSU",
+      "actual execution count by RSU",
+      "admitted V2I count by execution RSU",
+      "gate-rejected V2I count by selected RSU",
+      "deadline-met admitted V2I count by execution RSU",
+      "forwarded admitted-task count and share",
+      "execution-share range and maximum execution share",
+      "ingress-to-execution matrix",
+      "mean admitted V2I latency by execution RSU where recorded arrays permit",
+      "deadline attainment among admitted V2I by execution RSU where recorded arrays permit"
+    ],
+    "task_level_pseudoreplication_allowed": false,
+    "equivalence_or_noninferiority_claim_allowed": false
+  },
+  "outputs": {
+    "raw_root": "<private-local-path-redacted>",
+    "cell_root_template": "cells/{CELL_INDEX}_seed_{FLEET_SEED}_{ARM}",
+    "pair_root_template": "pairs/fleet_seed_{FLEET_SEED}",
+    "no_overwrite": true,
+    "failed_evidence_retained": true,
+    "raw_files_enter_git": false,
+    "checksum_policy": "per-run SHA-256 ledger, immutable cell/pair validation, final root evidence index and root checksum ledger"
+  },
+  "review_gate": {
+    "required_verdict": "APPROVE",
+    "allowed_verdicts": [
+      "APPROVE",
+      "APPROVE_WITH_MINOR_FIXES",
+      "REQUEST_CHANGES",
+      "BLOCK"
+    ],
+    "verdict_path": "<private-local-path-redacted>",
+    "first_smoke_forbidden_until_exact_approve": true,
+    "complete_diff_and_contract_required": true
+  },
+  "compute_and_storage": {
+    "completed_seed0_ingress_dla_full_wall_seconds": 8901.2,
+    "completed_seed0_dla_full_wall_seconds": 7787.5,
+    "projected_eight_full_evaluator_wall_seconds": 66754.8,
+    "projected_eight_full_evaluator_wall_hours": 18.543,
+    "maximum_new_evaluator_wall_seconds": 108000,
+    "completed_seed0_ingress_dla_full_bytes": 209552382,
+    "completed_seed0_dla_full_bytes": 207317347,
+    "completed_seed0_ingress_dla_two_smoke_bytes": 1296680,
+    "completed_seed0_dla_two_smoke_bytes": 1278768,
+    "completed_pair_smoke_bytes": 2575448,
+    "projected_new_output_bytes": 1677780708,
+    "minimum_initial_free_bytes": 3355561416,
+    "initial_observed_free_bytes": 263183011840,
+    "free_space_rule": "before every cell require at least twice the estimated bytes for all remaining cells",
+    "runtime_rule": "before every cell require actual accepted full evaluator wall plus estimated remaining full wall not to exceed 108000 seconds",
+    "serial_execution_only": true
+  },
+  "stop_rules": [
+    "E1, E2 or E2b evidence, manifest or root checksum drift",
+    "manifest hash changes after first launch",
+    "TrafficTwin, vec_env, tos-data, evaluator, vec_jax, actor, trace, Python or package identity mismatch",
+    "vec_env or tos-data is modified",
+    "backend differs from macos_arm64_cpu_jax_0_4_30 or another evaluator is active",
+    "independent Claude verdict is not exact APPROVE for the exact TrafficTwin HEAD, vec_env commit and manifest",
+    "a repeated smoke differs",
+    "cross-arm task, fleet or vehicle-action stream differs within a fleet seed",
+    "task accounting, V2I work or vehicle work conservation fails",
+    "silent task loss, rejected execution/forwarding, path aggregate mismatch, NaN, infinity or unexplained negative value",
+    "ingress_dla selects away from ingress, forwards, or charges forwarding latency",
+    "configuration differs from the manifest or an unpredeclared command or arm is needed",
+    "cell order is skipped, a failed cell is silently dropped, or an existing output would be overwritten",
+    "free-space or 30-hour compute budget becomes unsafe",
+    "raw/private files enter Git"
+  ],
+  "permission_boundaries": {
+    "authorised": [
+      "exactly sixteen ten-step smokes in the eight fixed cells",
+      "exactly eight 3600-step full cells in the fixed order",
+      "paired analysis of fleet seeds 1-4",
+      "separately labelled descriptive reuse of seed 0",
+      "one private TrafficTwin branch push and unmerged stacked draft PR"
+    ],
+    "forbidden": [
+      "off or jsq runs",
+      "additional fleet seed",
+      "P2C or DLA-P2C",
+      "waiting-room variants",
+      "nonzero backhaul or E3",
+      "static, reactive or proactive scaling",
+      "actor retraining, learned scheduling, prediction or action masking",
+      "ordinary traffic, bus modelling or backend investigation",
+      "vec_env or tos-data modification",
+      "Randy upstream push",
+      "merge"
+    ],
+    "next_action": "researcher review"
+  }
+}

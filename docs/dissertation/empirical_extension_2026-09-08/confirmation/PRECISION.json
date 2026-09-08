@@ -1,0 +1,56 @@
+{
+  "n": 8,
+  "df": 7,
+  "family_size": 3,
+  "critical": 3.1275522742463706,
+  "assumptions": "independent approximately normal paired joint-block effects; variance unknown",
+  "half_widths": [
+    {
+      "assumed_sd_pp": 0.25,
+      "half_width_pp": 0.27643917770437715
+    },
+    {
+      "assumed_sd_pp": 0.5,
+      "half_width_pp": 0.5528783554087543
+    },
+    {
+      "assumed_sd_pp": 1,
+      "half_width_pp": 1.1057567108175086
+    },
+    {
+      "assumed_sd_pp": 2,
+      "half_width_pp": 2.211513421635017
+    },
+    {
+      "assumed_sd_pp": 4,
+      "half_width_pp": 4.423026843270034
+    }
+  ],
+  "power": [
+    {
+      "effect_over_sd": 0,
+      "power": 0.01666666666666661
+    },
+    {
+      "effect_over_sd": 0.25,
+      "power": 0.036099494780722836
+    },
+    {
+      "effect_over_sd": 0.5,
+      "power": 0.10631279945316895
+    },
+    {
+      "effect_over_sd": 1,
+      "power": 0.44654347311279075
+    },
+    {
+      "effect_over_sd": 1.5,
+      "power": 0.8283970468622003
+    },
+    {
+      "effect_over_sd": 2,
+      "power": 0.9774521293207097
+    }
+  ],
+  "observed_power": false
+}
