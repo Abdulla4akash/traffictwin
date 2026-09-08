@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "source_bindings": 21,
+  "task_type_rows": 24,
+  "paired_type_rows": 12,
+  "benchmark_calls_checked": 1600,
+  "full_evaluations": 0,
+  "raw_record_check": "not requested; compact checks do not revalidate raw task outcomes",
+  "missing_private_inputs": "Historical E0/E1/E2 originals unavailable: not assessable. Optional September raw aggregation requires explicit root; actor/trace required only for future campaign preflight.",
+  "seal_sha256": "0ca2ef2b2dc9e25c0cedd6e4a39daeb26b72b66c03a2c5efe8b3f0b1a973fcd8"
+}

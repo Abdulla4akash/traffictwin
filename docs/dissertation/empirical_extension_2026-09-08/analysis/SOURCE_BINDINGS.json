@@ -1,0 +1,104 @@
+[
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/eval_sumo_stage1_mc.py",
+    "sha256": "2824d9c2ef09e7748cd420d1ab2f0526d28157b8986605dc831397b6c618c07e",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py",
+    "sha256": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/rsu_state_delay.py",
+    "sha256": "b4cf128d3eddf2fb11b0d58dde790c7441a38cfdd12fc82859e7c5a1c6d4f751",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/jaxmarl/env/vec_jax.py",
+    "sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/dissertation/production_mechanism_2026-09-08/analysis/MATHEMATICS.md",
+    "sha256": "0e709917cd575bdd472b3a22ff9f051975fd90f4ae3021c62014a7014aae7444",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/dissertation/production_mechanism_2026-09-08/analysis/results/EVIDENCE_SUMMARY.json",
+    "sha256": "f6e218e3bbf96b3dfe140f53e018c4581bc6344e6608ffa31e309b1b582732a7",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/dissertation/production_mechanism_2026-09-08/analysis/results/OUTCOME_ACCOUNTING.json",
+    "sha256": "b6b6083b8d7d533f5227123cc2ff6df49962552dc7b42effc6fa292de222c2ee",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/dissertation/production_mechanism_2026-09-08/analysis/results/ADVERSE_PRODUCTION.csv",
+    "sha256": "e800ea3dcc36ab66dc1780d4fafe1675f1b1b1f4fb970765551bbe82a26ebfa9",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/RAW_INPUTS.json",
+    "sha256": "c1cca720abb79b01c3639df2e52831ecc989d4cb90cf54549fced7e5ac57326e",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/dissertation/gap_closure_2026-09-08/verification/results/OUTCOME_TRANSITIONS.json",
+    "sha256": "db81ead8203bc1dd9ca6d00ec7e76aaffc8620ebac616fc40bb4db14a8808e79",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json",
+    "sha256": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json",
+    "sha256": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json",
+    "sha256": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json",
+    "sha256": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json",
+    "sha256": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json",
+    "sha256": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json",
+    "sha256": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json",
+    "sha256": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2",
+    "baseline_blob_unchanged": true
+  },
+  {
+    "path": "docs/dissertation/empirical_extension_2026-09-08/analysis/results/TASK_TYPES.json",
+    "sha256": "2343a4a87cd727ded08c4f9a6a586442c54495c154b8fda8f1f4896b74d7da90"
+  },
+  {
+    "path": "docs/dissertation/empirical_extension_2026-09-08/analysis/results/BENCHMARK.json",
+    "sha256": "23b0904aeece5be869f8e712eb941c713edaab0ef36a96ddceca2d88da109647"
+  },
+  {
+    "path": "docs/dissertation/empirical_extension_2026-09-08/analysis/results/BENCHMARK_TIMES.csv",
+    "sha256": "a8fb58ef08e63e2c007dde50e31df0f6e3bb48b46ff1a5923d3f743c7bb0fe35"
+  }
+]

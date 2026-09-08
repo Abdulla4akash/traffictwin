@@ -1,0 +1,264 @@
+{
+  "status": "current_document_source_arithmetic_integrity_and_visual_checks_passed",
+  "date": "2026-09-08",
+  "branch": "docs/dissertation-empirical-extension-2026-09-08",
+  "draft_baseline": "ee6a4b151d92329f9c26e3f344d87b70b84fc31e",
+  "scientific_evidence_baseline": "04f3b6a95c7bc06c80ed95b54762f12861bba183",
+  "manuscript_sha256": "3e23ecbb08a210cee4037e806e202ac0d94fb18f5bfe4c8b98efe5a391c3a6a6",
+  "pdf_sha256": "7354feb1db0313c768331e6d398ff7d8d1fa24eeab2110708e453100fe8403c5",
+  "word_count": {
+    "total": 8872,
+    "sections": {
+      "Abstract": 251,
+      "1. Introduction": 1494,
+      "2. Methodology": 2799,
+      "3. Evaluation and Reflection": 3979,
+      "4. Conclusion": 349
+    },
+    "rule": "Whitespace-delimited rendered Markdown from Abstract through Conclusion, including headings, table cells and algorithm blocks; excludes cover, contents, captions, figures, references and appendices. Same conservative count rule as the preceding package."
+  },
+  "assessment_basis": {
+    "original_supplied_rubric": "MSc_Report_and_Video_Rubric (2).pdf, five pages inspected",
+    "rubric_sha256": "c88175e344c8aa0cfd5eba6164a8b5941670c7cc5bb69e89213c6c019bcd8c0f",
+    "repository_transcription": "docs/dissertation/comp66060_rubric_readiness_2026-08-19.md",
+    "word_requirement": [
+      7000,
+      9000
+    ],
+    "video_minutes": [
+      6,
+      8
+    ]
+  },
+  "references": 14,
+  "evidence_entries": 16,
+  "figure_captions": 5,
+  "body_table_captions": 12,
+  "appendix_tables": 3,
+  "numeric_or_status_table_cells_checked": 403,
+  "companion_links_checked": 121,
+  "internal_markdown_links_checked": 63,
+  "baseline_tracked_blobs_verified": 2837,
+  "source_and_output_bindings_verified": 21,
+  "historical_scientific_artifacts_unchanged": true,
+  "pdf": {
+    "pages": 32,
+    "links": {
+      "internal": 121,
+      "external_or_companion": 83
+    },
+    "outline_heading_agreement": [
+      {
+        "title": "Abstract",
+        "page": 3
+      },
+      {
+        "title": "1. Introduction",
+        "page": 4
+      },
+      {
+        "title": "1.1 Problem and motivation",
+        "page": 4
+      },
+      {
+        "title": "1.2 Related work and the position of this study",
+        "page": 4
+      },
+      {
+        "title": "1.3 Aim, research questions and contribution",
+        "page": 7
+      },
+      {
+        "title": "1.4 Scope and report structure",
+        "page": 7
+      },
+      {
+        "title": "2. Methodology",
+        "page": 8
+      },
+      {
+        "title": "2.1 Research design and evidence hierarchy",
+        "page": 8
+      },
+      {
+        "title": "2.2 Architecture and information boundaries",
+        "page": 8
+      },
+      {
+        "title": "2.3 Scenarios, actor and controlled inputs",
+        "page": 9
+      },
+      {
+        "title": "2.4 Time, queues, admission and outcomes",
+        "page": 10
+      },
+      {
+        "title": "2.5 Placement algorithms and their implementation",
+        "page": 11
+      },
+      {
+        "title": "2.6 Experimental progression and inference",
+        "page": 13
+      },
+      {
+        "title": "2.7 Sensitivities, mechanism audit and validation",
+        "page": 13
+      },
+      {
+        "title": "2.8 Retrospective extensions and measurement design",
+        "page": 14
+      },
+      {
+        "title": "3. Evaluation and Reflection",
+        "page": 15
+      },
+      {
+        "title": "3.1 Accounting validity and the capacity question",
+        "page": 15
+      },
+      {
+        "title": "3.2 From admission decomposition to the incident reversal",
+        "page": 16
+      },
+      {
+        "title": "3.3 Morning replication with the inspected pilot excluded",
+        "page": 17
+      },
+      {
+        "title": "3.4 Destination concentration and production-domain mechanisms",
+        "page": 19
+      },
+      {
+        "title": "3.5 Bounded state-information and forwarding sensitivities",
+        "page": 22
+      },
+      {
+        "title": "3.6 Engineering cost, achievement and attribution",
+        "page": 22
+      },
+      {
+        "title": "3.7 A sealed extension, not new confirmation evidence",
+        "page": 25
+      },
+      {
+        "title": "4. Conclusion",
+        "page": 26
+      },
+      {
+        "title": "References",
+        "page": 27
+      },
+      {
+        "title": "Appendix A. Evidence sources and reproducibility",
+        "page": 28
+      },
+      {
+        "title": "Appendix B. Audit coverage and diagnostic boundaries",
+        "page": 29
+      },
+      {
+        "title": "Appendix C. Exact-model result and numerical boundary",
+        "page": 31
+      },
+      {
+        "title": "Appendix D. Type aggregation and engineering evidence",
+        "page": 32
+      }
+    ],
+    "current_every_page_visual_review": true
+  },
+  "confirmation": {
+    "switch": false,
+    "full_evaluations": 0,
+    "planned_cells": 32,
+    "planned_joint_blocks": 8,
+    "seal_sha256": "0ca2ef2b2dc9e25c0cedd6e4a39daeb26b72b66c03a2c5efe8b3f0b1a973fcd8",
+    "full_instrumented_evaluator_qualification": "unrun; kernel and runner checks are not end-to-end qualification"
+  },
+  "checks_distinguished": {
+    "source_inspection": "Frozen placement, service, scorer, random-key, state feedback and queue conventions; new comparator generation/entry route inspected. Old files unchanged.",
+    "compact_data_arithmetic": "Tables4\u201310, B2 and D1 compared with saved source records; type totals reconcile and 1600 saved timing durations regenerate summaries. No new traffic-inference tests.",
+    "raw_record_reanalysis": "Exactly eight authenticated September primary-morning ingress/per-task files, one at a time, aggregated by three task types. The old19-run audit and23joins were reused and not repeated. Historical E0/E1/E2 task-level checks remain not assessable.",
+    "standalone_algorithm_tests": "Six declared round-robin hand/reference cases, pointer/pass/capacity/radio/work checks, one-RSU equality and28unchanged-route checks. No old proof or719-input suite rerun.",
+    "scheduler_benchmark": "Sixteen fixture/dimension/policy configurations, five warmups and100synchronised steady-state calls each; compiled frozen helpers and new cyclic implementation. No actor/evaluator timing, transfer timing or peak-RSS measurement.",
+    "mathematical_analysis": "Prior exact-model proposition and numerical investigation reused. Nonempty-destination assumption and negative-transfer scope clarified after separate critique.",
+    "runner_dry_run": "32configurations, source/runtime/input identities and storage checked; launch disabled; failure/control-binding tests passed. No full evaluator process launched.",
+    "relocation": "Compact verifier passed from a clean temporary checkout and separate empty working directory; no private arrays, actor or trace copied.",
+    "file_integrity": "Every baseline tracked blob checked unchanged. New artifact hashes bind outputs; hashes and a local copy are not backups.",
+    "rendering": "Fresh document-only ReportLab build, Poppler rasterisation and primary-agent inspection of all current pages; receipt bound to final PDF hash.",
+    "separate_ai_critique": "One separate AI reviewer assessed the revised manuscript/rubric and new evidence without a desired score. Five supported objections addressed once; post-fix validation is primary-agent self-check, not a second independent review.",
+    "full_simulation_runs": "Zero. No actor inference, SUMO run, retraining, historical recovery, full-evaluator prefix or campaign.",
+    "human_author_supervisor_approval": "Not received; personal contribution, independent understanding/checks and assessment-specific AI authority remain unresolved author inputs."
+  },
+  "docx": {
+    "created": false,
+    "reason": "Not requested by the current task; no new Word file or layout check claimed."
+  },
+  "video": {
+    "storyboard": true,
+    "duration": "7:20",
+    "recorded": false
+  },
+  "artifacts_sha256": {
+    "validate_document.py": "b8aa81f962ff96cc0ba9914e468ebd00730bc4cefcd1951709eda14830f4ad8c",
+    "requirements-pdf.txt": "bb04eb3011453cc509ecd2453acf74317d04c46b293f3c3e66c7e94545544d84",
+    "REFERENCE_CHECK.md": "337e5e17672161f014649d0cc8e111211428f0bc018038d63ddbdc22aa10ad9f",
+    "README.md": "fb5d628f85ad9d412afa46b828157c6a0c294f4ff9f482179fcd732348794bf0",
+    "CLAIM_SOURCE_MAP.md": "ab1177b93eeb2c5a5782ca2b019aad0dc595b206f39b1e3525ee3bcb4ea3c9f6",
+    "TrafficTwin_Dissertation.pdf": "7354feb1db0313c768331e6d398ff7d8d1fa24eeab2110708e453100fe8403c5",
+    ".gitattributes": "547f59603028195ff9f8a87d04c4651551e8bd0d68f075257dfd549cd846b25b",
+    "AUTHOR_INPUTS.md": "f3b15535fa494e4f29c56b201f42717b20e5fa4022302fd2d05b87b5cc30f5c3",
+    "VISUAL_REVIEW.json": "240d4b1758090d43c1f7256322baec91fa7ec9e32f30032d02e3070683eee77f",
+    "build_pdf.py": "98ef7db380353b7fbff3f8f8230cfea03ede92ee76ee94a2954e06700fbf44cc",
+    "REVIEW.md": "11f0d6b9e27820b10f54be1fe28397db1b2c39df36b390ba1de1e0b7d71fc6f8",
+    "VIDEO_STORYBOARD.md": "8a5f35e5f1c9996ebd76224b23ec9ee32852a0cf9d2e1f6d87cad04b6144d50d",
+    "TrafficTwin_Dissertation.md": "3e23ecbb08a210cee4037e806e202ac0d94fb18f5bfe4c8b98efe5a391c3a6a6",
+    "REVISION_REPORT.md": "a0f093e630cd7267baf7f1fc4b4f7962de7a662666720ca2097652539a3d1751",
+    "experimental/evaluator_v1.py": "f76cc43321665b8716b3ac9697060f362c1d70628013ab6cd7b3fdb0587915e9",
+    "experimental/test_compatibility.py": "312041291241a14e80dccafaa3b1436405d4e0f4430b12b01c05314be65eb991",
+    "experimental/evaluator_entry.py": "1a1158ad458106d83dbe5ad17590774dc7bc8eb6cd76a94e791144b7a079c427",
+    "experimental/round_robin.py": "a17335a8c7d6ab82c543e3780c6cd5cfe4e5d7117ae188ce3303a67c3f3f55a0",
+    "experimental/kernels.py": "1e822ef231837a4641dc3e0b323dd23c55efb1c42135ce5acebb86d4d16cb706",
+    "experimental/test_comparator.py": "6ff6ca636841eec5f809d61fe9daac5fca16b35aa962056d00621dbd3003cf68",
+    "experimental/build_evaluator.py": "cf9037b34755126ef4c29867cb60450178eace3e2700598dc024d2590a0c44cb",
+    "analysis/benchmark.py": "dee973c128b2f94f1693bacb99d0db2d55589448c30870ea8bf0ce4310a081d9",
+    "analysis/task_types.py": "027cdc4052857a36e5b07f5f20be12e1a280eb480e6562d6d403e50439d6986e",
+    "analysis/SOURCE_BINDINGS.json": "e03ca3e73e154aade239640b0d1bf746590fff0d192c7f17aada1023646bee44",
+    "analysis/verify.py": "813a9ebf74960463ad4e1c47c234853172394e75fe6c54918b7273b8763691f9",
+    "analysis/PROTOCOL.md": "548d32f7843e1756afc4ab68485407a51edd66d80b11490ff846dacbda9a488d",
+    "confirmation/runner.py": "ef5cbd71ae56a2ab110ca8f3b951ea2c7738f2958702cf81d2ccc499e511fbe1",
+    "confirmation/analyse.py": "680dc1541d67e7262fd3bd199440579d99896efbd24ad4d63e625dd668d7884f",
+    "confirmation/SEALED.json": "0ca2ef2b2dc9e25c0cedd6e4a39daeb26b72b66c03a2c5efe8b3f0b1a973fcd8",
+    "confirmation/PRE_REVIEW_SEAL.json": "c31ba3d2034668354645c77901a9b4b419fc67f0381219e1e799c21c87d90c30",
+    "confirmation/test_runner.py": "6b46ef7e5151ce6c4619b9341b420e14679d972f77e89c62d6dd0b27f3870f1c",
+    "confirmation/RUNNER_TESTS.json": "068b412c951d5e2a51640e66563d436d4cf6e0f7d5a6cb7d80dd0c45695c4171",
+    "confirmation/DRY_RUN.json": "62e46752d85a39f9d9e6de633bf10490bddf7cf154dc12bf5974e357135f992f",
+    "confirmation/PRECISION.json": "9ee60a811df96f802d4d126fda8dfbc56907d79e4a8f928e5aed806a988c466f",
+    "confirmation/PROTOCOL.md": "f977f855c9572d563560835c6f39443805b7f1f3e940c6daed948f384ae9a99e",
+    "assets/primary_replication.svg": "bc39f1ba7617339eeafbeb20c6cedf7df55a6500cc856ec89f59e600d0f0c97d",
+    "assets/rsu_workload_distribution.svg": "46c4c2ea149430345a14a1853dd1de263f33429b77fcf4befc7a58acc296a88f",
+    "assets/dispatch_example.svg": "e083b23d7e8cc5f364506ecbaea60057778edcd8e9f2b2b629df251796469fe4",
+    "assets/architecture.svg": "9db927c50852fd357bf601a8a090d35eef0a79dfb2bddaebccf63a343b9c05e9",
+    "assets/task_accounting.svg": "50fe265d9cfabf899e450120ecb4b29342450cb98f4f799709dbe9dc0276e3f5",
+    "analysis/results/TASK_TYPES.json": "2343a4a87cd727ded08c4f9a6a586442c54495c154b8fda8f1f4896b74d7da90",
+    "analysis/results/COMPATIBILITY_TESTS.json": "b0d69ed8c9066412f4d52cd85e71d04174c33be7fc8d54015aecc1845982a838",
+    "analysis/results/TASK_TYPES.csv": "cb52fe4de8fc938b6e5e8fd77fe6a6f1d3d9854e5686b7e25024bf29b64cbd81",
+    "analysis/results/BENCHMARK.json": "23b0904aeece5be869f8e712eb941c713edaab0ef36a96ddceca2d88da109647",
+    "analysis/results/RELOCATION_CHECK.json": "4f461c13ce92f672004c692bef85c3d386287f573de1981d0f1ea271b51e7dd7",
+    "analysis/results/BENCHMARK_TIMES.csv": "a8fb58ef08e63e2c007dde50e31df0f6e3bb48b46ff1a5923d3f743c7bb0fe35",
+    "analysis/results/TASK_TYPE_CHANGES.csv": "129dff3c0c5899a4d3335851d5d5fa2516083bc73043007020f2ef090ea2eedb",
+    "analysis/results/COMPARATOR_TESTS.json": "09983c43295261cde4300344e6721efef11ad9693f5a2adc31399091f41930c8",
+    "analysis/results/compact/CENTRAL_TABLES.json": "e20dd6f16d57ccb1d44569e007c164169915ff41035c2609ee12d6e92d17219a",
+    "analysis/results/compact/TASK_TYPES.csv": "cb52fe4de8fc938b6e5e8fd77fe6a6f1d3d9854e5686b7e25024bf29b64cbd81",
+    "analysis/results/compact/TASK_TYPE_CHANGES.csv": "129dff3c0c5899a4d3335851d5d5fa2516083bc73043007020f2ef090ea2eedb",
+    "analysis/results/compact/COMPACT_CHECKS.json": "1de5f16824216fa3a3ccb60d8f9f8be80d935cc6cae75c4df94ac4bdcee8f574",
+    "experimental/vendor/e2_path_instrumentation.py": "6c764965fe07faf3238504bc20bd52ef4c03cfd458281bb7c4f3e6a09600d69a",
+    "experimental/vendor/vec_jax.py": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "experimental/vendor/SOURCE_BINDINGS.json": "eb575ca1e8e98de9a40a4328d058411924404f2660c3a7169d7e7ec58dbe5a22"
+  },
+  "scope_limits": [
+    "No historical recovery/search",
+    "No frozen evaluator or result edits",
+    "No push, merge, upload, paid compute, cluster job or submission"
+  ]
+}

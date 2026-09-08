@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "old_mode_routes": [
+    {
+      "mode": "off",
+      "unchanged_entry_and_arguments": true
+    },
+    {
+      "mode": "jsq",
+      "unchanged_entry_and_arguments": true
+    },
+    {
+      "mode": "p2c",
+      "unchanged_entry_and_arguments": true
+    },
+    {
+      "mode": "dla",
+      "unchanged_entry_and_arguments": true
+    },
+    {
+      "mode": "dla_p2c",
+      "unchanged_entry_and_arguments": true
+    },
+    {
+      "mode": "ingress_dla",
+      "unchanged_entry_and_arguments": true
+    },
+    {
+      "mode": "per_task_dla",
+      "unchanged_entry_and_arguments": true
+    }
+  ],
+  "config_routes_checked": 28,
+  "generated_copy_reproducible": true,
+  "pointer_across_substeps_and_drained_batches": true,
+  "one_rsu_batch_same_inputs_equality": true,
+  "full_evaluator_compatibility": "not executed; old routes delegate exact original, new instrumented full path awaits authorised qualification",
+  "full_evaluations": 0,
+  "source_sha256": {
+    "test_compatibility.py": "312041291241a14e80dccafaa3b1436405d4e0f4430b12b01c05314be65eb991",
+    "evaluator_entry.py": "1a1158ad458106d83dbe5ad17590774dc7bc8eb6cd76a94e791144b7a079c427",
+    "evaluator_v1.py": "f76cc43321665b8716b3ac9697060f362c1d70628013ab6cd7b3fdb0587915e9",
+    "build_evaluator.py": "cf9037b34755126ef4c29867cb60450178eace3e2700598dc024d2590a0c44cb"
+  }
+}
