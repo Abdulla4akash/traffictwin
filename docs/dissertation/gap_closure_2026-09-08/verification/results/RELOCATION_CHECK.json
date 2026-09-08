@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "scope": "Clean temporary copy, cwd /tmp, no original repository path dependency; negative missing/mismatched source and explicit empty raw-root checks",
+  "checks": [
+    {
+      "check": "clean_compact",
+      "exit_code": 0,
+      "expected_success": true,
+      "diagnostic": "{\n  \"status\": \"completed_for_requested_coverage\",\n  \"compact_files_verified\": 97,\n  \"compact_arithmetic\": \"central historical/primary tables regenerated; not task-level validation\",\n  \"standalone_kernel\": \"440 cases plus bounded minimisation; no full simulation\",\n  \"production_helper\": \"not requested; requires explicit compatible JAX Python\",\n  \"september_raw\": \"not requested; requires explicit optional raw root with RAW_INPUTS.json layout\",\n  \"historical_raw\": \"not assessable from available records: E0/E1/E2 original raw outputs unavailable; deletion reported by the author; no known backup\",\n  \"other_historical_raw\": \"E2b ingress/E2c/E2d original arrays not established available; deletion not inferred\",\n  \"full_simulation\": \"not executed\",\n  \"physical_validation\": \"not performed\",\n  \"independent_review\": \"not supplied by this verifier\"\n}\n"
+    },
+    {
+      "check": "missing_source",
+      "exit_code": 1,
+      "expected_success": false,
+      "diagnostic": "Missing compact/source input: sources/production/0f01f4d_vec_jax.py\n"
+    },
+    {
+      "check": "mismatched_source",
+      "exit_code": 1,
+      "expected_success": false,
+      "diagnostic": "Mismatched compact/source input: sources/production/0f01f4d_vec_jax.py\n"
+    },
+    {
+      "check": "missing_raw",
+      "exit_code": 1,
+      "expected_success": false,
+      "diagnostic": "raw_audit.py failed: Raw inventory missing/mismatched: see INVENTORY_CHECK.json (no task analysis performed).; see output log\n"
+    }
+  ]
+}

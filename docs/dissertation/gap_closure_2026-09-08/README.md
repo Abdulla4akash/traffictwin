@@ -1,0 +1,11 @@
+# TrafficTwin final evidence-gap revision
+
+Complete editable manuscript: [TrafficTwin_Dissertation.md](TrafficTwin_Dissertation.md). Newly rendered PDF: [TrafficTwin_Dissertation.pdf](TrafficTwin_Dissertation.pdf). The final hashes, conservative count, every-page visual coverage and check distinctions are in [VALIDATION.json](VALIDATION.json). No DOCX was created: the supported managed document runtime/session is unavailable; this does not affect Markdown/PDF delivery.
+
+[Gap-closure report](GAP_CLOSURE.md) records substantive changes and the unexecuted next protocol. [Claim-source map](CLAIM_SOURCE_MAP.md), [reference-access record](REFERENCE_CHECK.md), [specific author decisions](AUTHOR_INPUTS.md) and [separate AI critique](REVIEW.md) accompany the manuscript. [Verification instructions](verification/README.md) explain the scripts, compact inputs, current raw-data availability and proposed backup/access route.
+
+The portable `verification/verify.py` regenerates central tables and the bounded scalar suite without the original checkout. An explicit optional raw root enables the 87-array/19-full-run September audit and all 23 eligible paired joins. Historical E0/E1/E2 original arrays are unavailable following author-reported deletion, no known backup; their fresh task-level checks remain not assessable. Results are in `verification/results/`, with exact bindings in `verification/SOURCE_BINDINGS.json` and `RAW_INPUTS.json`.
+
+Isolated branch: `docs/dissertation-gap-closure-2026-09-08`, based on `227c95e8e3e6b949eacb2b92c6e32c0ffdcd8133`; scientific baseline `04f3b6a95c7bc06c80ed95b54762f12861bba183`. All prior manuscripts and historical scientific artifacts are preserved. The current task forbids pushing; no push, merge, upload, backup transfer or submission is performed. Local commit identity is reported in the delivery message and can be read from this branch's Git log.
+
+PDF production uses the separate document-only environment and `requirements-pdf.txt`; `build_pdf.py` currently uses the available macOS Times/Arial fonts. The portable scientific verification package does not depend on that renderer or those fonts. `validate_document.py` additionally checks this full checkout and its known local source-history clone; it is a delivery validation script, distinct from the relocatable examiner entry point.

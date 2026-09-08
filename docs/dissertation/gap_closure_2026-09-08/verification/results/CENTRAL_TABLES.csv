@@ -1,0 +1,8 @@
+study,contrast,n,mean_pp,low_pp,high_pp,interval_family
+E1,40x_minus_0p75,5,-0.010943517835488858,-0.02464624555882643,0.0027592098878487133,individual 95% historical score
+incident E2d,per_task_minus_ingress,4,0.5271433656249991,0.4422143925360575,0.6120723387139406,individual 95% adaptive extension
+incident E2d,common_target_minus_ingress,4,-2.122226093524998,-2.233525407021741,-2.010926780028255,individual 95% adaptive extension
+incident E2d,per_task_minus_common_target,4,2.649369459149997,2.6210763951174796,2.677662523182515,individual 95% adaptive extension
+morning primary,per_task_minus_ingress,4,3.8985222313194754,2.671291357288343,5.125753105350608,Bonferroni simultaneous 95% three contrasts
+morning primary,common_target_minus_ingress,4,-3.2322534739661783,-4.671778673373711,-1.7927282745586453,Bonferroni simultaneous 95% three contrasts
+morning primary,per_task_minus_common_target,4,7.130775705285654,4.466110282046811,9.795441128524496,Bonferroni simultaneous 95% three contrasts

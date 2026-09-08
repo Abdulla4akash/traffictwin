@@ -1,0 +1,3791 @@
+{
+  "date": "2026-09-08",
+  "status": "historical_raw_gap_unresolved",
+  "scope": "Surviving receipts and summaries only; original E0/E1/E2 deletion reported by author",
+  "source_versions": {
+    "E0_E1_off": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "E2_off_jsq_dla": "e11f4445a9cc939a79d4f419c6f48b43ce110664",
+    "E2b_new_ingress": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+    "E2b_off": "reuses exact E2 off files; not a new run"
+  },
+  "reuse": [
+    "E1 seed 0 cap 2p5 reuses E0 full",
+    "E2b off/jsq/dla reuse E2 full"
+  ],
+  "runs": [
+    {
+      "study": "E0",
+      "configuration": "off",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E0/evidence/e0_full_reference_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11661973,
+      "terminal_failures_recorded": 1414261,
+      "capacity_rejections_recorded": 834120,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8939165,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8939165,
+          "passed": true
+        },
+        {
+          "expected": 11661973.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11661973,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 834120.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 834120,
+          "passed": true
+        },
+        {
+          "expected": 34124.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34124,
+          "passed": true
+        },
+        {
+          "expected": 545879.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545879,
+          "passed": true
+        },
+        {
+          "expected": 138.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 138,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "e1b0fc7961552b7c2614d0f307db89b42382cb5d9d34eba2ec0b6fafaebd9f18",
+        "task_met": "7a440943be5b6a4dd9b63a24b9604a4a15cedd4783d897a732c5e76bb0820a46",
+        "task_outcome": "6f81e703251e48f4a6fd0e21512e9baddc3936bd7c690c8415c86494ea73e412",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E0",
+      "configuration": "off",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E0/evidence/e0_validation_v1.json",
+      "offered_recorded": 36856,
+      "admitted_recorded": 35195,
+      "terminal_failures_recorded": 1661,
+      "capacity_rejections_recorded": 0,
+      "recorded_checks": [
+        {
+          "expected": 36856.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 36856.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 25227,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 25227,
+          "passed": true
+        },
+        {
+          "expected": 35195.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 35195,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 108.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 108,
+          "passed": true
+        },
+        {
+          "expected": 1553.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 1553,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "eab273a38e4c8edf3f77546409ad19534eee5d9dcf76964cefedfa3c96b86297",
+        "task_lat_ms": "7dc2d3b765c2eaf498c1f9a0e5433a22382af9b58d1a559f45b3d9c0db0a2568",
+        "task_met": "3893bf8e8e07a883a76eb59765b2066fe2b19035145e7494d512fb2652041b08",
+        "task_outcome": "3ec62bb4f54740afdd042abc2f3ca6cd5ad6ace47f0aaa981718f1b53d8baada",
+        "task_type": "d85e8ff5004c49a849e2942a35f59bd2e15a62e0d419b26f6309af9b05501846"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E0",
+      "configuration": "off",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 2,
+      "receipt": "sources/legacy/E0/evidence/e0_validation_v1.json",
+      "offered_recorded": 36856,
+      "admitted_recorded": 35195,
+      "terminal_failures_recorded": 1661,
+      "capacity_rejections_recorded": 0,
+      "recorded_checks": [
+        {
+          "expected": 36856.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 36856.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 25227,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 25227,
+          "passed": true
+        },
+        {
+          "expected": 35195.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 35195,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 108.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 108,
+          "passed": true
+        },
+        {
+          "expected": 1553.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 1553,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "eab273a38e4c8edf3f77546409ad19534eee5d9dcf76964cefedfa3c96b86297",
+        "task_lat_ms": "7dc2d3b765c2eaf498c1f9a0e5433a22382af9b58d1a559f45b3d9c0db0a2568",
+        "task_met": "3893bf8e8e07a883a76eb59765b2066fe2b19035145e7494d512fb2652041b08",
+        "task_outcome": "3ec62bb4f54740afdd042abc2f3ca6cd5ad6ace47f0aaa981718f1b53d8baada",
+        "task_type": "d85e8ff5004c49a849e2942a35f59bd2e15a62e0d419b26f6309af9b05501846"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "0p75",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11630198,
+      "terminal_failures_recorded": 1446036,
+      "capacity_rejections_recorded": 865895,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8941409,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8941409,
+          "passed": true
+        },
+        {
+          "expected": 11630198.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11630198,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 865895.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 865895,
+          "passed": true
+        },
+        {
+          "expected": 34124.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34124,
+          "passed": true
+        },
+        {
+          "expected": 545879.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545879,
+          "passed": true
+        },
+        {
+          "expected": 138.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 138,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "3f8f091bf67594c158e6e14906f3ccb44d4a0f182319bd2e09457689d68cf9f8",
+        "task_met": "5e62a3bf041848789f21445b779d8302c45183b3bda427c1a9ab59b5b96e45eb",
+        "task_outcome": "df5b21a109ccbb0c965ccf29e01966f117d7cf7658afd0bf00bed879e36b3c20",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "2p5",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11661973,
+      "terminal_failures_recorded": 1414261,
+      "capacity_rejections_recorded": 834120,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8939165,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8939165,
+          "passed": true
+        },
+        {
+          "expected": 11661973.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11661973,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 834120.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 834120,
+          "passed": true
+        },
+        {
+          "expected": 34124.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34124,
+          "passed": true
+        },
+        {
+          "expected": 545879.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545879,
+          "passed": true
+        },
+        {
+          "expected": 138.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 138,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "e1b0fc7961552b7c2614d0f307db89b42382cb5d9d34eba2ec0b6fafaebd9f18",
+        "task_met": "7a440943be5b6a4dd9b63a24b9604a4a15cedd4783d897a732c5e76bb0820a46",
+        "task_outcome": "6f81e703251e48f4a6fd0e21512e9baddc3936bd7c690c8415c86494ea73e412",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "40x",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 12143126,
+      "terminal_failures_recorded": 933108,
+      "capacity_rejections_recorded": 352967,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8939165,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8939165,
+          "passed": true
+        },
+        {
+          "expected": 12143126.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 12143126,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 352967.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 352967,
+          "passed": true
+        },
+        {
+          "expected": 34124.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34124,
+          "passed": true
+        },
+        {
+          "expected": 545879.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545879,
+          "passed": true
+        },
+        {
+          "expected": 138.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 138,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "af9c2e688836358af0e6fab99fc02ae8b4fd67c4c24dbf964ec620e806df7390",
+        "task_met": "7a440943be5b6a4dd9b63a24b9604a4a15cedd4783d897a732c5e76bb0820a46",
+        "task_outcome": "b85579f110c7f942b703ca9cb91be874282514fa5c6f28636f14eb0c03a0b4fb",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "0p75",
+      "phase": "full",
+      "seed": 1,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11779070,
+      "terminal_failures_recorded": 1297164,
+      "capacity_rejections_recorded": 639848,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 9001257,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 9001257,
+          "passed": true
+        },
+        {
+          "expected": 11779070.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11779070,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 639848.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 639848,
+          "passed": true
+        },
+        {
+          "expected": 38444.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 38444,
+          "passed": true
+        },
+        {
+          "expected": 618761.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 618761,
+          "passed": true
+        },
+        {
+          "expected": 111.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 111,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "c565a36f727f4f9cc2ca8037c245dd46380b69d98b2d439d2d219d421f30a1f1",
+        "task_met": "330bca8461877244fc2410726929e6ac96ee5c7b4a4132f6e1caaf5f2612ef35",
+        "task_outcome": "b33aecf22ef425c43c5b1529b583411fec0f51316382fd5150e8018db8ea1e85",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "2p5",
+      "phase": "full",
+      "seed": 1,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11805950,
+      "terminal_failures_recorded": 1270284,
+      "capacity_rejections_recorded": 612968,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8999660,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8999660,
+          "passed": true
+        },
+        {
+          "expected": 11805950.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11805950,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 612968.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 612968,
+          "passed": true
+        },
+        {
+          "expected": 38444.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 38444,
+          "passed": true
+        },
+        {
+          "expected": 618761.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 618761,
+          "passed": true
+        },
+        {
+          "expected": 111.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 111,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "9d04c74bcf729a3055a30669c050cdc472bdadf28499aa86f34c0213af685544",
+        "task_met": "5a51b85102b507a89dbce8637b95171ffd6ee11896b9be791940db78329c6c39",
+        "task_outcome": "bc4a731af61e91d728c0a36e9cbc15c56c58562889f97f7ad5d2cfb92eb210f3",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "40x",
+      "phase": "full",
+      "seed": 1,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 12149755,
+      "terminal_failures_recorded": 926479,
+      "capacity_rejections_recorded": 269163,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8999660,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8999660,
+          "passed": true
+        },
+        {
+          "expected": 12149755.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 12149755,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 269163.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 269163,
+          "passed": true
+        },
+        {
+          "expected": 38444.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 38444,
+          "passed": true
+        },
+        {
+          "expected": 618761.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 618761,
+          "passed": true
+        },
+        {
+          "expected": 111.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 111,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "224c090b0d6dcc222d6ce5c6a2a94dc143ecb8399f0c3d7840772871aa26f618",
+        "task_met": "5a51b85102b507a89dbce8637b95171ffd6ee11896b9be791940db78329c6c39",
+        "task_outcome": "dc6468b68510fd58c0a9ddbcbe738900eb85625b0230ab38b3961af4ae567d72",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "0p75",
+      "phase": "full",
+      "seed": 2,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11487269,
+      "terminal_failures_recorded": 1588965,
+      "capacity_rejections_recorded": 1008169,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8793710,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8793710,
+          "passed": true
+        },
+        {
+          "expected": 11487269.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11487269,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 1008169.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 1008169,
+          "passed": true
+        },
+        {
+          "expected": 35176.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 35176,
+          "passed": true
+        },
+        {
+          "expected": 545403.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545403,
+          "passed": true
+        },
+        {
+          "expected": 217.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 217,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "53ba9b10bb40ddd7547a39a83b6deb1ebcc73a092eb6e71ddca9adb62aea3625",
+        "task_met": "e262cac872b5a83d822fbcfe66b5effe4c18eafdfecd3b3c4cb454eb6967024d",
+        "task_outcome": "49f07e3af9b0d1589274053d7dde7f6682cc63c135c42acf31543def930710c7",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "2p5",
+      "phase": "full",
+      "seed": 2,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11517771,
+      "terminal_failures_recorded": 1558463,
+      "capacity_rejections_recorded": 977667,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8793710,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8793710,
+          "passed": true
+        },
+        {
+          "expected": 11517771.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11517771,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 977667.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 977667,
+          "passed": true
+        },
+        {
+          "expected": 35176.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 35176,
+          "passed": true
+        },
+        {
+          "expected": 545403.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545403,
+          "passed": true
+        },
+        {
+          "expected": 217.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 217,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "d2334c58e4dace2b7910fbb8c455d21605ab7b983b9c873d5d0d1fb62d9a1c89",
+        "task_met": "e262cac872b5a83d822fbcfe66b5effe4c18eafdfecd3b3c4cb454eb6967024d",
+        "task_outcome": "1b3743c506fdf559fbf26135e642bd6f24b7d951160fef7e86bc0a9e3ed495a3",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "40x",
+      "phase": "full",
+      "seed": 2,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 12088334,
+      "terminal_failures_recorded": 987900,
+      "capacity_rejections_recorded": 407104,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8793710,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8793710,
+          "passed": true
+        },
+        {
+          "expected": 12088334.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 12088334,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 407104.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 407104,
+          "passed": true
+        },
+        {
+          "expected": 35176.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 35176,
+          "passed": true
+        },
+        {
+          "expected": 545403.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545403,
+          "passed": true
+        },
+        {
+          "expected": 217.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 217,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "fda49dfe8bcddcf04fe8f458ee766cc47ed832d3a29058437c88ef5b815d7041",
+        "task_met": "e262cac872b5a83d822fbcfe66b5effe4c18eafdfecd3b3c4cb454eb6967024d",
+        "task_outcome": "00b58fed13334cecd3ee4e20533f6cdd4286ce522c18a7cb65a9393c3e8a1244",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "0p75",
+      "phase": "full",
+      "seed": 3,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11529285,
+      "terminal_failures_recorded": 1546949,
+      "capacity_rejections_recorded": 949566,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8764889,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8764889,
+          "passed": true
+        },
+        {
+          "expected": 11529285.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11529285,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 949566.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 949566,
+          "passed": true
+        },
+        {
+          "expected": 34106.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34106,
+          "passed": true
+        },
+        {
+          "expected": 563089.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 563089,
+          "passed": true
+        },
+        {
+          "expected": 188.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 188,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "32bdd814baa919853525582a135d8c1e47c74a88e803b941255d2d3a5ca20604",
+        "task_met": "67636bdfebc880041ac34e3c2c8b31b3693ea26697a50b0e746f5d6fadfe2ced",
+        "task_outcome": "6c78534ac583167bcbfbb6d882408a2e4481659fb4ecce2161cf83a88629706a",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "2p5",
+      "phase": "full",
+      "seed": 3,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11560414,
+      "terminal_failures_recorded": 1515820,
+      "capacity_rejections_recorded": 918437,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8761575,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8761575,
+          "passed": true
+        },
+        {
+          "expected": 11560414.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11560414,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 918437.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 918437,
+          "passed": true
+        },
+        {
+          "expected": 34106.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34106,
+          "passed": true
+        },
+        {
+          "expected": 563089.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 563089,
+          "passed": true
+        },
+        {
+          "expected": 188.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 188,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "d53565b1e4915e79c5a8212236ad4f299a8fb8d39a55af8ac227fbd1032af3bb",
+        "task_met": "f8230594cbe398ca2c44f1b31796953317fdfe5d13917cda45773477ad7d0a83",
+        "task_outcome": "1bf5ef49ab8e1053ff921a5d43f08e565350e3d048287a2f9b02bf8a752630ac",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "40x",
+      "phase": "full",
+      "seed": 3,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 12043357,
+      "terminal_failures_recorded": 1032877,
+      "capacity_rejections_recorded": 435494,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8761575,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8761575,
+          "passed": true
+        },
+        {
+          "expected": 12043357.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 12043357,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 435494.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 435494,
+          "passed": true
+        },
+        {
+          "expected": 34106.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34106,
+          "passed": true
+        },
+        {
+          "expected": 563089.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 563089,
+          "passed": true
+        },
+        {
+          "expected": 188.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 188,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "14b5a3120766de36d9a6bfd1c29aa7b4553e4af5a82db7340479e6da10028858",
+        "task_met": "f8230594cbe398ca2c44f1b31796953317fdfe5d13917cda45773477ad7d0a83",
+        "task_outcome": "6a20ef0076f5f805f9dea0d0e3c8cadf8082609d08e9044701a485abfc8b8c35",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "0p75",
+      "phase": "full",
+      "seed": 4,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11509474,
+      "terminal_failures_recorded": 1566760,
+      "capacity_rejections_recorded": 1067026,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8845065,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8845065,
+          "passed": true
+        },
+        {
+          "expected": 11509474.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11509474,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 1067026.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 1067026,
+          "passed": true
+        },
+        {
+          "expected": 30585.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 30585,
+          "passed": true
+        },
+        {
+          "expected": 469050.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 469050,
+          "passed": true
+        },
+        {
+          "expected": 99.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 99,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "3a3109cd692f1e7355ed04c087a44cdaf3ac062fc57d47b8532439a6275d2b78",
+        "task_met": "dac8db13c1e9542546a2f0b6b7a0050473d3f7041906fcc93c3e3496095b7b6a",
+        "task_outcome": "64eb275f2bd3f7751df78712ce18ae64f99f663ac7a5cee834a7f574bf552b2d",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "2p5",
+      "phase": "full",
+      "seed": 4,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 11539582,
+      "terminal_failures_recorded": 1536652,
+      "capacity_rejections_recorded": 1036918,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8845065,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8845065,
+          "passed": true
+        },
+        {
+          "expected": 11539582.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11539582,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 1036918.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 1036918,
+          "passed": true
+        },
+        {
+          "expected": 30585.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 30585,
+          "passed": true
+        },
+        {
+          "expected": 469050.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 469050,
+          "passed": true
+        },
+        {
+          "expected": 99.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 99,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "396384e083de04dceee1ef0be3a018761513b1ad6d6d8457817962f9d1c754da",
+        "task_met": "dac8db13c1e9542546a2f0b6b7a0050473d3f7041906fcc93c3e3496095b7b6a",
+        "task_outcome": "db7482e596e9e95eb52809c910144990cc4f0398fd53814f60aa2cdeacf5a77c",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E1",
+      "configuration": "40x",
+      "phase": "full",
+      "seed": 4,
+      "repeat": 1,
+      "receipt": "sources/legacy/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "offered_recorded": 13076234,
+      "admitted_recorded": 12116297,
+      "terminal_failures_recorded": 959937,
+      "capacity_rejections_recorded": 460203,
+      "recorded_checks": [
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8845065,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8845065,
+          "passed": true
+        },
+        {
+          "expected": 12116297.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 12116297,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 460203.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 460203,
+          "passed": true
+        },
+        {
+          "expected": 30585.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 30585,
+          "passed": true
+        },
+        {
+          "expected": 469050.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 469050,
+          "passed": true
+        },
+        {
+          "expected": 99.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 99,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "raw_task_hash_record": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "978227c56ea30860dd9f6b82ff91b75fbffa04d0812432e4e6417def8f5030b1",
+        "task_met": "dac8db13c1e9542546a2f0b6b7a0050473d3f7041906fcc93c3e3496095b7b6a",
+        "task_outcome": "f19ce6d133d026390faac1d30d8fd7a9a193ad8e95f3945bb130cc194f7d6a72",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      },
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "off",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 35195.0,
+      "terminal_failures_recorded": 1661.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 25227,
+          "name": "met_flag_equals_outcome1",
+          "observed": 25227,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 7574,
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 7574,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "4660fe3ba80a86ec882d4f7d964414f100887a5cc7d46c94ae1e31708fe66d3e",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "off",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 2,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 35195.0,
+      "terminal_failures_recorded": 1661.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 25227,
+          "name": "met_flag_equals_outcome1",
+          "observed": 25227,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 7574,
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 7574,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "4660fe3ba80a86ec882d4f7d964414f100887a5cc7d46c94ae1e31708fe66d3e",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "jsq",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 3,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 35195.0,
+      "terminal_failures_recorded": 1661.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 24906,
+          "name": "met_flag_equals_outcome1",
+          "observed": 24906,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 7574,
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 7574,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "7ad0e09cacd155ed4a549ee7f7d97178f63d9d4bc7469ac57405cbfcefdd2507",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "jsq",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 4,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 35195.0,
+      "terminal_failures_recorded": 1661.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 24906,
+          "name": "met_flag_equals_outcome1",
+          "observed": 24906,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 7574,
+          "pass": true
+        },
+        {
+          "expected": 7574,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 7574,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "7ad0e09cacd155ed4a549ee7f7d97178f63d9d4bc7469ac57405cbfcefdd2507",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "dla",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 5,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 28404.0,
+      "terminal_failures_recorded": 8452.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            3,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 25349,
+          "name": "met_flag_equals_outcome1",
+          "observed": 25349,
+          "pass": true
+        },
+        {
+          "expected": 6791,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 6791.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 783,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 783,
+          "pass": true
+        },
+        {
+          "expected": 783,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 783,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "1f013f50703348dca9325331e85a89b25b477949e0d604db76daf931a473e943",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "dla",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 6,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 28404.0,
+      "terminal_failures_recorded": 8452.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            3,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 25349,
+          "name": "met_flag_equals_outcome1",
+          "observed": 25349,
+          "pass": true
+        },
+        {
+          "expected": 6791,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 6791.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 783,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 783,
+          "pass": true
+        },
+        {
+          "expected": 783,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 783,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "1f013f50703348dca9325331e85a89b25b477949e0d604db76daf931a473e943",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "off",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 13076234.0,
+      "admitted_recorded": 11661973.0,
+      "terminal_failures_recorded": 1414261.0,
+      "capacity_rejections_recorded": 834120.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            7
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 8939165,
+          "name": "met_flag_equals_outcome1",
+          "observed": 8939165,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 834120,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 834120.0,
+          "pass": true
+        },
+        {
+          "expected": 34124,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 34124.0,
+          "pass": true
+        },
+        {
+          "expected": 545879,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 545879.0,
+          "pass": true
+        },
+        {
+          "expected": 138,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 138.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 1818131,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 1818131,
+          "pass": true
+        },
+        {
+          "expected": 1818131,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 1818131,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "7fa0068eff78c19be4fc36a75cf33fcaeeb95bde8184186b72d8731e278e87cc",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "jsq",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 13076234.0,
+      "admitted_recorded": 12140886.0,
+      "terminal_failures_recorded": 935348.0,
+      "capacity_rejections_recorded": 355207.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            7
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 8835373,
+          "name": "met_flag_equals_outcome1",
+          "observed": 8835373,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 355207,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 355207.0,
+          "pass": true
+        },
+        {
+          "expected": 34124,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 34124.0,
+          "pass": true
+        },
+        {
+          "expected": 545879,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 545879.0,
+          "pass": true
+        },
+        {
+          "expected": 138,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 138.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 2297044,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 2297044,
+          "pass": true
+        },
+        {
+          "expected": 2297044,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 2297044,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "811f6e8d816306dc29ed18f5ede99677b5f22a58545589b55488872b47e27edf",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2",
+      "configuration": "dla",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "offered_recorded": 13076234.0,
+      "admitted_recorded": 10122571.0,
+      "terminal_failures_recorded": 2953663.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            7
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 9087197,
+          "name": "met_flag_equals_outcome1",
+          "observed": 9087197,
+          "pass": true
+        },
+        {
+          "expected": 2373522,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 2373522.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 34124,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 34124.0,
+          "pass": true
+        },
+        {
+          "expected": 545879,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 545879.0,
+          "pass": true
+        },
+        {
+          "expected": 138,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 138.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 278729,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 278729,
+          "pass": true
+        },
+        {
+          "expected": 278729,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 278729,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "c08e2119814822b0a768ed6ffc51345e346e458fa730595d9e932b3127ff3381",
+      "availability": "original raw outputs unavailable; deletion reported by the author; no known backup",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2b",
+      "configuration": "ingress_dla",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 29265.0,
+      "terminal_failures_recorded": 7591.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            3,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 26145,
+          "name": "met_flag_equals_outcome1",
+          "observed": 26145,
+          "pass": true
+        },
+        {
+          "expected": 5930,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 5930.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 1644,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 1644,
+          "pass": true
+        },
+        {
+          "expected": 1644,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 1644,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "705fa03e5ec3ebfc061552e09744d36c84a1cd52f76ab7293ff960c7edbf65ce",
+      "availability": "original ingress arrays not located in known study paths; deletion not inferred",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2b",
+      "configuration": "ingress_dla",
+      "phase": "smoke",
+      "seed": 0,
+      "repeat": 2,
+      "receipt": "sources/legacy/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+      "offered_recorded": 36856.0,
+      "admitted_recorded": 29265.0,
+      "terminal_failures_recorded": 7591.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            3,
+            5,
+            6
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 26145,
+          "name": "met_flag_equals_outcome1",
+          "observed": 26145,
+          "pass": true
+        },
+        {
+          "expected": 5930,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 5930.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 108,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 108.0,
+          "pass": true
+        },
+        {
+          "expected": 1553,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 1553.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            10,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            10,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 1644,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 1644,
+          "pass": true
+        },
+        {
+          "expected": 1644,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 1644,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "705fa03e5ec3ebfc061552e09744d36c84a1cd52f76ab7293ff960c7edbf65ce",
+      "availability": "original ingress arrays not located in known study paths; deletion not inferred",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    },
+    {
+      "study": "E2b",
+      "configuration": "ingress_dla",
+      "phase": "full",
+      "seed": 0,
+      "repeat": 1,
+      "receipt": "sources/legacy/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+      "offered_recorded": 13076234.0,
+      "admitted_recorded": 10424749.0,
+      "terminal_failures_recorded": 2651485.0,
+      "capacity_rejections_recorded": 0.0,
+      "recorded_checks": [
+        {
+          "expected": "codes 1..8",
+          "name": "terminal_outcome_unique",
+          "observed": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            7
+          ],
+          "pass": true
+        },
+        {
+          "expected": [
+            0
+          ],
+          "name": "inactive_outcome_zero",
+          "observed": [
+            0
+          ],
+          "pass": true
+        },
+        {
+          "expected": 9359618,
+          "name": "met_flag_equals_outcome1",
+          "observed": 9359618,
+          "pass": true
+        },
+        {
+          "expected": 2071344,
+          "name": "outcome_3_v2i_gate_rejected",
+          "observed": 2071344.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_4_v2i_cap_rejected",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": 34124,
+          "name": "outcome_5_local_mqd_rejected",
+          "observed": 34124.0,
+          "pass": true
+        },
+        {
+          "expected": 545879,
+          "name": "outcome_6_v2v_mqd_rejected",
+          "observed": 545879.0,
+          "pass": true
+        },
+        {
+          "expected": 138,
+          "name": "outcome_7_v2i_unavailable",
+          "observed": 138.0,
+          "pass": true
+        },
+        {
+          "expected": 0,
+          "name": "outcome_8_v2v_unavailable",
+          "observed": 0.0,
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_selected_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_selected_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_selected_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_execution_rsu_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_execution_rsu_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "int16",
+          "name": "path_task_execution_rsu_dtype",
+          "observed": "int16",
+          "pass": true
+        },
+        {
+          "expected": true,
+          "name": "path_task_v2i_admitted_present",
+          "observed": true,
+          "pass": true
+        },
+        {
+          "expected": [
+            3600,
+            5,
+            2488
+          ],
+          "name": "path_task_v2i_admitted_shape",
+          "observed": [
+            3600,
+            5,
+            2488
+          ],
+          "pass": true
+        },
+        {
+          "expected": "bool",
+          "name": "path_task_v2i_admitted_dtype",
+          "observed": "bool",
+          "pass": true
+        },
+        {
+          "expected": 580907,
+          "name": "v2i_admission_outcome_identity",
+          "observed": 580907,
+          "pass": true
+        },
+        {
+          "expected": 580907,
+          "name": "path_aggregate_v2i_admitted_tasks",
+          "observed": 580907,
+          "pass": true
+        }
+      ],
+      "raw_task_hash_record": "8ebd2361f4cde2d931bba21223f13918528b10558ca376fad2b54c2dd1062f50",
+      "availability": "original ingress arrays not located in known study paths; deletion not inferred",
+      "fresh_offered_partition": "not assessable from available records",
+      "false_success_discrepancies": "not assessable from available records",
+      "latency_discrepancies": "not assessable from available records",
+      "fixed_history_rescore": "not assessable from available records",
+      "implication": "Historical estimate retained; receipt evidence is not a fresh task-level audit."
+    }
+  ]
+}

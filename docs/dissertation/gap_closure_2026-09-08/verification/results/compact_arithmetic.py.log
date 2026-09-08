@@ -1,0 +1,43 @@
+{
+  "e1": {
+    "mean_pp": -0.010943517835488858,
+    "sd_pp": 0.01103577758810792,
+    "low_pp": -0.02464624555882643,
+    "high_pp": 0.0027592098878487133,
+    "n": 5
+  },
+  "e2b": {
+    "arm_percentages": {
+      "dla": 69.49399192458624,
+      "ingress_dla": 71.57732111554444,
+      "jsq": 67.56817750431814,
+      "off": 68.36192285944102
+    },
+    "strongest_link_contrast_pp": 3.2153982561034127,
+    "common_target_contrast_pp": 1.9258144202680967,
+    "interaction_pp": -1.289583835835316
+  },
+  "practical_scale": {
+    "incident": {
+      "arm_mean_pct": {
+        "ingress": 70.889294272325,
+        "common_target": 68.7670681788,
+        "per_task": 71.41643763795
+      },
+      "pp": 0.5271433656249991,
+      "relative_success_increase_pct": 0.7436149153918076,
+      "extra_successes_per_10000_offered": 52.71433656249991
+    },
+    "morning": {
+      "arm_mean_pct": {
+        "ingress": 88.88684869584363,
+        "common_target": 85.65459522187744,
+        "per_task": 92.7853709271631
+      },
+      "pp": 3.8985222313194754,
+      "relative_success_increase_pct": 4.385938177040774,
+      "extra_successes_per_10000_offered": 389.85222313194754
+    }
+  },
+  "status": "passed"
+}

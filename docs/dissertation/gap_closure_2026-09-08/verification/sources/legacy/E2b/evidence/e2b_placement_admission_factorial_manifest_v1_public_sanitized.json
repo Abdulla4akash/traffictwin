@@ -1,0 +1,396 @@
+{
+  "schema_version": "e2b_placement_admission_factorial_manifest_v1",
+  "created_utc": "2026-08-10T08:31:47Z",
+  "status": "predeclared_before_first_e2b_smoke",
+  "statistical_status": "one-seed descriptive mechanism-decomposition pilot; no population inference or controller-superiority claim",
+  "closed_e1_prerequisite": {
+    "status": "closed",
+    "checkout": "<private-local-path-redacted>",
+    "final_commit": "a1423e604078f70c95d4115287d3f0391348becf",
+    "manifest_path": "<private-local-path-redacted>",
+    "manifest_sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d"
+  },
+  "completed_e2_reuse": {
+    "status": "closed",
+    "checkout": "<private-local-path-redacted>",
+    "branch": "agent/e2-native-placement-pilot-v1",
+    "final_commit": "c05736125a401b8176c53212b3915ec57b95fdc3",
+    "reviewed_execution_commit": "b2ce160c64a3ce6e9fef9f23cdb52c9ee1940dbb",
+    "manifest_path": "<private-local-path-redacted>",
+    "manifest_sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8",
+    "raw_root": "<private-local-path-redacted>",
+    "raw_checksums": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3"
+    },
+    "comparison": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52"
+    },
+    "reuse_evidence": [
+      {
+        "path": "<private-local-path-redacted>",
+        "sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38"
+      },
+      {
+        "path": "<private-local-path-redacted>",
+        "sha256": "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e"
+      },
+      {
+        "path": "<private-local-path-redacted>",
+        "sha256": "8c04c833f6b04140bac0f2dfcba788c50d29cc4be1dadf39cfacf5d8e366bba9"
+      }
+    ],
+    "reference_runs": {
+      "smoke": {
+        "off": "<private-local-path-redacted>"
+      },
+      "full": {
+        "off": "<private-local-path-redacted>",
+        "jsq": "<private-local-path-redacted>",
+        "dla": "<private-local-path-redacted>"
+      }
+    },
+    "full_run_hashes": {
+      "off": {
+        "summary": "755329546803d56d87864a66d07244c07c2624d5df5f6e3a95306dc59081b05f",
+        "per_step": "5f09537d95517ecf5183f2d528b320b0624cceea7a3819db982e095352fafd7c",
+        "per_task": "7fa0068eff78c19be4fc36a75cf33fcaeeb95bde8184186b72d8731e278e87cc",
+        "checksums": "cd54773105be6af8b2145c837367245468d180a4d5ab9a3ecd2cd23daaa72a97"
+      },
+      "jsq": {
+        "summary": "76ccd983738a1a86da8b0be2351cda35ceb44348f9290add544b6a6aff909bd2",
+        "per_step": "153bd9f5038737f67e5571dcc18352eaaba67d2cfd0bb230bd1a887188dd3da0",
+        "per_task": "811f6e8d816306dc29ed18f5ede99677b5f22a58545589b55488872b47e27edf",
+        "checksums": "40a77ced0f81c967b2a31cbf13dabab3f4baba0577ad10868093d72616187d39"
+      },
+      "dla": {
+        "summary": "7d64193ff4a2501b7e8a83fc098abe28f4cb1f15143252edce8ff9d1291db172",
+        "per_step": "787edf3d0dd4d26404af2d97588b6d1efe3e2f0747e48e24a04fcf521781bd58",
+        "per_task": "c08e2119814822b0a768ed6ffc51345e346e458fa730595d9e932b3127ff3381",
+        "checksums": "45355a7363030e3658365ea124f7c1dec6b4cf726cb3f459125bf5253a0897f8"
+      }
+    }
+  },
+  "repositories": {
+    "traffictwin": {
+      "parent_branch": "agent/e2-native-placement-pilot-v1",
+      "parent_commit": "c05736125a401b8176c53212b3915ec57b95fdc3",
+      "branch": "agent/e2b-placement-admission-factorial-v1",
+      "remote": "<private-repository-url-redacted>",
+      "draft_pr_base": "agent/e2-native-placement-pilot-v1",
+      "reviewed_execution_commit_binding": "the independent Claude verdict and live clean HEAD must match"
+    },
+    "vec_env": {
+      "parent_branch": "agent/e2-native-placement-instrumentation-v1",
+      "parent_commit": "e11f4445a9cc939a79d4f419c6f48b43ce110664",
+      "branch": "agent/e2b-ingress-deadline-admission-v1",
+      "commit": "0e5ed2f79b50011fe0475a5c2069978f9fdd778d",
+      "remote": "<private-repository-url-redacted>",
+      "draft_pr_base": "agent/e2-native-placement-instrumentation-v1",
+      "evaluator_sha256": "f9ec488528c52ce7cd6f7bb8b3a6c9c96aef532e5783a538bcac9763508519fe",
+      "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+      "resolved_imported_vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+    },
+    "tos_data": {
+      "commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "modification_allowed": false
+    }
+  },
+  "paths": {
+    "traffictwin_checkout": "<private-local-path-redacted>",
+    "vec_env_checkout": "<private-local-path-redacted>",
+    "tos_data_checkout": "<private-local-path-redacted>",
+    "evaluator": "<private-local-path-redacted>",
+    "vec_jax": "<private-local-path-redacted>",
+    "runner": "<private-local-path-redacted>",
+    "validator": "<private-local-path-redacted>",
+    "analyzer": "<private-local-path-redacted>",
+    "imported_vec_jax_entrypoint": "<private-local-path-redacted>",
+    "resolved_imported_vec_jax": "<private-local-path-redacted>"
+  },
+  "inputs": {
+    "scenario": "Manchester incident trace",
+    "date": "2024-03-15",
+    "window_local": "20:00-21:00",
+    "actor": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "training_seed": 100,
+      "observation_dimensions": 17,
+      "actions": [
+        "Local",
+        "V2I",
+        "V2V"
+      ],
+      "observes_current_rsu_load": false,
+      "frozen": true
+    },
+    "trace": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    }
+  },
+  "design": {
+    "steps": 3600,
+    "padded_fleet_width": 2488,
+    "rsus": 10,
+    "evaluator_seed": 0,
+    "fleet_seed": 0,
+    "fleet": "uk2030",
+    "fleet_status": "provisional",
+    "arrival_lambda": 1.5,
+    "waiting_room_cap_per_vehicle": 2.5,
+    "resolved_cap_tasks_per_rsu": 6220,
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "rsu_service_multiplier": 1.0,
+    "scaling": "off",
+    "backhaul_ms": 0.0,
+    "replication": "one fleet draw"
+  },
+  "new_mode": {
+    "id": "ingress_dla",
+    "human_label": "strongest-link execution + deadline-aware admission",
+    "radio_ingress": "strongest-link best_rsu_idx unchanged",
+    "selected_execution": "exactly ingress",
+    "deadline_gate": "the exact existing DLA seq_offsets gate and three-iteration fixed point",
+    "actual_execution": "ingress only when admitted; -1 otherwise",
+    "rejection": "outcome code 3 for gate rejection; selected target retained; no rejected enqueue",
+    "forwarding": "always false; count and latency zero",
+    "randomness": "no new draw or changed key split",
+    "output_schema": "unchanged native E2 path schema"
+  },
+  "arms": [
+    {
+      "id": "ingress_dla",
+      "order": 1,
+      "rsu_lb": "ingress_dla",
+      "meaning": "strongest-link execution plus the same deadline-aware admission gate used by dla",
+      "full_argv": [
+        "<private-local-path-redacted>",
+        "<private-local-path-redacted>",
+        "--trace",
+        "<private-local-path-redacted>",
+        "--actor",
+        "<private-local-path-redacted>",
+        "--max-steps",
+        "3600",
+        "--seed",
+        "0",
+        "--fleet",
+        "uk2030",
+        "--fleet-seed",
+        "0",
+        "--rsu-cap-per-veh",
+        "2.5",
+        "--lambda-arrival",
+        "1.5",
+        "--rsu-service-mult",
+        "1.0",
+        "--rsu-lb",
+        "ingress_dla",
+        "--rsu-backhaul-ms",
+        "0.0",
+        "--substep-queue",
+        "sequential",
+        "--substep-queue-iters",
+        "3",
+        "--veh-queue",
+        "conserved",
+        "--rsu-cap-mode",
+        "reject",
+        "--k8s-scale",
+        "off",
+        "--out-json",
+        "<private-local-path-redacted>",
+        "--per-step-out",
+        "<private-local-path-redacted>",
+        "--per-task-out",
+        "<private-local-path-redacted>"
+      ]
+    }
+  ],
+  "environment": {
+    "python_version": "3.11.15",
+    "python_executable": "<private-local-path-redacted>",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "packages": {
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "ml_dtypes": "0.5.4",
+      "opt_einsum": "3.4.0",
+      "scipy": "1.17.1"
+    },
+    "backend": "cpu",
+    "devices": [
+      "TFRT_CPU_0"
+    ],
+    "variables": {
+      "JAX_PLATFORMS": "cpu",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    }
+  },
+  "path_schema": {
+    "shape": [
+      "T",
+      "KMAX",
+      "N"
+    ],
+    "inactive_index_sentinel": -1,
+    "fields": {
+      "task_ingress_rsu": "int16",
+      "task_selected_execution_rsu": "int16",
+      "task_execution_rsu": "int16",
+      "task_forwarded": "bool",
+      "task_forwarding_latency_ms": "float32",
+      "task_v2i_admitted": "bool"
+    }
+  },
+  "cross_arm_actor_stream_contract": {
+    "exact_binding": "veh_action shape, dtype and bytes must match completed E2",
+    "logit_diagnostic": {
+      "field": "veh_actor_logits",
+      "absolute_tolerance": 0.00001,
+      "relative_tolerance": 0.0,
+      "interpretation": "report hashes, byte identity and maximum absolute difference; tolerance cannot excuse an action difference"
+    }
+  },
+  "factorial_contrasts": {
+    "placement_without_gate": "jsq - off",
+    "placement_with_gate": "dla - ingress_dla",
+    "admission_under_strongest_link": "ingress_dla - off",
+    "admission_under_jsq": "dla - jsq",
+    "interaction": "dla - jsq - ingress_dla + off"
+  },
+  "metrics": {
+    "primary": "deadline-met tasks / all offered tasks",
+    "secondary": [
+      "deadline-met/admitted",
+      "latency/offered",
+      "latency/admitted",
+      "admitted tasks",
+      "admitted V2I",
+      "gate rejection",
+      "cap rejection",
+      "execution-share range",
+      "energy/offered"
+    ],
+    "task_replication_rule": "individual tasks are not independent statistical replicates",
+    "strongest_link_admission_contrast_caveat": "ingress_dla - off retains the inherited difference between off's step-entry coarse saturation eligibility and ingress_dla's live per-substep eligibility; completed off had 138 unavailable V2I attempts / 13,076,234 offered tasks, and the raw contrast and interaction are not perfectly gate-only"
+  },
+  "gates": {
+    "existing_arm_no_effect": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "c13ff6a429204df64e5cee56b490a11887df7f57910f7b4c765e9e2127c5e0ad"
+    },
+    "retained_failed_no_effect": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "faa796dbe81142782168aaa4ded4de41aab49ffc3f5ea58618bf5b47e150b7a5",
+      "reason": "E1-to-E2 comparator stripped fields already present in the E2 parent; all existing arrays were exact"
+    },
+    "two_rsu_production_probe": {
+      "path": "<private-local-path-redacted>",
+      "sha256": "34ae79bf21b4f8246c566ce7ffa6e46ea882a6df3aa4638514184f856189d8cf"
+    }
+  },
+  "review_gate": {
+    "required_verdict": "APPROVE",
+    "allowed_verdicts": [
+      "APPROVE",
+      "APPROVE_WITH_MINOR_FIXES",
+      "REQUEST_CHANGES",
+      "BLOCK"
+    ],
+    "verdict_path": "<private-local-path-redacted>",
+    "full_run_forbidden_until_exact_approve": true
+  },
+  "smoke_gate": {
+    "steps": 10,
+    "serial_repeats_per_arm": 2,
+    "order": [
+      "ingress_dla"
+    ],
+    "completed_e2_reference": "smoke/off/run_1",
+    "requirements": [
+      "scientific summaries exact excluding wall_s",
+      "all existing and path arrays byte exact within ingress_dla",
+      "task/accounting/work/path checks pass",
+      "no forwarding",
+      "selection equals ingress",
+      "completed-E2 offered/task/fleet/action identity exact and logits within the accepted diagnostic bound"
+    ]
+  },
+  "outputs": {
+    "raw_root": "<private-local-path-redacted>",
+    "smoke_root": "<private-local-path-redacted>",
+    "full_root": "<private-local-path-redacted>",
+    "no_overwrite": true,
+    "raw_files_enter_git": false,
+    "checksum_policy": "per-run SHA-256 plus final root evidence index and checksum ledger; failed evidence retained"
+  },
+  "limits": {
+    "smoke_runs": 2,
+    "full_runs": 1,
+    "full_steps": 3600,
+    "serial_execution_only": true,
+    "maximum_full_wall_seconds": 10800,
+    "maximum_total_raw_storage_bytes": 2147483648,
+    "additional_seeds": 0,
+    "additional_arms": 0
+  },
+  "stop_rules": [
+    "E1 or completed E2 evidence drift",
+    "actor, trace, repository, evaluator, vec_jax, Python or package mismatch",
+    "any existing mode changes",
+    "new RNG or actor/action drift",
+    "ingress_dla selection differs from ingress",
+    "any forwarding",
+    "rejected work is enqueued or marked executed",
+    "production probe or no-effect gate fails",
+    "Claude verdict is not exact APPROVE",
+    "repeated smokes differ or completed-E2 task/fleet/action identities differ",
+    "task accounting, V2I work or vehicle work conservation fails",
+    "path aggregate mismatch, silent loss, NaN, infinity or unexplained negative value",
+    "configuration or command differs",
+    "output overwrite or raw/private Git addition",
+    "an unpredeclared run is required"
+  ],
+  "permission_boundaries": {
+    "authorised": [
+      "exactly two ten-step ingress_dla smokes",
+      "exactly one 3600-step ingress_dla arm",
+      "four-cell analysis reusing completed E2 by hash",
+      "private branch pushes",
+      "two unmerged stacked draft PRs"
+    ],
+    "forbidden": [
+      "rerun completed E2 full arms",
+      "another fleet seed",
+      "multi-seed expansion",
+      "P2C",
+      "DLA-P2C",
+      "nonzero backhaul",
+      "E3",
+      "scaling",
+      "prediction",
+      "learning",
+      "retraining",
+      "ordinary traffic",
+      "merge",
+      "Randy upstream push"
+    ],
+    "next_action": "researcher review"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "scope": "Post-hoc analysis of existing outputs; excludes first-batch warmup; no new simulations",
+  "rows": [
+    {
+      "condition": "01_fresh",
+      "requested_delay_ms": 0,
+      "rsu_time_pairs_excluding_warmup": 35990,
+      "step_count_excluding_warmup": 3599,
+      "report_matches_live_fraction": 1.0,
+      "steps_with_any_report_difference": 0,
+      "live_workload_nonzero_pairs": 0,
+      "reported_workload_nonzero_pairs": 0,
+      "maximum_post_admission_workload_ms": 538.8380737304688,
+      "maximum_report_error_ms": 0.0,
+      "mean_report_error_ms": 0.0
+    },
+    {
+      "condition": "02_delay_100",
+      "requested_delay_ms": 100,
+      "rsu_time_pairs_excluding_warmup": 35990,
+      "step_count_excluding_warmup": 3599,
+      "report_matches_live_fraction": 1.0,
+      "steps_with_any_report_difference": 0,
+      "live_workload_nonzero_pairs": 0,
+      "reported_workload_nonzero_pairs": 0,
+      "maximum_post_admission_workload_ms": 538.8380737304688,
+      "maximum_report_error_ms": 0.0,
+      "mean_report_error_ms": 0.0
+    },
+    {
+      "condition": "03_delay_500",
+      "requested_delay_ms": 500,
+      "rsu_time_pairs_excluding_warmup": 35990,
+      "step_count_excluding_warmup": 3599,
+      "report_matches_live_fraction": 0.20416782439566547,
+      "steps_with_any_report_difference": 3599,
+      "live_workload_nonzero_pairs": 0,
+      "reported_workload_nonzero_pairs": 28642,
+      "maximum_post_admission_workload_ms": 538.7147827148438,
+      "maximum_report_error_ms": 38.71478271484375,
+      "mean_report_error_ms": 12.886940956115723
+    },
+    {
+      "condition": "04_delay_1000",
+      "requested_delay_ms": 1000,
+      "rsu_time_pairs_excluding_warmup": 35990,
+      "step_count_excluding_warmup": 3599,
+      "report_matches_live_fraction": 0.0,
+      "steps_with_any_report_difference": 3599,
+      "live_workload_nonzero_pairs": 0,
+      "reported_workload_nonzero_pairs": 35990,
+      "maximum_post_admission_workload_ms": 538.6441040039062,
+      "maximum_report_error_ms": 538.6441040039062,
+      "mean_report_error_ms": 502.5129699707031
+    }
+  ]
+}

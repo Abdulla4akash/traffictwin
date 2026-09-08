@@ -1,0 +1,295 @@
+{
+  "status": "passed",
+  "scope": "Archived summary counts, rates and original paired t/Bonferroni intervals recalculated; no new tests, simulations or raw-task reanalysis. E1/E2d rounded archived inputs limit precision.",
+  "sources_sha256": {
+    "vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_comparison_v1.json": "b2f7e8bf8769e7359bf5731b4b98d1007d294ed55595ec4977886f976d600ec3",
+    "vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_comparison_v1_public_sanitized.json": "ef1821f94739816ac2777323029e1a0711294116d23eba43215e7a5aa1d5c2fd",
+    "vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/data/e2d_paired_results.csv": "bffbcb67e04bae6f5fe6e6017e7894ac36e7745c3ea5aa9cc4e6d3f8d65ac4be",
+    "vec_followup_2026-09-07/generalisation-replication-2026-09-07/runs.csv": "12ca84b319f4147dac5e0138ebc5d6389e3116d85e93baeadf9ab95d950d2843",
+    "vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv": "dd29dd512e5b7c839e419be0c4225f032d971d4c6352ce99be05691e4a556320",
+    "vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/forwarding_sensitivity.csv": "fc667384ded4278a8f02c3246835e857085b5a279ef09688f2324de806e84d20",
+    "vec_followup_2026-09-07/state-delay-pilot-2026-09-07/comparison.csv": "e879c6015a53f5fa197b321da5645b79faa877ed1e150874548023ce34618350",
+    "common_target_mechanism_audit_2026-09-07/evidence/audit_results.json": "fd6b86a3c3336b4455f1f56d3b08b40d2ac638f07842ede67b24500e39712629",
+    "vec_followup_2026-09-07/generalisation-replication-2026-09-07/rsu_workload_distribution.csv": "2b8c032bb7fa1aa3c252b414966cf9d593679c84d1ce86b47204cf16b9b3bbe1",
+    "vec_followup_2026-09-07/generalisation-pilot-2026-09-07/metrics.csv": "1ecc471306cfc5294f5940309662c67b76be7275e180bb62a13f712bd21f424c",
+    "vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json": "21a06774497c2fdc4304392fcb50e1291bb80592a127f6d770ad45ecd4b53ecf"
+  },
+  "e1": {
+    "mean_pp": -0.010943517835488858,
+    "sd_pp": 0.01103577758810792,
+    "low_pp": -0.02464624555882643,
+    "high_pp": 0.0027592098878487133,
+    "n": 5
+  },
+  "e1_mean_admitted_latency_ms": {
+    "0p75": 3770.0001527972618,
+    "2p5": 12191.437405783781,
+    "40x": 132488.3923597738
+  },
+  "mechanism_compact_totals": {
+    "observed_targets": 179427,
+    "unobserved_substeps": 36573,
+    "all_five_seconds": 15803,
+    "gate_rejections": 511684,
+    "cap_rejections": 0,
+    "endpoint_entries_per_field": 388800,
+    "max_workload_range_ms": [
+      534.28076171875,
+      538.7296752929688
+    ],
+    "minimum_other_idle_rsus": 5
+  },
+  "mean_work_shares_pct": {
+    "ingress": [
+      26.653873147464047,
+      12.131817411991829,
+      12.795039801441877,
+      10.04076390569909,
+      5.720228991551883,
+      4.36634182086654,
+      16.262321172011216,
+      2.5196769186704797,
+      9.509936830303042
+    ],
+    "common_target": [
+      48.34225023135939,
+      30.330298338807772,
+      14.631490853559079,
+      5.211360677490323,
+      1.4845998987834426,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "per_task": [
+      11.109516288975561,
+      11.123405912410119,
+      11.108028978272754,
+      11.119646332895172,
+      11.105612633861947,
+      11.111326945961322,
+      11.11476137979618,
+      11.096153376358355,
+      11.111548151468586
+    ]
+  },
+  "pilot_archived_metrics": [
+    {
+      "condition": "fresh",
+      "offered": "1744116",
+      "deadline_met": "1639965",
+      "deadline_attainment": "0.9402843618199707",
+      "admitted": "1742275",
+      "v2i_attempts": "316953",
+      "v2i_admitted": "316502",
+      "forwarded": "280857",
+      "gate_rejected": "417",
+      "cap_rejected": "0",
+      "avg_energy_j_per_offered_task": "0.5199114838118566",
+      "wall_s": "140.0",
+      "difference_from_ingress_pp": "2.952957257430122"
+    },
+    {
+      "condition": "ingress",
+      "offered": "1744116",
+      "deadline_met": "1588462",
+      "deadline_attainment": "0.9107547892456694",
+      "admitted": "1699090",
+      "v2i_attempts": "316953",
+      "v2i_admitted": "273317",
+      "forwarded": "0",
+      "gate_rejected": "43602",
+      "cap_rejected": "0",
+      "avg_energy_j_per_offered_task": "0.5198574808097627",
+      "wall_s": "173.1",
+      "difference_from_ingress_pp": "0.0"
+    }
+  ],
+  "e2b": {
+    "arm_percentages": {
+      "dla": 69.49399192458624,
+      "ingress_dla": 71.57732111554444,
+      "jsq": 67.56817750431814,
+      "off": 68.36192285944102
+    },
+    "strongest_link_contrast_pp": 3.2153982561034127,
+    "common_target_contrast_pp": 1.9258144202680967,
+    "interaction_pp": -1.289583835835316
+  },
+  "incident": {
+    "per_task_minus_ingress": {
+      "mean_pp": 0.5271433656249991,
+      "sd_pp": 0.05337338948841769,
+      "low_pp": 0.4422143925360575,
+      "high_pp": 0.6120723387139406,
+      "n": 4
+    },
+    "common_target_minus_ingress": {
+      "mean_pp": -2.122226093524998,
+      "sd_pp": 0.06994576047486273,
+      "low_pp": -2.233525407021741,
+      "high_pp": -2.010926780028255,
+      "n": 4
+    },
+    "per_task_minus_common_target": {
+      "mean_pp": 2.649369459149997,
+      "sd_pp": 0.017780701585157044,
+      "low_pp": 2.6210763951174796,
+      "high_pp": 2.677662523182515,
+      "n": 4
+    }
+  },
+  "morning": {
+    "per_task_minus_ingress": {
+      "individual": {
+        "mean_pp": 3.8985222313194754,
+        "sd_pp": 0.505380884466421,
+        "low_pp": 3.094348467053888,
+        "high_pp": 4.702695995585063,
+        "n": 4
+      },
+      "simultaneous": {
+        "mean_pp": 3.8985222313194754,
+        "sd_pp": 0.505380884466421,
+        "low_pp": 2.671291357288343,
+        "high_pp": 5.125753105350608,
+        "n": 4
+      },
+      "mean_additional_successes_per_draw": 67994.75
+    },
+    "common_target_minus_ingress": {
+      "individual": {
+        "mean_pp": -3.2322534739661783,
+        "sd_pp": 0.5928049349822866,
+        "low_pp": -4.175538411510342,
+        "high_pp": -2.288968536422015,
+        "n": 4
+      },
+      "simultaneous": {
+        "mean_pp": -3.2322534739661783,
+        "sd_pp": 0.5928049349822866,
+        "low_pp": -4.671778673373711,
+        "high_pp": -1.7927282745586453,
+        "n": 4
+      },
+      "mean_additional_successes_per_draw": -56374.25
+    },
+    "per_task_minus_common_target": {
+      "individual": {
+        "mean_pp": 7.130775705285654,
+        "sd_pp": 1.097324877412898,
+        "low_pp": 5.384686954376367,
+        "high_pp": 8.87686445619494,
+        "n": 4
+      },
+      "simultaneous": {
+        "mean_pp": 7.130775705285654,
+        "sd_pp": 1.097324877412898,
+        "low_pp": 4.466110282046811,
+        "high_pp": 9.795441128524496,
+        "n": 4
+      },
+      "mean_additional_successes_per_draw": 124369
+    }
+  },
+  "practical_scale": {
+    "incident": {
+      "arm_mean_pct": {
+        "ingress": 70.889294272325,
+        "common_target": 68.7670681788,
+        "per_task": 71.41643763795
+      },
+      "pp": 0.5271433656249991,
+      "relative_success_increase_pct": 0.7436149153918076,
+      "extra_successes_per_10000_offered": 52.71433656249991
+    },
+    "morning": {
+      "arm_mean_pct": {
+        "ingress": 88.88684869584363,
+        "common_target": 85.65459522187744,
+        "per_task": 92.7853709271631
+      },
+      "pp": 3.8985222313194754,
+      "relative_success_increase_pct": 4.385938177040774,
+      "extra_successes_per_10000_offered": 389.85222313194754
+    }
+  },
+  "delay_pct": {
+    "fresh": 72.46695034671298,
+    "delay_100": 72.46695034671298,
+    "delay_500": 72.46856396115274,
+    "delay_1000": 72.45510442838511,
+    "ingress": 72.00327709033044
+  },
+  "forwarding_pct": {
+    "0": 72.46695034671298,
+    "1": 72.44783169221353,
+    "2.5": 72.41881722214515,
+    "5": 72.37239712902048,
+    "10": 72.28578962413796
+  },
+  "pilot_extra_successes": 51503,
+  "rsu_service_before_noise_ms": [
+    21.11111111111111,
+    35.35353535353535,
+    2.525252525252525
+  ],
+  "report_state_audit_inspected": {
+    "scope": "Post-hoc analysis of existing outputs; excludes first-batch warmup; no new simulations",
+    "rows": [
+      {
+        "condition": "01_fresh",
+        "requested_delay_ms": 0,
+        "rsu_time_pairs_excluding_warmup": 35990,
+        "step_count_excluding_warmup": 3599,
+        "report_matches_live_fraction": 1.0,
+        "steps_with_any_report_difference": 0,
+        "live_workload_nonzero_pairs": 0,
+        "reported_workload_nonzero_pairs": 0,
+        "maximum_post_admission_workload_ms": 538.8380737304688,
+        "maximum_report_error_ms": 0.0,
+        "mean_report_error_ms": 0.0
+      },
+      {
+        "condition": "02_delay_100",
+        "requested_delay_ms": 100,
+        "rsu_time_pairs_excluding_warmup": 35990,
+        "step_count_excluding_warmup": 3599,
+        "report_matches_live_fraction": 1.0,
+        "steps_with_any_report_difference": 0,
+        "live_workload_nonzero_pairs": 0,
+        "reported_workload_nonzero_pairs": 0,
+        "maximum_post_admission_workload_ms": 538.8380737304688,
+        "maximum_report_error_ms": 0.0,
+        "mean_report_error_ms": 0.0
+      },
+      {
+        "condition": "03_delay_500",
+        "requested_delay_ms": 500,
+        "rsu_time_pairs_excluding_warmup": 35990,
+        "step_count_excluding_warmup": 3599,
+        "report_matches_live_fraction": 0.20416782439566547,
+        "steps_with_any_report_difference": 3599,
+        "live_workload_nonzero_pairs": 0,
+        "reported_workload_nonzero_pairs": 28642,
+        "maximum_post_admission_workload_ms": 538.7147827148438,
+        "maximum_report_error_ms": 38.71478271484375,
+        "mean_report_error_ms": 12.886940956115723
+      },
+      {
+        "condition": "04_delay_1000",
+        "requested_delay_ms": 1000,
+        "rsu_time_pairs_excluding_warmup": 35990,
+        "step_count_excluding_warmup": 3599,
+        "report_matches_live_fraction": 0.0,
+        "steps_with_any_report_difference": 3599,
+        "live_workload_nonzero_pairs": 0,
+        "reported_workload_nonzero_pairs": 35990,
+        "maximum_post_admission_workload_ms": 538.6441040039062,
+        "maximum_report_error_ms": 538.6441040039062,
+        "mean_report_error_ms": 502.5129699707031
+      }
+    ]
+  }
+}
