@@ -1,0 +1,184 @@
+{
+  "date_utc": "2026-09-09T00:13:51.071470+00:00",
+  "task": "Editorial finalisation of completed research; no new research execution",
+  "baseline_commit": "477304f7f988f7d5d5ea5ae21d0e49eed1429e5a",
+  "branch": "docs/research-editorial-final-2026-09-09",
+  "status": "source-checked; for author review",
+  "source_sha256": {
+    "AUTHOR_INPUTS.md": "ac80dbf8642f0753df5f7d73c1ce08996519bb3934e145c75da819e3745daf5a",
+    "CLAIM_SOURCE_MAP.md": "2df52ff776c977406cdb5122dada0f424e43d102fef32f5aea233efc93c495fb",
+    "README.md": "1260b2f29312d70a4419ba185e4f01baf0da0a76892ede4b5f300e512f92c4d5",
+    "REVISION_REPORT.md": "b635fc3e1be95f1b471dc3c28bd0a0b109ce256fde110fa823957950a222d7d6",
+    "TrafficTwin_Dissertation.md": "74a7af6d74e0a6463d4f93fce56118b5426fb7c5560e92d398abeea484ca0855",
+    "TrafficTwin_Dissertation.tex": "81511f7f77caee194dc2b1a7d5d8b79e91188696c710fdc68e82fb6c9413dff3",
+    "assets/architecture.svg": "9db927c50852fd357bf601a8a090d35eef0a79dfb2bddaebccf63a343b9c05e9",
+    "assets/dispatch_example.svg": "e083b23d7e8cc5f364506ecbaea60057778edcd8e9f2b2b629df251796469fe4",
+    "assets/primary_replication.svg": "bc39f1ba7617339eeafbeb20c6cedf7df55a6500cc856ec89f59e600d0f0c97d",
+    "assets/rsu_workload_distribution.svg": "46c4c2ea149430345a14a1853dd1de263f33429b77fcf4befc7a58acc296a88f",
+    "assets/task_accounting.svg": "50fe265d9cfabf899e450120ecb4b29342450cb98f4f799709dbe9dc0276e3f5",
+    "document/COMPACT_CHECKS.json": "f31c659ef986e13a0eb990045c7c5fcf264a50c8e040d52ef354584c4a65df7a",
+    "document/SOURCE_MAP.json": "10f11840ac355c26cb28ca3d76049bf6cb20c00a0ef33a9761dacd830408d70c",
+    "document/SOURCE_VALIDATION.json": "9221b5a61191658b14e5be85744de7d156b7bb9fa137cb327d122c83856b6b1e",
+    "document/source_tools.py": "6ac15e870b6b5e5e6d1c5e5ed21135320a4a3a7de3ca7671da45123a220bc26d"
+  },
+  "evidence_bindings_sha256": {
+    "docs/dissertation/joint_confirmation_2026-09-08/TrafficTwin_Dissertation.md": "773aabbedfcb001fc6d3c6ab07283a9846c6493c8a1fc6c907af5e0a835488ba",
+    "docs/dissertation/joint_confirmation_2026-09-08/TrafficTwin_Dissertation.tex": "4221ed894d620e2416207693290471e42064b82446a4722955a5c213a9866516",
+    "docs/dissertation/joint_confirmation_2026-09-08/VALIDATION.json": "130ce1ee4850d65985382a45c59e9ad7a444b97c264249de364044bef4cbb587",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/ANALYSIS.json": "acbfcca8abb10f0f5e5b9c271612f63691311ed687b69f0e93e0d14c0faa6966",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv": "44b55e5f18a852f53deefa294982f4100a955945fd47f46bf2e419ab58303017",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/PAIRED_EFFECTS.csv": "bb82c99f885ebace1ed1206a9c7ca4cc68f5710ab3d66327b3794fc5de44ac88",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/BLOCK_CONTROLS.json": "df7ff1703f86358bd51c30653175c6d013399a359bde128ec092f49ae84a7920",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json": "bc84a94f09ff7eb5eeff0c872843ef000c11a3d440bb2f532373feba9ab1fb4d",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/SEALED_EXECUTION.json": "65028659439a8808fe825e0142e8276c9c293e09085b2db036131434085beca3",
+    "docs/dissertation/joint_confirmation_2026-09-08/document/verify_results.py": "3d4d00488f32ea85ba83c03ea3aa929880f30ff89e33d1ea84756cdf8253d0a5",
+    "docs/dissertation/production_mechanism_2026-09-08/analysis/MATHEMATICS.md": "0e709917cd575bdd472b3a22ff9f051975fd90f4ae3021c62014a7014aae7444",
+    "docs/dissertation/production_mechanism_2026-09-08/analysis/results/OUTCOME_ACCOUNTING.json": "b6b6083b8d7d533f5227123cc2ff6df49962552dc7b42effc6fa292de222c2ee",
+    "docs/dissertation/empirical_extension_2026-09-08/analysis/results/TASK_TYPES.json": "2343a4a87cd727ded08c4f9a6a586442c54495c154b8fda8f1f4896b74d7da90",
+    "docs/dissertation/empirical_extension_2026-09-08/analysis/results/BENCHMARK.json": "23b0904aeece5be869f8e712eb941c713edaab0ef36a96ddceca2d88da109647",
+    "docs/dissertation/empirical_extension_2026-09-08/REFERENCE_CHECK.md": "337e5e17672161f014649d0cc8e111211428f0bc018038d63ddbdc22aa10ad9f",
+    "docs/dissertation/comp66060_rubric_readiness_2026-08-19.md": "1c8455eeebd628cde9bc0e40b445930a56583891652ad5881902a10640dd516c",
+    "docs/correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md": "33c62d8dda39fed1522a579d5e841ad34797922296e5420595d42ec6d9f350d6"
+  },
+  "actual_rubric": {
+    "inspected": "Full text of supplied MSc_Report_and_Video_Rubric.pdf, 9 September 2026",
+    "sha256": "c88175e344c8aa0cfd5eba6164a8b5941670c7cc5bb69e89213c6c019bcd8c0f",
+    "method": "pdftotext -layout; no rendering",
+    "specific_ai_permission_established": false
+  },
+  "word_counts": {
+    "markdown_semantic_words": 8560,
+    "latex_semantic_words": 8566,
+    "markdown_sections": {
+      "Abstract": 257,
+      "1. Introduction": 1709,
+      "2. Methodology": 2603,
+      "3. Evaluation and Reflection": 3420,
+      "4. Conclusion": 571
+    },
+    "latex_sections": {
+      "Abstract": 257,
+      "1. Introduction": 1711,
+      "2. Methodology": 2607,
+      "3. Evaluation and Reflection": 3420,
+      "4. Conclusion": 571
+    },
+    "latex_minus_markdown": {
+      "Abstract": 0,
+      "1. Introduction": 2,
+      "2. Methodology": 4,
+      "3. Evaluation and Reflection": 0,
+      "4. Conclusion": 0
+    },
+    "markup_difference_explanation": "Eight section references decode with a space after the section sign (+8 tokens); one inline R >= K formula decodes without surrounding spaces (-2 tokens). The net six tokens are markup spacing, not different content.",
+    "method": "Abstract through Conclusion; headings, table cells and algorithms included; captions, cover, references and appendices excluded. Decode actual LaTeX source blocks; count continuation headers once. Six unchanged equations use the checked formula mapping. Markup and automatic numbering commands are not prose words. No rendering performed.",
+    "raw_markdown_source_tokens": 15097,
+    "raw_latex_source_tokens": 18352,
+    "raw_token_boundary": "Whole-file whitespace counts include markup, captions and appendices; they are not assessment word counts."
+  },
+  "source_check_coverage": {
+    "body_blocks_compared": 232,
+    "table_cells_compared": 888,
+    "numerical_cells_compared": 667,
+    "tables": 18,
+    "figures": 5,
+    "algorithms": 2,
+    "numbered_equations": 6,
+    "bibliography_entries": 14,
+    "labels": 85,
+    "link_occurrences": 169,
+    "preserved_tracked_files": 3147
+  },
+  "preservation": {
+    "full_original_appendix_c_unchanged": true,
+    "appendix_c_sha256": "406671005cba15f7b364205e612959e6539e993205b42360f8716cdf2ee9c718",
+    "bibliography_unchanged": true,
+    "algorithm_pseudocode_unchanged": true,
+    "protected_table_cells": 846,
+    "table_number_mapping": {
+      "13": "7",
+      "7": "8",
+      "8": "9",
+      "9": "C1"
+    },
+    "declared_table_edits": {
+      "11": "Research implementation replaces status-heavy ownership",
+      "12": "Validity limits retained; no result estimate represented"
+    },
+    "old_study_populations_preserved": true,
+    "new_scientific_execution": false
+  },
+  "new_compact_arithmetic": {
+    "status": "passed",
+    "cells": 32,
+    "blocks": 8,
+    "source": "document/COMPACT_CHECKS.json",
+    "raw_task_validation_repeated": false
+  },
+  "performed_in_this_task": {
+    "manuscript_and_source_inspection": true,
+    "compact_summary_arithmetic": true,
+    "source_format_semantic_comparison": true,
+    "tracked_file_integrity": true,
+    "new_simulation": false,
+    "qualification": false,
+    "raw_record_reanalysis": false,
+    "benchmark": false,
+    "numerical_suite": false,
+    "new_proof": false,
+    "historical_recovery": false,
+    "pdf_compilation": false,
+    "rendering": false,
+    "visual_review": false,
+    "docx": false,
+    "human_author_approval": false,
+    "supervisor_approval": false,
+    "push": false,
+    "merge": false,
+    "submission": false,
+    "raw_transfer_or_backup": false
+  },
+  "runtime_document_only": {
+    "python": "3.13.5",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "markdown_it_py": "4.2.0",
+    "scipy": "1.18.1",
+    "scientific_runtime_modified": false
+  },
+  "separate_review": {
+    "status": "pending",
+    "reviewer": "Separate read-only Claude Opus 5 critique requested; no score"
+  },
+  "ci_maintenance": {
+    "branch": "maintenance/immutable-research-ci-2026-09-09",
+    "commit": "d32519c58820ff4fe1e9ef7bcc1562bc38cfb4cc",
+    "report": "docs/quality/immutable_research_ci_2026-09-09.md on maintenance branch",
+    "bounded_tests": {
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    "archive_files_verified": 938,
+    "full_suite_run": false,
+    "hosted_run_inspected": 34290052337,
+    "hosted_status": "failed at Ruff formatting; downstream skipped; Python 3.11 cancelled",
+    "new_hosted_run": false,
+    "merged_into_editorial": false
+  },
+  "raw_preservation": {
+    "inventory_reused_not_reaudited": true,
+    "file_count": 267,
+    "bytes": 8380562432,
+    "source_root": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/campaign",
+    "source_modified": false,
+    "approved_off_machine_destination": null,
+    "backup_completed": false
+  },
+  "historical_e0_e1_e2": "Original raw outputs unavailable; deletion reported by the author; no known backup. Required task-level checks not assessable from available records.",
+  "remaining_boundaries": [
+    "Compilation and visual validation not performed; retained SVG/Inkscape build dependency.",
+    "Author personal decisions/checks and assessment-specific AI-use instructions remain unconfirmed.",
+    "Examiner access to private evidence and exact backup destination require author arrangements.",
+    "Exact-model, numerical, scenario and historical scoring limits remain those stated in the manuscript."
+  ]
+}

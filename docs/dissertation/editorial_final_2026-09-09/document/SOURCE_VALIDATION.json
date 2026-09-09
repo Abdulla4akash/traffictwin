@@ -1,0 +1,102 @@
+{
+  "scope": "Source-only manuscript checks; scientific execution and validation are recorded separately",
+  "baseline_commit": "477304f7f988f7d5d5ea5ae21d0e49eed1429e5a",
+  "branch": "docs/research-editorial-final-2026-09-09",
+  "source_sha256": "773aabbedfcb001fc6d3c6ab07283a9846c6493c8a1fc6c907af5e0a835488ba",
+  "output_sha256": {
+    "TrafficTwin_Dissertation.md": "74a7af6d74e0a6463d4f93fce56118b5426fb7c5560e92d398abeea484ca0855",
+    "TrafficTwin_Dissertation.tex": "81511f7f77caee194dc2b1a7d5d8b79e91188696c710fdc68e82fb6c9413dff3",
+    "assets/architecture.svg": "9db927c50852fd357bf601a8a090d35eef0a79dfb2bddaebccf63a343b9c05e9",
+    "assets/dispatch_example.svg": "e083b23d7e8cc5f364506ecbaea60057778edcd8e9f2b2b629df251796469fe4",
+    "assets/primary_replication.svg": "bc39f1ba7617339eeafbeb20c6cedf7df55a6500cc856ec89f59e600d0f0c97d",
+    "assets/rsu_workload_distribution.svg": "46c4c2ea149430345a14a1853dd1de263f33429b77fcf4befc7a58acc296a88f",
+    "assets/task_accounting.svg": "50fe265d9cfabf899e450120ecb4b29342450cb98f4f799709dbe9dc0276e3f5"
+  },
+  "compilation_performed": false,
+  "pdf_generation_performed": false,
+  "visual_validation_performed": false,
+  "main_text_words": 8560,
+  "section_words": {
+    "Abstract": 257,
+    "1. Introduction": 1709,
+    "2. Methodology": 2603,
+    "3. Evaluation and Reflection": 3420,
+    "4. Conclusion": 571
+  },
+  "source_checks": {
+    "body_blocks_compared": 232,
+    "table_cells_compared": 888,
+    "numerical_cells_compared": 667,
+    "tables": 18,
+    "figures": 5,
+    "algorithms": 2,
+    "numbered_equations": 6,
+    "bibliography_entries": 14,
+    "labels": 85,
+    "link_occurrences": 169,
+    "preserved_tracked_files": 3147
+  },
+  "failures": [],
+  "boundaries": [
+    "Source checks do not establish compilation or visual correctness.",
+    "SVG use requires standard svg package and Inkscape at future compilation; authorised shell escape may be required.",
+    "Evidence hyperlinks require the preserved repository records. Bibliography and all figures are included."
+  ],
+  "word_counts": {
+    "markdown_semantic_words": 8560,
+    "latex_semantic_words": 8566,
+    "markdown_sections": {
+      "Abstract": 257,
+      "1. Introduction": 1709,
+      "2. Methodology": 2603,
+      "3. Evaluation and Reflection": 3420,
+      "4. Conclusion": 571
+    },
+    "latex_sections": {
+      "Abstract": 257,
+      "1. Introduction": 1711,
+      "2. Methodology": 2607,
+      "3. Evaluation and Reflection": 3420,
+      "4. Conclusion": 571
+    },
+    "latex_minus_markdown": {
+      "Abstract": 0,
+      "1. Introduction": 2,
+      "2. Methodology": 4,
+      "3. Evaluation and Reflection": 0,
+      "4. Conclusion": 0
+    },
+    "markup_difference_explanation": "Eight section references decode with a space after the section sign (+8 tokens); one inline R >= K formula decodes without surrounding spaces (-2 tokens). The net six tokens are markup spacing, not different content.",
+    "method": "Abstract through Conclusion; headings, table cells and algorithms included; captions, cover, references and appendices excluded. Decode actual LaTeX source blocks; count continuation headers once. Six unchanged equations use the checked formula mapping. Markup and automatic numbering commands are not prose words. No rendering performed.",
+    "raw_markdown_source_tokens": 15097,
+    "raw_latex_source_tokens": 18352,
+    "raw_token_boundary": "Whole-file whitespace counts include markup, captions and appendices; they are not assessment word counts."
+  },
+  "preservation": {
+    "full_original_appendix_c_unchanged": true,
+    "appendix_c_sha256": "406671005cba15f7b364205e612959e6539e993205b42360f8716cdf2ee9c718",
+    "bibliography_unchanged": true,
+    "algorithm_pseudocode_unchanged": true,
+    "protected_table_cells": 846,
+    "table_number_mapping": {
+      "13": "7",
+      "7": "8",
+      "8": "9",
+      "9": "C1"
+    },
+    "declared_table_edits": {
+      "11": "Research implementation replaces status-heavy ownership",
+      "12": "Validity limits retained; no result estimate represented"
+    },
+    "old_study_populations_preserved": true,
+    "new_scientific_execution": false
+  },
+  "document_tool_bindings": {
+    "convert_source.py": "b97668c6aa72a8672ae5b019f82be6cc52547cff75d12d634adc0ad2c7d9240a",
+    "check_source.py": "6e2ddf898960f8766427fe13a8e0c368398c989c4a84099947654d991ccd3a65"
+  },
+  "check_status_counts": {
+    "true": 1730
+  },
+  "failed_checks": {}
+}
