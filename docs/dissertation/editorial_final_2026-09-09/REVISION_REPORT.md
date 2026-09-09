@@ -30,15 +30,29 @@ Final source counts, exact file hashes, compact arithmetic and preservation chec
 
 | Section | Markdown | Decoded LaTeX |
 |---|---:|---:|
-| Abstract (including heading) | 257 | 257 |
-| Introduction | 1,709 | 1,711 |
-| Methodology | 2,603 | 2,607 |
-| Evaluation and Reflection | 3,420 | 3,420 |
-| Conclusion | 571 | 571 |
-| Total | **8,560** | **8,566** |
+| Abstract | 257 | 257 |
+| 1. Introduction | 1,658 | 1,659 |
+| 2. Methodology | 2,692 | 2,696 |
+| 3. Evaluation and Reflection | 3,405 | 3,405 |
+| 4. Conclusion | 575 | 575 |
+| Total | **8,587** | **8,592** |
 
-The Markdown body is 324 words shorter than the prior recorded 8,884. Eight decoded section references add a space after the section sign (+8 tokens); one inline inequality loses surrounding spaces (−2). Those six tokens explain the format difference; source comparison finds no content difference. Whole-file whitespace counts (15,097 Markdown / 18,352 LaTeX) include markup, captions and appendices and are not the assessment count.
+The final Markdown count is 297 words below the prior recorded 8,884. Seven decoded section references add spacing (+7 tokens); one inline inequality loses surrounding spaces (−2). These five tokens explain the format difference, with no semantic difference found. Whole-file whitespace counts (15,125 Markdown / 18,385 LaTeX) include markup, captions and appendices and are not assessment counts. The abstract alone is 256 words, or 257 including its heading.
 
-A separate reviewer will assess the revised sources, actual rubric and evidence for comprehension, alignment, sample separation, qualification, implementation, attribution and source consistency. Its exact scope and objections will be recorded here after the review. This is not human author approval or an official assessment.
+One separate read-only **Claude Opus 5** critique assessed local candidate `fc5c63804ed2710d5f11d5f3918a0b0b89cb58f2`, the actual rubric text, compact evidence and the separate CI commit. No desired mark was supplied. [The bound review record](document/SEPARATE_REVIEW.json) records scope, access limits, original/final manuscript hashes and the single response pass. No second critique or final-commit approval is claimed.
+
+| Reviewer objection | Focused response |
+|---|---|
+| D1: AI provenance less explicit | §3.7 now names this editorial revision, audits, qualification and validation alongside supplied and other AI-assisted work. Front-matter hashes/approval notes remain outside the narrative as requested. |
+| D2: original control checks implicit | Restore original matched inputs/actions, prefix checks, logit tolerance and recorded workload error in §2.7. |
+| D3–D5: source/table references | Cite S11 scope entry, point S16 to its study README, reference Tables 5/7/9 and align type order. The former README link resolved, but was ambiguous. |
+| D6: rounded maximum called strictly below | Use “reached approximately 538.730 ms”; no data changed. |
+| D7: new design only in results | Put the eight-block/four-arm design, pre-outcome sealing and df=7 simultaneous family in §2.6; remove repetition from results. |
+| D8: mechanism answer not labelled RQ2 | Explicitly link the conclusion’s mechanism paragraph to RQ2. |
+| C1/C3: CI coverage and local extras | New editorial Python passes pinned Ruff format/lint with the maintenance configuration; no merged-tree result claimed. Extra untracked/ignored archive files intentionally fail the integrity gate. |
+
+Optional requests to restore diagnostic counts and the ownership ledger were declined: their substantive boundaries remain visible, and the user requested condensation. Concrete changes were source-checked once after the focused pass. The reviewer’s claimed arithmetic assessment is not recorded as another executable reanalysis; the builder’s actual compact recalculation has its own receipt.
+
+The initial generic Git whitespace check reported intentional Markdown hard breaks and whitespace inside copied SVGs. Those preserved figure bytes were not reformatted; no unqualified whitespace-pass claim is made. The maintained Python source passes Ruff format and lint. Historical files, bibliography, algorithm pseudocode and original full Appendix C remain unchanged.
 
 No simulation, raw/task reanalysis, benchmark, numerical suite, new proof, PDF/visual work, push, merge, submission or backup transfer was performed. Scientific packages and the raw root remain unchanged. Specific personal-verification, AI-use and examiner-access decisions are in AUTHOR_INPUTS.md; the one destination-confirmation question and safe copy-only procedure are in README.md.

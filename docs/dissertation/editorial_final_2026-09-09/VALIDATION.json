@@ -1,25 +1,26 @@
 {
-  "date_utc": "2026-09-09T00:13:51.071470+00:00",
+  "date_utc": "2026-09-09T00:38:54.740173+00:00",
   "task": "Editorial finalisation of completed research; no new research execution",
   "baseline_commit": "477304f7f988f7d5d5ea5ae21d0e49eed1429e5a",
   "branch": "docs/research-editorial-final-2026-09-09",
   "status": "source-checked; for author review",
   "source_sha256": {
     "AUTHOR_INPUTS.md": "ac80dbf8642f0753df5f7d73c1ce08996519bb3934e145c75da819e3745daf5a",
-    "CLAIM_SOURCE_MAP.md": "2df52ff776c977406cdb5122dada0f424e43d102fef32f5aea233efc93c495fb",
-    "README.md": "1260b2f29312d70a4419ba185e4f01baf0da0a76892ede4b5f300e512f92c4d5",
-    "REVISION_REPORT.md": "b635fc3e1be95f1b471dc3c28bd0a0b109ce256fde110fa823957950a222d7d6",
-    "TrafficTwin_Dissertation.md": "74a7af6d74e0a6463d4f93fce56118b5426fb7c5560e92d398abeea484ca0855",
-    "TrafficTwin_Dissertation.tex": "81511f7f77caee194dc2b1a7d5d8b79e91188696c710fdc68e82fb6c9413dff3",
+    "CLAIM_SOURCE_MAP.md": "3117726aa8b61c1c260668cf67db304ca2d45f9856fc5c13d1b74325b9270567",
+    "README.md": "bf110c6b65c04cde56a1c6fc1e183bfb95ab2dbe52fb59fba6a5f961ccbadcc5",
+    "REVISION_REPORT.md": "0e8a1d307e94a1c806cd41286730976b8e8b3c122a0e9c8cf21356825ee6def0",
+    "TrafficTwin_Dissertation.md": "76a3ac3ca7e6a081a818b953ab966808453f72f27cdc6e483b8ea56acda41395",
+    "TrafficTwin_Dissertation.tex": "b54fdc5601188c7936cafd39931a330a3a9811229d5c14b891d7d0e706de2db4",
     "assets/architecture.svg": "9db927c50852fd357bf601a8a090d35eef0a79dfb2bddaebccf63a343b9c05e9",
     "assets/dispatch_example.svg": "e083b23d7e8cc5f364506ecbaea60057778edcd8e9f2b2b629df251796469fe4",
     "assets/primary_replication.svg": "bc39f1ba7617339eeafbeb20c6cedf7df55a6500cc856ec89f59e600d0f0c97d",
     "assets/rsu_workload_distribution.svg": "46c4c2ea149430345a14a1853dd1de263f33429b77fcf4befc7a58acc296a88f",
     "assets/task_accounting.svg": "50fe265d9cfabf899e450120ecb4b29342450cb98f4f799709dbe9dc0276e3f5",
     "document/COMPACT_CHECKS.json": "f31c659ef986e13a0eb990045c7c5fcf264a50c8e040d52ef354584c4a65df7a",
-    "document/SOURCE_MAP.json": "10f11840ac355c26cb28ca3d76049bf6cb20c00a0ef33a9761dacd830408d70c",
-    "document/SOURCE_VALIDATION.json": "9221b5a61191658b14e5be85744de7d156b7bb9fa137cb327d122c83856b6b1e",
-    "document/source_tools.py": "6ac15e870b6b5e5e6d1c5e5ed21135320a4a3a7de3ca7671da45123a220bc26d"
+    "document/SEPARATE_REVIEW.json": "6540e34adffa9b3cf8d2039c41719419a0b028b6f9090f86bd2ff6277dbb8933",
+    "document/SOURCE_MAP.json": "02214a48490d5067eb4b0b2b1332823c0c81becad17cd399c28b6b9dad28b180",
+    "document/SOURCE_VALIDATION.json": "8100f6158645978d18a593bfd4c49550b861db56fb1f8a6948d5c8df6b6dbecb",
+    "document/source_tools.py": "992826f1a7e36b6a98a96d995f8f3224431159c520dd899fbb3c79e0fbbe6ed3"
   },
   "evidence_bindings_sha256": {
     "docs/dissertation/joint_confirmation_2026-09-08/TrafficTwin_Dissertation.md": "773aabbedfcb001fc6d3c6ab07283a9846c6493c8a1fc6c907af5e0a835488ba",
@@ -47,37 +48,37 @@
     "specific_ai_permission_established": false
   },
   "word_counts": {
-    "markdown_semantic_words": 8560,
-    "latex_semantic_words": 8566,
+    "markdown_semantic_words": 8587,
+    "latex_semantic_words": 8592,
     "markdown_sections": {
       "Abstract": 257,
-      "1. Introduction": 1709,
-      "2. Methodology": 2603,
-      "3. Evaluation and Reflection": 3420,
-      "4. Conclusion": 571
+      "1. Introduction": 1658,
+      "2. Methodology": 2692,
+      "3. Evaluation and Reflection": 3405,
+      "4. Conclusion": 575
     },
     "latex_sections": {
       "Abstract": 257,
-      "1. Introduction": 1711,
-      "2. Methodology": 2607,
-      "3. Evaluation and Reflection": 3420,
-      "4. Conclusion": 571
+      "1. Introduction": 1659,
+      "2. Methodology": 2696,
+      "3. Evaluation and Reflection": 3405,
+      "4. Conclusion": 575
     },
     "latex_minus_markdown": {
       "Abstract": 0,
-      "1. Introduction": 2,
+      "1. Introduction": 1,
       "2. Methodology": 4,
       "3. Evaluation and Reflection": 0,
       "4. Conclusion": 0
     },
-    "markup_difference_explanation": "Eight section references decode with a space after the section sign (+8 tokens); one inline R >= K formula decodes without surrounding spaces (-2 tokens). The net six tokens are markup spacing, not different content.",
+    "markup_difference_explanation": "Seven section references decode with a space after the section sign (+7 tokens); one inline R >= K formula decodes without surrounding spaces (-2 tokens). The net five tokens are markup spacing, not different content.",
     "method": "Abstract through Conclusion; headings, table cells and algorithms included; captions, cover, references and appendices excluded. Decode actual LaTeX source blocks; count continuation headers once. Six unchanged equations use the checked formula mapping. Markup and automatic numbering commands are not prose words. No rendering performed.",
-    "raw_markdown_source_tokens": 15097,
-    "raw_latex_source_tokens": 18352,
+    "raw_markdown_source_tokens": 15125,
+    "raw_latex_source_tokens": 18385,
     "raw_token_boundary": "Whole-file whitespace counts include markup, captions and appendices; they are not assessment word counts."
   },
   "source_check_coverage": {
-    "body_blocks_compared": 232,
+    "body_blocks_compared": 233,
     "table_cells_compared": 888,
     "numerical_cells_compared": 667,
     "tables": 18,
@@ -86,7 +87,7 @@
     "numbered_equations": 6,
     "bibliography_entries": 14,
     "labels": 85,
-    "link_occurrences": 169,
+    "link_occurrences": 172,
     "preserved_tracked_files": 3147
   },
   "preservation": {
@@ -146,8 +147,82 @@
     "scientific_runtime_modified": false
   },
   "separate_review": {
-    "status": "pending",
-    "reviewer": "Separate read-only Claude Opus 5 critique requested; no score"
+    "status": "one separate critique completed; one focused builder response; no second review",
+    "candidate_commit": "fc5c63804ed2710d5f11d5f3918a0b0b89cb58f2",
+    "candidate_markdown_sha256": "74a7af6d74e0a6463d4f93fce56118b5426fb7c5560e92d398abeea484ca0855",
+    "primary_reviewer_model": "claude-opus-5",
+    "auxiliary_cli_model_usage": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "cli_version": "2.1.266",
+    "duration_ms": 928841,
+    "result_status": "success",
+    "raw_review_sha256": "a561f816f4aaeb56b5a0937d283e1abf5e26d1144d09d2e127d2658c71495d1c",
+    "raw_review_location": "/Users/akashx/TrafficTwinAudit/editorial-final-2026-09-09/REVIEW_RESULT.json",
+    "prompt_sha256": "81f8cce79557f36fbf5efae1b3938893f4a1e55c2bbcf6c76e38ad26b586c39b",
+    "scope": "Complete candidate manuscript sources, supplied rubric text, compact evidence, attribution records and separate CI patch; read-only critique, not human peer review",
+    "execution_boundary": "Reviewer did not run document/scientific verification, tests, TeX or raw audits. Its claimed arithmetic assessment is not a separate executable reanalysis; current COMPACT_CHECKS.json records the builder\u2019s actual programmatic recalculation.",
+    "access_limits": "Some shell commands were denied by the read-only allowlist; the reviewer used Read/Grep and allowed git/hash commands. It could read rubric text but did not authenticate the PDF itself. The builder verified that identity separately.",
+    "findings": [
+      {
+        "id": "D1",
+        "objection": "Retain explicit substantive AI provenance in the manuscript",
+        "response": "Expanded \u00a73.7 to name this editorial revision, audits, qualification, validation, execution and analysis. Did not restore front-matter hashes or repeated approval notes, contrary to the requested decluttering."
+      },
+      {
+        "id": "D2",
+        "objection": "Original matched-control evidence became too implicit",
+        "response": "Restored original morning input/action, prefix, logit-tolerance and recorded workload-error checks in \u00a72.7; reused archived protocol/receipts, no new audit."
+      },
+      {
+        "id": "D3",
+        "objection": "S11 no longer cited",
+        "response": "Cited the retained scope/archive entry from Figure 1\u2019s resource-scaling scope caption; unexecuted E3 status remains unchanged."
+      },
+      {
+        "id": "D4",
+        "objection": "S16 access-route relocation ambiguous",
+        "response": "Linked S16 explicitly to the unchanged joint-confirmation README. The earlier local link was valid, but now identifies the intended study package unambiguously."
+      },
+      {
+        "id": "D5",
+        "objection": "Missing Table 9 reference and type ordering trap",
+        "response": "Added explicit reference and ordered the prose as types 1/2/3, matching the table. Also addressed optional O6 by referencing Tables 5 and 7."
+      },
+      {
+        "id": "D6",
+        "objection": "Rounded maximum described as strictly below",
+        "response": "Changed to reached approximately 538.730 ms, preserving the recorded maximum and strict gate distinction."
+      },
+      {
+        "id": "D7",
+        "objection": "Headline design defined only in results/appendix",
+        "response": "Added the eight-block/four-arm pre-outcome design and df=7 simultaneous family to \u00a72.6; removed repeated results framing."
+      },
+      {
+        "id": "D8",
+        "objection": "Mechanism answer not explicitly mapped to RQ2",
+        "response": "Named RQ2\u2019s mechanism question in the relevant conclusion paragraph."
+      },
+      {
+        "id": "C1",
+        "objection": "No combined-tree CI receipt; new editorial Python check absent from package receipt",
+        "response": "Ruff format and lint both pass for source_tools.py under the maintenance branch\u2019s pinned configuration. No combined-tree or hosted pass claimed; no merge performed."
+      },
+      {
+        "id": "C3",
+        "objection": "Archive gate rejects untracked/ignored extras",
+        "response": "Confirmed intended fail-closed scope; README now explains local stray files fail unless ignored caches/.DS_Store. No scientific or maintenance-code change required."
+      }
+    ],
+    "optional_requests_not_pursued": "No restoration of lengthy diagnostic counts, ownership ledger or extra research/presentation cycle. Relevant boundaries remain in body, appendices and author notes.",
+    "maintenance_review_commit": "d32519c58820ff4fe1e9ef7bcc1562bc38cfb4cc",
+    "final_manuscript_sha256": {
+      "TrafficTwin_Dissertation.md": "76a3ac3ca7e6a081a818b953ab966808453f72f27cdc6e483b8ea56acda41395",
+      "TrafficTwin_Dissertation.tex": "b54fdc5601188c7936cafd39931a330a3a9811229d5c14b891d7d0e706de2db4"
+    },
+    "approval_boundary": "Critique binds the initial candidate only. The response was source-checked by the builder, not reviewed again by a separate reviewer. No final-commit promotion, human approval or official assessment is implied.",
+    "candidate_latex_sha256": "81511f7f77caee194dc2b1a7d5d8b79e91188696c710fdc68e82fb6c9413dff3"
   },
   "ci_maintenance": {
     "branch": "maintenance/immutable-research-ci-2026-09-09",

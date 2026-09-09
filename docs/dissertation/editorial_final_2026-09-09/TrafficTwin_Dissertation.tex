@@ -77,7 +77,7 @@ The \textbf{ingress RSU} is the roadside unit through which a vehicle reaches th
 % END SOURCE BLOCK 011
 
 % BEGIN SOURCE BLOCK 012 paragraph
-Admission is itself distinct from timely completion. A finite waiting room can accept another task even when the queued service would make it late. TrafficTwin's deadline-aware gate improves on a count-only limit by inspecting backlog, but it does not include the candidate's own service or transmission time. An admitted task can consequently miss its deadline. Evaluation must retain rejected tasks in the offered population; measuring success only among admitted work would allow selective rejection to change the population being compared.
+Admission is itself distinct from timely completion. A finite waiting room can accept another task even when the queued service would make it late. TrafficTwin's deadline-aware gate supplements a count-only limit by inspecting backlog, but it does not include the candidate's own service or transmission time. An admitted task can consequently miss its deadline. Evaluation must retain rejected tasks in the offered population; measuring success only among admitted work would allow selective rejection to change the population being compared.
 % END SOURCE BLOCK 012
 
 % BEGIN SOURCE BLOCK 013 paragraph
@@ -93,7 +93,7 @@ The research began with accounting and capacity. An apparent load-balancing bene
 % END SOURCE BLOCK 015
 
 % BEGIN SOURCE BLOCK 016 paragraph
-The closest intellectual comparison is task dispatch to parallel servers, particularly the information used to estimate waiting time and the point at which an assignment changes that information. RL supplies the upstream policy, but it does not define the downstream scheduling problem. The following synthesis positions the completed experiments retrospectively: these papers were newly inspected during manuscript revision and are not presented as having guided the historical experiments.
+The closest comparison is parallel-server dispatch: what information estimates waiting time, and when an assignment changes it. RL supplies the upstream policy. This synthesis is retrospective: papers were inspected during manuscript revision; that reading is not presented as motivating the historical experiments.
 % END SOURCE BLOCK 016
 
 % BEGIN SOURCE BLOCK 017 paragraph
@@ -176,7 +176,7 @@ The aim is to assess deterministic infrastructure scheduling under a frozen vehi
 % END SOURCE BLOCK 031
 
 % BEGIN SOURCE BLOCK 032 paragraph
-The research contributes a measurement-qualified comparison of infrastructure implementations, separate replication and confirmation of the reversal, and an exact-model explanation bounded by numerical and information assumptions. Retrospective task-type and scheduler-cost analyses connect attainment to task outcomes and engineering trade-offs. E0/E1 provide preliminary measurement and scoping evidence; the final questions were developed through the programme, not fixed together at its outset. The research implementation and documented contributions are assessed in \S\,\ref{sec:3.7} \hyperref[source-s12]{[S12]}--\hyperref[source-s16]{[S16]}.
+The research contributes a measurement-qualified implementation comparison, separate replication and confirmation, and an exact-model explanation with numerical and information limits. Retrospective task-type and cost analyses connect attainment to outcomes and engineering trade-offs; E0/E1 provide preliminary measurement and scoping evidence. Section~\ref{sec:3.7} assesses implementation and documented contributions \hyperref[source-s12]{[S12]}--\hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 032
 
 % BEGIN SOURCE BLOCK 033 heading
@@ -200,7 +200,7 @@ Matched traffic, fleet and task inputs isolate infrastructure changes under a fr
 % END SOURCE BLOCK 037
 
 % BEGIN SOURCE BLOCK 038 paragraph
-The programme is adaptive: E2c excludes its discovery seed and the original morning replication excludes its inspected pilot. Frozen source and accepted records determine experimental meaning; correspondence clarifies intention. Raw audits and kernel explanations are retrospective, distinct from the original protocols \hyperref[source-s0]{[S0]}--\hyperref[source-s8]{[S8]}, \hyperref[source-s13]{[S13]}.
+Frozen source and accepted records determine experimental meaning; correspondence clarifies intention. Section~\ref{sec:2.6} separates adaptive development from replication and confirmation. Audits and kernel explanations remain retrospective \hyperref[source-s0]{[S0]}--\hyperref[source-s8]{[S8]}, \hyperref[source-s13]{[S13]}.
 % END SOURCE BLOCK 038
 
 % BEGIN SOURCE BLOCK 039 heading
@@ -215,7 +215,7 @@ Figure~\ref{fig:1} separates actor mode choice, environmental radio targeting an
 \begin{figure}[htbp]
 \centering
 \includesvg[width=\linewidth]{assets/architecture}
-\caption{Experimental responsibility boundaries. Only admitted V2I work enters the selected execution queue; logical forwarding applies when ingress and execution differ. Resource scaling is outside the completed comparison.}\label{fig:1}
+\caption{Experimental responsibility boundaries. Only admitted V2I work enters the selected execution queue; logical forwarding applies when ingress and execution differ. Resource scaling is outside the completed comparison \hyperref[source-s11]{[S11]}.}\label{fig:1}
 \end{figure}
 % END SOURCE BLOCK 041
 
@@ -475,102 +475,106 @@ The morning pilot uses seed 1 for ingress and per-task placement. After inspecti
 % END SOURCE BLOCK 081
 
 % BEGIN SOURCE BLOCK 082 paragraph
-For each contrast, a fleet draw supplies one paired difference in percentage points. Draws receive equal weight. The mean difference has a Student-$t$ interval, $\text{mean}\pm t\times\frac{\text{sample standard deviation}}{\sqrt{n}}$. Incident E2c/E2d retain their reported individual 95\% intervals. The morning protocol additionally uses Bonferroni simultaneous intervals for three contrasts, with critical value $t$ at probability $1-0.05/(2\times 3)$, three degrees of freedom. Its reversal criterion requires the simultaneous common-target-minus-ingress interval below zero and the per-task-minus-ingress interval above zero. Four draws cannot strongly diagnose distributional assumptions; these small-sample intervals remain conditional parametric summaries, not task-level significance tests.
+For each contrast, a fleet draw supplies one paired difference in percentage points. Draws receive equal weight. The mean difference has a Student-$t$ interval, $\text{mean}\pm t\times\frac{\text{sample standard deviation}}{\sqrt{n}}$. Incident E2c/E2d retain their reported individual 95\% intervals. The original morning protocol additionally uses Bonferroni simultaneous intervals for three contrasts, with critical value $t$ at probability $1-0.05/(2\times 3)$, three degrees of freedom. Its reversal criterion requires the simultaneous common-target-minus-ingress interval below zero and the per-task-minus-ingress interval above zero. Four draws cannot strongly diagnose distributional assumptions; these small-sample intervals remain conditional parametric summaries, not task-level significance tests.
 % END SOURCE BLOCK 082
 
-% BEGIN SOURCE BLOCK 083 heading
-\subsection{Sensitivities, mechanism audit and validation}\label{sec:2.7}
+% BEGIN SOURCE BLOCK 083 paragraph
+The later confirmation uses eight paired fleet/evaluator-seed blocks, (100,200) through (107,207), and four arms: ingress, common-target, per-task and causal round-robin. Controls, rotating arm order and analysis were sealed before full outcomes. Per-task minus ingress, common-target minus ingress and per-task minus round-robin receive equal block weights and two-sided Bonferroni simultaneous 95\% Student-$t$ intervals, df=7. The same two-direction criterion tests recurrence; original draws and pilots remain separate. Independent joint blocks and approximately normal paired effects remain assumptions that eight blocks cannot strongly diagnose \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 083
 
-% BEGIN SOURCE BLOCK 084 paragraph
-The state-information pilot uses incident seed 1 and report ages 0, 100, 500 and 1,000 ms, alongside ingress. Admission remains live. For previous post-admission workload B and positive age $d$, the report is $\max(B-(1{,}000-d),0)$, with current-batch reservations added immediately. This assumes continuous service between batches without redistributing arrivals. Startup uses live state and recorded age zero \hyperref[source-s5]{[S5]}.
+% BEGIN SOURCE BLOCK 084 heading
+\subsection{Sensitivities, mechanism audit and validation}\label{sec:2.7}
 % END SOURCE BLOCK 084
 
 % BEGIN SOURCE BLOCK 085 paragraph
-Four ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges leave admission, queues and actions unchanged. No full positive-cost simulation or network model is implied; penalty-equal ambiguity remains unresolved \hyperref[source-s6]{[S6]}.
+The state-information pilot uses incident seed 1 and report ages 0, 100, 500 and 1,000 ms, alongside ingress. Admission remains live. For previous post-admission workload B and positive age $d$, the report is $\max(B-(1{,}000-d),0)$, with current-batch reservations added immediately. This assumes continuous service between batches without redistributing arrivals. Startup uses live state and recorded age zero \hyperref[source-s5]{[S5]}.
 % END SOURCE BLOCK 085
 
 % BEGIN SOURCE BLOCK 086 paragraph
-The completed September audit establishes admission independently of success: active masks define offers, enqueue fields identify V2I admission, and non-V2I rejection predicates identify terminal failures. It cross-checks flags, categories, latency/deadlines, assignments and summaries. Execution fields describe admitted assignment, not individual departures \hyperref[source-s13]{[S13]}.
+Four ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges leave admission, queues and actions unchanged. No full positive-cost simulation or network model is implied; penalty-equal ambiguity remains unresolved \hyperref[source-s6]{[S6]}.
 % END SOURCE BLOCK 086
 
 % BEGIN SOURCE BLOCK 087 paragraph
-Task joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.
+Original morning checks covered matched inputs/actions and full/probe prefixes, with logit tolerance 0.00001; recorded workload-balance error reached about 0.00174 ms \hyperref[source-s8]{[S8]}. The completed September audit establishes admission independently of success: active masks define offers, enqueue fields identify V2I admission, and non-V2I rejection predicates identify terminal failures. It cross-checks flags, categories, latency/deadlines, assignments and summaries. Execution fields describe admitted assignment, not individual departures \hyperref[source-s13]{[S13]}.
 % END SOURCE BLOCK 087
 
 % BEGIN SOURCE BLOCK 088 paragraph
-Retrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix~\ref{app:C}, separately from observed fleet results \hyperref[source-s14]{[S14]}.
+Task joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.
 % END SOURCE BLOCK 088
 
-% BEGIN SOURCE BLOCK 089 heading
-\subsection{Cyclic comparator and retrospective measurement design}\label{sec:2.8}
+% BEGIN SOURCE BLOCK 089 paragraph
+Retrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix~\ref{app:C}, separately from observed fleet results \hyperref[source-s14]{[S14]}.
 % END SOURCE BLOCK 089
 
-% BEGIN SOURCE BLOCK 090 paragraph
-Causal round-robin isolates workload-aware selection from simple spreading. A pointer starts at RSU 0 and persists across candidates, substeps and batches. Each active V2I attempt with positive ingress quality proposes the pointer's RSU and advances it modulo $R$, even if capacity or the strict gate subsequently rejects it. Unavailable radio and padding do not advance it; there is no retry or full-node skipping. Candidate order, sampled work, gate/capacity rules, precision, accounting, forwarding and drain match causal per-task placement. Repeated passes restart from the same pointer and queues; the final pointer commits once. A versioned evaluator copy preserves the frozen implementations. Qualification checked unchanged-arm compatibility, shared inputs, final-admission accounting and pointer restart; Appendix~\ref{app:E} records its finite coverage \hyperref[source-s15]{[S15]}, \hyperref[source-s16]{[S16]}.
+% BEGIN SOURCE BLOCK 090 heading
+\subsection{Cyclic comparator and retrospective measurement design}\label{sec:2.8}
 % END SOURCE BLOCK 090
 
 % BEGIN SOURCE BLOCK 091 paragraph
-Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, $N/R=215/9$ or 2,488/10, $K=5$ and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (\S\,\ref{sec:3.5}). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty \cite{ref14}.
+Causal round-robin isolates workload-aware selection from simple spreading. A pointer starts at RSU 0 and persists across candidates, substeps and batches. Each active V2I attempt with positive ingress quality proposes the pointer's RSU and advances it modulo $R$, even if capacity or the strict gate subsequently rejects it. Unavailable radio and padding do not advance it; there is no retry or full-node skipping. Candidate order, sampled work, gate/capacity rules, precision, accounting, forwarding and drain match causal per-task placement. Repeated passes restart from the same pointer and queues; the final pointer commits once. A versioned evaluator copy preserves the frozen implementations. Qualification checked unchanged-arm compatibility, shared inputs, final-admission accounting and pointer restart; Appendix~\ref{app:E} records its finite coverage \hyperref[source-s15]{[S15]}, \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 091
 
 % BEGIN SOURCE BLOCK 092 paragraph
-Retrospective type aggregation uses the eight authenticated ingress/per-task files from the original four-draw morning sample. Categories supply admission, gate rejection and admitted misses; type totals must reproduce all-task summaries and paired net changes. All types and draws are retained, without subgroup significance tests.
+Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, $N/R=215/9$ or 2,488/10, $K=5$ and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (\S\,\ref{sec:3.5}). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty \cite{ref14}.
 % END SOURCE BLOCK 092
 
-% BEGIN SOURCE BLOCK 093 heading
-\section{Evaluation and Reflection}\label{sec:3}
+% BEGIN SOURCE BLOCK 093 paragraph
+Retrospective type aggregation uses the eight authenticated ingress/per-task files from the original four-draw morning sample. Categories supply admission, gate rejection and admitted misses; type totals must reproduce all-task summaries and paired net changes. All types and draws are retained, without subgroup significance tests.
 % END SOURCE BLOCK 093
 
 % BEGIN SOURCE BLOCK 094 heading
-\subsection{Accounting validity and the capacity question}\label{sec:3.1}
+\section{Evaluation and Reflection}\label{sec:3}
 % END SOURCE BLOCK 094
 
-% BEGIN SOURCE BLOCK 095 paragraph
-E0 addressed a concrete mismatch between task scoring and queue admission. In the legacy clamp path, the evaluator scored eligible V2I tasks and multiplied their combined service work by the fraction fitting the task-count ceiling. Surplus tasks were not individually identified in earlier scoring. The 5 August repair introduced per-task admission/rejection and full enqueueing of admitted work. Source history credits Randy's implementation and Abdulla's motivating accounting analysis; E0 qualified recorded accounting in that configuration \hyperref[source-s0]{[S0]}, \hyperref[source-s12]{[S12]}.
+% BEGIN SOURCE BLOCK 095 heading
+\subsection{Accounting validity and the capacity question}\label{sec:3.1}
 % END SOURCE BLOCK 095
 
 % BEGIN SOURCE BLOCK 096 paragraph
-Illustratively, suppose one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) \ensuremath{\times} 80 = 40 ms, although both can remain in the scored population. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. This is a constructed explanation, not an observed historical pair.
+E0 addressed a concrete mismatch between task scoring and queue admission. In the legacy clamp path, the evaluator scored eligible V2I tasks and multiplied their combined service work by the fraction fitting the task-count ceiling. Surplus tasks were not individually identified in earlier scoring. The 5 August repair introduced per-task admission/rejection and full enqueueing of admitted work. Source history credits Randy's implementation and Abdulla's motivating accounting analysis; E0 qualified recorded accounting in that configuration \hyperref[source-s0]{[S0]}, \hyperref[source-s12]{[S12]}.
 % END SOURCE BLOCK 096
 
 % BEGIN SOURCE BLOCK 097 paragraph
-The relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.
+Illustratively, suppose one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) \ensuremath{\times} 80 = 40 ms, although both can remain in the scored population. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. This is a constructed explanation, not an observed historical pair.
 % END SOURCE BLOCK 097
 
 % BEGIN SOURCE BLOCK 098 paragraph
-Archived E0 receipts report passing their checks, but source inspection identifies a remaining exception in E0/E1 and E2's reused off path: coarse eligibility reaches latency scoring while refined admission governs enqueueing. Recorded capacity rejections establish exposure, not false successes. Original E0/E1/E2 outputs are unavailable following author-reported deletion, with no known backup. Their numerical scoring impact is not assessable from surviving summaries and receipts; Appendix~\ref{app:B} distinguishes this gap from later audit coverage \hyperref[source-s13]{[S13]}.
+The relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.
 % END SOURCE BLOCK 098
 
 % BEGIN SOURCE BLOCK 099 paragraph
-E1 varied waiting-room capacity across five matched draws. The archived score difference for 99,520 versus 1,866 tasks per RSU was \ensuremath{-}0.01094 percentage points, with a 95\% interval [\ensuremath{-}0.02465, +0.00276]. Recalculation from surviving run summaries reproduces this interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inconclusive under the historical implementation. Its interpretation as admission-consistent deadline attainment remains qualified by the unquantified scoring-mask exception. The interval describes sampling uncertainty conditional on that implementation, not the additional measurement uncertainty. Neither equivalence nor statistically supported degradation follows \hyperref[source-s1]{[S1]}.
+Archived E0 receipts report passing their checks, but source inspection identifies a remaining exception in E0/E1 and E2's reused off path: coarse eligibility reaches latency scoring while refined admission governs enqueueing. Recorded capacity rejections establish exposure, not false successes. Original E0/E1/E2 outputs are unavailable following author-reported deletion, with no known backup. Their numerical scoring impact is not assessable from surviving summaries and receipts; Appendix~\ref{app:B} distinguishes this gap from later audit coverage \hyperref[source-s13]{[S13]}.
 % END SOURCE BLOCK 099
 
 % BEGIN SOURCE BLOCK 100 paragraph
-The saved secondary summaries report more admissions and lower rejection at larger limits, while mean admitted latency rises from approximately 3.77 to 12.19 and 132.49 seconds. These changing admitted populations cannot substitute for the offered-task contrast; their latency summaries retain the scoring-mask qualification. More retained work need not mean more useful service.
+E1 varied waiting-room capacity across five matched draws. The archived score difference for 99,520 versus 1,866 tasks per RSU was \ensuremath{-}0.01094 percentage points, with a 95\% interval [\ensuremath{-}0.02465, +0.00276]. Recalculation from surviving run summaries reproduces this interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inconclusive under the historical implementation. Its interpretation as admission-consistent deadline attainment remains qualified by the unquantified scoring-mask exception. The interval describes sampling uncertainty conditional on that implementation, not the additional measurement uncertainty. Neither equivalence nor statistically supported degradation follows \hyperref[source-s1]{[S1]}.
 % END SOURCE BLOCK 100
 
 % BEGIN SOURCE BLOCK 101 paragraph
-Changing the off scoring mask could affect transmit energy, SoC and later observations: even admission-consistent saved flags would describe fixed history, not a corrected rerun. Separately, the completed audit found no non-admitted successes or non-penalty rejection latencies in 19 authenticated September gate-enabled runs, with admission/category/summary agreement. It supports those outcomes without resolving historical measurement impact.
+The saved secondary summaries report more admissions and lower rejection at larger limits, while mean admitted latency rises from approximately 3.77 to 12.19 and 132.49 seconds. These changing admitted populations cannot substitute for the offered-task contrast; their latency summaries retain the scoring-mask qualification. More retained work need not mean more useful service.
 % END SOURCE BLOCK 101
 
-% BEGIN SOURCE BLOCK 102 heading
-\subsection{From admission decomposition to the incident reversal}\label{sec:3.2}
+% BEGIN SOURCE BLOCK 102 paragraph
+Changing the off scoring mask could affect transmit energy, SoC and later observations: even admission-consistent saved flags would describe fixed history, not a corrected rerun. Separately, the completed audit found no non-admitted successes or non-penalty rejection latencies in 19 authenticated September gate-enabled runs, with admission/category/summary agreement. It supports those outcomes without resolving historical measurement impact.
 % END SOURCE BLOCK 102
 
-% BEGIN SOURCE BLOCK 103 paragraph
-E2's exploratory seed-0 comparison showed offered attainment of approximately 68.362\% for strongest-link execution without the deadline gate, 67.568\% for inherited least-busy placement without the gate, and 69.494\% for inherited least-busy placement with the gate. The last comparison changed both placement and admission relative to the strongest-link reference. Its improvement could not establish that load balancing itself helped \hyperref[source-s2]{[S2]}.
+% BEGIN SOURCE BLOCK 103 heading
+\subsection{From admission decomposition to the incident reversal}\label{sec:3.2}
 % END SOURCE BLOCK 103
 
 % BEGIN SOURCE BLOCK 104 paragraph
-E2b added ingress execution with the same deadline gate, reaching approximately 71.577\%. The strongest-link contrast was +3.215 points and the common-target contrast +1.926 points, giving an interaction of \ensuremath{-}1.290 points. However, \texttt{off} uses step-entry coarse saturation eligibility while \texttt{ingress\_dla} refreshes eligibility per substep. Their contrast and interaction bundle the gate with this timing difference and retain the legacy scoring-mask exception (\S\,\ref{sec:2.4}). The manifest records 138 unavailable V2I attempts among 13,076,234 offered tasks in off; that count does not bound downstream effects. E2b identifies a stronger comparator without assigning its entire gain solely to the gate. Subsequent gate-held placement comparisons use live eligibility and refined scoring masks in all arms. In the exploratory draw, common-target remained 2.083 points below ingress with the gate.
+E2's exploratory seed-0 comparison showed offered attainment of approximately 68.362\% for strongest-link execution without the deadline gate, 67.568\% for inherited least-busy placement without the gate, and 69.494\% for inherited least-busy placement with the gate. The last comparison changed both placement and admission relative to the strongest-link reference. Its improvement could not establish that load balancing itself helped \hyperref[source-s2]{[S2]}.
 % END SOURCE BLOCK 104
 
 % BEGIN SOURCE BLOCK 105 paragraph
-E2c tested the common-target comparison on four new incident fleet draws, excluding discovery seed 0. Its mean difference from ingress was \ensuremath{-}2.122 points, with an individual 95\% interval of [\ensuremath{-}2.234, \ensuremath{-}2.011]. All four paired differences were negative. Inspection then established that the inherited scheduler chose one common target per task substep. E2d introduced the causal per-task implementation under the same actor, trace, gate predicate, queue ceiling, service and forwarding controls. Table~\ref{tab:4} retains all four draw-level results \hyperref[source-s3]{[S3]}.
+E2b added ingress execution with the same deadline gate, reaching approximately 71.577\%. The strongest-link contrast was +3.215 points and the common-target contrast +1.926 points, giving an interaction of \ensuremath{-}1.290 points. However, \texttt{off} uses step-entry coarse saturation eligibility while \texttt{ingress\_dla} refreshes eligibility per substep. Their contrast and interaction bundle the gate with this timing difference and retain the legacy scoring-mask exception (\S\,\ref{sec:2.4}). The manifest records 138 unavailable V2I attempts among 13,076,234 offered tasks in off; that count does not bound downstream effects. E2b identifies a stronger comparator without assigning its entire gain solely to the gate. Subsequent gate-held placement comparisons use live eligibility and refined scoring masks in all arms. In the exploratory draw, common-target remained 2.083 points below ingress with the gate.
 % END SOURCE BLOCK 105
 
-% BEGIN SOURCE BLOCK 106 table
+% BEGIN SOURCE BLOCK 106 paragraph
+E2c tested the common-target comparison on four new incident fleet draws, excluding discovery seed 0. Its mean difference from ingress was \ensuremath{-}2.122 points, with an individual 95\% interval of [\ensuremath{-}2.234, \ensuremath{-}2.011]. All four paired differences were negative. Inspection then established that the inherited scheduler chose one common target per task substep. E2d introduced the causal per-task implementation under the same actor, trace, gate predicate, queue ceiling, service and forwarding controls. Table~\ref{tab:4} retains all four draw-level results \hyperref[source-s3]{[S3]}.
+% END SOURCE BLOCK 106
+
+% BEGIN SOURCE BLOCK 107 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYY@{}}
@@ -588,29 +592,29 @@ Fleet seed & Ingress & Common-target & Per-task & Per-task \ensuremath{-} ingres
 4 & 70.887 & 68.805 & 71.438 & +0.551 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 106
-
-% BEGIN SOURCE BLOCK 107 paragraph
-Per-task exceeds ingress by 0.527 points, individual 95\% interval [+0.442, +0.612], and common-target by 2.649 points, interval [+2.621, +2.678]. RQ2 therefore yields opposite rankings for the two implementations. These intervals summarise an adaptive extension on examined draws; the morning protocol supplies prospective replication.
 % END SOURCE BLOCK 107
 
 % BEGIN SOURCE BLOCK 108 paragraph
-Ingress determines the practical scale: against 70.889\% mean attainment, +0.527 points means about 53 extra successes per 10,000 offered, or a 0.744\% relative increase. The larger +2.649-point common-target contrast diagnoses that implementation; it is not the gain over the stronger reference. These are descriptive conversions of the same mean, and neither arm establishes optimal dispatch.
+Per-task exceeds ingress by 0.527 points, individual 95\% interval [+0.442, +0.612], and common-target by 2.649 points, interval [+2.621, +2.678]. RQ2 therefore yields opposite rankings for the two implementations. These intervals summarise an adaptive extension on examined draws; the morning protocol supplies prospective replication.
 % END SOURCE BLOCK 108
 
-% BEGIN SOURCE BLOCK 109 heading
-\subsection{Morning replication with the inspected pilot excluded}\label{sec:3.3}
+% BEGIN SOURCE BLOCK 109 paragraph
+Ingress determines the practical scale: against 70.889\% mean attainment, +0.527 points means about 53 extra successes per 10,000 offered, or a 0.744\% relative increase. The larger +2.649-point common-target contrast diagnoses that implementation; it is not the gain over the stronger reference. These are descriptive conversions of the same mean, and neither arm establishes optimal dispatch.
 % END SOURCE BLOCK 109
 
-% BEGIN SOURCE BLOCK 110 paragraph
-The inspected morning pilot offered 1,744,116 tasks and produced 91.075\% ingress versus 94.028\% per-task attainment: +2.953 points or 51,503 successes. It motivated replication but remains exploratory \hyperref[source-s7]{[S7]}.
+% BEGIN SOURCE BLOCK 110 heading
+\subsection{Morning replication with the inspected pilot excluded}\label{sec:3.3}
 % END SOURCE BLOCK 110
 
 % BEGIN SOURCE BLOCK 111 paragraph
-The morning protocol declared four new seeds and all three arms before outcomes. Each draw reproduces common-target < ingress < per-task. Mean attainment is 85.655\%, 88.887\% and 92.785\%, respectively; its lower ingress/per-task means than the pilot underline the need for replication \hyperref[source-s8]{[S8]}.
+The inspected morning pilot offered 1,744,116 tasks and produced 91.075\% ingress versus 94.028\% per-task attainment: +2.953 points or 51,503 successes. It motivated replication but remains exploratory \hyperref[source-s7]{[S7]}.
 % END SOURCE BLOCK 111
 
-% BEGIN SOURCE BLOCK 112 table
+% BEGIN SOURCE BLOCK 112 paragraph
+The morning protocol declared four new seeds and all three arms before outcomes. Table~\ref{tab:5} reproduces common-target < ingress < per-task in every draw. Mean attainment is 85.655\%, 88.887\% and 92.785\%, respectively; its lower ingress/per-task means than the pilot underline the need for replication \hyperref[source-s8]{[S8]}.
+% END SOURCE BLOCK 112
+
+% BEGIN SOURCE BLOCK 113 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYY@{}}
@@ -628,13 +632,13 @@ Fleet seed & Ingress, \% & Common-target, \% & Per-task, \% & Per-task \ensurema
 4 & 90.113 & 87.559 & 93.399 & +3.286 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 112
-
-% BEGIN SOURCE BLOCK 113 paragraph
-Table~\ref{tab:6}'s simultaneous per-task-minus-ingress interval is positive and common-target-minus-ingress interval negative, satisfying the prespecified reversal criterion. Figure~\ref{fig:4} displays these primary results.
 % END SOURCE BLOCK 113
 
-% BEGIN SOURCE BLOCK 114 table
+% BEGIN SOURCE BLOCK 114 paragraph
+Table~\ref{tab:6}'s simultaneous per-task-minus-ingress interval is positive and common-target-minus-ingress interval negative, satisfying the prespecified reversal criterion. Figure~\ref{fig:4} displays these primary results.
+% END SOURCE BLOCK 114
+
+% BEGIN SOURCE BLOCK 115 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYY@{}}
@@ -651,37 +655,37 @@ Common-target \ensuremath{-} ingress & \ensuremath{-}3.232 & [\ensuremath{-}4.17
 Per-task \ensuremath{-} common-target & +7.131 & [+5.385, +8.877] & [+4.466, +9.795] \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 114
+% END SOURCE BLOCK 115
 
-% BEGIN SOURCE BLOCK 115 figure
+% BEGIN SOURCE BLOCK 116 figure
 \begin{figure}[htbp]
 \centering
 \includesvg[width=\linewidth]{assets/primary_replication}
 \caption{Redrawn from archived morning primary data. Left: within-draw attainment. Right: draw differences, mean diamonds and three-contrast Bonferroni intervals. The inspected pilot is excluded; uncertainty concerns four newly declared fleet draws, conditional on the frozen actor and morning scenario \hyperref[source-s8]{[S8]}.}\label{fig:4}
 \end{figure}
-% END SOURCE BLOCK 115
-
-% BEGIN SOURCE BLOCK 116 paragraph
-The supplementary five-draw ingress/per-task mean, including the pilot, is +3.709 points descriptively; it does not enter Table~\ref{tab:6}. No common-target pilot result is available.
 % END SOURCE BLOCK 116
 
 % BEGIN SOURCE BLOCK 117 paragraph
-The morning gain is about 390 extra successes per 10,000 offered, a 4.386\% relative increase over ingress. Its larger magnitude cannot be attributed solely to density: RSU layout/count, date, duration, padded fleet width and entry conventions also change. Separate analyses support recurrence in two Manchester scenarios, without estimating a pooled geographical effect.
+The supplementary five-draw ingress/per-task mean, including the pilot, is +3.709 points descriptively; it does not enter Table~\ref{tab:6}. No common-target pilot result is available.
 % END SOURCE BLOCK 117
 
-% BEGIN SOURCE BLOCK 118 heading
-\subsection{Confirmation under joint randomness and comparison with cyclic spreading}\label{sec:3.4}
+% BEGIN SOURCE BLOCK 118 paragraph
+The morning gain is about 390 extra successes per 10,000 offered, a 4.386\% relative increase over ingress. Its larger magnitude cannot be attributed solely to density: RSU layout/count, date, duration, padded fleet width and entry conventions also change. Separate analyses support recurrence in two Manchester scenarios, without estimating a pooled geographical effect.
 % END SOURCE BLOCK 118
 
-% BEGIN SOURCE BLOCK 119 paragraph
-All 32 full morning cells and eight block-control receipts passed after bounded qualification; no attempt failed or was retried. Fleet/evaluator pairs (100,200) through (107,207), controls, rotating arm order and analysis were sealed before full outcomes. Block 0 remains included; the original sample and pilots are not pooled \hyperref[source-s16]{[S16]}.
+% BEGIN SOURCE BLOCK 119 heading
+\subsection{Confirmation under joint randomness and comparison with cyclic spreading}\label{sec:3.4}
 % END SOURCE BLOCK 119
 
 % BEGIN SOURCE BLOCK 120 paragraph
-Evaluator seed varies observation descriptors, arrivals, operational types/sizes, fading and service wobble; fleet seed varies tier, EV status and initial SoC. All four arms shared the required exogenous arrays exactly within each block. Actions matched exactly in all 24 non-reference arm/block comparisons. Small observation and logit differences occurred in block 1; they did not change actions. The estimand remains the total scheduling intervention under frozen weights. Observed action matching extends the original finding to these streams without forcing replay or guaranteeing future equality.
+All 32 full morning cells and eight block-control receipts passed after bounded qualification, with no failed attempts, retries or exclusions. Table~\ref{tab:7} reports the declared contrasts; Appendix~\ref{app:E} retains every block \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 120
 
-% BEGIN SOURCE BLOCK 121 table
+% BEGIN SOURCE BLOCK 121 paragraph
+Evaluator seed varies observation descriptors, arrivals, operational types/sizes, fading and service wobble; fleet seed varies tier, EV status and initial SoC. All four arms shared the required exogenous arrays exactly within each block. Actions matched exactly in all 24 non-reference arm/block comparisons. Small observation and logit differences occurred in block 1; they did not change actions. The estimand remains the total scheduling intervention under frozen weights. Observed action matching extends the original finding to these streams without forcing replay or guaranteeing future equality.
+% END SOURCE BLOCK 121
+
+% BEGIN SOURCE BLOCK 122 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYY@{}}
@@ -698,87 +702,87 @@ Common-target \ensuremath{-} ingress & \ensuremath{-}3.504 & [\ensuremath{-}3.98
 Per-task \ensuremath{-} round-robin & +0.631 & [+0.511, +0.750] \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 121
-
-% BEGIN SOURCE BLOCK 122 paragraph
-The declared reversal criterion holds, evaluated using both directional requirements within the same simultaneous family. The mean per-task difference corresponds to +413.7 successes per 10,000 offered tasks relative to ingress. Workload-aware targeting outperformed cyclic spreading in this study. Its mean benefit is 63.1 successes per 10,000 offered tasks over round-robin, accompanying higher scheduler-only cost on the separate fixtures in Table~\ref{tab:10}.
 % END SOURCE BLOCK 122
 
 % BEGIN SOURCE BLOCK 123 paragraph
-The critical value is 3.127552, recomputed with seven degrees of freedom. Independent joint blocks and approximately normal paired effects remain assumptions; eight blocks cannot strongly diagnose tails. Joint randomness extends the original fleet-conditional result within this morning scenario. It does not identify a unique mechanism decomposition or generalise across geography, actor training, physical timing or distributed information. Full counts, control diagnostics and elapsed times are in Appendix~\ref{app:E}.
+The declared reversal criterion holds, evaluated using both directional requirements within the same simultaneous family. The mean per-task difference corresponds to +413.7 successes per 10,000 offered tasks relative to ingress. Workload-aware targeting outperformed cyclic spreading in this study. Its mean benefit is 63.1 successes per 10,000 offered tasks over round-robin, accompanying higher scheduler-only cost on the separate fixtures in Table~\ref{tab:10}.
 % END SOURCE BLOCK 123
 
-% BEGIN SOURCE BLOCK 124 heading
-\subsection{Mechanism explanation and task-outcome interpretation}\label{sec:3.5}
+% BEGIN SOURCE BLOCK 124 paragraph
+The critical value is 3.127552, recomputed with seven degrees of freedom. Joint randomness extends the original fleet-conditional result within this morning scenario. It does not identify a unique mechanism decomposition or generalise across geography, actor training, physical timing or distributed information. Full counts, control diagnostics and elapsed times are in Appendix~\ref{app:E}.
 % END SOURCE BLOCK 124
 
-% BEGIN SOURCE BLOCK 125 paragraph
-Original morning common-target work used only RSUs 0--4, with mean shares approximately 48.34\%, 30.33\%, 14.63\%, 5.21\% and 1.48\%; RSUs 5--8 received none. Per-task shares were close to one ninth each. Figure~\ref{fig:5} describes allocation, without establishing that equal workloads caused the attainment difference \hyperref[source-s8]{[S8]}.
+% BEGIN SOURCE BLOCK 125 heading
+\subsection{Mechanism explanation and task-outcome interpretation}\label{sec:3.5}
 % END SOURCE BLOCK 125
 
-% BEGIN SOURCE BLOCK 126 figure
+% BEGIN SOURCE BLOCK 126 paragraph
+Original morning common-target work used only RSUs 0--4, with mean shares approximately 48.34\%, 30.33\%, 14.63\%, 5.21\% and 1.48\%; RSUs 5--8 received none. Per-task shares were close to one ninth each. Figure~\ref{fig:5} describes allocation, without establishing that equal workloads caused the attainment difference \hyperref[source-s8]{[S8]}.
+% END SOURCE BLOCK 126
+
+% BEGIN SOURCE BLOCK 127 figure
 \begin{figure}[htbp]
 \centering
 \includesvg[width=\linewidth]{assets/rsu_workload_distribution}
 \caption{Admitted service-work distribution, redrawn from archived CSVs. Bars are means; whiskers are observed minima/maxima over four fleet draws, not confidence intervals. Aggregate shares motivated a separate post-hoc audit; they do not by themselves establish intermediate scheduling decisions or counterfactual task outcomes.}\label{fig:5}
 \end{figure}
-% END SOURCE BLOCK 126
-
-% BEGIN SOURCE BLOCK 127 paragraph
-The post-hoc audit found zero saved end-of-second workload and task counts in all four common-target runs, and target k at substep k whenever a V2I attempt exposed it. Empty substeps do not reveal the internal selector. Intermediate workloads were reconstructed, not saved directly, using recorded admissions/destinations and the qualified service reference. All endpoints and observable target minima agreed, although zero endpoints alone weakly constrain intermediate paths. Reconstructed pre-drain workload stayed below 538.730 ms and task counts below 26, far from the 1,000 ms drain and 6,220-task ceiling \hyperref[source-s9]{[S9]}.
 % END SOURCE BLOCK 127
 
 % BEGIN SOURCE BLOCK 128 paragraph
-A conditional deduction from Algorithm~\ref{alg:1} explains the concentration. With $K$ substeps and $R$ RSUs, at most $\min(K,R)$ distinct destinations receive new assignments in one batch: each substep contributes at most one target, so their union has at most $K$ members. This bound does not require empty queues or a particular tie rule, and concerns new assignments rather than all work already present.
+The post-hoc audit found zero saved end-of-second workload and task counts in all four common-target runs, and target k at substep k whenever a V2I attempt exposed it. Empty substeps do not reveal the internal selector. Intermediate workloads were reconstructed, not saved directly, using recorded admissions/destinations and the qualified service reference. All endpoints and observable target minima agreed, although zero endpoints alone weakly constrain intermediate paths. Reconstructed pre-drain workload reached approximately 538.730 ms; task counts stayed below 26, far from the 1,000 ms drain and 6,220-task ceiling \hyperref[source-s9]{[S9]}.
 % END SOURCE BLOCK 128
 
 % BEGIN SOURCE BLOCK 129 paragraph
-A recurring low-index prefix additionally requires empty batch starts, positive productive admissions, lowest-index ties and no intervening drain. RSU 0 is selected first; its new work makes the next empty index preferable. Induction gives a prefix when $R\geq K$, while an unproductive substep does not advance it. End-of-batch clearing resets the tie. Without clearing or deterministic ties, the per-batch bound could hold while the full-run union covered every RSU.
+A conditional deduction from Algorithm~\ref{alg:1} explains the concentration. With $K$ substeps and $R$ RSUs, at most $\min(K,R)$ distinct destinations receive new assignments in one batch: each substep contributes at most one target, so their union has at most $K$ members. This bound does not require empty queues or a particular tie rule, and concerns new assignments rather than all work already present.
 % END SOURCE BLOCK 129
 
 % BEGIN SOURCE BLOCK 130 paragraph
-The arrays recorded 511,684 deadline-gate rejections and zero RSU-capacity rejections. In reconstructed states, every gate rejection coexisted with at least five idle RSUs possessing spare task capacity. Larger waiting rooms would not address that gate bottleneck. Spare capacity does not establish that each task would succeed elsewhere: redistribution changes later queues, and end-to-end latency also matters.
+A recurring low-index prefix additionally requires empty batch starts, positive productive admissions, lowest-index ties and no intervening drain. RSU 0 is selected first; its new work makes the next empty index preferable. Induction gives a prefix when $R\geq K$, while an unproductive substep does not advance it. End-of-batch clearing resets the tie. Without clearing or deterministic ties, the per-batch bound could hold while the full-run union covered every RSU.
 % END SOURCE BLOCK 130
 
-% BEGIN SOURCE BLOCK 131 proposition
-\begin{proposition}[fixed-target admission in the studied exact model]\label{prop:1}
-Fix candidate order, eligibility, destinations, initial nonnegative workload/count and nonnegative service demands, with strict backlog and exclusive count-capacity tests and no intervening drain. At each nonempty destination, let $n$ be the eligible candidate count and $d$ the number of distinct deadlines. Starting from the eligibility mask, simultaneous replacement reaches the unique causal fixed point within $\min(n,2d-1)$ replacements; destinations decouple.\end{proposition}
+% BEGIN SOURCE BLOCK 131 paragraph
+The arrays recorded 511,684 deadline-gate rejections and zero RSU-capacity rejections. In reconstructed states, every gate rejection coexisted with at least five idle RSUs possessing spare task capacity. Larger waiting rooms would not address that gate bottleneck. Spare capacity does not establish that each task would succeed elsewhere: redistribution changes later queues, and end-to-end latency also matters.
 % END SOURCE BLOCK 131
 
-% BEGIN SOURCE BLOCK 132 proof
-\begin{proof}[Proof sketch]
-Earlier-candidate dependence yields the unique causal solution and the candidate-count bound. The update reverses inclusion. Removing the first excess admission either exhausts capacity or fixes rejection of all later deadlines at or below its threshold. Every two replacements therefore eliminate at least one unresolved deadline class; one class needs one replacement. Appendix~\ref{app:C} gives the full induction and assumptions \hyperref[source-s14]{[S14]}.\end{proof}
+% BEGIN SOURCE BLOCK 132 proposition
+\begin{proposition}[fixed-target admission in the studied exact model]\label{prop:1}
+Fix candidate order, eligibility, destinations, initial nonnegative workload/count and nonnegative service demands, with strict backlog and exclusive count-capacity tests and no intervening drain. At each nonempty destination, let $n$ be the eligible candidate count and $d$ the number of distinct deadlines. Starting from the eligibility mask, simultaneous replacement reaches the unique causal fixed point within $\min(n,2d-1)$ replacements; destinations decouple.\end{proposition}
 % END SOURCE BLOCK 132
 
-% BEGIN SOURCE BLOCK 133 paragraph
-Here ``production'' means the studied evaluator configuration, not deployed roadside hardware. Its two deadline values imply three replacements suffice in exact arithmetic, including nonempty queues and capacity limits. The earlier three-threshold instability is outside this domain. This rules out unrestricted reconciliation failure as an exact-model explanation, while leaving target reselection and executable rounding distinct.
+% BEGIN SOURCE BLOCK 133 proof
+\begin{proof}[Proof sketch]
+Earlier-candidate dependence yields the unique causal solution and the candidate-count bound. The update reverses inclusion. Removing the first excess admission either exhausts capacity or fixes rejection of all later deadlines at or below its threshold. Every two replacements therefore eliminate at least one unresolved deadline class; one class needs one replacement. Appendix~\ref{app:C} gives the full induction and assumptions \hyperref[source-s14]{[S14]}.\end{proof}
 % END SOURCE BLOCK 133
 
 % BEGIN SOURCE BLOCK 134 paragraph
-The same model makes clearing structural from empty initialisation. The last admitted task sees less than 500 ms of backlog and contributes at most approximately 38.889 ms of service. Each queue therefore remains below 538.889 ms before a 1,000 ms drain. The observed zero endpoints and reconstructed maxima near 538 ms agree with this consequence. Queue clearing and the resulting destination prefix thus follow from the stated gate/service/timing assumptions, not traffic density alone. This deduction is conditional on exact admission arithmetic and service multiplier 1.
+Here ``production'' means the studied evaluator configuration, not deployed roadside hardware. Its two deadline values imply three replacements suffice in exact arithmetic, including nonempty queues and capacity limits. The earlier three-threshold instability is outside this domain. This rules out unrestricted reconciliation failure as an exact-model explanation, while leaving target reselection and executable rounding distinct.
 % END SOURCE BLOCK 134
 
 % BEGIN SOURCE BLOCK 135 paragraph
-Float32 limits executable equivalence. Inclusive prefix sums followed by subtraction can round differently from causal accumulation, changing a strict gate even for sub-0.001 ms differences. The completed numerical investigation includes discrete disagreements and a constructed alternating mask; that task misses its deadline under either treatment. These fixtures neither establish full-trajectory reachability nor measure historical prevalence. Appendix~\ref{app:C} retains the intermediate masks, threshold values and unsuccessful transfers, alongside the exact proof.
+The same model makes clearing structural from empty initialisation. The last admitted task sees less than 500 ms of backlog and contributes at most approximately 38.889 ms of service. Each queue therefore remains below 538.889 ms before a 1,000 ms drain. The observed zero endpoints and reconstructed maxima near 538 ms agree with this consequence. Queue clearing and the resulting destination prefix thus follow from the stated gate/service/timing assumptions, not traffic density alone. This deduction is conditional on exact admission arithmetic and service multiplier 1.
 % END SOURCE BLOCK 135
 
 % BEGIN SOURCE BLOCK 136 paragraph
-Reselection can also lose completions. In the two-RSU illustration, both arms admit eight tasks; fixed-target admission completes eight and per-task reselection seven. Spreading earlier long-deadline work makes a later 100 ms task finish at 112.929 rather than 91.818 ms. Current workload omits future deadlines and the gate omits own service. Table~\ref{tab:C1} preserves the calculation: production task values, reduced infrastructure, zero transfers, and B replaying A targets rather than acting autonomously. Twelve transfers to the studied dimensions retained no loss. This identifies a possible interaction, not the cause or frequency of recorded losses; proposed full-evaluator prefixes remain unrun \hyperref[source-s10]{[S10]}, \hyperref[source-s14]{[S14]}.
+Float32 limits executable equivalence. Inclusive prefix sums followed by subtraction can round differently from causal accumulation, changing a strict gate even for sub-0.001 ms differences. The completed numerical investigation includes discrete disagreements and a constructed alternating mask; that task misses its deadline under either treatment. These fixtures neither establish full-trajectory reachability nor measure historical prevalence. Appendix~\ref{app:C} retains the intermediate masks, threshold values and unsuccessful transfers, alongside the exact proof.
 % END SOURCE BLOCK 136
 
 % BEGIN SOURCE BLOCK 137 paragraph
-\textbf{Task outcomes in the original morning sample.}
+Reselection can also lose completions. In the two-RSU illustration, both arms admit eight tasks; fixed-target admission completes eight and per-task reselection seven. Spreading earlier long-deadline work makes a later 100 ms task finish at 112.929 rather than 91.818 ms. Current workload omits future deadlines and the gate omits own service. Table~\ref{tab:C1} preserves the calculation: production task values, reduced infrastructure, zero transfers, and B replaying A targets rather than acting autonomously. Twelve transfers to the studied dimensions retained no loss. This identifies a possible interaction, not the cause or frequency of recorded losses; proposed full-evaluator prefixes remain unrun \hyperref[source-s10]{[S10]}, \hyperref[source-s14]{[S14]}.
 % END SOURCE BLOCK 137
 
 % BEGIN SOURCE BLOCK 138 paragraph
-The mechanism explains destination concentration, but does not uniquely allocate the performance gap to individual decisions. The following recorded accounting locates gains and losses in the original four-draw morning comparison, separately from the eight-block confirmation.
+\textbf{Task outcomes in the original morning sample.}
 % END SOURCE BLOCK 138
 
 % BEGIN SOURCE BLOCK 139 paragraph
-Table~\ref{tab:8} partitions gains and losses over the same 1,744,116 offered tasks per original morning draw: 284,821 gains \ensuremath{-} 12,842 losses = 271,979 net successes. Previously gate-rejected tasks supply most gains, alongside recovered admitted misses; both kinds of losses remain visible. Later queues differ, so these are descriptive transitions, not individual-decision causal effects. The four draws remain the replications \hyperref[source-s13]{[S13]}, \hyperref[source-s14]{[S14]}.
+The mechanism explains destination concentration, but does not uniquely allocate the performance gap to individual decisions. The following recorded accounting locates gains and losses in the original four-draw morning comparison, separately from the eight-block confirmation.
 % END SOURCE BLOCK 139
 
-% BEGIN SOURCE BLOCK 140 table
+% BEGIN SOURCE BLOCK 140 paragraph
+Table~\ref{tab:8} partitions gains and losses over the same 1,744,116 offered tasks per original morning draw: 284,821 gains \ensuremath{-} 12,842 losses = 271,979 net successes. Previously gate-rejected tasks supply most gains, alongside recovered admitted misses; both kinds of losses remain visible. Later queues differ, so these are descriptive transitions, not individual-decision causal effects. The four draws remain the replications \hyperref[source-s13]{[S13]}, \hyperref[source-s14]{[S14]}.
+% END SOURCE BLOCK 140
+
+% BEGIN SOURCE BLOCK 141 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYYY@{}}
@@ -797,9 +801,9 @@ Seed & Gain: gate rejection & Gain: admitted miss & Loss: non-admitted & Loss: a
 Total & 211,734 & 73,087 & 1,044 & 11,798 & 271,979 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 140
+% END SOURCE BLOCK 141
 
-% BEGIN SOURCE BLOCK 141 table
+% BEGIN SOURCE BLOCK 142 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYYY@{}}
@@ -816,37 +820,37 @@ Type / deadline & Offered per draw & Seed 0 & Seed 2 & Seed 3 & Seed 4 \\
 3 / 100 ms & 872,011 & +47,917 & +59,676 & +47,604 & +37,056 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 141
-
-% BEGIN SOURCE BLOCK 142 paragraph
-Type 3 supplies 192,253 net successes (70.7\%), Type 1 79,581 (29.3\%), and Type 2 only 145. Within-type gains span 4.249--6.843, 5.491--5.827 and 0.001--0.014 points, respectively. The two 100 ms types differ substantially in payload and service (\S\,\ref{sec:2.3}). No type loses net successes in any draw, but individual losses persist. In draw 2, Type 1 gate rejections fall by 23,152 while admitted misses rise by 3,987. This supports reduced rejection as an important contributor, without isolating deadlines from communication/service demand or identifying individual-placement causal effects \hyperref[source-s15]{[S15]}.
 % END SOURCE BLOCK 142
 
-% BEGIN SOURCE BLOCK 143 heading
-\subsection{Bounded state-information and forwarding sensitivities}\label{sec:3.6}
+% BEGIN SOURCE BLOCK 143 paragraph
+Table~\ref{tab:9} locates 79,581 net successes in Type 1, 145 in Type 2 and 192,253 in Type 3. Type 3 supplies 70.7\% of the net gain. Within-type improvements span 5.491--5.827, 0.001--0.014 and 4.249--6.843 points, respectively. The two 100 ms types differ substantially in payload and service (\S\,\ref{sec:2.3}). No type loses net successes in any draw, but individual losses persist. In draw 2, Type 1 gate rejections fall by 23,152 while admitted misses rise by 3,987. This supports reduced rejection as an important contributor, without isolating deadlines from communication/service demand or identifying individual-placement causal effects \hyperref[source-s15]{[S15]}.
 % END SOURCE BLOCK 143
 
-% BEGIN SOURCE BLOCK 144 paragraph
-In incident seed 1, fresh per-task attainment was 72.46695\%, versus ingress 72.00328\%. Report ages 100, 500 and 1,000 ms yielded 72.46695\%, 72.46856\% and 72.45510\%; single-draw changes do not establish equivalence or population robustness \hyperref[source-s5]{[S5]}.
+% BEGIN SOURCE BLOCK 144 heading
+\subsection{Bounded state-information and forwarding sensitivities}\label{sec:3.6}
 % END SOURCE BLOCK 144
 
 % BEGIN SOURCE BLOCK 145 paragraph
-Every 100 ms report equalled fresh state over 35,990 non-startup RSU/batch observations: queues had emptied, making that treatment inactive. Reports differed at 500 ms in 79.58\% of observations and at 1,000 ms in all. Live admission and immediate reservations protect this older-report model; stale capacity, delayed acknowledgements or dispersed arrivals would change it. Equal outcomes do not establish harmless communication delay.
+In incident seed 1, fresh per-task attainment was 72.46695\%, versus ingress 72.00328\%. Report ages 100, 500 and 1,000 ms yielded 72.46695\%, 72.46856\% and 72.45510\%; single-draw changes do not establish equivalence or population robustness \hyperref[source-s5]{[S5]}.
 % END SOURCE BLOCK 145
 
 % BEGIN SOURCE BLOCK 146 paragraph
-Fixed forwarding overheads 0, 1, 2.5, 5 and 10 ms yielded 72.46695\%, 72.44783\%, 72.41882\%, 72.37240\% and 72.28579\% attainment. At 10 ms the advantage remained 0.28251 points, or 36,942 successes over ingress, despite 23,689 extra misses relative to zero overhead \hyperref[source-s6]{[S6]}.
+Every 100 ms report equalled fresh state over 35,990 non-startup RSU/batch observations: queues had emptied, making that treatment inactive. Reports differed at 500 ms in 79.58\% of observations and at 1,000 ms in all. Live admission and immediate reservations protect this older-report model; stale capacity, delayed acknowledgements or dispersed arrivals would change it. Equal outcomes do not establish harmless communication delay.
 % END SOURCE BLOCK 146
 
 % BEGIN SOURCE BLOCK 147 paragraph
-These are saved-record transformations qualified by four short direct probes. Forwarding charges do not feed back into admission, queues or actions in that path; the calculation models neither congestion nor postponed arrivals. A further 104 forwarded tasks had penalty-equal latency ambiguity but were already misses and remained misses under every nonnegative charge. Their latency ambiguity remains unresolved. RQ4 supports the tested information and fixed-cost models, not an extrapolated break-even threshold or network design.
+Fixed forwarding overheads 0, 1, 2.5, 5 and 10 ms yielded 72.46695\%, 72.44783\%, 72.41882\%, 72.37240\% and 72.28579\% attainment. At 10 ms the advantage remained 0.28251 points, or 36,942 successes over ingress, despite 23,689 extra misses relative to zero overhead \hyperref[source-s6]{[S6]}.
 % END SOURCE BLOCK 147
 
-% BEGIN SOURCE BLOCK 148 heading
-\subsection{Computational trade-offs and research implementation}\label{sec:3.7}
+% BEGIN SOURCE BLOCK 148 paragraph
+These are saved-record transformations qualified by four short direct probes. Forwarding charges do not feed back into admission, queues or actions in that path; the calculation models neither congestion nor postponed arrivals. A further 104 forwarded tasks had penalty-equal latency ambiguity but were already misses and remained misses under every nonnegative charge. Their latency ambiguity remains unresolved. RQ4 supports the tested information and fixed-cost models, not an extrapolated break-even threshold or network design.
 % END SOURCE BLOCK 148
 
-% BEGIN SOURCE BLOCK 149 table
+% BEGIN SOURCE BLOCK 149 heading
+\subsection{Computational trade-offs and research implementation}\label{sec:3.7}
+% END SOURCE BLOCK 149
+
+% BEGIN SOURCE BLOCK 150 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYY@{}}
@@ -864,25 +868,25 @@ Per-task & 0.052/0.055 & 0.501/0.616 & 0.062/0.641 & 11.7/139.1 \\
 Round-robin & 0.025/0.021 & 0.223/0.186 & 0.023/0.201 & 11.7/139.1 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 149
-
-% BEGIN SOURCE BLOCK 150 paragraph
-Per-task was faster than three-pass reconciliation on these CPU fixtures; cyclic selection reduced cost further. Section~\ref{sec:3.4} separately establishes the attainment benefit over cyclic spreading. Sparse padding still traverses $N$ positions. Fixed configuration order and uncontrolled frequency/thermal state limit timing comparisons; full durations and IQRs remain available.
 % END SOURCE BLOCK 150
 
 % BEGIN SOURCE BLOCK 151 paragraph
-Three vectorised replacements materialise $N\times R$ arrays: $O(KNR)$ work and $O(NR)$ intermediate space with parallel prefix dependence. Per-task also requires $O(KNR)$ work for $R$-way minima, but has a $K\times N$ sequential dependency chain. Round-robin removes minima, giving $O(KN)$ target/predicate work in an indexed-state model. Both retain $R$ queue entries and emit $O(KN)$ diagnostics. Compiler buffer reuse and elimination of unused broadcasts or identical passes affect execution; asymptotic work alone does not predict the measured ordering.
+Per-task was faster than three-pass reconciliation on these CPU fixtures; cyclic selection reduced cost further. Section~\ref{sec:3.4} separately establishes the attainment benefit over cyclic spreading. Sparse padding still traverses $N$ positions. Fixed configuration order and uncontrolled frequency/thermal state limit timing comparisons; full durations and IQRs remain available.
 % END SOURCE BLOCK 151
 
 % BEGIN SOURCE BLOCK 152 paragraph
-Compilation took 0.058--0.267 seconds per configuration, separately from lowering and execution. Transfer and process peak memory were not measured. The benchmark excludes full-evaluator costs, and host time is never added to historical simulated task latency. No roadside response-time guarantee follows \hyperref[source-s15]{[S15]}.
+Three vectorised replacements materialise $N\times R$ arrays: $O(KNR)$ work and $O(NR)$ intermediate space with parallel prefix dependence. Per-task also requires $O(KNR)$ work for $R$-way minima, but has a $K\times N$ sequential dependency chain. Round-robin removes minima, giving $O(KN)$ target/predicate work in an indexed-state model. Both retain $R$ queue entries and emit $O(KN)$ diagnostics. Compiler buffer reuse and elimination of unused broadcasts or identical passes affect execution; asymptotic work alone does not predict the measured ordering.
 % END SOURCE BLOCK 152
 
 % BEGIN SOURCE BLOCK 153 paragraph
-The research implementation is the trace-driven JAX evaluator, its versioned infrastructure schedulers and the command-line experimental pipeline. Table~\ref{tab:11} shows how implementation choices preserve the meaning of the comparison. The wider TrafficTwin prototype provides interfaces and evidence workflows, but repository membership does not establish that those interfaces executed these campaigns; their commands and outputs are the execution evidence \hyperref[source-s4]{[S4]}, \hyperref[source-s16]{[S16]}.
+Compilation took 0.058--0.267 seconds per configuration, separately from lowering and execution. Transfer and process peak memory were not measured. The benchmark excludes full-evaluator costs, and host time is never added to historical simulated task latency. No roadside response-time guarantee follows \hyperref[source-s15]{[S15]}.
 % END SOURCE BLOCK 153
 
-% BEGIN SOURCE BLOCK 154 table
+% BEGIN SOURCE BLOCK 154 paragraph
+The research implementation is the trace-driven JAX evaluator, its versioned infrastructure schedulers and the command-line experimental pipeline. Table~\ref{tab:11} shows how implementation choices preserve the meaning of the comparison. The wider TrafficTwin prototype provides interfaces and evidence workflows, but repository membership does not establish that those interfaces executed these campaigns; their commands and outputs are the execution evidence \hyperref[source-s4]{[S4]}, \hyperref[source-s16]{[S16]}.
+% END SOURCE BLOCK 154
+
+% BEGIN SOURCE BLOCK 155 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYY@{}}
@@ -900,17 +904,17 @@ Existing causal admission & Persistent cyclic targeting changes selection only &
 Evaluator outputs / analysis & Separate lifecycle fields and explicit source/seed/completion bindings & Corrupted counts, mismatched inputs and changed hashes are refused; compact checks verify tables only \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 154
-
-% BEGIN SOURCE BLOCK 155 paragraph
-Randy supplied the actor/environment and accounting repair code. Source comments credit Abdulla's accounting questions and clamp reconstruction; the August correspondence records his analysis of the control boundary and interpretation of capacity and placement results. These support specific intellectual contributions beyond coding, while not establishing that they were unaided. The experimental implementations and analyses are verified project outputs. Codex produced substantive drafting and literature work, the retrospective proof/diagnostics, task-type analysis, cyclic comparator, benchmark and confirmation pipeline, and performed its authorised execution/analysis. Personal contributions and checking still require the candidate's confirmation \hyperref[source-s12]{[S12]}, \hyperref[source-s15]{[S15]}, \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 155
 
 % BEGIN SOURCE BLOCK 156 paragraph
-Two engineering trade-offs limit the result. Aggregate workload/count carry keeps evaluation tractable but does not represent individual departures. Global actual service-work information and immediate reservations make deterministic comparisons inspectable but omit distributed estimation and coordination costs. Separate outcome fields prevent a proposed target being mistaken for execution; they cannot turn either modelling simplification into physical validation. Table~\ref{tab:12} links these limits to the claims they restrict.
+Randy supplied the actor/environment and accounting repair code. Source comments credit Abdulla's accounting questions and clamp reconstruction; the August correspondence records his analysis of the control boundary and interpretation of capacity and placement results. These support specific intellectual contributions beyond coding, while not establishing that they were unaided. The experimental implementations and analyses are verified project outputs. Codex produced substantive literature/drafting work, including this editorial revision, retrospective proof/diagnostics and audits, task-type analysis, comparator, benchmark and confirmation pipeline, and performed qualification, execution, validation and analysis. Personal contributions and checking still require the candidate's confirmation \hyperref[source-s12]{[S12]}, \hyperref[source-s15]{[S15]}, \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 156
 
-% BEGIN SOURCE BLOCK 157 table
+% BEGIN SOURCE BLOCK 157 paragraph
+Two engineering trade-offs limit the result. Aggregate workload/count carry keeps evaluation tractable but does not represent individual departures. Global actual service-work information and immediate reservations make deterministic comparisons inspectable but omit distributed estimation and coordination costs. Separate outcome fields prevent a proposed target being mistaken for execution; they cannot turn either modelling simplification into physical validation. Table~\ref{tab:12} links these limits to the claims they restrict.
+% END SOURCE BLOCK 157
+
+% BEGIN SOURCE BLOCK 158 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYY@{}}
@@ -932,274 +936,274 @@ Single-draw sensitivities & General staleness/forwarding robustness & Describe t
 Unconfirmed backup/access and personal ownership & Unrestricted reproduction and individual achievement & Portable compact checks supplied; raw access and component/AI allocation require confirmation \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 157
-
-% BEGIN SOURCE BLOCK 158 paragraph
-Compact verification regenerates central tables and follows source bindings without the actor or JAX. Raw verification needs separately arranged access; a local copy and checksums are not off-machine preservation. Appendix~\ref{app:A} and the accompanying author notes describe access and attribution boundaries without treating them as additional scientific findings \hyperref[source-s13]{[S13]}, \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 158
 
-% BEGIN SOURCE BLOCK 159 heading
-\section{Conclusion}\label{sec:4}
+% BEGIN SOURCE BLOCK 159 paragraph
+Compact verification regenerates central tables and follows source bindings without the actor or JAX. Raw verification needs separately arranged access; a local copy and checksums are not off-machine preservation. Appendix~\ref{app:A} and the accompanying author notes describe access and attribution boundaries without treating them as additional scientific findings \hyperref[source-s13]{[S13]}, \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 159
 
-% BEGIN SOURCE BLOCK 160 paragraph
-TrafficTwin shows that the operational meaning of infrastructure scheduling can determine the direction of a deadline-performance comparison under a frozen vehicle policy. Selecting one common least-workload destination per substep and selecting anew after each admitted task are materially different interventions. Common-target placement underperformed execution at radio ingress, while causal per-task placement exceeded it in the incident study, the original morning replication and the separate joint-randomness confirmation. The contribution is a controlled and explainable implementation study of established scheduling ideas.
+% BEGIN SOURCE BLOCK 160 heading
+\section{Conclusion}\label{sec:4}
 % END SOURCE BLOCK 160
 
 % BEGIN SOURCE BLOCK 161 paragraph
-RQ1 supplied the measurement foundation and a caution about capacity. Counting all offered tasks keeps rejection visible, while separate admission and outcome fields expose inconsistencies that aggregate enqueueing can conceal. Increasing the waiting-room limit did not establish an improvement in the archived E1 score: its interval is statistically inconclusive. Interpretation as admission-consistent deadline attainment also retains the unquantified historical scoring-mask exception. Reproducing that interval from summaries resolves neither the missing task-level check nor the possibility of feedback through energy and later observations. A larger waiting room is therefore neither evidence of faster service nor a demonstrated solution to deadline failure.
+TrafficTwin shows that the operational meaning of infrastructure scheduling can determine the direction of a deadline-performance comparison under a frozen vehicle policy. Selecting one common least-workload destination per substep and selecting anew after each admitted task are materially different interventions. Common-target placement underperformed execution at radio ingress, while causal per-task placement exceeded it in the incident study, the original morning replication and the separate joint-randomness confirmation. The contribution is a controlled and explainable implementation study of established scheduling ideas.
 % END SOURCE BLOCK 161
 
 % BEGIN SOURCE BLOCK 162 paragraph
-For RQ2, the choice of comparator was decisive. The exploratory admission decomposition showed why strongest-link execution with the gate was the relevant reference, while its eligibility/scoring differences limit a gate-only interpretation. Subsequent matched incident comparisons reversed the ranking when the dispatch implementation changed. The adaptive per-task extension reused examined controls; the later morning studies provide separate evidence rather than retroactively making that extension confirmatory.
+RQ1 supplied the measurement foundation and a caution about capacity. Counting all offered tasks keeps rejection visible, while separate admission and outcome fields expose inconsistencies that aggregate enqueueing can conceal. Increasing the waiting-room limit did not establish an improvement in the archived E1 score: its interval is statistically inconclusive. Interpretation as admission-consistent deadline attainment also retains the unquantified historical scoring-mask exception. Reproducing that interval from summaries resolves neither the missing task-level check nor the possibility of feedback through energy and later observations. A larger waiting room is therefore neither evidence of faster service nor a demonstrated solution to deadline failure.
 % END SOURCE BLOCK 162
 
 % BEGIN SOURCE BLOCK 163 paragraph
-RQ3 is answered by two distinct morning samples. The original four fleet draws, excluding the inspected pilot, reproduced the reversal under their simultaneous interval family. The new eight joint fleet/evaluator blocks reproduced it again: per-task minus ingress was +4.137 percentage points and common-target minus ingress \ensuremath{-}3.504. Per-task also exceeded causal cyclic spreading by +0.631 points, with its simultaneous interval entirely positive. Workload information therefore added benefit beyond spreading in this study. All actions matched, despite small observation/logit differences in one block; equality was observed rather than forced. The practical gain over round-robin accompanies higher scheduler-only cost on separate CPU fixtures, not measured roadside or full-system latency.
+For RQ2, the choice of comparator was decisive. The exploratory admission decomposition showed why strongest-link execution with the gate was the relevant reference, while its eligibility/scoring differences limit a gate-only interpretation. Subsequent matched incident comparisons reversed the ranking when the dispatch implementation changed. The adaptive per-task extension reused examined controls; the later morning studies provide separate evidence rather than retroactively making that extension confirmatory.
 % END SOURCE BLOCK 163
 
 % BEGIN SOURCE BLOCK 164 paragraph
-Retrospective explanation sharpens, but does not uniquely decompose, those findings. The exact-model result rules out unrestricted fixed-target reconciliation failure under the studied two-deadline assumptions; gate, service and drain semantics explain recurring common destinations. Float32 boundaries and the reduced adverse example prevent treating that result as universal executable equivalence or least-workload optimality. Original four-draw task accounting shows that reduced rejection supplies most gains, with additional recovery of admitted misses and smaller losses elsewhere. These are matched outcome transitions, not individual-decision causal effects.
+RQ3 is answered by two distinct morning samples. The original four fleet draws, excluding the inspected pilot, reproduced the reversal under their simultaneous interval family. The new eight joint fleet/evaluator blocks reproduced it again: per-task minus ingress was +4.137 percentage points and common-target minus ingress \ensuremath{-}3.504. Per-task also exceeded causal cyclic spreading by +0.631 points, with its simultaneous interval entirely positive. Workload information therefore added benefit beyond spreading in this study. All actions matched, despite small observation/logit differences in one block; equality was observed rather than forced. The practical gain over round-robin accompanies higher scheduler-only cost on separate CPU fixtures, not measured roadside or full-system latency.
 % END SOURCE BLOCK 164
 
 % BEGIN SOURCE BLOCK 165 paragraph
-RQ4 exposes the importance of checking whether a treatment changes information: the 100 ms reports equalled fresh state. Live admission and reservations also protect the tested older-report model. The single-draw forwarding sensitivity retained an advantage through 10 ms, but fixed overhead does not model network congestion.
+For RQ2's mechanism question, retrospective explanation sharpens but does not uniquely decompose those findings. The exact-model result rules out unrestricted fixed-target reconciliation failure under the studied two-deadline assumptions; gate, service and drain semantics explain recurring common destinations. Float32 boundaries and the reduced adverse example prevent treating that result as universal executable equivalence or least-workload optimality. Original four-draw task accounting shows that reduced rejection supplies most gains, with additional recovery of admitted misses and smaller losses elsewhere. These are matched outcome transitions, not individual-decision causal effects.
 % END SOURCE BLOCK 165
 
 % BEGIN SOURCE BLOCK 166 paragraph
-The research process consequently shifted from comparing labels to checking denominators, admission, reservations and controls. Future work should prioritise event-level service and communication measurements to test physical timing, imperfect workload information and acknowledgement to test coordination assumptions, and different traces or actors to test transfer beyond this setting. Each would resolve a distinct uncertainty rather than simply enlarge the experiment count. The established result remains bounded: within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement adds a measured attainment benefit over the tested spreading rule.
+RQ4 exposes the importance of checking whether a treatment changes information: the 100 ms reports equalled fresh state. Live admission and reservations also protect the tested older-report model. The single-draw forwarding sensitivity retained an advantage through 10 ms, but fixed overhead does not model network congestion.
 % END SOURCE BLOCK 166
 
-% BEGIN SOURCE BLOCK 167 bibliography_open
-\begin{thebibliography}{99}
+% BEGIN SOURCE BLOCK 167 paragraph
+The research process consequently shifted from comparing labels to checking denominators, admission, reservations and controls. Future work should prioritise event-level service and communication measurements to test physical timing, imperfect workload information and acknowledgement to test coordination assumptions, and different traces or actors to test transfer beyond this setting. Each would resolve a distinct uncertainty rather than simply enlarge the experiment count. The established result remains bounded: within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement adds a measured attainment benefit over the tested spreading rule.
 % END SOURCE BLOCK 167
 
-% BEGIN SOURCE BLOCK 168 bibliography_item
-\bibitem{ref1} Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. ``A Survey on Mobile Edge Computing: The Communication Perspective.'' \emph{IEEE Communications Surveys \& Tutorials}, 19(4), 2322--2358, 2017. DOI: 10.1109/COMST.2017.2745201. \href{\detokenize{https://arxiv.org/abs/1701.01090}}{Author manuscript}.
+% BEGIN SOURCE BLOCK 168 bibliography_open
+\begin{thebibliography}{99}
 % END SOURCE BLOCK 168
 
 % BEGIN SOURCE BLOCK 169 bibliography_item
-\bibitem{ref2} M. Harchol-Balter, M. E. Crovella and C. D. Murta. ``On Choosing a Task Assignment Policy for a Distributed Server System.'' \emph{Computer Performance Evaluation (TOOLS 1998)}, LNCS 1469, 231--242, 1998. DOI: 10.1007/3-540-68061-6\_19. \href{\detokenize{https://www.cs.cmu.edu/~harchol/Papers/tools.pdf}}{Author manuscript}.
+\bibitem{ref1} Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. ``A Survey on Mobile Edge Computing: The Communication Perspective.'' \emph{IEEE Communications Surveys \& Tutorials}, 19(4), 2322--2358, 2017. DOI: 10.1109/COMST.2017.2745201. \href{\detokenize{https://arxiv.org/abs/1701.01090}}{Author manuscript}.
 % END SOURCE BLOCK 169
 
 % BEGIN SOURCE BLOCK 170 bibliography_item
-\bibitem{ref3} J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. ``Proximal Policy Optimization Algorithms.'' arXiv:1707.06347, 2017. \href{\detokenize{https://arxiv.org/abs/1707.06347}}{Author manuscript}.
+\bibitem{ref2} M. Harchol-Balter, M. E. Crovella and C. D. Murta. ``On Choosing a Task Assignment Policy for a Distributed Server System.'' \emph{Computer Performance Evaluation (TOOLS 1998)}, LNCS 1469, 231--242, 1998. DOI: 10.1007/3-540-68061-6\_19. \href{\detokenize{https://www.cs.cmu.edu/~harchol/Papers/tools.pdf}}{Author manuscript}.
 % END SOURCE BLOCK 170
 
 % BEGIN SOURCE BLOCK 171 bibliography_item
-\bibitem{ref4} C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. ``The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games.'' \emph{Advances in Neural Information Processing Systems}, 35, 24611--24624, 2022. \href{\detokenize{https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf}}{Proceedings paper}.
+\bibitem{ref3} J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. ``Proximal Policy Optimization Algorithms.'' arXiv:1707.06347, 2017. \href{\detokenize{https://arxiv.org/abs/1707.06347}}{Author manuscript}.
 % END SOURCE BLOCK 171
 
 % BEGIN SOURCE BLOCK 172 bibliography_item
-\bibitem{ref5} P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. ``Deep Reinforcement Learning That Matters.'' \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, 32(1), 2018. DOI: 10.1609/aaai.v32i1.11694. \href{\detokenize{https://ojs.aaai.org/index.php/AAAI/article/view/11694}}{Publisher record}.
+\bibitem{ref4} C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. ``The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games.'' \emph{Advances in Neural Information Processing Systems}, 35, 24611--24624, 2022. \href{\detokenize{https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf}}{Proceedings paper}.
 % END SOURCE BLOCK 172
 
 % BEGIN SOURCE BLOCK 173 bibliography_item
-\bibitem{ref6} R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. ``Deep Reinforcement Learning at the Edge of the Statistical Precipice.'' \emph{Advances in Neural Information Processing Systems}, 34, 29304--29320, 2021. \href{\detokenize{https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html}}{Proceedings record}.
+\bibitem{ref5} P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. ``Deep Reinforcement Learning That Matters.'' \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, 32(1), 2018. DOI: 10.1609/aaai.v32i1.11694. \href{\detokenize{https://ojs.aaai.org/index.php/AAAI/article/view/11694}}{Publisher record}.
 % END SOURCE BLOCK 173
 
 % BEGIN SOURCE BLOCK 174 bibliography_item
-\bibitem{ref7} R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. ``Towards a Standardised Performance Evaluation Protocol for Cooperative MARL.'' \emph{Advances in Neural Information Processing Systems}, 35, 5510--5521, 2022. \href{\detokenize{https://arxiv.org/abs/2209.10485}}{Author manuscript}.
+\bibitem{ref6} R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. ``Deep Reinforcement Learning at the Edge of the Statistical Precipice.'' \emph{Advances in Neural Information Processing Systems}, 34, 29304--29320, 2021. \href{\detokenize{https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html}}{Proceedings record}.
 % END SOURCE BLOCK 174
 
 % BEGIN SOURCE BLOCK 175 bibliography_item
-\bibitem{ref8} P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. ``Microscopic Traffic Simulation using SUMO.'' \emph{21st International Conference on Intelligent Transportation Systems (ITSC)}, 2575--2582, 2018. DOI: 10.1109/ITSC.2018.8569938. \href{\detokenize{https://elib.dlr.de/127994/}}{DLR author repository}.
+\bibitem{ref7} R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. ``Towards a Standardised Performance Evaluation Protocol for Cooperative MARL.'' \emph{Advances in Neural Information Processing Systems}, 35, 5510--5521, 2022. \href{\detokenize{https://arxiv.org/abs/2209.10485}}{Author manuscript}.
 % END SOURCE BLOCK 175
 
 % BEGIN SOURCE BLOCK 176 bibliography_item
-\bibitem{ref9} K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. ``Sparrow: Distributed, Low Latency Scheduling.'' \emph{24th ACM Symposium on Operating Systems Principles}, 69--84, 2013. DOI: 10.1145/2517349.2522716. \href{\detokenize{https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf}}{Proceedings paper}.
+\bibitem{ref8} P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. ``Microscopic Traffic Simulation using SUMO.'' \emph{21st International Conference on Intelligent Transportation Systems (ITSC)}, 2575--2582, 2018. DOI: 10.1109/ITSC.2018.8569938. \href{\detokenize{https://elib.dlr.de/127994/}}{DLR author repository}.
 % END SOURCE BLOCK 176
 
 % BEGIN SOURCE BLOCK 177 bibliography_item
-\bibitem{ref10} S. Vargaftik, I. Keslassy and A. Orda. ``LSQ: Load Balancing in Large-Scale Heterogeneous Systems With Multiple Dispatchers.'' \emph{IEEE/ACM Transactions on Networking}, 28(3), 1186--1198, 2020. DOI: 10.1109/TNET.2020.2980061. \href{\detokenize{https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf}}{Author manuscript}.
+\bibitem{ref9} K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. ``Sparrow: Distributed, Low Latency Scheduling.'' \emph{24th ACM Symposium on Operating Systems Principles}, 69--84, 2013. DOI: 10.1145/2517349.2522716. \href{\detokenize{https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf}}{Proceedings paper}.
 % END SOURCE BLOCK 177
 
 % BEGIN SOURCE BLOCK 178 bibliography_item
-\bibitem{ref11} J. Niño-Mora. ``Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.'' \emph{Computers \& Operations Research}, 39, 3431--3444, 2012. DOI: 10.1016/j.cor.2012.05.004. \href{\detokenize{https://arxiv.org/abs/2207.12815}}{Author manuscript, deposited 2022}.
+\bibitem{ref10} S. Vargaftik, I. Keslassy and A. Orda. ``LSQ: Load Balancing in Large-Scale Heterogeneous Systems With Multiple Dispatchers.'' \emph{IEEE/ACM Transactions on Networking}, 28(3), 1186--1198, 2020. DOI: 10.1109/TNET.2020.2980061. \href{\detokenize{https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf}}{Author manuscript}.
 % END SOURCE BLOCK 178
 
 % BEGIN SOURCE BLOCK 179 bibliography_item
-\bibitem{ref12} R. G. Sargent. ``Verification and Validation of Simulation Models.'' \emph{Proceedings of the 2011 Winter Simulation Conference}, 183--198, 2011. \href{\detokenize{https://www.informs-sim.org/wsc11papers/016.pdf}}{Proceedings paper}.
+\bibitem{ref11} J. Niño-Mora. ``Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.'' \emph{Computers \& Operations Research}, 39, 3431--3444, 2012. DOI: 10.1016/j.cor.2012.05.004. \href{\detokenize{https://arxiv.org/abs/2207.12815}}{Author manuscript, deposited 2022}.
 % END SOURCE BLOCK 179
 
 % BEGIN SOURCE BLOCK 180 bibliography_item
-\bibitem{ref13} L. Ying, R. Srikant and X. Kang. ``The Power of Slightly More than One Sample in Randomized Load Balancing.'' \emph{IEEE INFOCOM}, 1131--1139, 2015. \href{\detokenize{https://doi.org/10.1109/INFOCOM.2015.7218487}}{doi:10.1109/INFOCOM.2015.7218487}. \href{\detokenize{https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf}}{Author technical manuscript}.
+\bibitem{ref12} R. G. Sargent. ``Verification and Validation of Simulation Models.'' \emph{Proceedings of the 2011 Winter Simulation Conference}, 183--198, 2011. \href{\detokenize{https://www.informs-sim.org/wsc11papers/016.pdf}}{Proceedings paper}.
 % END SOURCE BLOCK 180
 
 % BEGIN SOURCE BLOCK 181 bibliography_item
-\bibitem{ref14} JAX authors. ``Benchmarking JAX code.'' Official JAX documentation, accessed 8 September 2026. \href{\detokenize{https://docs.jax.dev/en/latest/benchmarking.html}}{Benchmarking guidance}. Used for timing procedure, not scheduler efficacy.
+\bibitem{ref13} L. Ying, R. Srikant and X. Kang. ``The Power of Slightly More than One Sample in Randomized Load Balancing.'' \emph{IEEE INFOCOM}, 1131--1139, 2015. \href{\detokenize{https://doi.org/10.1109/INFOCOM.2015.7218487}}{doi:10.1109/INFOCOM.2015.7218487}. \href{\detokenize{https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf}}{Author technical manuscript}.
 % END SOURCE BLOCK 181
 
-% BEGIN SOURCE BLOCK 182 bibliography_close
-\end{thebibliography}
+% BEGIN SOURCE BLOCK 182 bibliography_item
+\bibitem{ref14} JAX authors. ``Benchmarking JAX code.'' Official JAX documentation, accessed 8 September 2026. \href{\detokenize{https://docs.jax.dev/en/latest/benchmarking.html}}{Benchmarking guidance}. Used for timing procedure, not scheduler efficacy.
 % END SOURCE BLOCK 182
 
-% BEGIN SOURCE BLOCK 183 appendix_open
-\appendix
-\renewcommand{\thetable}{\Alph{section}\arabic{table}}
+% BEGIN SOURCE BLOCK 183 bibliography_close
+\end{thebibliography}
 % END SOURCE BLOCK 183
 
-% BEGIN SOURCE BLOCK 184 heading
-\appendixsection{app:A}{Evidence sources and reproducibility}
+% BEGIN SOURCE BLOCK 184 appendix_open
+\appendix
+\renewcommand{\thetable}{\Alph{section}\arabic{table}}
 % END SOURCE BLOCK 184
 
-% BEGIN SOURCE BLOCK 185 paragraph
-The sources below are project evidence, separate from scholarly references. Relative links resolve in the repository checkout. The \href{\detokenize{https://github.com/Abdulla4akash/traffictwin/tree/04f3b6a95c7bc06c80ed95b54762f12861bba183}}{historical baseline} and later packages retain their respective source identities. The current \href{\detokenize{CLAIM_SOURCE_MAP.md}}{claim-to-source map} records support and limits.
+% BEGIN SOURCE BLOCK 185 heading
+\appendixsection{app:A}{Evidence sources and reproducibility}
 % END SOURCE BLOCK 185
 
-% BEGIN SOURCE BLOCK 186 anchor
-\phantomsection\label{source-s0}
+% BEGIN SOURCE BLOCK 186 paragraph
+The sources below are project evidence, separate from scholarly references. Relative links resolve in the repository checkout. The \href{\detokenize{https://github.com/Abdulla4akash/traffictwin/tree/04f3b6a95c7bc06c80ed95b54762f12861bba183}}{historical baseline} and later packages retain their respective source identities. The current \href{\detokenize{CLAIM_SOURCE_MAP.md}}{claim-to-source map} records support and limits.
 % END SOURCE BLOCK 186
 
-% BEGIN SOURCE BLOCK 187 paragraph
-\textbf{S0 --- Accounting validity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/README.md}}{E0 report and evidence}. Full evidence commit \texttt{29d8945862b7df1bd5d7879ba1d980a388f6be0d}.
+% BEGIN SOURCE BLOCK 187 anchor
+\phantomsection\label{source-s0}
 % END SOURCE BLOCK 187
 
-% BEGIN SOURCE BLOCK 188 anchor
-\phantomsection\label{source-s1}
+% BEGIN SOURCE BLOCK 188 paragraph
+\textbf{S0 --- Accounting validity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/README.md}}{E0 report and evidence}. Full evidence commit \texttt{29d8945862b7df1bd5d7879ba1d980a388f6be0d}.
 % END SOURCE BLOCK 188
 
-% BEGIN SOURCE BLOCK 189 paragraph
-\textbf{S1 --- Waiting-room capacity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/README.md}}{E1 report}, with five-draw comparison and validation records.
+% BEGIN SOURCE BLOCK 189 anchor
+\phantomsection\label{source-s1}
 % END SOURCE BLOCK 189
 
-% BEGIN SOURCE BLOCK 190 anchor
-\phantomsection\label{source-s2}
+% BEGIN SOURCE BLOCK 190 paragraph
+\textbf{S1 --- Waiting-room capacity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/README.md}}{E1 report}, with five-draw comparison and validation records.
 % END SOURCE BLOCK 190
 
-% BEGIN SOURCE BLOCK 191 paragraph
-\textbf{S2 --- Exploratory admission/placement decomposition.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/README.md}}{E2b report and factorial evidence}.
+% BEGIN SOURCE BLOCK 191 anchor
+\phantomsection\label{source-s2}
 % END SOURCE BLOCK 191
 
-% BEGIN SOURCE BLOCK 192 anchor
-\phantomsection\label{source-s3}
+% BEGIN SOURCE BLOCK 192 paragraph
+\textbf{S2 --- Exploratory admission/placement decomposition.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/README.md}}{E2b report and factorial evidence}.
 % END SOURCE BLOCK 192
 
-% BEGIN SOURCE BLOCK 193 paragraph
-\textbf{S3 --- Incident replication and reversal.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/README.md}}{E2c report} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/README.md}}{E2d report}. Frozen E2d evaluator commit \texttt{2f63706f46319433a2ba3af1df97afd0e56a95d1}; exact E2c controls reused.
+% BEGIN SOURCE BLOCK 193 anchor
+\phantomsection\label{source-s3}
 % END SOURCE BLOCK 193
 
-% BEGIN SOURCE BLOCK 194 anchor
-\phantomsection\label{source-s4}
+% BEGIN SOURCE BLOCK 194 paragraph
+\textbf{S3 --- Incident replication and reversal.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/README.md}}{E2c report} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/README.md}}{E2d report}. Frozen E2d evaluator commit \texttt{2f63706f46319433a2ba3af1df97afd0e56a95d1}; exact E2c controls reused.
 % END SOURCE BLOCK 194
 
-% BEGIN SOURCE BLOCK 195 paragraph
-\textbf{S4 --- Experimental architecture and implementation.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/docs/METHODOLOGY.md}}{Frozen method}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py}}{per-task source}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/eval_sumo_stage1_mc.py}}{evaluator source}, \href{\detokenize{../empirical_extension_2026-09-08/experimental/vendor/vec_jax.py}}{environment source}, and \href{\detokenize{../../correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md}}{implementation correspondence}, PDF pages 1--2 for Randy's confirmations.
+% BEGIN SOURCE BLOCK 195 anchor
+\phantomsection\label{source-s4}
 % END SOURCE BLOCK 195
 
-% BEGIN SOURCE BLOCK 196 anchor
-\phantomsection\label{source-s5}
+% BEGIN SOURCE BLOCK 196 paragraph
+\textbf{S4 --- Experimental architecture and implementation.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/docs/METHODOLOGY.md}}{Frozen method}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py}}{per-task source}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/eval_sumo_stage1_mc.py}}{evaluator source}, \href{\detokenize{../empirical_extension_2026-09-08/experimental/vendor/vec_jax.py}}{environment source}, and \href{\detokenize{../../correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md}}{implementation correspondence}, PDF pages 1--2 for Randy's confirmations.
 % END SOURCE BLOCK 196
 
-% BEGIN SOURCE BLOCK 197 paragraph
-\textbf{S5 --- State-information sensitivity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/frozen_evaluator/docs/RSU_STATE_DELAY.md}}{Timing contract}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/comparison.csv}}{five-cell comparison} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json}}{report-state audit}.
+% BEGIN SOURCE BLOCK 197 anchor
+\phantomsection\label{source-s5}
 % END SOURCE BLOCK 197
 
-% BEGIN SOURCE BLOCK 198 anchor
-\phantomsection\label{source-s6}
+% BEGIN SOURCE BLOCK 198 paragraph
+\textbf{S5 --- State-information sensitivity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/frozen_evaluator/docs/RSU_STATE_DELAY.md}}{Timing contract}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/comparison.csv}}{five-cell comparison} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json}}{report-state audit}.
 % END SOURCE BLOCK 198
 
-% BEGIN SOURCE BLOCK 199 paragraph
-\textbf{S6 --- Forwarding sensitivity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification.json}}{Qualification}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/forwarding_sensitivity.csv}}{outcomes} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/analysis_validation.json}}{analysis validation}.
+% BEGIN SOURCE BLOCK 199 anchor
+\phantomsection\label{source-s6}
 % END SOURCE BLOCK 199
 
-% BEGIN SOURCE BLOCK 200 anchor
-\phantomsection\label{source-s7}
+% BEGIN SOURCE BLOCK 200 paragraph
+\textbf{S6 --- Forwarding sensitivity.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification.json}}{Qualification}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/forwarding_sensitivity.csv}}{outcomes} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/analysis_validation.json}}{analysis validation}.
 % END SOURCE BLOCK 200
 
-% BEGIN SOURCE BLOCK 201 paragraph
-\textbf{S7 --- Morning exploratory pilot.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/RESULTS.md}}{Results} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/input_validation.json}}{canonical input validation}.
+% BEGIN SOURCE BLOCK 201 anchor
+\phantomsection\label{source-s7}
 % END SOURCE BLOCK 201
 
-% BEGIN SOURCE BLOCK 202 anchor
-\phantomsection\label{source-s8}
+% BEGIN SOURCE BLOCK 202 paragraph
+\textbf{S7 --- Morning exploratory pilot.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/RESULTS.md}}{Results} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/input_validation.json}}{canonical input validation}.
 % END SOURCE BLOCK 202
 
-% BEGIN SOURCE BLOCK 203 paragraph
-\textbf{S8 --- Morning primary replication.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/PROTOCOL.md}}{Protocol}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/manifest.json}}{manifest}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_differences.csv}}{paired differences} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv}}{paired intervals}. Full follow-up evaluator commit \texttt{908bd10f86542de94fc38af90dd56c2ccc08cf9b}.
+% BEGIN SOURCE BLOCK 203 anchor
+\phantomsection\label{source-s8}
 % END SOURCE BLOCK 203
 
-% BEGIN SOURCE BLOCK 204 anchor
-\phantomsection\label{source-s9}
+% BEGIN SOURCE BLOCK 204 paragraph
+\textbf{S8 --- Morning primary replication.} \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/PROTOCOL.md}}{Protocol}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/manifest.json}}{manifest}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_differences.csv}}{paired differences} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv}}{paired intervals}. Full follow-up evaluator commit \texttt{908bd10f86542de94fc38af90dd56c2ccc08cf9b}.
 % END SOURCE BLOCK 204
 
-% BEGIN SOURCE BLOCK 205 paragraph
-\textbf{S9 --- Five-RSU mechanism audit.} \href{\detokenize{../../evaluation/common_target_mechanism_audit_2026-09-07/evidence/REPORT.md}}{Completed post-hoc report} and \href{\detokenize{../../evaluation/common_target_mechanism_audit_2026-09-07/evidence/audit_results.json}}{audit results with input identities}.
+% BEGIN SOURCE BLOCK 205 anchor
+\phantomsection\label{source-s9}
 % END SOURCE BLOCK 205
 
-% BEGIN SOURCE BLOCK 206 anchor
-\phantomsection\label{source-s10}
+% BEGIN SOURCE BLOCK 206 paragraph
+\textbf{S9 --- Five-RSU mechanism audit.} \href{\detokenize{../../evaluation/common_target_mechanism_audit_2026-09-07/evidence/REPORT.md}}{Completed post-hoc report} and \href{\detokenize{../../evaluation/common_target_mechanism_audit_2026-09-07/evidence/audit_results.json}}{audit results with input identities}.
 % END SOURCE BLOCK 206
 
-% BEGIN SOURCE BLOCK 207 paragraph
-\textbf{S10 --- Unrun falsification proposal.} \href{\detokenize{../../evaluation/common_target_mechanism_audit_2026-09-07/TIEBREAK_PREFIX_PROPOSAL.md}}{Rotating-tie-break prefix protocol}.
+% BEGIN SOURCE BLOCK 207 anchor
+\phantomsection\label{source-s10}
 % END SOURCE BLOCK 207
 
-% BEGIN SOURCE BLOCK 208 anchor
-\phantomsection\label{source-s11}
+% BEGIN SOURCE BLOCK 208 paragraph
+\textbf{S10 --- Unrun falsification proposal.} \href{\detokenize{../../evaluation/common_target_mechanism_audit_2026-09-07/TIEBREAK_PREFIX_PROPOSAL.md}}{Rotating-tie-break prefix protocol}.
 % END SOURCE BLOCK 208
 
-% BEGIN SOURCE BLOCK 209 paragraph
-\textbf{S11 --- Artifact and preservation.} \href{\detokenize{../../architecture_current_release.md}}{Product architecture}, \href{\detokenize{../../quality/final_release_status_20260815.md}}{release/execution boundary}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/ARCHIVE_INVENTORY.json}}{evidence archive inventory} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/COMPACT_VERIFICATION.json}}{compact verification receipt}. The separate E3 Dynamic Resource V2 campaign remains unexecuted.
+% BEGIN SOURCE BLOCK 209 anchor
+\phantomsection\label{source-s11}
 % END SOURCE BLOCK 209
 
-% BEGIN SOURCE BLOCK 210 anchor
-\phantomsection\label{source-s12}
+% BEGIN SOURCE BLOCK 210 paragraph
+\textbf{S11 --- Artifact and preservation.} \href{\detokenize{../../architecture_current_release.md}}{Product architecture}, \href{\detokenize{../../quality/final_release_status_20260815.md}}{release/execution boundary}, \href{\detokenize{../../evaluation/vec_followup_2026-09-07/ARCHIVE_INVENTORY.json}}{evidence archive inventory} and \href{\detokenize{../../evaluation/vec_followup_2026-09-07/COMPACT_VERIFICATION.json}}{compact verification receipt}. The separate E3 Dynamic Resource V2 campaign remains unexecuted.
 % END SOURCE BLOCK 210
 
-% BEGIN SOURCE BLOCK 211 paragraph
-\textbf{S12 --- Contribution and repair history.} Read-only inspection of \texttt{vec\_env} commits \href{\detokenize{https://github.com/Abdulla4akash/vec_env/commit/4cb7c06aab1b455d68f71ea9143172463784dea9}}{4cb7c06}, \href{\detokenize{https://github.com/Abdulla4akash/vec_env/commit/0f01f4d2082d3e8b735e74a873095ab8eeba37cc}}{0f01f4d} and \href{\detokenize{https://github.com/Abdulla4akash/vec_env/commit/2f63706f46319433a2ba3af1df97afd0e56a95d1}}{2f63706}, and TrafficTwin \href{\detokenize{https://github.com/Abdulla4akash/traffictwin/blob/29d8945862b7df1bd5d7879ba1d980a388f6be0d/tests/test_validate_e0_smoke.py}}{E0 validation tests at 29d894}. Source comments explicitly credit Abdulla's questions; commit authorship does not establish independent human authorship.
+% BEGIN SOURCE BLOCK 211 anchor
+\phantomsection\label{source-s12}
 % END SOURCE BLOCK 211
 
-% BEGIN SOURCE BLOCK 212 anchor
-\phantomsection\label{source-s13}
+% BEGIN SOURCE BLOCK 212 paragraph
+\textbf{S12 --- Contribution and repair history.} Read-only inspection of \texttt{vec\_env} commits \href{\detokenize{https://github.com/Abdulla4akash/vec_env/commit/4cb7c06aab1b455d68f71ea9143172463784dea9}}{4cb7c06}, \href{\detokenize{https://github.com/Abdulla4akash/vec_env/commit/0f01f4d2082d3e8b735e74a873095ab8eeba37cc}}{0f01f4d} and \href{\detokenize{https://github.com/Abdulla4akash/vec_env/commit/2f63706f46319433a2ba3af1df97afd0e56a95d1}}{2f63706}, and TrafficTwin \href{\detokenize{https://github.com/Abdulla4akash/traffictwin/blob/29d8945862b7df1bd5d7879ba1d980a388f6be0d/tests/test_validate_e0_smoke.py}}{E0 validation tests at 29d894}. Source comments explicitly credit Abdulla's questions; commit authorship does not establish independent human authorship.
 % END SOURCE BLOCK 212
 
-% BEGIN SOURCE BLOCK 213 paragraph
-\textbf{S13 --- Retrospective gap closure, 8 September 2026.} The \href{\detokenize{../gap_closure_2026-09-08/verification/README.md}}{verification entry point} documents the field contract, source bindings, 87-file authentication, 19-run audit, \href{\detokenize{../gap_closure_2026-09-08/verification/results/OUTCOME_TRANSITIONS.json}}{23 paired transitions}, \href{\detokenize{../gap_closure_2026-09-08/verification/results/KERNEL_RESULTS.json}}{440-case reference} and production comparison. These completed checks and their historical sources remain unchanged.
+% BEGIN SOURCE BLOCK 213 anchor
+\phantomsection\label{source-s13}
 % END SOURCE BLOCK 213
 
-% BEGIN SOURCE BLOCK 214 anchor
-\phantomsection\label{source-s14}
+% BEGIN SOURCE BLOCK 214 paragraph
+\textbf{S13 --- Retrospective gap closure, 8 September 2026.} The \href{\detokenize{../gap_closure_2026-09-08/verification/README.md}}{verification entry point} documents the field contract, source bindings, 87-file authentication, 19-run audit, \href{\detokenize{../gap_closure_2026-09-08/verification/results/OUTCOME_TRANSITIONS.json}}{23 paired transitions}, \href{\detokenize{../gap_closure_2026-09-08/verification/results/KERNEL_RESULTS.json}}{440-case reference} and production comparison. These completed checks and their historical sources remain unchanged.
 % END SOURCE BLOCK 214
 
-% BEGIN SOURCE BLOCK 215 paragraph
-\textbf{S14 --- Production-domain mechanism analysis.} \href{\detokenize{../production_mechanism_2026-09-08/analysis/MATHEMATICS.md}}{Model and proof}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/PROTOCOL.md}}{initial diagnostic protocol}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/FOLLOWUP_PROTOCOL.md}}{bounded follow-up protocol}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/diagnostics.py}}{executable diagnostics}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/DIAGNOSTICS.json}}{full results}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/NUMERICAL_FOLLOWUP.json}}{numerical follow-up}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/ADVERSE_PRODUCTION.json}}{adverse example and helper checks}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/DIMENSION_CHECK.json}}{dimension checks} and \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/OUTCOME_ACCOUNTING.json}}{outcome accounting}. This is retrospective analysis added after the completed experiments and gap closure.
+% BEGIN SOURCE BLOCK 215 anchor
+\phantomsection\label{source-s14}
 % END SOURCE BLOCK 215
 
-% BEGIN SOURCE BLOCK 216 anchor
-\phantomsection\label{source-s15}
+% BEGIN SOURCE BLOCK 216 paragraph
+\textbf{S14 --- Production-domain mechanism analysis.} \href{\detokenize{../production_mechanism_2026-09-08/analysis/MATHEMATICS.md}}{Model and proof}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/PROTOCOL.md}}{initial diagnostic protocol}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/FOLLOWUP_PROTOCOL.md}}{bounded follow-up protocol}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/diagnostics.py}}{executable diagnostics}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/DIAGNOSTICS.json}}{full results}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/NUMERICAL_FOLLOWUP.json}}{numerical follow-up}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/ADVERSE_PRODUCTION.json}}{adverse example and helper checks}, \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/DIMENSION_CHECK.json}}{dimension checks} and \href{\detokenize{../production_mechanism_2026-09-08/analysis/results/OUTCOME_ACCOUNTING.json}}{outcome accounting}. This is retrospective analysis added after the completed experiments and gap closure.
 % END SOURCE BLOCK 216
 
-% BEGIN SOURCE BLOCK 217 paragraph
-\textbf{S15 --- Retrospective empirical/engineering extension.} \href{\detokenize{../empirical_extension_2026-09-08/analysis/PROTOCOL.md}}{Declared analysis protocol}, \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/TASK_TYPES.json}}{task-type counts and bindings}, \href{\detokenize{../empirical_extension_2026-09-08/analysis/benchmark.py}}{benchmark implementation} and \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/BENCHMARK.json}}{measured results}, \href{\detokenize{../empirical_extension_2026-09-08/experimental/round_robin.py}}{cyclic implementation}, \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/COMPATIBILITY_TESTS.json}}{compatibility evidence}, \href{\detokenize{../empirical_extension_2026-09-08/confirmation/PROTOCOL.md}}{sealed confirmation protocol}, \href{\detokenize{../empirical_extension_2026-09-08/confirmation/DRY_RUN.json}}{dry-run receipt}, and \href{\detokenize{../empirical_extension_2026-09-08/README.md}}{verification route}. That original preparation package remains disabled and unchanged; S16 records the separately authorised execution.
+% BEGIN SOURCE BLOCK 217 anchor
+\phantomsection\label{source-s15}
 % END SOURCE BLOCK 217
 
-% BEGIN SOURCE BLOCK 218 anchor
-\phantomsection\label{source-s16}
+% BEGIN SOURCE BLOCK 218 paragraph
+\textbf{S15 --- Retrospective empirical/engineering extension.} \href{\detokenize{../empirical_extension_2026-09-08/analysis/PROTOCOL.md}}{Declared analysis protocol}, \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/TASK_TYPES.json}}{task-type counts and bindings}, \href{\detokenize{../empirical_extension_2026-09-08/analysis/benchmark.py}}{benchmark implementation} and \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/BENCHMARK.json}}{measured results}, \href{\detokenize{../empirical_extension_2026-09-08/experimental/round_robin.py}}{cyclic implementation}, \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/COMPATIBILITY_TESTS.json}}{compatibility evidence}, \href{\detokenize{../empirical_extension_2026-09-08/confirmation/PROTOCOL.md}}{sealed confirmation protocol}, \href{\detokenize{../empirical_extension_2026-09-08/confirmation/DRY_RUN.json}}{dry-run receipt}, and \href{\detokenize{../empirical_extension_2026-09-08/README.md}}{verification route}. That original preparation package remains disabled and unchanged; S16 records the separately authorised execution.
 % END SOURCE BLOCK 218
 
-% BEGIN SOURCE BLOCK 219 paragraph
-\textbf{S16 --- Authorised joint-randomness confirmation.} \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/EXECUTION_AMENDMENT.md}}{Execution amendment}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/PROTOCOL_EXECUTION.md}}{qualified execution protocol}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/SEALED_EXECUTION.json}}{execution seal}, \href{\detokenize{../joint_confirmation_2026-09-08/experimental/evaluator_v2.py}}{versioned evaluator}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/runner.py}}{runner and completion gate}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/validation.py}}{task/queue/block validation}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/analyse.py}}{sealed analysis}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/QUALIFICATION.json}}{qualification receipt}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/QUALIFICATION_FOLLOWUP.json}}{prelaunch safeguard checks}, and \href{\detokenize{README.md}}{verification/access route}. \href{\detokenize{../joint_confirmation_2026-09-08/evidence/ANALYSIS.json}}{Completed primary analysis}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv}}{all cell counts}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/BLOCK_CONTROLS.json}}{block controls} and \href{\detokenize{../joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json}}{raw inventory} bind the new results. This study is separate from the original four-draw sample, pilot and retrospective analyses.
+% BEGIN SOURCE BLOCK 219 anchor
+\phantomsection\label{source-s16}
 % END SOURCE BLOCK 219
 
 % BEGIN SOURCE BLOCK 220 paragraph
-The runtime is CPython 3.11.15, JAX/JAXlib 0.4.30 and NumPy 1.26.4, CPU, x64 disabled. Historical manifests retain their own identities. Full reproduction also needs the frozen actor, traces and authorised inputs. E0/E1/E2 originals remain unavailable following author-reported deletion, with no known backup; other historical raw availability is unestablished.
+\textbf{S16 --- Authorised joint-randomness confirmation.} \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/EXECUTION_AMENDMENT.md}}{Execution amendment}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/PROTOCOL_EXECUTION.md}}{qualified execution protocol}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/SEALED_EXECUTION.json}}{execution seal}, \href{\detokenize{../joint_confirmation_2026-09-08/experimental/evaluator_v2.py}}{versioned evaluator}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/runner.py}}{runner and completion gate}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/validation.py}}{task/queue/block validation}, \href{\detokenize{../joint_confirmation_2026-09-08/confirmation/analyse.py}}{sealed analysis}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/QUALIFICATION.json}}{qualification receipt}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/QUALIFICATION_FOLLOWUP.json}}{prelaunch safeguard checks}, and \href{\detokenize{../joint_confirmation_2026-09-08/README.md}}{verification/access route}. \href{\detokenize{../joint_confirmation_2026-09-08/evidence/ANALYSIS.json}}{Completed primary analysis}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv}}{all cell counts}, \href{\detokenize{../joint_confirmation_2026-09-08/evidence/BLOCK_CONTROLS.json}}{block controls} and \href{\detokenize{../joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json}}{raw inventory} bind the new results. This study is separate from the original four-draw sample, pilot and retrospective analyses.
 % END SOURCE BLOCK 220
 
 % BEGIN SOURCE BLOCK 221 paragraph
-\textbf{Contribution record.} The accompanying \href{\detokenize{AUTHOR_INPUTS.md}}{author notes} identify the personal decisions, checking and assessment-specific disclosure still to confirm. Recorded supplied and AI-assisted work is stated in \S\,\ref{sec:3.7} and Appendix~\ref{app:C}.
+The runtime is CPython 3.11.15, JAX/JAXlib 0.4.30 and NumPy 1.26.4, CPU, x64 disabled. Historical manifests retain their own identities. Full reproduction also needs the frozen actor, traces and authorised inputs. E0/E1/E2 originals remain unavailable following author-reported deletion, with no known backup; other historical raw availability is unestablished.
 % END SOURCE BLOCK 221
 
-% BEGIN SOURCE BLOCK 222 heading
-\appendixsection{app:B}{Audit coverage and diagnostic boundaries}
+% BEGIN SOURCE BLOCK 222 paragraph
+\textbf{Contribution record.} The accompanying \href{\detokenize{AUTHOR_INPUTS.md}}{author notes} identify the personal decisions, checking and assessment-specific disclosure still to confirm. Recorded supplied and AI-assisted work is stated in \S\,\ref{sec:3.7} and Appendix~\ref{app:C}.
 % END SOURCE BLOCK 222
 
-% BEGIN SOURCE BLOCK 223 paragraph
-Table~\ref{tab:B1} retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.
+% BEGIN SOURCE BLOCK 223 heading
+\appendixsection{app:B}{Audit coverage and diagnostic boundaries}
 % END SOURCE BLOCK 223
 
-% BEGIN SOURCE BLOCK 224 table
+% BEGIN SOURCE BLOCK 224 paragraph
+Table~\ref{tab:B1} retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.
+% END SOURCE BLOCK 224
+
+% BEGIN SOURCE BLOCK 225 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYY@{}}
@@ -1221,17 +1225,17 @@ September incident sensitivity pilot & Five full seed-1 runs, 13,076,234 offered
 Other September arrays & Remaining inventory entries authenticated only & Integrity-only in the prior audit & Qualification/preflight files are not additional fleet replications \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 224
-
-% BEGIN SOURCE BLOCK 225 paragraph
-The per-run JSON records preserve offered/admitted counts, explicit rejection and unavailability categories, false-success and latency discrepancy counts, penalty-equal ambiguity, summary reconciliation and source bindings. A rejected task's finite latency is not necessarily a false success. For the 19 available full runs, both false-success and non-penalty rejection-latency counts are zero, and fixed-history admission-consistent scores equal their archived values. Historical unavailable cells are labelled ``not assessable,'' never zero. Receipt checks are reported as past observations, not freshly rerun validation.
 % END SOURCE BLOCK 225
 
 % BEGIN SOURCE BLOCK 226 paragraph
-Table~\ref{tab:B2} details primary morning ingress\ensuremath{\to}per-task task accounting. ``Both'' columns partition the same offered population; no task-level confidence intervals are constructed.
+The per-run JSON records preserve offered/admitted counts, explicit rejection and unavailability categories, false-success and latency discrepancy counts, penalty-equal ambiguity, summary reconciliation and source bindings. A rejected task's finite latency is not necessarily a false success. For the 19 available full runs, both false-success and non-penalty rejection-latency counts are zero, and fixed-history admission-consistent scores equal their archived values. Historical unavailable cells are labelled ``not assessable,'' never zero. Receipt checks are reported as past observations, not freshly rerun validation.
 % END SOURCE BLOCK 226
 
-% BEGIN SOURCE BLOCK 227 table
+% BEGIN SOURCE BLOCK 227 paragraph
+Table~\ref{tab:B2} details primary morning ingress\ensuremath{\to}per-task task accounting. ``Both'' columns partition the same offered population; no task-level confidence intervals are constructed.
+% END SOURCE BLOCK 227
+
+% BEGIN SOURCE BLOCK 228 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYYY@{}}
@@ -1249,171 +1253,171 @@ Fleet seed & Failure \ensuremath{\to} success & Success \ensuremath{\to} failure
 4 & 59,264 & 1,949 & 1,569,719 & 113,184 & 57,315 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 227
-
-% BEGIN SOURCE BLOCK 228 paragraph
-All 23 eligible within-study pairs are retained in the machine-readable record. Task identity uses matched trace-row/substep/slot coordinates and verified stream identities; sampled sizes are source-derived correspondence, not independently observed fields. Later queue divergence prevents these descriptive transitions from identifying a unique causal contribution of individual placements.
 % END SOURCE BLOCK 228
 
 % BEGIN SOURCE BLOCK 229 paragraph
-The scalar suite includes 440 primary cases and ten deletion trials, below its 500-case limit. The five-task case is minimal under single-candidate deletion, not a globally minimal counterexample over every numeric parameter. A's retained mask remains unchanged by the diagnostic code: the fourth replacement is inspected only. C's repeated complete passes restart from the same state. That scalar exercise performed no full-evaluator prefix, actor inference, SUMO run, campaign or retraining; the new authorised campaign is separate.
+All 23 eligible within-study pairs are retained in the machine-readable record. Task identity uses matched trace-row/substep/slot coordinates and verified stream identities; sampled sizes are source-derived correspondence, not independently observed fields. Later queue divergence prevents these descriptive transitions from identifying a unique causal contribution of individual placements.
 % END SOURCE BLOCK 229
 
-% BEGIN SOURCE BLOCK 230 heading
-\appendixsection{app:C}{Exact-model result and numerical boundary}
+% BEGIN SOURCE BLOCK 230 paragraph
+The scalar suite includes 440 primary cases and ten deletion trials, below its 500-case limit. The five-task case is minimal under single-candidate deletion, not a globally minimal counterexample over every numeric parameter. A's retained mask remains unchanged by the diagnostic code: the fourth replacement is inspected only. C's repeated complete passes restart from the same state. That scalar exercise performed no full-evaluator prefix, actor inference, SUMO run, campaign or retraining; the new authorised campaign is separate.
 % END SOURCE BLOCK 230
 
-% BEGIN SOURCE BLOCK 231 paragraph
-The following full model-specific proof is reproduced from S14, preserving its assumptions and numerical boundary. Codex produced this retrospective analysis; independent student authorship or completed personal verification is not asserted. The existing diagnostic results follow the proof; their suite has not been repeated.
+% BEGIN SOURCE BLOCK 231 heading
+\appendixsection{app:C}{Exact-model result and numerical boundary}
 % END SOURCE BLOCK 231
 
 % BEGIN SOURCE BLOCK 232 paragraph
-This is a retrospective deduction about the stated TrafficTwin admission model. It is not a new scheduling family, a full-system experiment or a claim of independent student authorship. The frozen code is not altered. Numerical findings and executable inputs accompany this note.
+The following full model-specific proof is reproduced from S14, preserving its assumptions and numerical boundary. Codex produced this retrospective analysis; independent student authorship or completed personal verification is not asserted. The existing diagnostic results follow the proof; their suite has not been repeated.
 % END SOURCE BLOCK 232
 
-% BEGIN SOURCE BLOCK 233 heading
-\subsection{Model and objects that must remain separate}\label{sec:C.1}
+% BEGIN SOURCE BLOCK 233 paragraph
+This is a retrospective deduction about the stated TrafficTwin admission model. It is not a new scheduling family, a full-system experiment or a claim of independent student authorship. The frozen code is not altered. Numerical findings and executable inputs accompany this note.
 % END SOURCE BLOCK 233
 
-% BEGIN SOURCE BLOCK 234 paragraph
-Candidates have a fixed order $i=1,\ldots,n$ and fixed destination $r_i$. At each destination $r$, initial workload $W_r\geq0$, integer task count $Q_r\geq0$ and capacity $C_r$ are fixed throughout reconciliation. $E_i$ is fixed active/radio/coarse-capacity eligibility. Candidate service $s_i\geq0$ and deadline $D_i$ are finite. There is no intervening service drain. All sums here are exact.
+% BEGIN SOURCE BLOCK 234 heading
+\subsection{Model and objects that must remain separate}\label{sec:C.1}
 % END SOURCE BLOCK 234
 
 % BEGIN SOURCE BLOCK 235 paragraph
-For mask $M\leq E$, define $O_i(M)=\sum_{\substack{j<i\\r_j=r_i}}s_jM_j$ and $H_i(M)=\sum_{\substack{j<i\\r_j=r_i}}M_j$. The map is
+Candidates have a fixed order $i=1,\ldots,n$ and fixed destination $r_i$. At each destination $r$, initial workload $W_r\geq0$, integer task count $Q_r\geq0$ and capacity $C_r$ are fixed throughout reconciliation. $E_i$ is fixed active/radio/coarse-capacity eligibility. Candidate service $s_i\geq0$ and deadline $D_i$ are finite. There is no intervening service drain. All sums here are exact.
 % END SOURCE BLOCK 235
 
-% BEGIN SOURCE BLOCK 236 equation
+% BEGIN SOURCE BLOCK 236 paragraph
+For mask $M\leq E$, define $O_i(M)=\sum_{\substack{j<i\\r_j=r_i}}s_jM_j$ and $H_i(M)=\sum_{\substack{j<i\\r_j=r_i}}M_j$. The map is
+% END SOURCE BLOCK 236
+
+% BEGIN SOURCE BLOCK 237 equation
 \begin{equation}\tag{C1}\label{eq:C1}
  F_i(M)=E_i\,\mathbf{1}\{W_{r_i}+O_i(M)<D_i\}\,\mathbf{1}\{Q_{r_i}+H_i(M)<C_{r_i}\}.
 \end{equation}
-% END SOURCE BLOCK 236
-
-% BEGIN SOURCE BLOCK 237 paragraph
-Start $M^{0}=E$; the historical algorithm retains $M^{3}=F^{3}(E)$, then recomputes $O(M^{3})$. Its gate-failure label is $E_i\mathbf{1}\{W+O_i(M^{3})\geq D_i\}$; its capacity label covers other eligible non-admissions, even when the retained mask is not fixed. Enqueueing follows $M^{3}$. Diagnostic success is $M_i^{3}\mathbf{1}\{W+O_i(M^{3})+s_i\leq D_i\}$, with zero transfer latency for these fixtures. Production latency additionally contains the source-defined communication/forwarding terms. Neither admission nor a rejection label alone determines the final deadline outcome.
 % END SOURCE BLOCK 237
 
 % BEGIN SOURCE BLOCK 238 paragraph
-The causal fixed-target scan computes $b_i=F_i(b)$ in order, reserving $s_i$ and one count immediately when admitted. It uses the same $E$, destinations and input arrays. This scan is B in a one-substep comparison. Across multiple substeps B replays A's entire target sequence; it is a target-conditioned diagnostic, not automatically an autonomous deployment policy.
+Start $M^{0}=E$; the historical algorithm retains $M^{3}=F^{3}(E)$, then recomputes $O(M^{3})$. Its gate-failure label is $E_i\mathbf{1}\{W+O_i(M^{3})\geq D_i\}$; its capacity label covers other eligible non-admissions, even when the retained mask is not fixed. Enqueueing follows $M^{3}$. Diagnostic success is $M_i^{3}\mathbf{1}\{W+O_i(M^{3})+s_i\leq D_i\}$, with zero transfer latency for these fixtures. Production latency additionally contains the source-defined communication/forwarding terms. Neither admission nor a rejection label alone determines the final deadline outcome.
 % END SOURCE BLOCK 238
 
-% BEGIN SOURCE BLOCK 239 heading
-\subsection{Existence, uniqueness and candidate-count bound}\label{sec:C.2}
+% BEGIN SOURCE BLOCK 239 paragraph
+The causal fixed-target scan computes $b_i=F_i(b)$ in order, reserving $s_i$ and one count immediately when admitted. It uses the same $E$, destinations and input arrays. This scan is B in a one-substep comparison. Across multiple substeps B replays A's entire target sequence; it is a target-conditioned diagnostic, not automatically an autonomous deployment policy.
 % END SOURCE BLOCK 239
 
-% BEGIN SOURCE BLOCK 240 proof_open
-\begin{proof}
+% BEGIN SOURCE BLOCK 240 heading
+\subsection{Existence, uniqueness and candidate-count bound}\label{sec:C.2}
 % END SOURCE BLOCK 240
 
-% BEGIN SOURCE BLOCK 241 paragraph
-$F_i$ depends only on earlier candidates at the same destination. Define $b_1$ from its constant predicate, then $b_2$ from $b_1$, and so on. This constructs a fixed point. If two fixed points differed, their earliest differing candidate would see identical preceding inputs and hence could not differ. Thus $b$ is unique and is exactly the causal scan.
+% BEGIN SOURCE BLOCK 241 proof_open
+\begin{proof}
 % END SOURCE BLOCK 241
 
 % BEGIN SOURCE BLOCK 242 paragraph
-From any initial mask, after $t$ simultaneous replacements the first $t$ eligible candidates at each fixed destination have their final values: induction uses the already-correct preceding values. Therefore at most $n_r$ replacements suffice at destination $r$, and at most $\max_r n_r$ globally. Ineligible candidates can be removed because their mask is fixed at zero. Multiple fixed destinations form disjoint dependency chains. This argument alone does not justify three replacements for an arbitrary candidate population.
+$F_i$ depends only on earlier candidates at the same destination. Define $b_1$ from its constant predicate, then $b_2$ from $b_1$, and so on. This constructs a fixed point. If two fixed points differed, their earliest differing candidate would see identical preceding inputs and hence could not differ. Thus $b$ is unique and is exactly the causal scan.
 % END SOURCE BLOCK 242
 
-% BEGIN SOURCE BLOCK 243 proof_close
-\end{proof}
+% BEGIN SOURCE BLOCK 243 paragraph
+From any initial mask, after $t$ simultaneous replacements the first $t$ eligible candidates at each fixed destination have their final values: induction uses the already-correct preceding values. Therefore at most $n_r$ replacements suffice at destination $r$, and at most $\max_r n_r$ globally. Ineligible candidates can be removed because their mask is fixed at zero. Multiple fixed destinations form disjoint dependency chains. This argument alone does not justify three replacements for an arbitrary candidate population.
 % END SOURCE BLOCK 243
 
-% BEGIN SOURCE BLOCK 244 heading
-\subsection{A deadline-count bound from eligibility}\label{sec:C.3}
+% BEGIN SOURCE BLOCK 244 proof_close
+\end{proof}
 % END SOURCE BLOCK 244
 
-% BEGIN SOURCE BLOCK 245 paragraph
-Let $d_r$ be the number of distinct deadline thresholds among eligible candidates at destination r. Starting at $E$, exact reconciliation reaches $b$ in at most $\min(n_r,2d_r-1)$ replacements per nonempty destination. Empty destinations need none. Nonnegative work makes $F$ order-reversing: $U\geq V$ implies $F(U)\leq F(V)$. Since $E\geq b$, odd iterates are lower bounds on $b$ and even iterates are upper bounds. We prove the stronger statement that any upper mask $b\leq U\leq E$ reaches $b$ within $2d-1$ replacements at one destination.
+% BEGIN SOURCE BLOCK 245 heading
+\subsection{A deadline-count bound from eligibility}\label{sec:C.3}
 % END SOURCE BLOCK 245
 
-% BEGIN SOURCE BLOCK 246 proof_open
-\begin{proof}
+% BEGIN SOURCE BLOCK 246 paragraph
+Let $d_r$ be the number of distinct deadline thresholds among eligible candidates at destination r. Starting at $E$, exact reconciliation reaches $b$ in at most $\min(n_r,2d_r-1)$ replacements per nonempty destination. Empty destinations need none. Nonnegative work makes $F$ order-reversing: $U\geq V$ implies $F(U)\leq F(V)$. Since $E\geq b$, odd iterates are lower bounds on $b$ and even iterates are upper bounds. We prove the stronger statement that any upper mask $b\leq U\leq E$ reaches $b$ within $2d-1$ replacements at one destination.
 % END SOURCE BLOCK 246
 
-% BEGIN SOURCE BLOCK 247 paragraph
-If $U=b$ there is nothing to prove. Otherwise let $p$ be its earliest extra admission: $U_p=1$, $b_p=0$. All earlier entries coincide with $b$, so after one replacement the entire prefix through $p$ is correct and remains correct. If $p$ is rejected by capacity, that fixed earlier prefix already fills capacity, and every later candidate is rejected; $F(U)=b$.
+% BEGIN SOURCE BLOCK 247 proof_open
+\begin{proof}
 % END SOURCE BLOCK 247
 
 % BEGIN SOURCE BLOCK 248 paragraph
-Otherwise $p$ is gate-rejected and the fixed earlier workload is at least $D_p$. Every later candidate with $\text{deadline}\leq D_p$ must then be rejected, because subsequent work is nonnegative. These entries are zero after the first replacement and stay zero. After two replacements, $F^{2}(U)$ is again an upper bound on $b$, with that prefix and those later rejected classes fixed. Delete those fixed entries and absorb the fixed prefix into $W$ and Q. The remaining suffix has at most $d-1$ distinct deadlines, unchanged order and the same form of gate/capacity rule. Induction needs at most $2(d-1)-1$ further replacements, giving $2d-1$ overall. For $d=1$, the first gate rejection excludes every later candidate, so one replacement suffices. Capacity can only terminate the suffix earlier.
+If $U=b$ there is nothing to prove. Otherwise let $p$ be its earliest extra admission: $U_p=1$, $b_p=0$. All earlier entries coincide with $b$, so after one replacement the entire prefix through $p$ is correct and remains correct. If $p$ is rejected by capacity, that fixed earlier prefix already fills capacity, and every later candidate is rejected; $F(U)=b$.
 % END SOURCE BLOCK 248
 
-% BEGIN SOURCE BLOCK 249 proof_close
-\end{proof}
+% BEGIN SOURCE BLOCK 249 paragraph
+Otherwise $p$ is gate-rejected and the fixed earlier workload is at least $D_p$. Every later candidate with $\text{deadline}\leq D_p$ must then be rejected, because subsequent work is nonnegative. These entries are zero after the first replacement and stay zero. After two replacements, $F^{2}(U)$ is again an upper bound on $b$, with that prefix and those later rejected classes fixed. Delete those fixed entries and absorb the fixed prefix into $W$ and Q. The remaining suffix has at most $d-1$ distinct deadlines, unchanged order and the same form of gate/capacity rule. Induction needs at most $2(d-1)-1$ further replacements, giving $2d-1$ overall. For $d=1$, the first gate rejection excludes every later candidate, so one replacement suffices. Capacity can only terminate the suffix earlier.
 % END SOURCE BLOCK 249
 
-% BEGIN SOURCE BLOCK 250 paragraph
-Zero work is allowed: it need not advance workload, but every admission still advances count. Initial workload at/above a deadline, capacity already full, ineligible gaps and arbitrary ordering of the two thresholds do not defeat the proof. The same argument also gives one replacement when deadlines are nonincreasing in candidate order: the first extra gate rejection excludes every subsequent deadline class. The bound is sufficient; it need not be attained for a particular input.
+% BEGIN SOURCE BLOCK 250 proof_close
+\end{proof}
 % END SOURCE BLOCK 250
 
 % BEGIN SOURCE BLOCK 251 paragraph
-TrafficTwin's distinct production deadlines are 100 and 500 ms, so \textbf{three replacements equal the causal fixed-target mask in exact arithmetic} under these assumptions. Its service distributions are positive and do not weaken this conclusion; no independent choice of a convenient service/deadline is needed for the proof. Ingress with fixed individual targets also decomposes by destination. Causal per-task reselection does not have fixed targets, so this result does not equate A with C.
+Zero work is allowed: it need not advance workload, but every admission still advances count. Initial workload at/above a deadline, capacity already full, ineligible gaps and arbitrary ordering of the two thresholds do not defeat the proof. The same argument also gives one replacement when deadlines are nonincreasing in candidate order: the first extra gate rejection excludes every subsequent deadline class. The bound is sufficient; it need not be attained for a particular input.
 % END SOURCE BLOCK 251
 
 % BEGIN SOURCE BLOCK 252 paragraph
-The earlier five-task 1/1/41/41/81 example has three deadline thresholds and lies outside this two-threshold result. Its instability is therefore not evidence for an exact-arithmetic production-domain reconciliation defect. The new deduction explains why the earlier two-threshold grid was stable without using that grid as proof.
+TrafficTwin's distinct production deadlines are 100 and 500 ms, so \textbf{three replacements equal the causal fixed-target mask in exact arithmetic} under these assumptions. Its service distributions are positive and do not weaken this conclusion; no independent choice of a convenient service/deadline is needed for the proof. Ingress with fixed individual targets also decomposes by destination. Causal per-task reselection does not have fixed targets, so this result does not equate A with C.
 % END SOURCE BLOCK 252
 
-% BEGIN SOURCE BLOCK 253 heading
-\subsection{Why float32 requires a separate claim}\label{sec:C.4}
+% BEGIN SOURCE BLOCK 253 paragraph
+The earlier five-task 1/1/41/41/81 example has three deadline thresholds and lies outside this two-threshold result. Its instability is therefore not evidence for an exact-arithmetic production-domain reconciliation defect. The new deduction explains why the earlier two-threshold grid was stable without using that grid as proof.
 % END SOURCE BLOCK 253
 
-% BEGIN SOURCE BLOCK 254 paragraph
-The frozen helper computes an inclusive \texttt{jnp.cumsum(w, axis=0)} and subtracts w to form the exclusive prefix. Exact cancellation removes the current candidate; rounded addition/subtraction need not do so identically for both values of its own mask. It also adds base workload after prefix accumulation. The causal helper starts at base workload and adds admitted services in scan order; floating-point associativity differs. Thus the exact dependency and upper/lower arguments are not a proof of float32 equivalence or convergence.
+% BEGIN SOURCE BLOCK 254 heading
+\subsection{Why float32 requires a separate claim}\label{sec:C.4}
 % END SOURCE BLOCK 254
 
 % BEGIN SOURCE BLOCK 255 paragraph
-Count ranks use float32 cumulative sums too. Integer counts within the small suite and the studied slot widths are exactly representable, but that does not certify arbitrarily large populations. Strict gate comparisons require exact mask comparison, not an allclose acceptance criterion. The diagnostic protocol declares numerical reporting tolerances before execution, retains all discrete disagreements and separates task-parameter compatibility, whole-model reachability and observed frequency. No saved September candidate masks establish how often any constructed threshold case occurs.
+The frozen helper computes an inclusive \texttt{jnp.cumsum(w, axis=0)} and subtracts w to form the exclusive prefix. Exact cancellation removes the current candidate; rounded addition/subtraction need not do so identically for both values of its own mask. It also adds base workload after prefix accumulation. The causal helper starts at base workload and adds admitted services in scan order; floating-point associativity differs. Thus the exact dependency and upper/lower arguments are not a proof of float32 equivalence or convergence.
 % END SOURCE BLOCK 255
 
-% BEGIN SOURCE BLOCK 256 heading
-\subsection{Consequence for queue clearing in the stated exact model}\label{sec:C.5}
+% BEGIN SOURCE BLOCK 256 paragraph
+Count ranks use float32 cumulative sums too. Integer counts within the small suite and the studied slot widths are exactly representable, but that does not certify arbitrarily large populations. Strict gate comparisons require exact mask comparison, not an allclose acceptance criterion. The diagnostic protocol declares numerical reporting tolerances before execution, retains all discrete disagreements and separates task-parameter compatibility, whole-model reachability and observed frequency. No saved September candidate masks establish how often any constructed threshold case occurs.
 % END SOURCE BLOCK 256
 
-% BEGIN SOURCE BLOCK 257 paragraph
-With service multiplier 1, the largest possible RSU task service is less than 38.889 ms (type2, nominal 35.354 ms times noise below 1.1). At a destination with admissions, the last admitted task sees less than its deadline, at most 500 ms, before adding its own service. The final accumulated workload is therefore less than 538.889 ms, provided initial workload does not already exceed this bound. If nothing is admitted, workload is unchanged. Starting empty, induction across substeps preserves the bound for either fixed-target causal admission or causal reselection. The exact two-deadline result transfers it to three-pass fixed-target reconciliation.
+% BEGIN SOURCE BLOCK 257 heading
+\subsection{Consequence for queue clearing in the stated exact model}\label{sec:C.5}
 % END SOURCE BLOCK 257
 
 % BEGIN SOURCE BLOCK 258 paragraph
-One 1,000 ms drain consequently clears every queue from this initialisation. Thus the empty-boundary assumption in the earlier destination-prefix explanation follows from the stated exact gate/service/timing model, not traffic sparsity alone. The observed zero endpoints and reconstructed maxima near 538 ms are consistent with that consequence. This is not a float32 error bound, a validation of event-level service or a theorem for other deadlines/service multipliers/drain intervals. Together with $R\geq K$, positive productive admissions and lowest-index ties, it supports recurrence of the low-index destination prefix; it does not identify every deadline loss.
+With service multiplier 1, the largest possible RSU task service is less than 38.889 ms (type2, nominal 35.354 ms times noise below 1.1). At a destination with admissions, the last admitted task sees less than its deadline, at most 500 ms, before adding its own service. The final accumulated workload is therefore less than 538.889 ms, provided initial workload does not already exceed this bound. If nothing is admitted, workload is unchanged. Starting empty, induction across substeps preserves the bound for either fixed-target causal admission or causal reselection. The exact two-deadline result transfers it to three-pass fixed-target reconciliation.
 % END SOURCE BLOCK 258
 
-% BEGIN SOURCE BLOCK 259 heading
-\subsection{Retained diagnostic evidence}\label{sec:C.6}
+% BEGIN SOURCE BLOCK 259 paragraph
+One 1,000 ms drain consequently clears every queue from this initialisation. Thus the empty-boundary assumption in the earlier destination-prefix explanation follows from the stated exact gate/service/timing model, not traffic sparsity alone. The observed zero endpoints and reconstructed maxima near 538 ms are consistent with that consequence. This is not a float32 error bound, a validation of event-level service or a theorem for other deadlines/service multipliers/drain intervals. Together with $R\geq K$, positive productive admissions and lowest-index ties, it supports recurrence of the low-index destination prefix; it does not identify every deadline loss.
 % END SOURCE BLOCK 259
 
-% BEGIN SOURCE BLOCK 260 paragraph
-The initial 671 inputs comprise 128 general mathematical fixtures, 324 coupled fixtures, 210 deliberate threshold fixtures and nine completion boundaries. Bounded adverse reductions/transfers and numerical follow-ups bring the total to 719, within the predeclared ceiling of 800. Protocol amendments precede their specific follow-ups; no outcome-driven expansion beyond that budget occurred. Full negative and unchanged results remain in the machine-readable record.
+% BEGIN SOURCE BLOCK 260 heading
+\subsection{Retained diagnostic evidence}\label{sec:C.6}
 % END SOURCE BLOCK 260
 
 % BEGIN SOURCE BLOCK 261 paragraph
-The numerical alternating case uses seven type3 services of 2.5252525806427 ms followed by one type1 service of 21.11111068725586 ms, all with 100 ms deadlines. Initial $W=82.32322692871094$ ms and $Q=4$, $C=6{,}220$. Four earlier type1 services of $W/4$ construct this queue in a separate local admission substep; their noise multiplier lies within 0.9--1.1. This establishes local kernel compatibility under explicit arrays, not exact RNG/actor/traffic reachability.
+The initial 671 inputs comprise 128 general mathematical fixtures, 324 coupled fixtures, 210 deliberate threshold fixtures and nine completion boundaries. Bounded adverse reductions/transfers and numerical follow-ups bring the total to 719, within the predeclared ceiling of 800. Protocol amendments precede their specific follow-ups; no outcome-driven expansion beyond that budget occurred. Full negative and unchanged results remain in the machine-readable record.
 % END SOURCE BLOCK 261
 
 % BEGIN SOURCE BLOCK 262 paragraph
-Exact arithmetic admits all eight, with the last gate margin about 0.000005007 ms; the last task nevertheless misses completion. The instrumented float32 mirror alternates $11111111\to11111110\to11111111\to11111110\to11111111$. The unchanged production helper confirms the retained third mask, recomputed offsets and capacity-failure count. Its causal float32 scan also rejects the last candidate, though via its own rounded gate. Thus this fixture distinguishes exact from implemented arithmetic and exposes an unstable label, not a demonstrated A\ensuremath{\to}B success improvement. The mirror's intermediate masks are constructed diagnostics, not recorded September fields.
+The numerical alternating case uses seven type3 services of 2.5252525806427 ms followed by one type1 service of 21.11111068725586 ms, all with 100 ms deadlines. Initial $W=82.32322692871094$ ms and $Q=4$, $C=6{,}220$. Four earlier type1 services of $W/4$ construct this queue in a separate local admission substep; their noise multiplier lies within 0.9--1.1. This establishes local kernel compatibility under explicit arrays, not exact RNG/actor/traffic reachability.
 % END SOURCE BLOCK 262
 
 % BEGIN SOURCE BLOCK 263 paragraph
-Four padding checks retain the alternating mask at $N=215/R=9$ and $N=2{,}488/R=10$, with the active block at either end. Their target is imposed: a busy target would not be the common argmin while others are empty. A final fixture prepends the four services, starts every queue empty and selects RSU0 at the correct $N=215/R=9$ dimensions. Its third mask is stable, although the last admission differs from exact arithmetic. This comparison prevents treating fixed-target instability as demonstrated on a full common-target trajectory.
+Exact arithmetic admits all eight, with the last gate margin about 0.000005007 ms; the last task nevertheless misses completion. The instrumented float32 mirror alternates $11111111\to11111110\to11111111\to11111110\to11111111$. The unchanged production helper confirms the retained third mask, recomputed offsets and capacity-failure count. Its causal float32 scan also rejects the last candidate, though via its own rounded gate. Thus this fixture distinguishes exact from implemented arithmetic and exposes an unstable label, not a demonstrated A\ensuremath{\to}B success improvement. The mirror's intermediate masks are constructed diagnostics, not recorded September fields.
 % END SOURCE BLOCK 263
 
 % BEGIN SOURCE BLOCK 264 paragraph
-One separate inclusive-completion boundary also differs: saved-offset arithmetic rounds a just-late exact completion to an on-time float32 value. This is a zero-transfer calculation, not execution of the full latency scorer. Neither numerical example measures historical frequency or changes the reported fleet estimates.
+Four padding checks retain the alternating mask at $N=215/R=9$ and $N=2{,}488/R=10$, with the active block at either end. Their target is imposed: a busy target would not be the common argmin while others are empty. A final fixture prepends the four services, starts every queue empty and selects RSU0 at the correct $N=215/R=9$ dimensions. Its third mask is stable, although the last admission differs from exact arithmetic. This comparison prevents treating fixed-target instability as demonstrated on a full common-target trajectory.
 % END SOURCE BLOCK 264
 
 % BEGIN SOURCE BLOCK 265 paragraph
-The two-RSU adverse case is minimal under the tested shared-position deletions and one-substep reduction. It retains production task/deadline/capacity values but changes infrastructure dimensions; its twelve transfers to the studied RSU/substep parameters retain no adverse result. No fixture frequency is interpreted as a fleet probability; that numerical investigation contains no confidence intervals, raw audits or full-system runs.
+One separate inclusive-completion boundary also differs: saved-offset arithmetic rounds a just-late exact completion to an on-time float32 value. This is a zero-transfer calculation, not execution of the full latency scorer. Neither numerical example measures historical frequency or changes the reported fleet estimates.
 % END SOURCE BLOCK 265
 
-% BEGIN SOURCE BLOCK 266 heading
-\subsection{Retained adverse dispatch illustration}\label{sec:C.7}
+% BEGIN SOURCE BLOCK 266 paragraph
+The two-RSU adverse case is minimal under the tested shared-position deletions and one-substep reduction. It retains production task/deadline/capacity values but changes infrastructure dimensions; its twelve transfers to the studied RSU/substep parameters retain no adverse result. No fixture frequency is interpreted as a fleet probability; that numerical investigation contains no confidence intervals, raw audits or full-system runs.
 % END SOURCE BLOCK 266
 
-% BEGIN SOURCE BLOCK 267 paragraph
-Target reselection can separately lose useful completions. Table~\ref{tab:C1} uses two empty RSUs, two substeps, capacity 6,220, zero transfer latency and repeated type2/type2/type1/type2 tasks with nominal production service demands. Both arms admit all eight tasks. B replays A's targets 0 then 1, whereas C chooses the current least workload after every reservation.
+% BEGIN SOURCE BLOCK 267 heading
+\subsection{Retained adverse dispatch illustration}\label{sec:C.7}
 % END SOURCE BLOCK 267
 
-% BEGIN SOURCE BLOCK 268 table
+% BEGIN SOURCE BLOCK 268 paragraph
+Target reselection can separately lose useful completions. Table~\ref{tab:C1} uses two empty RSUs, two substeps, capacity 6,220, zero transfer latency and repeated type2/type2/type1/type2 tasks with nominal production service demands. Both arms admit all eight tasks. B replays A's targets 0 then 1, whereas C chooses the current least workload after every reservation.
+% END SOURCE BLOCK 268
+
+% BEGIN SOURCE BLOCK 269 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYYYY@{}}
@@ -1435,25 +1439,25 @@ Slot.task & Deadline & Service & B: RSU / work before & B: completion & C: RSU /
 2.4 & 500 & 35.354 & 1 / 91.818 & 127.172 met & 1 / 106.061 & 141.414 met \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 268
-
-% BEGIN SOURCE BLOCK 269 paragraph
-B preserves an empty RSU for substep 2. C spreads earlier work across both, making the later 100 ms task finish at 112.929 ms: eight admissions produce seven successes. Current workload omits future deadlines, and the gate omits own service; neither directly maximises deadline-success count. Tested deletions remove this loss, without establishing global minimality.
 % END SOURCE BLOCK 269
 
 % BEGIN SOURCE BLOCK 270 paragraph
-The loss did not persist in twelve tested transfers to nine/ten RSUs and five substeps, with four/six candidates. The example identifies an order/service/deadline interaction, not the cause of recorded losses at full dimensions. B replays A targets and is not an autonomous deployable comparator. Original full-evaluator prefixes remain unrun \hyperref[source-s10]{[S10]}, \hyperref[source-s14]{[S14]}.
+B preserves an empty RSU for substep 2. C spreads earlier work across both, making the later 100 ms task finish at 112.929 ms: eight admissions produce seven successes. Current workload omits future deadlines, and the gate omits own service; neither directly maximises deadline-success count. Tested deletions remove this loss, without establishing global minimality.
 % END SOURCE BLOCK 270
 
-% BEGIN SOURCE BLOCK 271 heading
-\appendixsection{app:D}{Type aggregation and engineering evidence}
+% BEGIN SOURCE BLOCK 271 paragraph
+The loss did not persist in twelve tested transfers to nine/ten RSUs and five substeps, with four/six candidates. The example identifies an order/service/deadline interaction, not the cause of recorded losses at full dimensions. B replays A targets and is not an autonomous deployable comparator. Original full-evaluator prefixes remain unrun \hyperref[source-s10]{[S10]}, \hyperref[source-s14]{[S14]}.
 % END SOURCE BLOCK 271
 
-% BEGIN SOURCE BLOCK 272 paragraph
-The retained retrospective type analysis read eight original primary-morning task arrays, authenticated their hashes, and aggregated categories by type; it was not repeated here. The prior 19-run admission validation and 23 task joins are reused, not repeated. All-task totals and paired net changes reconcile. The following table exposes every type/draw/arm; attainment uses the offered column. Other terminal failures are available in the linked CSV and unchanged within each pair.
+% BEGIN SOURCE BLOCK 272 heading
+\appendixsection{app:D}{Type aggregation and engineering evidence}
 % END SOURCE BLOCK 272
 
-% BEGIN SOURCE BLOCK 273 table
+% BEGIN SOURCE BLOCK 273 paragraph
+The retained retrospective type analysis read eight original primary-morning task arrays, authenticated their hashes, and aggregated categories by type; it was not repeated here. The prior 19-run admission validation and 23 task joins are reused, not repeated. All-task totals and paired net changes reconcile. The following table exposes every type/draw/arm; attainment uses the offered column. Other terminal failures are available in the linked CSV and unchanged within each pair.
+% END SOURCE BLOCK 273
+
+% BEGIN SOURCE BLOCK 274 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYYYYY@{}}
@@ -1491,41 +1495,41 @@ Seed / type & Arm & Offered & Success & Attainment & Admitted & Gate rejected & 
 4/3 & P & 872,011 & 832,211 & 95.436 & 869,818 & 309 & 37,607 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 273
-
-% BEGIN SOURCE BLOCK 274 paragraph
-The \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/BENCHMARK.json}}{benchmark record} retains lowering/compilation times, median, quartiles, p95, minima/maxima, compiler buffer estimates and exact source/runtime identities for all 16 configurations. \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/BENCHMARK_TIMES.csv}}{Raw call durations} permit descriptive timing checks. \href{\detokenize{../empirical_extension_2026-09-08/confirmation/PRECISION.json}}{Precision sensitivity} records pre-outcome assumptions about block variance; it is not observed power for the new results.
 % END SOURCE BLOCK 274
 
-% BEGIN SOURCE BLOCK 275 heading
-\appendixsection{app:E}{Joint-randomness study controls and execution}
+% BEGIN SOURCE BLOCK 275 paragraph
+The \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/BENCHMARK.json}}{benchmark record} retains lowering/compilation times, median, quartiles, p95, minima/maxima, compiler buffer estimates and exact source/runtime identities for all 16 configurations. \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/BENCHMARK_TIMES.csv}}{Raw call durations} permit descriptive timing checks. \href{\detokenize{../empirical_extension_2026-09-08/confirmation/PRECISION.json}}{Precision sensitivity} records pre-outcome assumptions about block variance; it is not observed power for the new results.
 % END SOURCE BLOCK 275
 
-% BEGIN SOURCE BLOCK 276 paragraph
-The execution-authorised seal preserves the disabled preparation package and binds its own source version, current actor/trace identities, runtime, output root, lock and qualification receipts. Fleet/evaluator pairs are (100,200) through (107,207). The accessible manifest check found no prior outcomes for these pairs; this is a scoped absence check, not proof that no record exists elsewhere. Block 0 starts ingress/common-target/per-task/round-robin; each subsequent block rotates that order by one position.
+% BEGIN SOURCE BLOCK 276 heading
+\appendixsection{app:E}{Joint-randomness study controls and execution}
 % END SOURCE BLOCK 276
 
 % BEGIN SOURCE BLOCK 277 paragraph
-Qualification used the previously inspected fleet/evaluator pair (1,0), never confirmation outcomes. Three frozen/instrumented pairs ran for 300 steps, followed by round-robin at 300 and a fresh-process 150-step restart: eight attempts total. All 83 shared scientific fields matched exactly in each unchanged-arm pair. The 300-step cyclic run advanced its pointer 8,817 times, including 28 subsequently rejected attempts; its final pointer was 6. The 150-step run matched the longer run's prefix. No unavailable-radio, RSU-capacity or local-capacity failures occurred in these short records, so their end-to-end branches were not empirically exercised. Preserved kernel tests cover those branches separately. Qualification is neither an extra replication nor proof of full-horizon equivalence.
+The execution-authorised seal preserves the disabled preparation package and binds its own source version, current actor/trace identities, runtime, output root, lock and qualification receipts. Fleet/evaluator pairs are (100,200) through (107,207). The accessible manifest check found no prior outcomes for these pairs; this is a scoped absence check, not proof that no record exists elsewhere. Block 0 starts ingress/common-target/per-task/round-robin; each subsequent block rotates that order by one position.
 % END SOURCE BLOCK 277
 
 % BEGIN SOURCE BLOCK 278 paragraph
-Added records expose final admission independently of success, actual local/peer service, queue counts, post-service workloads, SoC/energy and cyclic pointer state. Negative checks refused a corrupted offered count, mismatched shared-input binding, absent block receipt and changed output hash. A separate prelaunch critique identified a possible alternate-root attempt-budget bypass, incomplete type-summary checking and misleading failed-process timing. The final version binds one raw root/global lock, validates type numerators/denominators and records failure phase and elapsed process time. Existing short records were rechecked; no ninth qualification evaluator ran.
+Qualification used the previously inspected fleet/evaluator pair (1,0), never confirmation outcomes. Three frozen/instrumented pairs ran for 300 steps, followed by round-robin at 300 and a fresh-process 150-step restart: eight attempts total. All 83 shared scientific fields matched exactly in each unchanged-arm pair. The 300-step cyclic run advanced its pointer 8,817 times, including 28 subsequently rejected attempts; its final pointer was 6. The 150-step run matched the longer run's prefix. No unavailable-radio, RSU-capacity or local-capacity failures occurred in these short records, so their end-to-end branches were not empirically exercised. Preserved kernel tests cover those branches separately. Qualification is neither an extra replication nor proof of full-horizon equivalence.
 % END SOURCE BLOCK 278
 
 % BEGIN SOURCE BLOCK 279 paragraph
-Each full cell requires exact discrete accounting, proposal/admission/execution/forwarding consistency, penalty latency exactly ten times the deadline, inclusive deadline success and independent queue-work reconstruction. Retained tolerances are 0.01 ms absolute per queue-second for service conservation, 0.001 ms plus relative 0.000001 for drain, and 0.000001 task for reconstructed JSON score/type numerators. Within each block, fleet arrays, key streams, offers, observation descriptors, operational types/sizes and pre-admission service work must agree exactly. Observations, logits, actions, SoC and selected radio quantities are separately reported; equality is not forced.
+Added records expose final admission independently of success, actual local/peer service, queue counts, post-service workloads, SoC/energy and cyclic pointer state. Negative checks refused a corrupted offered count, mismatched shared-input binding, absent block receipt and changed output hash. A separate prelaunch critique identified a possible alternate-root attempt-budget bypass, incomplete type-summary checking and misleading failed-process timing. The final version binds one raw root/global lock, validates type numerators/denominators and records failure phase and elapsed process time. Existing short records were rechecked; no ninth qualification evaluator ran.
 % END SOURCE BLOCK 279
 
 % BEGIN SOURCE BLOCK 280 paragraph
-Execution is serial with at most 32 full attempts including failures, no retries or seed substitution, a three-hour per-cell timeout, 50 GiB initial free-space requirement and 20 GiB before each attempt. Incomplete attempts are retained. Completed-output hashes, commands, source identities and all eight block receipts gate the sealed primary analysis. The first included block supplies a remaining-runtime estimate; effects cannot change continuation. Process time includes startup, compilation, evaluation and compressed output writing; validation is timed separately. These times are not the scheduler-only benchmark in Table~\ref{tab:10}.
+Each full cell requires exact discrete accounting, proposal/admission/execution/forwarding consistency, penalty latency exactly ten times the deadline, inclusive deadline success and independent queue-work reconstruction. Retained tolerances are 0.01 ms absolute per queue-second for service conservation, 0.001 ms plus relative 0.000001 for drain, and 0.000001 task for reconstructed JSON score/type numerators. Within each block, fleet arrays, key streams, offers, observation descriptors, operational types/sizes and pre-admission service work must agree exactly. Observations, logits, actions, SoC and selected radio quantities are separately reported; equality is not forced.
 % END SOURCE BLOCK 280
 
 % BEGIN SOURCE BLOCK 281 paragraph
-The completed full matrix has 32 valid cells, eight valid block receipts and no failed attempts. The following tables retain every cell and block. I = ingress, $D$ = common-target, P = per-task and $R$ = round-robin; fleet/evaluator seeds are 100+$b$ and 200+$b$ for block b. Other terminal categories are retained in CELL\_RESULTS.csv and each validation receipt.
+Execution is serial with at most 32 full attempts including failures, no retries or seed substitution, a three-hour per-cell timeout, 50 GiB initial free-space requirement and 20 GiB before each attempt. Incomplete attempts are retained. Completed-output hashes, commands, source identities and all eight block receipts gate the sealed primary analysis. The first included block supplies a remaining-runtime estimate; effects cannot change continuation. Process time includes startup, compilation, evaluation and compressed output writing; validation is timed separately. These times are not the scheduler-only benchmark in Table~\ref{tab:10}.
 % END SOURCE BLOCK 281
 
-% BEGIN SOURCE BLOCK 282 table
+% BEGIN SOURCE BLOCK 282 paragraph
+The completed full matrix has 32 valid cells, eight valid block receipts and no failed attempts. The following tables retain every cell and block. I = ingress, $D$ = common-target, P = per-task and $R$ = round-robin; fleet/evaluator seeds are 100+$b$ and 200+$b$ for block b. Other terminal categories are retained in CELL\_RESULTS.csv and each validation receipt.
+% END SOURCE BLOCK 282
+
+% BEGIN SOURCE BLOCK 283 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYYYYY@{}}
@@ -1571,9 +1575,9 @@ Block / arm & Offered & Admitted & Successes & Attainment & Gate rejected & Admi
 7/$R$ & 1,744,742 & 1,726,431 & 1,596,904 & 91.527 & 15,938 & 129,527 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 282
+% END SOURCE BLOCK 283
 
-% BEGIN SOURCE BLOCK 283 table
+% BEGIN SOURCE BLOCK 284 table
 \begingroup
 \small
 \begin{xltabular}{\textwidth}{@{}YYYY@{}}
@@ -1595,22 +1599,22 @@ Block & Per-task \ensuremath{-} ingress & Common-target \ensuremath{-} ingress &
 7 & +4.423 & \ensuremath{-}3.624 & +0.678 \\
 \end{xltabular}
 \endgroup
-% END SOURCE BLOCK 283
-
-% BEGIN SOURCE BLOCK 284 paragraph
-Actions matched exactly in all 24 non-reference arm/block comparisons. Small observation and logit differences occurred in block 1; they did not change actions. The estimand remains the total scheduling intervention under frozen weights. Observed action matching extends the original finding to these streams without forcing replay or guaranteeing future equality. In block 1 (fleet 101/evaluator 201), each alternative differed from ingress by at most 0.0000000149012 in observations and SoC, and 0.000000357628 in logits. These are dimensionless recorded differences; no action was altered or forced. The \href{\detokenize{../joint_confirmation_2026-09-08/evidence/BLOCK_CONTROLS.json}}{block receipts} retain every comparison and exact maxima. The \href{\detokenize{../joint_confirmation_2026-09-08/evidence/CELL_RESULTS.json}}{cell records} and \href{\detokenize{../joint_confirmation_2026-09-08/evidence/PAIRED_EFFECTS.csv}}{paired effects} preserve unrounded values. No task-level significance tests or new type subgroup analysis were added.
 % END SOURCE BLOCK 284
 
 % BEGIN SOURCE BLOCK 285 paragraph
-All 32 records passed final-admission/score/category/penalty, assignment and queue checks under the sealed contract. Maximum reconstructed per-queue-second service discrepancy was 0.000121593 ms for RSUs and 0.000244141 ms for vehicle queues. This finite result does not certify every possible path or repair the historical off scorer.
+Actions matched exactly in all 24 non-reference arm/block comparisons. Small observation and logit differences occurred in block 1; they did not change actions. The estimand remains the total scheduling intervention under frozen weights. Observed action matching extends the original finding to these streams without forcing replay or guaranteeing future equality. In block 1 (fleet 101/evaluator 201), each alternative differed from ingress by at most 0.0000000149012 in observations and SoC, and 0.000000357628 in logits. These are dimensionless recorded differences; no action was altered or forced. The \href{\detokenize{../joint_confirmation_2026-09-08/evidence/BLOCK_CONTROLS.json}}{block receipts} retain every comparison and exact maxima. The \href{\detokenize{../joint_confirmation_2026-09-08/evidence/CELL_RESULTS.json}}{cell records} and \href{\detokenize{../joint_confirmation_2026-09-08/evidence/PAIRED_EFFECTS.csv}}{paired effects} preserve unrounded values. No task-level significance tests or new type subgroup analysis were added.
 % END SOURCE BLOCK 285
 
 % BEGIN SOURCE BLOCK 286 paragraph
-The campaign elapsed 6440.25 seconds (107.34 minutes) from first attempt to completion. Full evaluator processes took 6375.54 seconds in total; cell validation took 49.59 seconds, block validation 10.83 seconds, and sealed analysis with completion/hash checks 3.44 seconds. Qualification processes separately took 68.09 seconds. \href{\detokenize{../joint_confirmation_2026-09-08/evidence/TIMING.json}}{Timing records} and per-cell logs retain the exact boundaries. The first-block estimate used runtime only.
+All 32 records passed final-admission/score/category/penalty, assignment and queue checks under the sealed contract. Maximum reconstructed per-queue-second service discrepancy was 0.000121593 ms for RSUs and 0.000244141 ms for vehicle queues. This finite result does not certify every possible path or repair the historical off scorer.
 % END SOURCE BLOCK 286
 
 % BEGIN SOURCE BLOCK 287 paragraph
-The \href{\detokenize{../joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json}}{raw inventory} binds the locally retained task/step arrays and supporting files. The \href{\detokenize{../joint_confirmation_2026-09-08/document/verify_results.py}}{portable verifier} regenerates central tables from compact evidence and accepts an optional explicit raw root for integrity checking. Compact arithmetic is not repeated task-level validation; hashes are not a backup. Approved off-machine storage and examiner access remain unresolved.
+The campaign elapsed 6440.25 seconds (107.34 minutes) from first attempt to completion. Full evaluator processes took 6375.54 seconds in total; cell validation took 49.59 seconds, block validation 10.83 seconds, and sealed analysis with completion/hash checks 3.44 seconds. Qualification processes separately took 68.09 seconds. \href{\detokenize{../joint_confirmation_2026-09-08/evidence/TIMING.json}}{Timing records} and per-cell logs retain the exact boundaries. The first-block estimate used runtime only.
 % END SOURCE BLOCK 287
+
+% BEGIN SOURCE BLOCK 288 paragraph
+The \href{\detokenize{../joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json}}{raw inventory} binds the locally retained task/step arrays and supporting files. The \href{\detokenize{../joint_confirmation_2026-09-08/document/verify_results.py}}{portable verifier} regenerates central tables from compact evidence and accepts an optional explicit raw root for integrity checking. Compact arithmetic is not repeated task-level validation; hashes are not a backup. Approved off-machine storage and examiner access remain unresolved.
+% END SOURCE BLOCK 288
 
 \end{document}

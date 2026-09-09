@@ -162,9 +162,9 @@ def latex_words(namespace: dict[str, Any]) -> dict[str, Any]:
         "latex_sections": counts,
         "latex_minus_markdown": differences,
         "markup_difference_explanation": (
-            "Eight section references decode with a space after the section sign (+8 tokens); "
+            "Seven section references decode with a space after the section sign (+7 tokens); "
             "one inline R >= K formula decodes without surrounding spaces (-2 tokens). "
-            "The net six tokens are markup spacing, not different content."
+            "The net five tokens are markup spacing, not different content."
         ),
         "method": "Abstract through Conclusion; headings, table cells and algorithms included; "
         "captions, cover, references and appendices excluded. Decode actual LaTeX source blocks; "
