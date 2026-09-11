@@ -3,32 +3,43 @@ name: Dissertation revision review
 on:
   push:
     branches: [docs/dissertation-examiner-revision-2026-09-11]
-    paths:
-      - .github/workflows/dissertation-revision-review.yml
+    paths: [.github/workflows/dissertation-revision-review.yml]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  source-export:
+  bounded-product-evidence:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           ref: 1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8
           persist-credentials: false
-      - name: Export pinned tracked sources only (no research execution)
-        run: |
-          mkdir -p "$RUNNER_TEMP/dissertation-review"
-          git rev-parse HEAD > "$RUNNER_TEMP/dissertation-review/SOURCE_COMMIT.txt"
-          git ls-tree -rl HEAD > "$RUNNER_TEMP/dissertation-review/TRACKED_FILES.txt"
-          git archive --format=tar.gz --output="$RUNNER_TEMP/dissertation-review/traffictwin-source.tar.gz" HEAD
-          sha256sum "$RUNNER_TEMP/dissertation-review/traffictwin-source.tar.gz" > "$RUNNER_TEMP/dissertation-review/SHA256SUMS.txt"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-python@v5
         with:
-          name: dissertation-pinned-source-review
-          path: ${{ runner.temp }}/dissertation-review/
-          retention-days: 7
+          python-version: '3.11'
+      - name: Install locked product and browser dependencies
+        run: |
+          python -m pip install uv
+          uv sync --locked --extra dev --extra vec-runner
+          uv run playwright install --with-deps chromium
+      - name: Record source and bounded checks (no research runs)
+        run: |
+          mkdir -p output/dissertation-review
+          git rev-parse HEAD > output/dissertation-review/SOURCE_COMMIT.txt
+          uv run python scripts/verify_research_archives.py > output/dissertation-review/archive-integrity.txt
+          uv run python -m pytest --collect-only -q > output/dissertation-review/test-collection.txt
+          uv run ruff check . > output/dissertation-review/ruff.txt
+      - name: Capture actual default Streamlit pages
+        run: |
+          uv run python scripts/ui_browser_audit.py --pages smoke --viewports desktop --theme light --timeout-seconds 60 --output output/dissertation-review/ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dissertation-product-evidence
+          path: output/dissertation-review/
+          retention-days: 14
           if-no-files-found: error
