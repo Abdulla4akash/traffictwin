@@ -60,6 +60,17 @@ The actor is frozen, but observations/actions may respond to endogenous state;
 matched exogenous inputs must be identical. Physical compute completion, returned
 results and drops are not modelled and must not be reported as observed zeros.
 
+The owner explicitly selected interactive AMD qualification followed by the
+`multicore_small` Intel batch queue after the Genoa batch queue projected a week
+of waiting. Each attempt records its CPU model. Intel fleet-1 full controls must
+also reproduce the archived incident references before their acceptance; a failure
+stops the campaign. The study uses the Skylake constraint and checks matched CPU
+identity. AMD benchmark timings remain estimates for planning, not measured Intel
+performance. Intel jobs allocate eight CPUs to obtain 32 GiB within that partition's
+memory limit, while the evaluator keeps four effective CPUs and the same thread
+settings. Qualification uses four allocated CPUs. All jobs are submitted with
+`sbatch` and survive the local Mac disconnecting or going to sleep.
+
 ## Existing CPU portability check
 
 CSF3 job **20185137** completed on `node1201` with four CPUs, Python 3.11.15,
