@@ -60,6 +60,8 @@ def update(frame: int) -> list[object]:
 
 movie = FuncAnimation(fig, update, frames=len(snapshots), interval=1000 / 15)
 movie.save(
-    HERE / "video/dispatch_illustration.mp4", writer=FFMpegWriter(fps=15, bitrate=2200), dpi=120
+    HERE / "video/dispatch_illustration.mp4",
+    writer=FFMpegWriter(fps=15, bitrate=2200),
+    dpi=120,
 )
 plt.close(fig)
