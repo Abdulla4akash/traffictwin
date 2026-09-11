@@ -1,0 +1,34 @@
+name: Dissertation revision review
+
+on:
+  push:
+    branches: [docs/dissertation-examiner-revision-2026-09-11]
+    paths:
+      - .github/workflows/dissertation-revision-review.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8
+          persist-credentials: false
+      - name: Export pinned tracked sources only (no research execution)
+        run: |
+          mkdir -p "$RUNNER_TEMP/dissertation-review"
+          git rev-parse HEAD > "$RUNNER_TEMP/dissertation-review/SOURCE_COMMIT.txt"
+          git ls-tree -rl HEAD > "$RUNNER_TEMP/dissertation-review/TRACKED_FILES.txt"
+          git archive --format=tar.gz --output="$RUNNER_TEMP/dissertation-review/traffictwin-source.tar.gz" HEAD
+          sha256sum "$RUNNER_TEMP/dissertation-review/traffictwin-source.tar.gz" > "$RUNNER_TEMP/dissertation-review/SHA256SUMS.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dissertation-pinned-source-review
+          path: ${{ runner.temp }}/dissertation-review/
+          retention-days: 7
+          if-no-files-found: error
