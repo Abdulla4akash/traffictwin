@@ -12,6 +12,7 @@
     "interpretation": "Owner authorizes this newly recorded E3a-only campaign and its engineering qualification. Historical holds and no-results records remain immutable historical evidence. No E3b/E3c execution or main-branch release is included.",
     "scientific_status_before_launch": "NOT_EXECUTED",
     "predeclaration": "origin/research/e3-dynamic-resource-v2:docs/evaluation/e3/e3_dynamic_resource_v2_contract_v2.json",
+    "predeclaration_sha256": "f0d6eb913df6c2165a63ddcb0fd4980368e9bb80bbd38db964273ba3925f4870",
     "scope": "The exact dormant E3a design: twelve fixed_1x fresh-state placement cells. This additive package implements real trace adaptation of its P2C contract in the established float32 evaluator. It does not claim execution of the dormant 56-cell matrix."
   },
   "fixed_controls": {
