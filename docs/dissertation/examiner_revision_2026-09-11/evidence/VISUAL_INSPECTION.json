@@ -1,8 +1,13 @@
 {
-  "pdf_sha256": "f196875f0ea55c4792f6b3df26483d9b2dce60d0c79c6503189775c0c1ed7e47",
-  "renderer": "PyMuPDF",
+  "pdf_sha256": "1cd6c3c3453c6c0aca9c03d01ef5e356d5cb31ce69799a4d18429b04496fc106",
+  "renderer": "PyMuPDF 1.26.7",
   "pages_rendered": 56,
   "all_pages_layout_inspected": true,
-  "inspection": "All 56 pages in six-page contact sheets; enlarged key figure/table pages reviewed separately. Not an independent examiner review.",
-  "known_submission_blocks": "Unsigned front matter and prescribed copyright statement; see SUBMISSION_GATES.md"
+  "inspection": "Published PDF from Actions run 34620818232, artifact 10272104453: all 56 pages rendered and inspected in seven eight-page contact sheets. No visible overlap or clipping found. The document validator separately checks overfull boxes, missing glyphs, references and protected contents. This is the editing assistant's inspection, not an independent examiner review.",
+  "prior_local_build": {
+    "pdf_sha256": "f196875f0ea55c4792f6b3df26483d9b2dce60d0c79c6503189775c0c1ed7e47",
+    "pages_rendered": 56,
+    "inspection": "All pages inspected in six-page contact sheets, with enlarged pages 30, 31, 49 and 55 checked separately. Hosted Markdown and TeX hashes match this build; PDF rendering differs between build environments."
+  },
+  "known_submission_blocks": "Unsigned institutional front matter, prescribed copyright statement and other author-only decisions; see SUBMISSION_GATES.md"
 }
