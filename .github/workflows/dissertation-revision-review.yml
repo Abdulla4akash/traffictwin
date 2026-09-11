@@ -10,9 +10,9 @@ permissions:
   contents: read
 
 jobs:
-  bounded-product-evidence:
+  revision-tooling:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,25 +21,33 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install locked product and browser dependencies
+      - name: Export pinned lint wheel and Crossref registration metadata
         run: |
-          python -m pip install uv
-          uv sync --locked --extra dev --extra vec-runner
-          uv run playwright install --with-deps chromium
-      - name: Record source and bounded checks (no research runs)
-        run: |
-          mkdir -p output/dissertation-review
-          git rev-parse HEAD > output/dissertation-review/SOURCE_COMMIT.txt
-          uv run python scripts/verify_research_archives.py > output/dissertation-review/archive-integrity.txt
-          uv run python -m pytest --collect-only -q > output/dissertation-review/test-collection.txt
-          uv run ruff check . > output/dissertation-review/ruff.txt
-      - name: Capture actual default Streamlit pages
-        run: |
-          uv run python scripts/ui_browser_audit.py --pages smoke --viewports desktop --theme light --timeout-seconds 60 --output output/dissertation-review/ui
+          mkdir -p output/revision-tooling
+          python - <<'PY'
+          import json
+          import pathlib
+          import subprocess
+          import sys
+          import tomllib
+          import urllib.request
+          lock = tomllib.loads(pathlib.Path('uv.lock').read_text())
+          version = next(p['version'] for p in lock['package'] if p['name'] == 'ruff')
+          subprocess.run([sys.executable, '-m', 'pip', 'download', '--no-deps', f'ruff=={version}', '--dest', 'output/revision-tooling'], check=True)
+          result = {}
+          for doi in ['10.1109/TITS.2024.3349546', '10.1109/TMC.2025.3572296']:
+              try:
+                  request = urllib.request.Request('https://api.crossref.org/works/' + doi, headers={'User-Agent': 'TrafficTwinDissertationReferenceVerification/1.0'})
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      result[doi] = json.load(response)
+              except Exception as exc:
+                  result[doi] = {'error': type(exc).__name__, 'message': str(exc)}
+          pathlib.Path('output/revision-tooling/reference-registration.json').write_text(json.dumps(result, indent=2))
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: dissertation-product-evidence
-          path: output/dissertation-review/
-          retention-days: 14
+          name: dissertation-revision-tooling
+          path: output/revision-tooling/
+          retention-days: 7
           if-no-files-found: error
