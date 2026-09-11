@@ -6,48 +6,146 @@ on:
     paths: [.github/workflows/dissertation-revision-review.yml]
   workflow_dispatch:
 
-permissions:
-  contents: read
+concurrency:
+  group: dissertation-examiner-revision-2026-09-11
+  cancel-in-progress: false
 
 jobs:
-  revision-tooling:
+  build-review-package:
+    if: github.ref == 'refs/heads/docs/dissertation-examiner-revision-2026-09-11'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      actions: read
+    env:
+      D: docs/dissertation/examiner_revision_2026-09-11
+      GH_TOKEN: ${{ github.token }}
+      MPLBACKEND: Agg
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8
-          persist-credentials: false
+          ref: docs/dissertation-examiner-revision-2026-09-11
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - name: Export pinned lint wheel and Crossref registration metadata
+          python-version: '3.13'
+      - name: Install document-only dependencies
         run: |
-          mkdir -p output/revision-tooling
+          python -m pip install brotli markdown-it-py==4.2.0 numpy==2.3.5 scipy==1.17.0 matplotlib==3.10.8 PyMuPDF==1.26.7 ruff==0.15.22
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq inkscape latexmk texlive-xetex texlive-latex-extra texlive-science fonts-liberation fonts-dejavu-core ffmpeg
+      - name: Expand hash-bound revision sources without changing earlier packages
+        run: |
           python - <<'PY'
-          import json
-          import pathlib
-          import subprocess
-          import sys
-          import tomllib
-          import urllib.request
-          lock = tomllib.loads(pathlib.Path('uv.lock').read_text())
-          version = next(p['version'] for p in lock['package'] if p['name'] == 'ruff')
-          subprocess.run([sys.executable, '-m', 'pip', 'download', '--no-deps', f'ruff=={version}', '--dest', 'output/revision-tooling'], check=True)
-          result = {}
-          for doi in ['10.1109/TITS.2024.3349546', '10.1109/TMC.2025.3572296']:
-              try:
-                  request = urllib.request.Request('https://api.crossref.org/works/' + doi, headers={'User-Agent': 'TrafficTwinDissertationReferenceVerification/1.0'})
-                  with urllib.request.urlopen(request, timeout=30) as response:
-                      result[doi] = json.load(response)
-              except Exception as exc:
-                  result[doi] = {'error': type(exc).__name__, 'message': str(exc)}
-          pathlib.Path('output/revision-tooling/reference-registration.json').write_text(json.dumps(result, indent=2))
+          import base64, hashlib, json, os
+          from pathlib import Path
+          import brotli
+          d = Path(os.environ['D'])
+          transfer = d / 'document/transfer'
+          if transfer.exists():
+              encoded = ''.join((transfer / f'source-{i}.b64').read_text().strip() for i in range(6))
+              packed = base64.b64decode(encoded, validate=True)
+              assert hashlib.sha256(packed).hexdigest() == '7f584e4600fc7d569f53736e73169f265174a3e1a75475274f09285f578bfc1b', 'Transfer checksum mismatch'
+              sources = json.loads(brotli.decompress(packed))
+              assert len(sources) == 15
+              for name, text in sources.items():
+                  p = Path(name)
+                  assert not p.is_absolute() and '..' not in p.parts
+                  out = d / p
+                  out.parent.mkdir(parents=True, exist_ok=True)
+                  out.write_text(text)
+              recipe = json.loads((d / 'document/revision_recipe.json').read_text())
+              raw = Path(recipe['source']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest() == recipe['source_sha256']
+              original = raw.decode().split('\n\n')
+              parts = []
+              for item in recipe['paragraphs']:
+                  if isinstance(item, int):
+                      parts.append(original[item])
+                  elif isinstance(item, str):
+                      parts.append(item)
+                  else:
+                      text = original[item['from']]
+                      for start, end, replacement in reversed(item['edits']):
+                          text = text[:start] + replacement + text[end:]
+                      parts.append(text)
+              result = '\n\n'.join(parts).encode()
+              assert hashlib.sha256(result).hexdigest() == recipe['result_sha256']
+              (d / 'TrafficTwin_Dissertation.md').write_bytes(result)
+          for name in ['assets', 'evidence', 'video']:
+              (d / name).mkdir(parents=True, exist_ok=True)
           PY
+          cp docs/dissertation/editorial_final_2026-09-09/assets/*.svg "$D/assets/"
+      - name: Retrieve authenticated product capture and publisher metadata
+        run: |
+          if [ ! -f "$D/evidence/product_capture/ui/light-desktop-home.png" ]; then
+            gh run download 34614459294 --repo Abdulla4akash/traffictwin --name dissertation-product-evidence --dir "$D/evidence/product_capture"
+          fi
+          cp "$D/evidence/product_capture/ui/light-desktop-home.png" "$D/assets/traffictwin_streamlit.png"
+          gh run download 34617156568 --repo Abdulla4akash/traffictwin --name dissertation-revision-tooling --dir "$RUNNER_TEMP/revision-tooling"
+          cp "$RUNNER_TEMP/revision-tooling/reference-registration.json" "$D/evidence/reference-registration.json"
+      - name: Rebuild compact figures and manuscript (no evaluator execution)
+        run: |
+          python "$D/document/make_assets.py"
+          python "$D/document/convert_source.py"
+          python docs/dissertation/joint_confirmation_2026-09-08/document/verify_results.py --output "$D/evidence/COMPACT_CHECKS.json"
+          (cd "$D" && latexmk -xelatex -interaction=nonstopmode -halt-on-error TrafficTwin_Dissertation.tex)
+      - name: Validate immutable results, references, layout log and document source
+        run: |
+          test -f "$D/document/REVISION_VALIDATION.json" || printf '{}\n' > "$D/document/REVISION_VALIDATION.json"
+          python "$D/document/validate_revision.py"
+          ruff check "$D/document"
+          ruff format --check "$D/document"
+          python "$D/document/preserve_raw.py" --help
+          python "$D/document/make_animation.py"
+          cp "$D/TrafficTwin_Dissertation.log" "$D/evidence/latexmk.log"
+          python - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+          d = Path(os.environ['D'])
+          result = {'source_base': '1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8', 'workflow_run': os.environ['GITHUB_RUN_ID'], 'original_blobs_checked': 0, 'changed_original_blobs': []}
+          lines = subprocess.check_output(['git', 'ls-tree', '-rl', result['source_base']], text=True).splitlines()
+          for line in lines:
+              fields, name = line.split('\t', 1)
+              _, kind, expected, _ = fields.split()
+              if kind != 'blob':
+                  continue
+              raw = Path(name).read_bytes()
+              actual = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+              result['original_blobs_checked'] += 1
+              if actual != expected:
+                  result['changed_original_blobs'].append(name)
+          assert not result['changed_original_blobs']
+          (d / 'evidence/HOSTED_ORIGINAL_PRESERVATION.json').write_text(json.dumps(result, indent=2) + '\n')
+          PY
+      - name: Publish only the additive review directory
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          d = Path(os.environ['D'])
+          for suffix in ['aux', 'bbl', 'bcf', 'blg', 'fdb_latexmk', 'fls', 'lof', 'log', 'lot', 'out', 'run.xml', 'toc', 'xdv', 'synctex.gz']:
+              (d / f'TrafficTwin_Dissertation.{suffix}').unlink(missing_ok=True)
+          PY
+          if [ -d "$D/document/transfer" ]; then git rm -r "$D/document/transfer"; fi
+          git add -f -- "$D"
+          python - <<'PY'
+          import os, subprocess
+          allowed = os.environ['D'] + '/'
+          changed = subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines()
+          assert all(name.startswith(allowed) for name in changed), changed
+          PY
+          git config user.name 'TrafficTwin documentation automation'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if ! git diff --cached --quiet; then
+            git commit -m 'docs: add compiled examiner revision and validation without new research runs'
+            git push origin HEAD:docs/dissertation-examiner-revision-2026-09-11
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: dissertation-revision-tooling
-          path: output/revision-tooling/
-          retention-days: 7
+          name: traffictwin-examiner-revision-2026-09-11
+          path: docs/dissertation/examiner_revision_2026-09-11/
+          retention-days: 30
           if-no-files-found: error
