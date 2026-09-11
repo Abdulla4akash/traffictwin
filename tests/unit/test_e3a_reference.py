@@ -71,3 +71,47 @@ def test_logit_tolerance_and_new_telemetry(archives):
     np.savez(got / "per_step.npz", veh_action=np.array([1], np.int8),
              veh_actor_logits=np.array([1.1e-5], np.float32))
     assert not REF.compare_reference(ref, got)["passed"]
+
+
+def cpu_receipts(archives):
+    for index, directory in enumerate(archives):
+        runtime = dict(python="3.11.15", packages={"jax": "0.4.30"}, machine="x86_64",
+                       environment={"OMP_NUM_THREADS": "4"}, cpu_affinity=list(range(4)),
+                       cpu_model="AMD" if index == 0 else "Intel")
+        (directory / "RUNTIME.json").write_text(json.dumps(runtime))
+        config = dict(arm="p2c_dla", steps=10, fleet_seed=1, evaluator_seed=0,
+                      n_vehicles=2488, n_rsus=10, enter_reset=False, inputs={"trace": "sealed"},
+                      command=["python", "evaluator.py", "--seed", "0", "--out-json", str(directory / "summary.json")])
+        (directory / "COMMAND.json").write_text(json.dumps(config))
+        receipt = dict(status="passed", configuration=config, source_commit="a" * 40,
+                       seal_sha256="b" * 64, shared_input_hashes={"tasks": "c" * 64},
+                       runtime_sha256=REF.sha(directory / "RUNTIME.json"),
+                       offered=1, admitted=1, successes=1, terminal_failures=0,
+                       forwarded=0, outcome_counts=[0, 1], type_counts=[1],
+                       output_sha256={name: REF.sha(directory / name)
+                                      for name in ["summary.json", "per_step.npz", "per_task.npz"]})
+        (directory / "VALIDATED.json").write_text(json.dumps(receipt))
+
+
+def test_cpu_smoke_cannot_accept_other_valid_sampled_pair(archives):
+    ref, got = archives
+    for directory, pair in [(ref, [1, 4]), (got, [2, 4])]:
+        np.savez(directory / "per_task.npz", task_p2c_sampled_pair=np.array([pair], np.int16))
+    cpu_receipts(archives)
+    result = REF.compare_cross_cpu(ref, got)
+    assert not result["passed"]
+    assert result["failed_fields"][0]["field"] == "task_p2c_sampled_pair"
+
+
+def test_cpu_smoke_accepts_cpu_change_but_rejects_thread_change(archives):
+    ref, got = archives
+    cpu_receipts(archives)
+    assert REF.compare_cross_cpu(ref, got)["passed"]
+    runtime = json.loads((got / "RUNTIME.json").read_text())
+    runtime["environment"]["OMP_NUM_THREADS"] = "8"
+    (got / "RUNTIME.json").write_text(json.dumps(runtime))
+    receipt = json.loads((got / "VALIDATED.json").read_text())
+    receipt["runtime_sha256"] = REF.sha(got / "RUNTIME.json")
+    (got / "VALIDATED.json").write_text(json.dumps(receipt))
+    with pytest.raises(ValueError, match="thread environment differs"):
+        REF.compare_cross_cpu(ref, got)
