@@ -71,7 +71,7 @@
     "cells": 12,
     "order": "fleet seeds ascending; ingress_dla, per_task_dla, p2c_dla within each fleet seed",
     "cpus_per_cell": 4,
-    "memory_gib_per_cell": 16,
+    "memory_gib_per_cell": 32,
     "maximum_concurrent_cells": 4,
     "maximum_cell_wall_hours": 6,
     "maximum_qualification_wall_hours": 6,
