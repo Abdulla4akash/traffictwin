@@ -1,0 +1,1017 @@
+{
+  "10.1109/TITS.2024.3349546": {
+    "status": "ok",
+    "message-type": "work",
+    "message-version": "1.0.0",
+    "message": {
+      "indexed": {
+        "date-parts": [
+          [
+            2026,
+            9,
+            5
+          ]
+        ],
+        "date-time": "2026-09-05T15:49:55Z",
+        "timestamp": 1788623395018,
+        "version": "build-2803163510"
+      },
+      "reference-count": 34,
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "7",
+      "license": [
+        {
+          "start": {
+            "date-parts": [
+              [
+                2024,
+                7,
+                1
+              ]
+            ],
+            "date-time": "2024-07-01T00:00:00Z",
+            "timestamp": 1719792000000
+          },
+          "content-version": "vor",
+          "delay-in-days": 0,
+          "URL": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html"
+        },
+        {
+          "start": {
+            "date-parts": [
+              [
+                2024,
+                7,
+                1
+              ]
+            ],
+            "date-time": "2024-07-01T00:00:00Z",
+            "timestamp": 1719792000000
+          },
+          "content-version": "stm-asf",
+          "delay-in-days": 0,
+          "URL": "https://doi.org/10.15223/policy-029"
+        },
+        {
+          "start": {
+            "date-parts": [
+              [
+                2024,
+                7,
+                1
+              ]
+            ],
+            "date-time": "2024-07-01T00:00:00Z",
+            "timestamp": 1719792000000
+          },
+          "content-version": "stm-asf",
+          "delay-in-days": 0,
+          "URL": "https://doi.org/10.15223/policy-037"
+        }
+      ],
+      "funder": [
+        {
+          "DOI": "10.13039/501100001809",
+          "name": "National Natural Science Foundation of China",
+          "doi-asserted-by": "publisher",
+          "award": [
+            "62271086"
+          ],
+          "award-info": [
+            {
+              "award-number": [
+                "62271086"
+              ]
+            }
+          ],
+          "id": [
+            {
+              "id": "10.13039/501100001809",
+              "id-type": "DOI",
+              "asserted-by": "publisher"
+            }
+          ]
+        },
+        {
+          "DOI": "10.13039/501100001809",
+          "name": "National Natural Science Foundation of China",
+          "doi-asserted-by": "publisher",
+          "award": [
+            "61821001"
+          ],
+          "award-info": [
+            {
+              "award-number": [
+                "61821001"
+              ]
+            }
+          ],
+          "id": [
+            {
+              "id": "10.13039/501100001809",
+              "id-type": "DOI",
+              "asserted-by": "publisher"
+            }
+          ]
+        },
+        {
+          "name": "Fund of State Key Laboratory of Information Photonics and Optical Communications (Beijing University of Posts and Telecommunications), China"
+        },
+        {
+          "DOI": "10.13039/501100012226",
+          "name": "Fundamental Research Funds for the Central Universities",
+          "doi-asserted-by": "publisher",
+          "award": [
+            "2023PY10"
+          ],
+          "award-info": [
+            {
+              "award-number": [
+                "2023PY10"
+              ]
+            }
+          ],
+          "id": [
+            {
+              "id": "10.13039/501100012226",
+              "id-type": "DOI",
+              "asserted-by": "publisher"
+            }
+          ]
+        }
+      ],
+      "content-domain": {
+        "domain": [],
+        "crossmark-restriction": false
+      },
+      "short-container-title": [
+        "IEEE Trans. Intell. Transport. Syst."
+      ],
+      "published-print": {
+        "date-parts": [
+          [
+            2024,
+            7
+          ]
+        ]
+      },
+      "DOI": "10.1109/tits.2024.3349546",
+      "type": "journal-article",
+      "created": {
+        "date-parts": [
+          [
+            2024,
+            1,
+            16
+          ]
+        ],
+        "date-time": "2024-01-16T13:26:03Z",
+        "timestamp": 1705411563000
+      },
+      "page": "7712-7725",
+      "source": "Crossref",
+      "is-referenced-by-count": 97,
+      "title": [
+        "Deep Reinforcement Learning-Based Task Offloading for Vehicular Edge Computing With Flexible RSU-RSU Cooperation"
+      ],
+      "prefix": "10.1109",
+      "volume": "25",
+      "author": [
+        {
+          "ORCID": "https://orcid.org/0000-0001-5288-8708",
+          "authenticated-orcid": false,
+          "given": "Wenhao",
+          "family": "Fan",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "School of Electronic Engineering, the Beijing Key Laboratory of Work Safety Intelligent Monitoring, and the National Engineering Research Center for Disaster Backup and Recovery, Beijing University of Posts and Telecommunications (BUPT), Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Yaoyin",
+          "family": "Zhang",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "School of Electronic Engineering and the Beijing Key Laboratory of Work Safety Intelligent Monitoring, Beijing University of Posts and Telecommunications (BUPT), Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Guangtao",
+          "family": "Zhou",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "China Unicom Smart Connection Technology Company Ltd., Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "ORCID": "https://orcid.org/0000-0002-8076-1904",
+          "authenticated-orcid": false,
+          "given": "Yuan\u2019an",
+          "family": "Liu",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "School of Electronic Engineering and the Beijing Key Laboratory of Work Safety Intelligent Monitoring, Beijing University of Posts and Telecommunications (BUPT), Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "member": "263",
+      "reference": [
+        {
+          "key": "ref1",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2022.3230430"
+        },
+        {
+          "key": "ref2",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2022.3149937"
+        },
+        {
+          "key": "ref3",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2023.3241286"
+        },
+        {
+          "key": "ref4",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/MVT.2017.2668838"
+        },
+        {
+          "key": "ref5",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2022.3175238"
+        },
+        {
+          "key": "ref6",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TGCN.2022.3189413"
+        },
+        {
+          "key": "ref7",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JIOT.2019.2960631"
+        },
+        {
+          "key": "ref8",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2019.2959410"
+        },
+        {
+          "key": "ref9",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ICC.2017.7997360"
+        },
+        {
+          "key": "ref10",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ACCESS.2020.2981045"
+        },
+        {
+          "key": "ref11",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TNSE.2021.3106955"
+        },
+        {
+          "key": "ref12",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ITOEC53115.2022.9734360"
+        },
+        {
+          "key": "ref13",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JIOT.2018.2875507"
+        },
+        {
+          "key": "ref14",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2020.3023708"
+        },
+        {
+          "key": "ref15",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/VTC2021-Spring51267.2021.9448637"
+        },
+        {
+          "key": "ref16",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JIOT.2020.3040768"
+        },
+        {
+          "key": "ref17",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2022.3190669"
+        },
+        {
+          "key": "ref18",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/tits.2023.3239599"
+        },
+        {
+          "key": "ref19",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TMC.2021.3089338"
+        },
+        {
+          "key": "ref20",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TWC.2022.3186590"
+        },
+        {
+          "key": "ref21",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JIOT.2021.3116108"
+        },
+        {
+          "key": "ref22",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ACCESS.2019.2897617"
+        },
+        {
+          "key": "ref23",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JIOT.2020.2982292"
+        },
+        {
+          "key": "ref24",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TII.2021.3113879"
+        },
+        {
+          "key": "ref25",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2022.3178759"
+        },
+        {
+          "key": "ref26",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/tmc.2023.3250495"
+        },
+        {
+          "key": "ref27",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ACCESS.2019.2896000"
+        },
+        {
+          "key": "ref28",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2018.2873096"
+        },
+        {
+          "key": "ref29",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/WCNC45663.2020.9120816"
+        },
+        {
+          "key": "ref30",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/EDGE50951.2020.00008"
+        },
+        {
+          "key": "ref31",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/INFCOM.2012.6195685"
+        },
+        {
+          "key": "ref32",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1287/mnsc.13.7.492"
+        },
+        {
+          "key": "ref33",
+          "article-title": "Continuous control with deep reinforcement learning",
+          "author": "Lillicrap",
+          "year": "2015",
+          "journal-title": "arXiv:1509.02971"
+        },
+        {
+          "key": "ref34",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2015.2475608"
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Intelligent Transportation Systems"
+      ],
+      "original-title": [],
+      "link": [
+        {
+          "URL": "http://xplorestaging.ieee.org/ielx7/6979/10582787/10400987.pdf?arnumber=10400987",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ],
+      "deposited": {
+        "date-parts": [
+          [
+            2024,
+            12,
+            10
+          ]
+        ],
+        "date-time": "2024-12-10T21:43:44Z",
+        "timestamp": 1733867024000
+      },
+      "score": 1,
+      "resource": {
+        "primary": {
+          "URL": "https://ieeexplore.ieee.org/document/10400987/"
+        }
+      },
+      "subtitle": [],
+      "short-title": [],
+      "issued": {
+        "date-parts": [
+          [
+            2024,
+            7
+          ]
+        ]
+      },
+      "references-count": 34,
+      "journal-issue": {
+        "issue": "7"
+      },
+      "URL": "https://doi.org/10.1109/tits.2024.3349546",
+      "relation": {},
+      "ISSN": [
+        "1524-9050",
+        "1558-0016"
+      ],
+      "issn-type": [
+        {
+          "value": "1524-9050",
+          "type": "print"
+        },
+        {
+          "value": "1558-0016",
+          "type": "electronic"
+        }
+      ],
+      "subject": [],
+      "published": {
+        "date-parts": [
+          [
+            2024,
+            7
+          ]
+        ]
+      }
+    }
+  },
+  "10.1109/TMC.2025.3572296": {
+    "status": "ok",
+    "message-type": "work",
+    "message-version": "1.0.0",
+    "message": {
+      "indexed": {
+        "date-parts": [
+          [
+            2026,
+            9,
+            3
+          ]
+        ],
+        "date-time": "2026-09-03T15:38:17Z",
+        "timestamp": 1788449897725,
+        "version": "build-2803163510"
+      },
+      "reference-count": 38,
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "10",
+      "license": [
+        {
+          "start": {
+            "date-parts": [
+              [
+                2025,
+                10,
+                1
+              ]
+            ],
+            "date-time": "2025-10-01T00:00:00Z",
+            "timestamp": 1759276800000
+          },
+          "content-version": "vor",
+          "delay-in-days": 0,
+          "URL": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html"
+        },
+        {
+          "start": {
+            "date-parts": [
+              [
+                2025,
+                10,
+                1
+              ]
+            ],
+            "date-time": "2025-10-01T00:00:00Z",
+            "timestamp": 1759276800000
+          },
+          "content-version": "stm-asf",
+          "delay-in-days": 0,
+          "URL": "https://doi.org/10.15223/policy-029"
+        },
+        {
+          "start": {
+            "date-parts": [
+              [
+                2025,
+                10,
+                1
+              ]
+            ],
+            "date-time": "2025-10-01T00:00:00Z",
+            "timestamp": 1759276800000
+          },
+          "content-version": "stm-asf",
+          "delay-in-days": 0,
+          "URL": "https://doi.org/10.15223/policy-037"
+        }
+      ],
+      "funder": [
+        {
+          "name": "Beijing Natural Science Foundation",
+          "award": [
+            "L242080"
+          ],
+          "award-info": [
+            {
+              "award-number": [
+                "L242080"
+              ]
+            }
+          ]
+        },
+        {
+          "DOI": "10.13039/501100001809",
+          "name": "National Natural Science Foundation of China",
+          "doi-asserted-by": "publisher",
+          "award": [
+            "62271086"
+          ],
+          "award-info": [
+            {
+              "award-number": [
+                "62271086"
+              ]
+            }
+          ],
+          "id": [
+            {
+              "id": "10.13039/501100001809",
+              "id-type": "DOI",
+              "asserted-by": "publisher"
+            }
+          ]
+        },
+        {
+          "name": "Science and Technology Program of Qinghai Province of China",
+          "award": [
+            "2024-SF-129"
+          ],
+          "award-info": [
+            {
+              "award-number": [
+                "2024-SF-129"
+              ]
+            }
+          ]
+        },
+        {
+          "DOI": "10.13039/501100012226",
+          "name": "Fundamental Research Funds for the Central Universities",
+          "doi-asserted-by": "publisher",
+          "award": [
+            "2024ZCJH03"
+          ],
+          "award-info": [
+            {
+              "award-number": [
+                "2024ZCJH03"
+              ]
+            }
+          ],
+          "id": [
+            {
+              "id": "10.13039/501100012226",
+              "id-type": "DOI",
+              "asserted-by": "publisher"
+            }
+          ]
+        },
+        {
+          "name": "Fund of State Key Laboratory of Information Photonics and Optical Communications, P. R. China"
+        }
+      ],
+      "content-domain": {
+        "domain": [],
+        "crossmark-restriction": false
+      },
+      "short-container-title": [
+        "IEEE Trans. on Mobile Comput."
+      ],
+      "published-print": {
+        "date-parts": [
+          [
+            2025,
+            10
+          ]
+        ]
+      },
+      "DOI": "10.1109/tmc.2025.3572296",
+      "type": "journal-article",
+      "created": {
+        "date-parts": [
+          [
+            2025,
+            5,
+            21
+          ]
+        ],
+        "date-time": "2025-05-21T13:42:32Z",
+        "timestamp": 1747834952000
+      },
+      "page": "10927-10944",
+      "source": "Crossref",
+      "is-referenced-by-count": 16,
+      "title": [
+        "Vehicular Edge Intelligence: DRL-Based Resource Orchestration for Task Inference in Vehicle-RSU-Edge Collaborative Networks"
+      ],
+      "prefix": "10.1109",
+      "volume": "24",
+      "author": [
+        {
+          "ORCID": "https://orcid.org/0000-0001-5288-8708",
+          "authenticated-orcid": false,
+          "given": "Wenhao",
+          "family": "Fan",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "School of Electronic Engineering, Beijing Key Laboratory of Work Safety Intelligent Monitoring, State Key Laboratory of Information Photonics and Optical Communications, National Engineering Research Center for Disaster Backup and Recovery, Beijing University of Posts and Telecommunications (BUPT), Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Yang",
+          "family": "Yu",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "School of Electronic Engineering, Beijing University of Posts and Telecommunications (BUPT), Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Chenhui",
+          "family": "Bao",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "School of Electronic Engineering, Beijing University of Posts and Telecommunications (BUPT), Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "ORCID": "https://orcid.org/0000-0002-8076-1904",
+          "authenticated-orcid": false,
+          "given": "Yuan\u2019an",
+          "family": "Liu",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "School of Electronic Engineering, Beijing University of Posts and Telecommunications (BUPT), Beijing, China"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "member": "263",
+      "reference": [
+        {
+          "key": "ref1",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2023.3275741"
+        },
+        {
+          "key": "ref2",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1007/978-3-030-61746-2"
+        },
+        {
+          "key": "ref3",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JIOT.2023.3240423"
+        },
+        {
+          "key": "ref4",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2024.3349546"
+        },
+        {
+          "key": "ref5",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2021.3084396"
+        },
+        {
+          "key": "ref6",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TMC.2024.3349551"
+        },
+        {
+          "key": "ref7",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JPROC.2019.2947490"
+        },
+        {
+          "key": "ref8",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.26599/TST.2020.9010025"
+        },
+        {
+          "key": "ref9",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/tits.2025.3540918"
+        },
+        {
+          "key": "ref10",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2023.3284369"
+        },
+        {
+          "key": "ref11",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TNSE.2025.3560402"
+        },
+        {
+          "key": "ref12",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2024.3351635"
+        },
+        {
+          "key": "ref13",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2023.3327395"
+        },
+        {
+          "key": "ref14",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2021.3133586"
+        },
+        {
+          "key": "ref15",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TMC.2020.3012509"
+        },
+        {
+          "key": "ref16",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/IAEAC50856.2021.9390817"
+        },
+        {
+          "key": "ref17",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ACCESS.2020.2981045"
+        },
+        {
+          "key": "ref18",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TMC.2025.3530482"
+        },
+        {
+          "key": "ref19",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.3390/app132413034"
+        },
+        {
+          "key": "ref20",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TGCN.2022.3189413"
+        },
+        {
+          "key": "ref21",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/CBD65573.2024.00050"
+        },
+        {
+          "key": "ref22",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2021.3119327"
+        },
+        {
+          "key": "ref23",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2023.3308370"
+        },
+        {
+          "key": "ref24",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1016/j.sysarc.2021.102133"
+        },
+        {
+          "key": "ref25",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2019.2959410"
+        },
+        {
+          "key": "ref26",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/JIOT.2019.2960631"
+        },
+        {
+          "key": "ref27",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TNSM.2023.3262878"
+        },
+        {
+          "key": "ref28",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2020.3019756"
+        },
+        {
+          "key": "ref29",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TWC.2022.3160099"
+        },
+        {
+          "key": "ref30",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TITS.2022.3190669"
+        },
+        {
+          "key": "ref31",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TII.2020.3017573"
+        },
+        {
+          "key": "ref32",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TMC.2024.3418608"
+        },
+        {
+          "key": "ref33",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1287/mnsc.22.8.868"
+        },
+        {
+          "key": "ref34",
+          "first-page": "11767",
+          "article-title": "Softmax deep double deterministic policy gradients",
+          "volume-title": "Proc. Adv. Neural Inf. Process. Syst.",
+          "author": "Pan"
+        },
+        {
+          "key": "ref35",
+          "first-page": "1587",
+          "article-title": "Addressing function approximation error in actor-critic methods",
+          "volume-title": "Proc. Int. Conf. Mach. Learn.",
+          "author": "Fujimoto"
+        },
+        {
+          "key": "ref36",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2023.3277191"
+        },
+        {
+          "key": "ref37",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2024.3422270"
+        },
+        {
+          "key": "ref38",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2015.2475608"
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Mobile Computing"
+      ],
+      "original-title": [],
+      "link": [
+        {
+          "URL": "http://xplorestaging.ieee.org/ielx8/7755/11154819/11008830.pdf?arnumber=11008830",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ],
+      "deposited": {
+        "date-parts": [
+          [
+            2025,
+            9,
+            10
+          ]
+        ],
+        "date-time": "2025-09-10T19:53:36Z",
+        "timestamp": 1757534016000
+      },
+      "score": 1,
+      "resource": {
+        "primary": {
+          "URL": "https://ieeexplore.ieee.org/document/11008830/"
+        }
+      },
+      "subtitle": [],
+      "short-title": [],
+      "issued": {
+        "date-parts": [
+          [
+            2025,
+            10
+          ]
+        ]
+      },
+      "references-count": 38,
+      "journal-issue": {
+        "issue": "10"
+      },
+      "URL": "https://doi.org/10.1109/tmc.2025.3572296",
+      "relation": {},
+      "ISSN": [
+        "1536-1233",
+        "1558-0660",
+        "2161-9875"
+      ],
+      "issn-type": [
+        {
+          "value": "1536-1233",
+          "type": "print"
+        },
+        {
+          "value": "1558-0660",
+          "type": "electronic"
+        },
+        {
+          "value": "2161-9875",
+          "type": "electronic"
+        }
+      ],
+      "subject": [],
+      "published": {
+        "date-parts": [
+          [
+            2025,
+            10
+          ]
+        ]
+      }
+    }
+  }
+}

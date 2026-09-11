@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="375" viewBox="0 0 760 375">
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6" fill="#40576b"/></marker></defs>
+<rect width="760" height="375" fill="white"/>
+<g fill="#f3f6f8" stroke="#40576b" stroke-width="1.5">
+<rect x="205" y="10" width="350" height="57" rx="6"/>
+<rect x="15" y="110" width="185" height="57" rx="6"/>
+<rect x="230" y="110" width="200" height="57" rx="6"/>
+<rect x="470" y="110" width="275" height="57" rx="6"/>
+<rect x="470" y="211" width="275" height="63" rx="6"/>
+<rect x="470" y="313" width="275" height="50" rx="6"/>
+</g>
+<g stroke="#40576b" stroke-width="1.8" fill="none" marker-end="url(#a)">
+<path d="M310,67 L110,110"/><path d="M375,67 L330,110"/><path d="M445,67 L606,110"/>
+<path d="M607,167 L607,210"/><path d="M607,274 L607,312"/>
+</g>
+<g fill="#40576b"><path d="M607,210 L602,200 L612,200 Z"/><path d="M607,312 L602,302 L612,302 Z"/><path d="M110,110 L118,101 L121,107 Z"/><path d="M330,110 L330,100 L338,103 Z"/><path d="M606,110 L595,109 L598,102 Z"/></g>
+<g font-family="Arial" text-anchor="middle" fill="#162b3c" font-size="17">
+<text x="380" y="33">Frozen MAPPO actor</text><text x="380" y="54" font-size="14">one mode choice per vehicle-second</text>
+<text x="108" y="134">Local</text><text x="108" y="155" font-size="14">vehicle queue / service</text>
+<text x="330" y="133">V2V</text><text x="330" y="155" font-size="14">strongest eligible peer link</text>
+<text x="607" y="133">V2I radio ingress</text><text x="607" y="155" font-size="14">strongest current RSU link</text>
+<text x="607" y="235">Infrastructure placement</text><text x="607" y="257" font-size="14">then live backlog / capacity admission</text>
+<text x="607" y="344">Admitted execution RSU</text>
+</g>
+<g font-family="Arial" fill="#40576b" font-size="14">
+<text x="30" y="226">Actor: mode, without current RSU workloads</text>
+<text x="30" y="252">Environment: radio targets</text>
+<text x="30" y="278">Scheduler: workload-based execution placement</text>
+<text x="30" y="320">Different ingress and execution:</text>
+<text x="30" y="343">logical forwarding, with modelled overhead</text>
+</g></svg>
