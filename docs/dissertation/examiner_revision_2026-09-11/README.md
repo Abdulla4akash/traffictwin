@@ -58,4 +58,4 @@ The requested C.10 failure classification was corrected from the hosted log: onl
 - TeX SHA256: `d7954b0e53078183a25ea8a5768bc355d497248147ac18d2e4ff4709b6ab7a02`.
 - PDF SHA256: `34d703633b631d9b90a01b88c682755be10ce4013809a805b2f62780fdbb9ece`.
 
-See [acceptance results](evidence/ACCEPTANCE_2026-09-15.json), [local TeX log](evidence/latexmk-2026-09-15.log), [local compact receipt](evidence/LOCAL_COMPACT_CHECKS_2026-09-15.json) and [archive receipt](evidence/LOCAL_ARCHIVE_CHECK_2026-09-15.json). The original `revision_recipe.json` is the historical 11 September transfer recipe; ordinary builds use the current Markdown directly.
+See [acceptance results](evidence/ACCEPTANCE_2026-09-15.json), [local TeX log (trailing whitespace normalised)](evidence/latexmk-2026-09-15.log), [local compact receipt](evidence/LOCAL_COMPACT_CHECKS_2026-09-15.json) and [archive receipt](evidence/LOCAL_ARCHIVE_CHECK_2026-09-15.json). The original `revision_recipe.json` is the historical 11 September transfer recipe; ordinary builds use the current Markdown directly.

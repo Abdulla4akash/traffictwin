@@ -132,5 +132,11 @@
     "python": "3.12.13",
     "xelatex": "XeTeX 3.141592653-2.6-0.999998 (TeX Live 2026)"
   },
-  "c10_correction": "Only five of the 56 failures are tier-4 UI text assertions; retain the broader failure scope recorded in HOSTED_TEST_RESULT_2026-09-11.json."
+  "c10_correction": "Only five of the 56 failures are tier-4 UI text assertions; retain the broader failure scope recorded in HOSTED_TEST_RESULT_2026-09-11.json.",
+  "tex_log": {
+    "path": "evidence/latexmk-2026-09-15.log",
+    "normalization": "Trailing whitespace only; all log messages retained",
+    "original_sha256": "ca9590215a94da53c44cd5445901794a83e225b9e024ef2b4c7328c3612cae8c",
+    "normalized_sha256": "1b709e1898d28d07b7ed0b78d3c8862ab8bdcf2a056b15360d881e4885bf5494"
+  }
 }

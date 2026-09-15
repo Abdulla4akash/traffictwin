@@ -44,13 +44,13 @@ Package: fontspec-xetex 2026/08/11 v2.9h Font selection for XeLaTeX and LuaLaTeX
 Package: fontenc 2025/07/18 v2.1d Standard LaTeX package
 ) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.cfg)))
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             Font family 'LiberationSerif(0)' created for font
 (fontspec)             'Liberation Serif' with options [Ligatures=TeX].
-(fontspec)              
+(fontspec)
 (fontspec)              This font family consists of the following NFSS
 (fontspec)             series/shapes:
-(fontspec)              
+(fontspec)
 (fontspec)             - 'normal' (m/n) with NFSS spec.: <->"Liberation
 (fontspec)             Serif/OT:script=latn;language=dflt;mapping=tex-text;"
 (fontspec)             - 'bold' (b/n) with NFSS spec.: <->"Liberation
@@ -61,13 +61,13 @@ Package fontspec Info:
 (fontspec)             Serif/BI/OT:script=latn;language=dflt;mapping=tex-text;"
 
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             Font family 'LiberationSans(0)' created for font
 (fontspec)             'Liberation Sans' with options [Ligatures=TeX].
-(fontspec)              
+(fontspec)
 (fontspec)              This font family consists of the following NFSS
 (fontspec)             series/shapes:
-(fontspec)              
+(fontspec)
 (fontspec)             - 'normal' (m/n) with NFSS spec.: <->"Liberation
 (fontspec)             Sans/OT:script=latn;language=dflt;mapping=tex-text;"
 (fontspec)             - 'bold' (b/n) with NFSS spec.: <->"Liberation
@@ -78,34 +78,34 @@ Package fontspec Info:
 (fontspec)             Sans/BI/OT:script=latn;language=dflt;mapping=tex-text;"
 
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             DejaVu Sans Mono scale = 0.85.
 
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             DejaVu Sans Mono scale = 0.85.
 
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             DejaVu Sans Mono/B scale = 0.85.
 
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             DejaVu Sans Mono/I scale = 0.85.
 
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             DejaVu Sans Mono/BI scale = 0.85.
 
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             Font family 'DejaVuSansMono(0)' created for font
 (fontspec)             'DejaVu Sans Mono' with options
 (fontspec)             [WordSpace={1,0,0},HyphenChar=None,PunctuationSpace=WordSpace,Scale=0.85].
-(fontspec)              
+(fontspec)
 (fontspec)              This font family consists of the following NFSS
 (fontspec)             series/shapes:
-(fontspec)              
+(fontspec)
 (fontspec)             - 'normal' (m/n) with NFSS spec.: <->s*[0.85]"DejaVu
 (fontspec)             Sans Mono/OT:script=latn;language=dflt;"
 (fontspec)             - 'bold' (b/n) with NFSS spec.: <->s*[0.85]"DejaVu Sans
@@ -541,7 +541,7 @@ LaTeX Font Info:    ... okay on input line 32.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 32.
 LaTeX Font Info:    ... okay on input line 32.
 
-Package fontspec Info: 
+Package fontspec Info:
 (fontspec)             Adjusting the maths setup (use [no-math] to avoid
 (fontspec)             this).
 
@@ -605,7 +605,7 @@ LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
 * paper: a4paper
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
+* modes:
 * h-part:(L,W,R)=(85.35826pt, 441.01773pt, 71.13188pt)
 * v-part:(T,H,B)=(71.13188pt, 702.78308pt, 71.13188pt)
 * \paperwidth=597.50787pt
@@ -713,14 +713,14 @@ File: assets/traffictwin_streamlit.png Graphic file (type bmp)
 
 ] [38] [39]
 Underfull \hbox (badness 1406) in paragraph at lines 1197--1199
-\TU/LiberationSerif(0)/m/n/12 ple in Randomized Load Balancing.” \TU/LiberationSerif(0)/m/it/12 IEEE INFOCOM\TU/LiberationSerif(0)/m/n/12 , 1131–1139, 2015. 
+\TU/LiberationSerif(0)/m/n/12 ple in Randomized Load Balancing.” \TU/LiberationSerif(0)/m/it/12 IEEE INFOCOM\TU/LiberationSerif(0)/m/n/12 , 1131–1139, 2015.
  []
 
 [40
 
 ]
 Underfull \hbox (badness 1810) in paragraph at lines 1213--1215
-\TU/LiberationSerif(0)/m/it/12 IEEE Transactions on Mobile Computing\TU/LiberationSerif(0)/m/n/12 , 25(5), 7166–7181, 2026. DOI: 
+\TU/LiberationSerif(0)/m/it/12 IEEE Transactions on Mobile Computing\TU/LiberationSerif(0)/m/n/12 , 25(5), 7166–7181, 2026. DOI:
  []
 
 [41] [42
@@ -743,7 +743,7 @@ L3 programming layer <2026-08-10>
  ***********
 Package rerunfilecheck Info: File `TrafficTwin_Dissertation.out' has not changed.
 (rerunfilecheck)             Checksum: 312EF959F8D484F7C850A4C12C4EB10E;11427.
- ) 
+ )
 Here is how much of TeX's memory you used:
  16316 strings out of 469707
  323083 string characters out of 5465408
