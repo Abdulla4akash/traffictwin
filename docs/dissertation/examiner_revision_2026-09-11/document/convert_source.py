@@ -378,7 +378,7 @@ preamble = r"""% Additive source-synchronised revision. Build and inspection rec
 \usepackage{fvextra}
 \usepackage{xurl}
 \usepackage{setspace,ragged2e,placeins,needspace}
-\usepackage[hidelinks,unicode]{hyperref}
+\usepackage[hidelinks,unicode,pdftitle={TITLE},pdfauthor={S M Abdulla Al Mamun}]{hyperref}
 \newtheorem{proposition}{Proposition}
 \renewcommand{\theHtable}{\thesection.\arabic{table}}
 \newcolumntype{Y}{>{\RaggedRight\arraybackslash\hspace{0pt}}X}
@@ -502,11 +502,9 @@ short_tab = {
     "5": "Morning primary replication",
     "6": "Morning paired contrasts",
     "7": "Eight-block simultaneous contrasts",
-    "8": "Scheduler-only engineering trade-offs",
-    "9": "Software components and gates",
+    "8": "Validity limits",
+    "9": "Objective verdicts",
     "A1": "Software components and gates",
-    "10": "Validity limits",
-    "11": "Objective verdicts",
     "3a": "Method selection and alternatives",
     "D2": "Scheduler-only engineering trade-offs",
     "B1": "Historical audit coverage",
@@ -823,7 +821,7 @@ while i < len(tokens):
         i += 1
         continue
     raise ValueError(("unexpected block", i, t.type, t.content))
-assert bibnums == [str(i) for i in range(1, 45)]
+assert bibnums == [str(i) for i in range(1, 47)]
 counted = []
 prose_counted = []
 for block in blocks:

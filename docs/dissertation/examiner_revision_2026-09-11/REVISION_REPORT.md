@@ -1,5 +1,21 @@
 # Revision record — TrafficTwin examiner revision
 
+## Six-point editorial fixes — 15 September 2026; input `7075b25`
+
+All six requested defects are addressed. The literature suggestion required qualification: arXiv:1905.04458 is Kovalenko et al.; it supports a comparison under different assumptions, not an identical accounting method or an opposite overall conclusion. Primary text and Crossref verification support new references 45–46 in Sections 1.2 and 3.5. The user's latest instruction authorises those narrow changes to previously protected prose.
+
+Counts change from **8,914 / 7,714** to **8,938 strict / 7,738 prose-only**; PDF remains **62 pages**. Title unchanged. Main tables 10 → 8 and 11 → 9, with every table body preserved. Figure 2, its introduction and caption move verbatim from 1.1 → 2.3; the final 4.4 sentence moves verbatim → Section 4 opening. Two short introductory paragraphs are merged, a WHO motivation clause is added, PDF metadata populated, and the stale 3GPP note corrected. All earlier appendix moves remain verbatim.
+
+The extended validator reverses a pinned, reviewable editorial ledger to recover `7075b25` before running every prior preservation guard. Current content is also checked directly. **178/178 combined checks and 131/131 preservation checks pass**, as do six new mutation probes, the PDF build and Ruff checks. The current manuscript is not claimed to have an unchanged Section 1.2; its authorised difference is explicit.
+
+- Markdown SHA256: `f3867b5ff9d2937faab842b14409914e2747452e1cc2c5093961b2860f394537`.
+- TeX SHA256: `ab1cd44adecfa4f8feb82783c1908d12e986c234275a0df4596b7ded1b0fa524`.
+- PDF SHA256: `33244964119ca80406200004460ab335cd446bae26213356facf6375134f6dcd`.
+
+[Full review, moved-content map and source qualifications](EDITORIAL_FIX_REVIEW_2026-09-15.md) · [source registration](evidence/reference-registration-editorial-fixes-2026-09-15.json) · [operation ledger](evidence/EDITORIAL_FIX_OPERATIONS_2026-09-15.json) · [acceptance](evidence/EDITORIAL_FIX_ACCEPTANCE_2026-09-15.json) · [grep table](evidence/EDITORIAL_FIX_GREP_2026-09-15.json).
+
+Main, frozen packages and scientific results remain unchanged. Existing submission gates remain open. The following entries and their artifact identities are historical, superseded by this revision. Exact pushed-SHA review is recorded in the draft PR body.
+
 ## Project title restored — 15 September 2026; input `10ca7f2`
 
 The owner chose **Dynamic Resource Management for Intelligent Transport Systems**, with no subtitle. Only the first Markdown heading changes. The converter gives the cover title a centered box for two balanced lines. The report retains TrafficTwin as its software name.

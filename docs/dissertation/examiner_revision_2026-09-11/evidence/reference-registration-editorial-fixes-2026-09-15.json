@@ -1,0 +1,41 @@
+{
+  "sources": {
+    "10.1109/71.824633": {
+      "reference_number": 45,
+      "title": "How useful is old information?",
+      "primary_url": "https://www.eecs.harvard.edu/~michaelm/NEWWORK/postscripts/oldinfo-jver-submit.pdf",
+      "access_date": "2026-09-15",
+      "primary_pdf_sha256": "dda7224355c6d0b9c364af23691038f042430e1171c9394721367ead7b637f49",
+      "verification_method": "DOI, title, author order, year, venue and page range checked against the direct Crossref works record; cited claims read from the downloaded primary author PDF, with visual inspection of relevant pages.",
+      "crossref_url": "https://api.crossref.org/works/10.1109/71.824633",
+      "crossref_response_sha256": "d9abd32a05f5d6a5f495e0010683ed6e2ee8641c64a6f2e33f6c93ac11eb1655",
+      "primary_locator": "Introduction, author-manuscript printed p. 2; Section 3.4 discussion, printed p. 12.",
+      "supported_claim": "Outdated shared queue information can herd jobs onto apparently light servers; the information delay differs from TrafficTwin's live service-work state.",
+      "interpretation_boundary": "The downloaded author manuscript is not the typeset journal article; its page locators are not final journal pagination.",
+      "manuscript_sections": [
+        "1.2",
+        "3.5"
+      ],
+      "owner_reading_claimed": false
+    },
+    "10.1109/CFEC.2019.8733151": {
+      "reference_number": 46,
+      "title": "Robust Resource Allocation Using Edge Computing for Vehicle to Infrastructure (V2I) Networks",
+      "primary_url": "https://arxiv.org/pdf/1905.04458",
+      "access_date": "2026-09-15",
+      "primary_pdf_sha256": "5cb19ffa0b594e9a54100cbf32083f755b38aa2d8f300593d8ec9e4e0fd3aead",
+      "verification_method": "DOI, title, author order, year, venue and page range checked against the direct Crossref works record; cited claims read from the downloaded primary author PDF, with visual inspection of relevant pages.",
+      "crossref_url": "https://api.crossref.org/works/10.1109/CFEC.2019.8733151",
+      "crossref_response_sha256": "25ec5f10e59fe03d837647659c39dafd6ddd9dc326cf9d237ac849f4a6b5273b",
+      "primary_locator": "Sections IV–VI, PDF pp. 4–5; author list on p. 1; arXiv:1905.04458v1.",
+      "supported_claim": "The Best Probability federation scheme has lower deadline-miss rates than No Redirection in the paper's heterogeneous EdgeCloudSim setting.",
+      "interpretation_boundary": "First author is Anna Kovalenko; Hussain is a co-author. Seeded workloads and deadline-miss accounting do not establish the same offered/admitted/rejected accounting contract as TrafficTwin. The result is not an opposite conclusion for every TrafficTwin arm.",
+      "manuscript_sections": [
+        "1.2",
+        "3.5"
+      ],
+      "owner_reading_claimed": false
+    }
+  },
+  "note": "No new experimental statistics. Optional Grosof/Hyytiä papers were not added. Author reading remains a separate submission gate."
+}

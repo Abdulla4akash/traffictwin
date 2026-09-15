@@ -1133,5 +1133,681 @@
       }
     },
     "note": "Closing verification supersedes the prior manuscript-handling note; older receipts remain historical. References 42–43 are checked from downloaded primary PDFs; reference 44 records the author-confirmed tool outcome, not independent observation or formal approval. No new DOI."
+  },
+  "10.1109/71.824633": {
+    "status": "ok",
+    "message-type": "work",
+    "message-version": "1.0.0",
+    "message": {
+      "indexed": {
+        "date-parts": [
+          [
+            2026,
+            8,
+            18
+          ]
+        ],
+        "date-time": "2026-08-18T00:09:52Z",
+        "timestamp": 1787011792178,
+        "version": "build-2736575974"
+      },
+      "reference-count": 29,
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "1",
+      "license": [
+        {
+          "start": {
+            "date-parts": [
+              [
+                2000,
+                1,
+                1
+              ]
+            ],
+            "date-time": "2000-01-01T00:00:00Z",
+            "timestamp": 946684800000
+          },
+          "content-version": "vor",
+          "delay-in-days": 0,
+          "URL": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html"
+        }
+      ],
+      "content-domain": {
+        "domain": [],
+        "crossmark-restriction": false
+      },
+      "short-container-title": [
+        "IEEE Trans. Parallel Distrib. Syst."
+      ],
+      "published-print": {
+        "date-parts": [
+          [
+            2000
+          ]
+        ]
+      },
+      "DOI": "10.1109/71.824633",
+      "type": "journal-article",
+      "created": {
+        "date-parts": [
+          [
+            2002,
+            8,
+            24
+          ]
+        ],
+        "date-time": "2002-08-24T15:16:32Z",
+        "timestamp": 1030202192000
+      },
+      "page": "6-20",
+      "source": "Crossref",
+      "is-referenced-by-count": 127,
+      "title": [
+        "How useful is old information?"
+      ],
+      "prefix": "10.1109",
+      "volume": "11",
+      "author": [
+        {
+          "given": "M.",
+          "family": "Mitzenmacher",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "member": "263",
+      "reference": [
+        {
+          "key": "bibL00065",
+          "author": "cox",
+          "year": "1961",
+          "journal-title": "Queues"
+        },
+        {
+          "key": "bibL000616",
+          "doi-asserted-by": "crossref",
+          "first-page": "331",
+          "DOI": "10.1016/0743-7315(90)90118-9",
+          "article-title": "adaptive load sharing in heterogeneous distributed systems",
+          "volume": "9",
+          "author": "mirchandaney",
+          "year": "1990",
+          "journal-title": "J Parallel and Distributed Computing"
+        },
+        {
+          "key": "bibL00066",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TSE.1986.6312961"
+        },
+        {
+          "key": "bibL000617",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1145/237502.237524"
+        },
+        {
+          "key": "bibL00063",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1007/BF01149165"
+        },
+        {
+          "key": "bibL000618",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/SFCS.1996.548480"
+        },
+        {
+          "key": "bibL00064",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1137/S0097539795288490"
+        },
+        {
+          "key": "bibL000619",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/71.963420"
+        },
+        {
+          "key": "bibL000612",
+          "author": "kleinrock",
+          "year": "1975",
+          "journal-title": "Queueing System Volume 1 Theory"
+        },
+        {
+          "key": "bibL00061",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1287/moor.22.4.840"
+        },
+        {
+          "key": "bibL000613",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/9.402238"
+        },
+        {
+          "key": "bibL00062",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1145/149439.133106"
+        },
+        {
+          "key": "bibL000614",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1137/1.9781611970333"
+        },
+        {
+          "key": "bibL000615",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/12.42124"
+        },
+        {
+          "key": "bibL000610",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1145/268998.266662"
+        },
+        {
+          "key": "bibL000611",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1145/129712.129743"
+        },
+        {
+          "key": "bibL000629",
+          "first-page": "15",
+          "article-title": "queueing system with selection of the shortest of two queues: an asymptotic approach",
+          "volume": "32",
+          "author": "vvedenskaya",
+          "year": "1996",
+          "journal-title": "Problems of Information Transmission"
+        },
+        {
+          "key": "bibL000627",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.2307/3213271"
+        },
+        {
+          "key": "bibL000628",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1214/aoap/1177004612"
+        },
+        {
+          "key": "bibL000625",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.2307/3213411"
+        },
+        {
+          "key": "bibL000626",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1287/opre.34.1.55"
+        },
+        {
+          "key": "bibL000623",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/26.328987"
+        },
+        {
+          "key": "bibL000624",
+          "first-page": "213",
+          "article-title": "the effect of communication delays on the performance of load balancing policies in distributed systems",
+          "author": "towsley",
+          "year": "1988",
+          "journal-title": "Proc Second Int l MCPR Workshop"
+        },
+        {
+          "key": "bibL000621",
+          "article-title": "tight thresholds for the pure literal rule",
+          "author": "mitzenmacher",
+          "year": "1997"
+        },
+        {
+          "key": "bibL000622",
+          "author": "shwartz",
+          "year": "1995",
+          "journal-title": "Large Deviations for Performance Analysis"
+        },
+        {
+          "key": "bibL000620",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1007/s002240000122"
+        },
+        {
+          "key": "bibL00068",
+          "doi-asserted-by": "crossref",
+          "DOI": "10.1002/9780470316658",
+          "author": "ethier",
+          "year": "1986",
+          "journal-title": "Markov Processes Characterization and Convergence"
+        },
+        {
+          "key": "bibL00067",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1016/0166-5316(86)90008-8"
+        },
+        {
+          "key": "bibL00069",
+          "author": "fox",
+          "year": "0"
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Parallel and Distributed Systems"
+      ],
+      "original-title": [],
+      "link": [
+        {
+          "URL": "http://xplorestaging.ieee.org/ielx5/71/17850/00824633.pdf?arnumber=824633",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ],
+      "deposited": {
+        "date-parts": [
+          [
+            2021,
+            11,
+            29
+          ]
+        ],
+        "date-time": "2021-11-29T15:13:54Z",
+        "timestamp": 1638198834000
+      },
+      "score": 1,
+      "resource": {
+        "primary": {
+          "URL": "http://ieeexplore.ieee.org/document/824633/"
+        }
+      },
+      "subtitle": [],
+      "short-title": [],
+      "issued": {
+        "date-parts": [
+          [
+            2000
+          ]
+        ]
+      },
+      "references-count": 29,
+      "journal-issue": {
+        "issue": "1"
+      },
+      "URL": "https://doi.org/10.1109/71.824633",
+      "relation": {},
+      "ISSN": [
+        "1045-9219"
+      ],
+      "issn-type": [
+        {
+          "value": "1045-9219",
+          "type": "print"
+        }
+      ],
+      "subject": [],
+      "published": {
+        "date-parts": [
+          [
+            2000
+          ]
+        ]
+      }
+    }
+  },
+  "10.1109/CFEC.2019.8733151": {
+    "status": "ok",
+    "message-type": "work",
+    "message-version": "1.0.0",
+    "message": {
+      "indexed": {
+        "date-parts": [
+          [
+            2026,
+            7,
+            15
+          ]
+        ],
+        "date-time": "2026-07-15T17:09:54Z",
+        "timestamp": 1784135394049,
+        "version": "3.55.0"
+      },
+      "reference-count": 22,
+      "publisher": "IEEE",
+      "license": [
+        {
+          "start": {
+            "date-parts": [
+              [
+                2019,
+                5,
+                1
+              ]
+            ],
+            "date-time": "2019-05-01T00:00:00Z",
+            "timestamp": 1556668800000
+          },
+          "content-version": "vor",
+          "delay-in-days": 0,
+          "URL": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html"
+        },
+        {
+          "start": {
+            "date-parts": [
+              [
+                2019,
+                5,
+                1
+              ]
+            ],
+            "date-time": "2019-05-01T00:00:00Z",
+            "timestamp": 1556668800000
+          },
+          "content-version": "stm-asf",
+          "delay-in-days": 0,
+          "URL": "https://doi.org/10.15223/policy-029"
+        },
+        {
+          "start": {
+            "date-parts": [
+              [
+                2019,
+                5,
+                1
+              ]
+            ],
+            "date-time": "2019-05-01T00:00:00Z",
+            "timestamp": 1556668800000
+          },
+          "content-version": "stm-asf",
+          "delay-in-days": 0,
+          "URL": "https://doi.org/10.15223/policy-037"
+        }
+      ],
+      "content-domain": {
+        "domain": [],
+        "crossmark-restriction": false
+      },
+      "short-container-title": [],
+      "published-print": {
+        "date-parts": [
+          [
+            2019,
+            5
+          ]
+        ]
+      },
+      "DOI": "10.1109/cfec.2019.8733151",
+      "type": "proceedings-article",
+      "created": {
+        "date-parts": [
+          [
+            2019,
+            6,
+            11
+          ]
+        ],
+        "date-time": "2019-06-11T02:05:19Z",
+        "timestamp": 1560218719000
+      },
+      "page": "1-6",
+      "source": "Crossref",
+      "is-referenced-by-count": 12,
+      "title": [
+        "Robust Resource Allocation Using Edge Computing for Vehicle to Infrastructure (V2I) Networks"
+      ],
+      "prefix": "10.1109",
+      "author": [
+        {
+          "given": "Anna",
+          "family": "Kovalenko",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Razin Farhan",
+          "family": "Hussain",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Omid",
+          "family": "Semiari",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Mohsen Amini",
+          "family": "Salehi",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "member": "263",
+      "reference": [
+        {
+          "key": "ref10",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1016/S0022-0000(75)80008-0"
+        },
+        {
+          "key": "ref11",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TVT.2016.2536441"
+        },
+        {
+          "key": "ref12",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ITSC.2010.5625189"
+        },
+        {
+          "key": "ref13",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ITST.2011.6060155"
+        },
+        {
+          "key": "ref14",
+          "doi-asserted-by": "crossref",
+          "DOI": "10.1109/GreenTech.2019.8767119",
+          "article-title": "Serverless edge computing for green oil and gas industry",
+          "author": "hussain",
+          "year": "2019"
+        },
+        {
+          "key": "ref15",
+          "article-title": "Robust resource allocation using edge computing for smart oil fields",
+          "author": "hussain",
+          "year": "2018",
+          "journal-title": "Proceedings of the 24th International Conference on Parallel and Distributed Processing Techniques & Applications PDPTA &#x2019;18"
+        },
+        {
+          "key": "ref16",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/FMEC.2017.7946405"
+        },
+        {
+          "key": "ref17",
+          "doi-asserted-by": "crossref",
+          "first-page": "351",
+          "DOI": "10.1007/978-3-642-13119-6_31",
+          "article-title": "Adapting market-oriented scheduling policies for cloud computing",
+          "author": "salehi",
+          "year": "2010",
+          "journal-title": "Proceedings of the 10th International Conference on Algorithms and Architectures for Parallel Processing-Volume Part i"
+        },
+        {
+          "key": "ref18",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/CIT.2016.49"
+        },
+        {
+          "key": "ref19",
+          "first-page": "349",
+          "article-title": "A roadside-to-vehicle communication system for vehicle safety using dual frequency channels",
+          "author": "maeshima",
+          "year": "2007",
+          "journal-title": "Proceedings of Conference on Intelligent Transportation Systems ITSC"
+        },
+        {
+          "key": "ref4",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/MedHocNet.2012.6257116"
+        },
+        {
+          "key": "ref3",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1145/1161064.1161066"
+        },
+        {
+          "key": "ref6",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1016/j.jpdc.2016.06.008"
+        },
+        {
+          "key": "ref5",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ICFEC.2017.17"
+        },
+        {
+          "key": "ref8",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TPDS.2004.24"
+        },
+        {
+          "key": "ref7",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/TPDS.2017.2766069"
+        },
+        {
+          "key": "ref2",
+          "year": "0"
+        },
+        {
+          "key": "ref1",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1109/ATNAC.2011.6096651"
+        },
+        {
+          "key": "ref9",
+          "first-page": "163",
+          "article-title": "A multiple rsu scheduling for v2i-based data services",
+          "author": "bok",
+          "year": "2016",
+          "journal-title": "Proceedings of the International Conference on Big Data and Smart Computing BIGCOMP"
+        },
+        {
+          "key": "ref20",
+          "first-page": "1412",
+          "article-title": "Internet access protocol providing qos in vehicular networks with infrastructure support",
+          "author": "korkmaz",
+          "year": "2006",
+          "journal-title": "Proceedings of Conference on Intelligent Transportation Systems ITSC"
+        },
+        {
+          "key": "ref22",
+          "article-title": "Louisiana Optical Network Infrastructure (LONI) Resources QB2",
+          "year": "0"
+        },
+        {
+          "key": "ref21",
+          "doi-asserted-by": "publisher",
+          "DOI": "10.1145/1080754.1080756"
+        }
+      ],
+      "event": {
+        "name": "2019 IEEE 3rd International Conference on Fog and Edge Computing (ICFEC)",
+        "location": "Larnaca, Cyprus",
+        "start": {
+          "date-parts": [
+            [
+              2019,
+              5,
+              14
+            ]
+          ]
+        },
+        "end": {
+          "date-parts": [
+            [
+              2019,
+              5,
+              17
+            ]
+          ]
+        }
+      },
+      "container-title": [
+        "2019 IEEE 3rd International Conference on Fog and Edge Computing (ICFEC)"
+      ],
+      "original-title": [],
+      "link": [
+        {
+          "URL": "http://xplorestaging.ieee.org/ielx7/8730889/8733137/08733151.pdf?arnumber=8733151",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ],
+      "deposited": {
+        "date-parts": [
+          [
+            2022,
+            7,
+            15
+          ]
+        ],
+        "date-time": "2022-07-15T03:09:55Z",
+        "timestamp": 1657854595000
+      },
+      "score": 1,
+      "resource": {
+        "primary": {
+          "URL": "https://ieeexplore.ieee.org/document/8733151/"
+        }
+      },
+      "subtitle": [],
+      "short-title": [],
+      "issued": {
+        "date-parts": [
+          [
+            2019,
+            5
+          ]
+        ]
+      },
+      "references-count": 22,
+      "URL": "https://doi.org/10.1109/cfec.2019.8733151",
+      "relation": {},
+      "subject": [],
+      "published": {
+        "date-parts": [
+          [
+            2019,
+            5
+          ]
+        ]
+      }
+    }
   }
 }

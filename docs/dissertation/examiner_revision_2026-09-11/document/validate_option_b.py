@@ -21,6 +21,9 @@ PREVIOUS_TITLE = (
     "under a Frozen MAPPO Policy"
 )
 PRE_TITLE_MARKDOWN_SHA256 = "938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3"
+EDITORIAL_BASELINE = "7075b2576292cc9a98854bf5664449df66617b96"
+EDITORIAL_BASELINE_SHA256 = "1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8"
+EDITORIAL_LEDGER_SHA256 = "b0bc1ec096fe58cab2baf1db414618c92ad7bb81ac81f6bd72345248e16237f9"
 
 
 def section(text: str, number: str) -> str:
@@ -33,6 +36,80 @@ def section(text: str, number: str) -> str:
 def appendix(text: str, letter: str) -> str:
     tail = text.split("## Appendix " + letter + ". ", 1)[1]
     return tail.split("\n## Appendix ", 1)[0]
+
+
+def check_editorial_fixes(
+    root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
+) -> tuple[str, dict[str, bool]]:
+    """Check current content, then undo only the owner's six-point revision."""
+    baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
+        ["/usr/bin/git", "show", f"{EDITORIAL_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
+        cwd=root,
+        text=True,
+    )
+    ledger = (here / "evidence/EDITORIAL_FIX_OPERATIONS_2026-09-15.json").read_bytes()
+    record = json.loads(ledger)
+    checks = {
+        "editorial_baseline_hash": hashlib.sha256(baseline.encode()).hexdigest()
+        == EDITORIAL_BASELINE_SHA256
+        == record["baseline_markdown_sha256"],
+        "editorial_authorised_operation_ledger_hash": hashlib.sha256(ledger).hexdigest()
+        == EDITORIAL_LEDGER_SHA256,
+    }
+    restored = revised
+    reversible = True
+    for op in reversed(record["operations"]):
+        if not op["new"] or restored.count(op["new"]) != 1:
+            reversible = False
+            break
+        restored = restored.replace(op["new"], op["old"], 1)
+    checks["editorial_only_authorised_source_changes"] = reversible and restored == baseline
+    before, after = table_parser(baseline), table_parser(revised)
+    checks["editorial_table_identifiers_only_10_to_8_and_11_to_9"] = set(after) == (
+        (set(before) - {"10", "11"}) | {"8", "9"}
+    )
+    checks["editorial_main_tables_have_no_numbering_hole"] = list(
+        table_parser(revised.split("## References\n", 1)[0])
+    ) == ["1", "2", "3", "3a", "4", "5", "6", "7", "8", "9"]
+    for number, rows in before.items():
+        target = record["table_numbers"].get(number, number)
+        checks[f"editorial_table_{number}_to_{target}_byte_identical"] = rows == after.get(target)
+    figure = record["figure_move"]["body"]
+    checks["editorial_figure_2_moved_verbatim_to_2_3"] = (
+        figure in section(baseline, "1.1")
+        and section(revised, "2.3").count(figure) == revised.count(figure) == 1
+        and figure not in section(revised, "1.1")
+        and hashlib.sha256(figure.encode()).hexdigest() == record["figure_move"]["sha256"]
+    )
+    closing = record["closing_move"]["body"]
+    checks["editorial_overall_conclusion_moved_verbatim_to_section_4_opening"] = (
+        closing in section(baseline, "4.4")
+        and revised.split("## 4. Conclusion\n\n", 1)[1].startswith(closing + "\n\n")
+        and revised.count(closing) == 1
+        and closing not in section(revised, "4.4")
+        and hashlib.sha256(closing.encode()).hexdigest() == record["closing_move"]["sha256"]
+    )
+    for number in ["1.2", "3.5"]:
+        checks[f"editorial_both_new_sources_cited_in_{number}"] = all(
+            f"[[{reference}]](#ref-{reference})" in section(revised, number)
+            for reference in [45, 46]
+        )
+    checks["editorial_references_1_to_44_unchanged"] = (
+        baseline.split("## References\n", 1)[1].split("## Appendix A.", 1)[0].strip()
+        == revised.split("## References\n", 1)[1].split('<a id="ref-45">', 1)[0].strip()
+    )
+    for number in ["3.2", "3.3", "3.4", "3.6"]:
+        checks[f"editorial_section_{number}_byte_identical_to_7075b25"] = section(
+            revised, number
+        ) == section(baseline, number)
+    # Check earlier appendix bodies in the actual manuscript as well as the undo image.
+    for name in ["OPTION_B_OPERATIONS.json", "OPTION_B_CLOSE_OPERATIONS.json"]:
+        previous = json.loads((here / "evidence" / name).read_text())
+        checks[f"editorial_{name.removesuffix('.json').lower()}_moves_still_verbatim"] = all(
+            appendix(revised, move["appendix"]).count(move["body"]) == 1
+            for move in previous["moves"]
+        )
+    return restored, checks
 
 
 def check_closing_moves(
@@ -109,6 +186,8 @@ def check_closing_moves(
 def check_option_b(
     root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
 ) -> dict[str, bool]:
+    # Each newer, explicitly authorised layer recovers the exact preceding manuscript.
+    revised, editorial_checks = check_editorial_fixes(root, here, revised, table_parser)
     # The owner authorised only the first-line title change after 10ca7f2.
     requested_heading = "# " + PROJECT_TITLE + "\n"
     title_checks = {"title_matches_original_project_name": revised.startswith(requested_heading)}
@@ -223,6 +302,7 @@ def check_option_b(
     )
     checks.update(closing_checks)
     checks.update(title_checks)
+    checks.update(editorial_checks)
     return checks
 
 

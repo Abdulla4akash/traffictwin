@@ -1,0 +1,101 @@
+{
+  "method": "In-memory changes to real Markdown; existing preservation guards must reject each. No manuscript files mutated.",
+  "passed": true,
+  "probes": [
+    {
+      "mutation": "unauthorised_1_2_argument_edit",
+      "rejected": true,
+      "failed_checks": [
+        "option_b_section_1_2_byte_identical",
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "option_b_table_10_to_10_byte_identical",
+        "option_b_table_11_to_11_byte_identical",
+        "option_b_additions_present",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_table_identifiers_only_9_to_a1",
+        "close_table_10_to_10_byte_identical",
+        "close_table_11_to_11_byte_identical",
+        "title_revision_preserves_all_other_manuscript_bytes",
+        "editorial_only_authorised_source_changes"
+      ]
+    },
+    {
+      "mutation": "new_citation_removed",
+      "rejected": true,
+      "failed_checks": [
+        "option_b_section_1_2_byte_identical",
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "option_b_table_10_to_10_byte_identical",
+        "option_b_table_11_to_11_byte_identical",
+        "option_b_additions_present",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_table_identifiers_only_9_to_a1",
+        "close_table_10_to_10_byte_identical",
+        "close_table_11_to_11_byte_identical",
+        "title_revision_preserves_all_other_manuscript_bytes",
+        "editorial_only_authorised_source_changes",
+        "editorial_both_new_sources_cited_in_1.2"
+      ]
+    },
+    {
+      "mutation": "table_9_body_changed",
+      "rejected": true,
+      "failed_checks": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_11_to_11_byte_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_table_11_to_11_byte_identical",
+        "title_revision_preserves_all_other_manuscript_bytes",
+        "editorial_only_authorised_source_changes",
+        "editorial_table_11_to_9_byte_identical"
+      ]
+    },
+    {
+      "mutation": "figure_2_duplicated_at_source",
+      "rejected": true,
+      "failed_checks": [
+        "option_b_all_other_source_bytes_preserved",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "title_revision_preserves_all_other_manuscript_bytes",
+        "editorial_only_authorised_source_changes",
+        "editorial_figure_2_moved_verbatim_to_2_3"
+      ]
+    },
+    {
+      "mutation": "closing_statement_rewritten",
+      "rejected": true,
+      "failed_checks": [
+        "option_b_section_1_2_byte_identical",
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_section_3.5_only_explicit_exceptions",
+        "option_b_table_9_to_9_byte_identical",
+        "option_b_table_10_to_10_byte_identical",
+        "option_b_table_11_to_11_byte_identical",
+        "option_b_additions_present",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_section_3_5_byte_identical_to_2c29392",
+        "close_table_identifiers_only_9_to_a1",
+        "close_table_10_to_10_byte_identical",
+        "close_table_11_to_11_byte_identical",
+        "title_revision_preserves_all_other_manuscript_bytes",
+        "editorial_only_authorised_source_changes",
+        "editorial_overall_conclusion_moved_verbatim_to_section_4_opening"
+      ]
+    },
+    {
+      "mutation": "prior_appendix_text_changed",
+      "rejected": true,
+      "failed_checks": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_move_2_verbatim_at_destination",
+        "title_revision_preserves_all_other_manuscript_bytes",
+        "editorial_only_authorised_source_changes",
+        "editorial_option_b_close_operations_moves_still_verbatim"
+      ]
+    }
+  ]
+}

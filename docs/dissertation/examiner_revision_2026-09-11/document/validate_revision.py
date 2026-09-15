@@ -97,11 +97,11 @@ def main() -> None:
         checks[f"preserved_svg_{asset.stem}"] = sha(asset) == sha(HERE / "assets" / asset.name)
     checks["three_research_questions"] = len(re.findall(r"\*\*RQ[123]:", revised)) == 3
     checks["no_rq4"] = "RQ4" not in revised
-    checks["forty_four_references"] = len(newmap["bibkeys"]) == 44
+    checks["forty_six_references"] = len(newmap["bibkeys"]) == 46
     cited_order = list(dict.fromkeys(re.findall(r"\[\[\d+\]\]\(#ref-(\d+)\)", revised)))
-    # Stable bibliography identifiers preserve protected Section 1.2; moves alter first appearance.
-    checks["references_have_stable_baseline_and_three_additions"] = newmap["bibkeys"] == [
-        f"ref{n}" for n in range(1, 45)
+    # Stable identifiers preserve prior citations; additions need not be in appearance order.
+    checks["references_have_stable_baseline_and_five_additions"] = newmap["bibkeys"] == [
+        f"ref{n}" for n in range(1, 47)
     ]
     checks["every_reference_cited"] = {f"ref{n}" for n in cited_order} == set(newmap["bibkeys"])
     captions = re.findall(r"(?m)^\*(?:Figure|Table) .*", revised)
@@ -136,6 +136,8 @@ def main() -> None:
                 missing.append(target)
     checks["manuscript_links_resolve"] = not missing
     pdf = fitz.open(HERE / "TrafficTwin_Dissertation.pdf")
+    checks["pdf_metadata_has_project_title"] = pdf.metadata["title"] == PROJECT_TITLE
+    checks["pdf_metadata_has_author"] = pdf.metadata["author"] == "S M Abdulla Al Mamun"
     checks["pdf_cover_has_requested_project_title"] = PROJECT_TITLE in " ".join(
         pdf[0].get_text().split()
     )
