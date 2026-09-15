@@ -123,6 +123,7 @@ def _render_paired(results: DissertationResults) -> None:
                 mode="markers+text",
                 text=[f"{contrast.mean_pp:+.3f} pp"],
                 textposition="top center",
+                cliponaxis=False,
                 marker={"size": 13, "color": "#0891b2"},
                 error_x={
                     "type": "data",
