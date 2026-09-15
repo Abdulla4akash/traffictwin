@@ -1,5 +1,5 @@
 {
-  "status": "prepared_not_execution_authorised_pending_contract_clarification",
+  "status": "owner_authorised_corrected_contract_before_qualification",
   "base_commit": "5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
   "trace_inventory_sha256": "9c2acad9d945d4d2817d24a61b59b7f70650e7be5cc831d802029f2195657da7",
   "traces": {
@@ -211,11 +211,79 @@
       }
     ],
     "total_short_attempts": 18,
-    "literal_contract": "83 shared scientific fields match across arms",
-    "amendment_pending": {
+    "amended_contract": {
       "shared_exogenous_field_count": 14,
       "restart_array_count": 59,
       "endogenous_equality_required": false
+    },
+    "expected_array_fields": {
+      "step": [
+        "active",
+        "arrivals",
+        "done",
+        "exogenous_keys",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "observation_task_size",
+        "observation_task_type",
+        "rr_pointer_after",
+        "rr_pointer_before",
+        "rsu_busy_ms",
+        "rsu_load",
+        "rsu_pre_drain_busy_ms",
+        "rsu_pre_drain_load",
+        "rsu_start_busy_ms",
+        "rsu_start_load",
+        "slot_is_ev",
+        "slot_soc_initial",
+        "slot_tier",
+        "slot_tx_power_w",
+        "times",
+        "veh_action",
+        "veh_actor_logits",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_energy_j",
+        "veh_k",
+        "veh_load",
+        "veh_observations",
+        "veh_pre_drain_busy_ms",
+        "veh_pre_drain_load",
+        "veh_queue_ms",
+        "veh_soc_after",
+        "veh_soc_before",
+        "veh_start_busy_ms",
+        "veh_start_load",
+        "veh_v2i_capacity_mbps",
+        "veh_v2i_quality",
+        "veh_v2v_radio_viable",
+        "veh_v2v_target"
+      ],
+      "task": [
+        "task_active",
+        "task_execution_rsu",
+        "task_final_admitted",
+        "task_forwarded",
+        "task_forwarding_latency_ms",
+        "task_ingress_rsu",
+        "task_lat_ms",
+        "task_local_service_ms",
+        "task_met",
+        "task_outcome",
+        "task_rsu_service_ms",
+        "task_selected_execution_rsu",
+        "task_sizes_mb",
+        "task_type",
+        "task_v2i_admitted",
+        "task_v2v_service_ms"
+      ]
+    },
+    "field_schema_reference": {
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/03_normal_per_task_dla/attempt_001/VALIDATED.json",
+      "sha256": "d104adcb149ba616eef850b8b966aad3aa8650c1ad496b57bb22cd899401b51c"
     }
   },
   "controls": {

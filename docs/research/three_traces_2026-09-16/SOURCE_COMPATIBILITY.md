@@ -35,8 +35,8 @@ RSU work and local work. It records observation/logit/action differences
 without requiring equality. The instrumented output has 43 per-step arrays
 and 16 per-task arrays; restart equality applies to all 59 arrays.
 
-The proposed amendment in `PROTOCOL.md` preserves these existing scientific
-distinctions and the requested run budget. Owner confirmation is pending.
+The approved amendment in `OWNER_AMENDMENT.md` and `PROTOCOL.md` preserves
+these existing scientific distinctions and the requested run budget.
 
 ## Archived descriptive comparison availability
 
@@ -48,6 +48,7 @@ inferred from another trace or populated with zero.
 
 ## Decision
 
-Inventory and preparation may proceed. Qualification and full execution are
-pending the explicit clarification requested from the owner. No scientific
-failure, retry or discarded attempt has occurred; no study result exists yet.
+The owner explicitly approved the configuration/qualification clarification
+before any evaluator attempt. Configured copies and orchestration can proceed
+through qualification and exact-source review. Full execution still requires
+its source-bound seal. The original protected scientific files remain unchanged.

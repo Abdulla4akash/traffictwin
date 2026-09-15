@@ -10,13 +10,12 @@ authorised. The starting commit is
 `5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe`, on the requested guarded follow-up
 branch; the new branch is `research/dissertation-traces-2026-09-16`.
 
-**Pre-execution draft: not sealed, no evaluator attempts launched.** The
-inventory and unchanged runtime preflight are complete. `SOURCE_COMPATIBILITY.md`
-records conflicts between the literal task and the sealed code. The proposed
-clarification below is awaiting owner confirmation; it is not an approved
-amendment and must not be treated as execution authority. An execution seal
-must bind the final protocol, source/configuration identities, qualification
-receipts and independent source review before any full outcomes.
+**Owner-approved pre-execution protocol.** `OWNER_AMENDMENT.md` records the
+explicitly approved configuration and qualification clarification. Inventory
+and pinned-runtime preflight are complete. No new evaluator outcomes existed
+when this protocol and its scientific/configuration sources were prepared.
+An execution seal must bind this protocol, source/configuration identities,
+qualification receipts and independent source review before full outcomes.
 
 ## Trace selection
 
@@ -83,7 +82,7 @@ remain in the denominator. Equal weighting applies to block effects, not to
 pooled task counts. Deadline comparison is inclusive; rejected tasks retain the
 ten-times-deadline penalty.
 
-## Qualification and proposed clarification
+## Qualification and approved clarification
 
 Literal B.4 requires five 300-step instrumented cells and one fresh-process
 150-step `per_task_dla` restart per trace, fleet/evaluator pair (1,0). All three
@@ -91,14 +90,14 @@ traces must finish their qualification decision before any full run. Failure
 stops the affected trace with incomplete evidence retained; no repair of
 scientific code, retry or seed substitution is authorised.
 
-**Pending owner amendment:** use the sealed 14 exogenous input hashes to
+**Owner-approved amendment:** use the sealed 14 exogenous input hashes to
 require exact cross-arm matching; record endogenous differences. Require the
 complete 59-array instrumented schema (43 per-step, 16 per-task) and exact
 150-step restart prefix equality. The historical “83 shared scientific fields”
 count belongs to same-arm frozen/instrumented comparisons including summary
 fields, not cross-arm equality or prefix summary equality. No additional
 reference runs are proposed. Trace-specific dimensions and entry-channel
-expectations must be configuration parameters in validation and two-choice
+expectations are configuration parameters in validation and two-choice
 replay; all arithmetic and tolerances remain fixed.
 
 Keep exact discrete/count checks, 1e-6-task reconstructed-summary tolerance,
@@ -147,7 +146,7 @@ Descriptive plots relate per-task-minus-ingress and per-task-minus-round-robin
 margins to mean active vehicles per second across the five scenarios. Existing
 incident and morning points retain their archived designs: four incident fleet
 draws versus eight morning joint-seed blocks. E2c/E2d have no round-robin arm.
-**Pending clarification:** mark the incident round-robin margin unavailable;
+**Owner-approved clarification:** mark the incident round-robin margin unavailable;
 do not create a value or run an unauthorised incident cell. The incident
 per-task-minus-ingress point is available. Use the confirmation trace, rather
 than tos-data's differing morning array, for the morning density coordinate.
