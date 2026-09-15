@@ -1,0 +1,133 @@
+[
+  {
+    "check": "Project approach section",
+    "pattern": "^### 4\\.2 ",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      501
+    ],
+    "passed": true
+  },
+  {
+    "check": "Method alternatives section",
+    "pattern": "^### 2\\.9 ",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      294
+    ],
+    "passed": true
+  },
+  {
+    "check": "Ethics paragraph",
+    "pattern": "^\\*\\*Ethical and professional",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      124
+    ],
+    "passed": true
+  },
+  {
+    "check": "Owner-confirmed ethics citation",
+    "pattern": "my University of Manchester Ethics Decision Tool check.*ref-44",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      124
+    ],
+    "passed": true
+  },
+  {
+    "check": "Objective tags",
+    "pattern": "^(?:Addresses|O[1-5]|This subsection).*RQ",
+    "count": 7,
+    "expected": 7,
+    "lines": [
+      315,
+      331,
+      354,
+      389,
+      417,
+      431,
+      443
+    ],
+    "passed": true
+  },
+  {
+    "check": "Setting / Results labels",
+    "pattern": "\\*\\*(?:Setting|Results)\\.\\*\\*",
+    "count": 8,
+    "expected": 8,
+    "lines": [
+      333,
+      337,
+      356,
+      358,
+      391,
+      393,
+      433,
+      435
+    ],
+    "passed": true
+  },
+  {
+    "check": "Proposition remark",
+    "pattern": "^\\*\\*Remark\\.",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      423
+    ],
+    "passed": true
+  },
+  {
+    "check": "Table A1 caption",
+    "pattern": "^\\*Table A1\\.",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      738
+    ],
+    "passed": true
+  },
+  {
+    "check": "Table D2 caption",
+    "pattern": "^\\*Table D2\\.",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      971
+    ],
+    "passed": true
+  },
+  {
+    "check": "Owner placeholder",
+    "pattern": "\\[Owner note:",
+    "count": 0,
+    "expected": 0,
+    "lines": [],
+    "passed": true
+  },
+  {
+    "check": "3GPP both deadlines",
+    "pattern": "^WHO.*100 ms.*500 ms.*ref-42",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      34
+    ],
+    "passed": true
+  },
+  {
+    "check": "Ethics reference",
+    "pattern": "^\\[44\\]",
+    "count": 1,
+    "expected": 1,
+    "lines": [
+      673
+    ],
+    "passed": true
+  }
+]

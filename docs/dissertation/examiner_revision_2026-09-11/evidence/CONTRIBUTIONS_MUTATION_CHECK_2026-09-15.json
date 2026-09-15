@@ -1,0 +1,14 @@
+{
+  "method": "In-memory reinsertion of the deleted B2 sentence at its original Section 4.3 paragraph; no file mutations.",
+  "baseline_preservation_checks": 157,
+  "baseline_passed": true,
+  "mutation_rejected": true,
+  "failed_checks": [
+    "option_b_all_other_source_bytes_preserved",
+    "close_only_authorised_moves_trims_and_ethics_confirmation",
+    "title_revision_preserves_all_other_manuscript_bytes",
+    "editorial_only_authorised_source_changes",
+    "contributions_only_A_B_and_F1_source_changes",
+    "contributions_B_deletion_3_absent"
+  ]
+}

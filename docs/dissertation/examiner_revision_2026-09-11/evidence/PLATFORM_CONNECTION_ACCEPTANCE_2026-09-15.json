@@ -1,0 +1,43 @@
+{
+  "status": "BOUNDED_DOCUMENT_CHECKS_PASSED_WITH_DISCLOSED_EARLIER_WORD_LIMIT_FAILURE",
+  "input_document_commit": "b3b8dbceb07bd28f6743cf3595edacdfb61facdc",
+  "mechanical_integration_base": "bdab52af92546658d3253e6ae11855e85342df0f",
+  "authorised_changes": "Figure 7 completed-study workflow, its context/S17 capture link, and one abstract scale sentence (Claude suggestions 4 and 5); user requested the current 8,984-word version be pushed and merged.",
+  "operation_ledger": "PLATFORM_CONNECTION_OPERATIONS.json",
+  "operation_ledger_sha256": "9290b8653aaec22cf15cb33065e3e2303f09cda898c05b72bf45f78bb4aa5aef",
+  "canonical_hashes": {
+    "TrafficTwin_Dissertation.md": "7851287ff2be9307cf3665e42df09a192f13ecb50d670ed2564a6d043948334b",
+    "TrafficTwin_Dissertation.tex": "850d1a7b603022f1f540e462fb467db213bc27f2de3dff0b9316d21e609f58a3",
+    "TrafficTwin_Dissertation.pdf": "cdc949b06c44300e63e5e6085d89a52eebb690eb45a28435358cf71cb1acf47e"
+  },
+  "pages": 63,
+  "figure_7_page": 37,
+  "word_count": 8984,
+  "prose_only_words": 7784,
+  "preservation_checks_passed": 168,
+  "combined_checks_passed": 215,
+  "combined_checks_total": 216,
+  "failed_checks": [
+    "word_count_in_range"
+  ],
+  "earlier_owner_ceiling": 8950,
+  "excess_over_earlier_owner_ceiling": 34,
+  "rubric_7000_to_9000_passed": true,
+  "word_limit_not_waived": true,
+  "desktop_receipt": "ABSTRACT_SCALE_UPDATE.json",
+  "desktop_receipt_scope": "Preserved unchanged from local delivery; its PDF SHA is the Desktop PDF, not the new canonical PDF.",
+  "desktop_pdf_sha256": "8bcec70bd3c78ab6c8fac7cd199f066181f03be4f0a38be52c55788a45ebb1bd",
+  "canonical_pdf_links": "Package-relative, verified separately; all 63 pages pixel-identical to the verified Desktop delivery.",
+  "local_pdf_links_verified": 99,
+  "visual_check": "PLATFORM_CONNECTION_VISUAL_CHECK.json",
+  "mutation_check": "PLATFORM_CONNECTION_MUTATION_CHECKS.json",
+  "preservation_check": "PLATFORM_CONNECTION_PRESERVATION.json",
+  "ruff": "All seven document scripts pass lint and format.",
+  "build_log": "latexmk-platform-connection-2026-09-15.log",
+  "build_log_whitespace": "Trailing whitespace normalised for Git; build diagnostics unchanged.",
+  "product_capture_source": "5e187070849c15fe3efd07d9d9356a09e18dcd22",
+  "integrated_product_source": "17d6b21c7228910a911d66879a1c6e11ae445eb2",
+  "historical_receipts": "Existing contribution/editorial/Option B acceptance and operations records retained unchanged.",
+  "research_workloads_launched": 0,
+  "independent_exact_sha_review": "Pending parent-coordinated review after this document commit; builder does not self-approve."
+}

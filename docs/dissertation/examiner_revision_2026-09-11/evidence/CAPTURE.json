@@ -1,0 +1,15 @@
+{
+  "source_commit": "1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8",
+  "github_workflow_run": 34614459294,
+  "artifact_id": 10269522813,
+  "file_sha256": "5d13bb42637993d9d918db3d06c0dae625bd598d2cb5c920b2639dbf1b963117",
+  "route": "home",
+  "browser": "Chromium / Playwright",
+  "viewport": [
+    1440,
+    1000
+  ],
+  "theme": "light",
+  "capture_type": "Actual default Streamlit interface; no research launch",
+  "receipt": "evidence/product_capture/ui/accessibility-audit.json"
+}

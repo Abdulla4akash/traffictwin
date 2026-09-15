@@ -1,0 +1,74 @@
+{
+  "sources": {
+    "3gpp-ts-22.186-v16.2.0": {
+      "reference_number": 42,
+      "title": "Service requirements for enhanced V2X scenarios",
+      "document_identifier": "3GPP TS 22.186 version 16.2.0 Release 16; ETSI TS 122 186 V16.2.0 (2020-11)",
+      "primary_url": "https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf",
+      "access_date": "2026-09-15",
+      "verification_method": "Downloaded primary ETSI PDF; extracted text and visually inspected printed pages 9 and 10 (PDF pages 10 and 11).",
+      "file_sha256": "68390ad54bcffe2f944d6a4f25921d88dd1b04dc8471c5ce544a31c58ea99447",
+      "declined_claim": "No claim that a single advanced-driving class spans both deadlines; the two deadlines correspond to two separately named classes.",
+      "manuscript_handling": "Both 100 ms automated-driving information sharing and 500 ms platooning reporting are named. The correspondence motivates deadlines and does not validate simulation. Owner note removed.",
+      "owner_reading_claimed": true,
+      "new_doi": false,
+      "verified_claims": [
+        {
+          "clause": "5.3",
+          "table": "5.3-1",
+          "requirements": [
+            "R.5.3-004",
+            "R.5.3-005"
+          ],
+          "maximum_end_to_end_latency_ms": 100,
+          "scenario": "Automated-driving information sharing between a UE and RSU; lower and higher automation."
+        },
+        {
+          "clause": "5.2",
+          "table": "5.2-1",
+          "requirements": [
+            "R.5.2-008"
+          ],
+          "maximum_end_to_end_latency_ms": 500,
+          "scenario": "Reporting needed for platooning between UEs and between UE and RSU."
+        }
+      ],
+      "owner_reading_basis": "The user reports checking Table 5.3-1 R.5.3-004/005 and Table 5.2-1 R.5.2-008 in the supplied closing review."
+    },
+    "who-global-status-road-safety-2023": {
+      "reference_number": 43,
+      "title": "Global status report on road safety 2023",
+      "publisher": "World Health Organization",
+      "publication_year": 2023,
+      "isbn": "978-92-4-008651-7",
+      "primary_url": "https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content",
+      "landing_page": "https://www.who.int/publications/i/item/9789240086517",
+      "access_date": "2026-09-15",
+      "verification_method": "Downloaded the primary WHO PDF through the link on its publication page; extracted executive summary p. viii and main p. 4 and visually inspected p. 4 (PDF page 16).",
+      "file_sha256": "8d65d10d3b8cbc018fb4701130fad953425699104c6560c7aee5308e5890e2b5",
+      "verified_claim": {
+        "estimated_annual_road_traffic_deaths": 1190000,
+        "estimate_year": 2021,
+        "printed_pages": [
+          "viii",
+          "4"
+        ]
+      },
+      "manuscript_handling": "Estimation year is explicit. No other mortality statistic added; no simulator road-safety benefit inferred.",
+      "owner_reading_claimed": true,
+      "new_doi": false,
+      "owner_reading_basis": "The user supplied the verified 2021 estimate in the closing review."
+    },
+    "uom-ethics-decision-tool": {
+      "reference_number": 44,
+      "primary_url": "https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html",
+      "guidance_url": "https://www.manchester.ac.uk/research/environment/governance/ethics/approval/",
+      "access_date": "2026-09-15",
+      "verification_method": "Owner attestation of completed project-specific decision-tool check; not an independently observed tool screen or formal ethics approval.",
+      "outcome": "Ethics approval not required",
+      "receipt": "ETHICS_DECISION_OWNER_CONFIRMATION_2026-09-15.json",
+      "new_doi": false
+    }
+  },
+  "note": "Closing verification supersedes the prior manuscript-handling note; older receipts remain historical. References 42–43 are checked from downloaded primary PDFs; reference 44 records the author-confirmed tool outcome, not independent observation or formal approval. No new DOI."
+}

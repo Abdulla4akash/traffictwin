@@ -1,0 +1,22 @@
+{
+  "schema": "traffictwin_dissertation_figure_capture_v1",
+  "date": "2026-09-15",
+  "product_source_commit": "5e187070849c15fe3efd07d9d9356a09e18dcd22",
+  "route": "http://127.0.0.1:8517/experimental-results",
+  "capture_method": "Native in-app browser clipped screenshot; unedited pixels",
+  "dimensions_pixels": [
+    1470,
+    720
+  ],
+  "screenshot_sha256": "3d0a0142cbc1dab5de8bf594239b0d18351ebe60f2459f9dfd66e91e0e5af606",
+  "packet_sha256": "b99351b9ced2bb0cb3bb509c3ada32250b9450028893cc29e24f01a26c6b4d51",
+  "study_id": "joint_confirmation_2026-09-08",
+  "capture_content": "Completed archived study: 8 joint-seed blocks, 32 cells, 4 policies, 32 matched cell receipts, 3 paired contrasts and simultaneous intervals",
+  "import_check": "TRAFFICTWIN_IMPORT_CHECK.json",
+  "import_check_sha256": "c134fe18706878a2852f312978567a8c8f13a740bec950bb070778ba6093ea3c",
+  "validation_scope": "Authenticated historical receipts and compact arithmetic; raw simulation arrays not rechecked",
+  "raw_arrays_checked": false,
+  "task_level_validation_repeated": false,
+  "research_workloads_launched": 0,
+  "interpretation": "Workflow demonstration of importing and inspecting completed research. Does not establish original execution by the platform, independent scientific validation, or user evaluation."
+}

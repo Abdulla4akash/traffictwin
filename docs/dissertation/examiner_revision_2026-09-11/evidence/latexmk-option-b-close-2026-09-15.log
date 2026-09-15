@@ -1,0 +1,907 @@
+Rc files read (in order):
+  NONE
+Latexmk: This is Latexmk, John Collins, 9 March 2026. Version 4.88.
+Latexmk: Changing directory to 'docs/dissertation/examiner_revision_2026-09-11/'
+No existing .aux file, so I'll make a simple one, and require run of *latex.
+Latexmk: applying rule 'xelatex'...
+Rule 'xelatex':  Reasons for rerun
+Category 'other':
+  Rerun of 'xelatex' forced or previously required:
+    Reason or flag: 'Initial setup'
+
+------------
+Run number 1 of rule 'xelatex'
+------------
+------------
+Running 'xelatex -no-pdf -interaction=nonstopmode -halt-on-error -recorder  "TrafficTwin_Dissertation.tex"'
+------------
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex)
+ restricted \write18 enabled.
+entering extended mode
+(./TrafficTwin_Dissertation.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-08-10>
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/size12.clo)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec-xetex.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.cfg))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amscls/amsthm.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics-def/xetex.def))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/array.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/longtable.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/tabularx.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/xltabular/xltabular.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/ltablex/ltablex.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/caption.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/ltcaption.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/algorithms/algorithm.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/float/float.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/ifthen.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fvextra/fvextra.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/lineno/lineno.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/xurl/xurl.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/url/url.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/setspace/setspace.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/ragged2e/ragged2e.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/placeins/placeins.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/needspace/needspace.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/hxetex.def (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-xetex.def) (./TrafficTwin_Dissertation.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: xetex
+
+Package hyperref Warning: Rerun to get /PageLabels entry.
+
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd) [1]
+No file TrafficTwin_Dissertation.toc.
+[2]
+No file TrafficTwin_Dissertation.lof.
+No file TrafficTwin_Dissertation.lot.
+[3] [4] [5]
+
+LaTeX Warning: Reference `sec:2.7' on page 6 undefined on input line 114.
+
+
+LaTeX Warning: Reference `sec:3.7' on page 6 undefined on input line 114.
+
+[6] [7] [8]
+
+LaTeX Warning: Citation `ref1' on page 9 undefined on input line 151.
+
+
+LaTeX Warning: Citation `ref2' on page 9 undefined on input line 151.
+
+
+LaTeX Warning: Citation `ref3' on page 9 undefined on input line 151.
+
+
+LaTeX Warning: Citation `ref43' on page 9 undefined on input line 155.
+
+
+LaTeX Warning: Citation `ref42' on page 9 undefined on input line 155.
+
+
+LaTeX Warning: Citation `ref4' on page 9 undefined on input line 159.
+
+
+LaTeX Warning: Citation `ref3' on page 9 undefined on input line 159.
+
+
+LaTeX Warning: Citation `ref5' on page 9 undefined on input line 163.
+
+
+LaTeX Warning: Citation `ref6' on page 9 undefined on input line 163.
+
+
+LaTeX Warning: Citation `ref7' on page 9 undefined on input line 171.
+
+
+LaTeX Warning: Citation `ref8' on page 9 undefined on input line 171.
+
+
+LaTeX Warning: Citation `ref9' on page 9 undefined on input line 171.
+
+
+LaTeX Warning: Citation `ref10' on page 9 undefined on input line 171.
+
+
+LaTeX Warning: Citation `ref11' on page 9 undefined on input line 171.
+
+[9]
+
+LaTeX Warning: Reference `fig:1' on page 10 undefined on input line 175.
+
+
+LaTeX Warning: Hyper reference `source-s4' on page 10 undefined on input line 175.
+
+
+LaTeX Warning: Hyper reference `source-s0' on page 10 undefined on input line 187.
+
+
+LaTeX Warning: Hyper reference `source-s4' on page 10 undefined on input line 187.
+
+
+LaTeX Warning: Hyper reference `source-s11' on page 10 undefined on input line 194.
+
+
+LaTeX Warning: Citation `ref3' on page 10 undefined on input line 199.
+
+
+LaTeX Warning: Citation `ref6' on page 10 undefined on input line 199.
+
+
+LaTeX Warning: Reference `fig:2' on page 10 undefined on input line 203.
+
+
+LaTeX Warning: Reference `tab:2' on page 10 undefined on input line 203.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 10 undefined on input line 210.
+
+[10] [11]
+
+LaTeX Warning: Citation `ref12' on page 12 undefined on input line 224.
+
+
+LaTeX Warning: Citation `ref13' on page 12 undefined on input line 224.
+
+
+LaTeX Warning: Citation `ref14' on page 12 undefined on input line 224.
+
+
+LaTeX Warning: Citation `ref15' on page 12 undefined on input line 228.
+
+
+LaTeX Warning: Citation `ref16' on page 12 undefined on input line 232.
+
+
+LaTeX Warning: Citation `ref17' on page 12 undefined on input line 232.
+
+
+LaTeX Warning: Citation `ref18' on page 12 undefined on input line 236.
+
+
+LaTeX Warning: Citation `ref19' on page 12 undefined on input line 236.
+
+[12]
+
+LaTeX Warning: Citation `ref20' on page 13 undefined on input line 240.
+
+
+LaTeX Warning: Reference `tab:1' on page 13 undefined on input line 244.
+
+
+LaTeX Warning: Citation `ref14' on page 13 undefined on input line 267.
+
+
+LaTeX Warning: Citation `ref15' on page 13 undefined on input line 267.
+
+
+LaTeX Warning: Citation `ref16' on page 13 undefined on input line 267.
+
+
+LaTeX Warning: Citation `ref18' on page 13 undefined on input line 267.
+
+
+LaTeX Warning: Citation `ref20' on page 13 undefined on input line 267.
+
+[13]
+
+LaTeX Warning: Citation `ref21' on page 14 undefined on input line 272.
+
+
+LaTeX Warning: Citation `ref22' on page 14 undefined on input line 272.
+
+
+LaTeX Warning: Citation `ref23' on page 14 undefined on input line 276.
+
+
+LaTeX Warning: Citation `ref24' on page 14 undefined on input line 276.
+
+
+LaTeX Warning: Citation `ref25' on page 14 undefined on input line 276.
+
+
+LaTeX Warning: Citation `ref26' on page 14 undefined on input line 276.
+
+
+LaTeX Warning: Citation `ref27' on page 14 undefined on input line 276.
+
+
+LaTeX Warning: Citation `ref28' on page 14 undefined on input line 280.
+
+
+LaTeX Warning: Citation `ref29' on page 14 undefined on input line 280.
+
+
+LaTeX Warning: Citation `ref30' on page 14 undefined on input line 280.
+
+
+LaTeX Warning: Citation `ref31' on page 14 undefined on input line 280.
+
+
+LaTeX Warning: Citation `ref6' on page 14 undefined on input line 284.
+
+
+LaTeX Warning: Citation `ref32' on page 14 undefined on input line 284.
+
+[14]
+
+LaTeX Warning: Citation `ref14' on page 15 undefined on input line 321.
+
+
+LaTeX Warning: Citation `ref16' on page 15 undefined on input line 321.
+
+
+LaTeX Warning: Citation `ref7' on page 15 undefined on input line 321.
+
+
+LaTeX Warning: Citation `ref8' on page 15 undefined on input line 321.
+
+
+LaTeX Warning: Reference `sec:4.1' on page 15 undefined on input line 321.
+
+
+LaTeX Warning: Reference `sec:3.7' on page 15 undefined on input line 330.
+
+
+LaTeX Warning: Hyper reference `source-s11' on page 15 undefined on input line 334.
+
+
+LaTeX Warning: Reference `sec:2' on page 15 undefined on input line 334.
+
+
+LaTeX Warning: Reference `sec:3' on page 15 undefined on input line 334.
+
+
+LaTeX Warning: Reference `sec:4' on page 15 undefined on input line 334.
+
+
+LaTeX Warning: Citation `ref44' on page 15 undefined on input line 338.
+
+
+LaTeX Warning: Reference `app:E' on page 15 undefined on input line 338.
+
+[15]
+
+LaTeX Warning: Reference `sec:2.6' on page 16 undefined on input line 356.
+
+
+LaTeX Warning: Hyper reference `source-s0' on page 16 undefined on input line 356.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 16 undefined on input line 356.
+
+
+LaTeX Warning: Hyper reference `source-s13' on page 16 undefined on input line 356.
+
+
+LaTeX Warning: Reference `fig:1' on page 16 undefined on input line 365.
+
+
+LaTeX Warning: Hyper reference `source-s4' on page 16 undefined on input line 365.
+
+
+LaTeX Warning: Reference `app:F' on page 16 undefined on input line 373.
+
+
+LaTeX Warning: Reference `tab:2' on page 16 undefined on input line 382.
+
+
+LaTeX Warning: Hyper reference `source-s7' on page 16 undefined on input line 382.
+
+[16]
+
+LaTeX Warning: Reference `app:F' on page 17 undefined on input line 411.
+
+
+LaTeX Warning: Hyper reference `source-s4' on page 17 undefined on input line 415.
+
+
+LaTeX Warning: Reference `app:F' on page 17 undefined on input line 419.
+
+
+LaTeX Warning: Hyper reference `source-s4' on page 17 undefined on input line 432.
+
+[17]
+
+LaTeX Warning: Reference `fig:3' on page 18 undefined on input line 455.
+
+
+LaTeX Warning: Reference `eq:1' on page 18 undefined on input line 455.
+
+
+LaTeX Warning: Reference `sec:2.5' on page 18 undefined on input line 477.
+
+[18]
+
+LaTeX Warning: Reference `app:F' on page 19 undefined on input line 494.
+
+
+LaTeX Warning: Reference `app:F' on page 19 undefined on input line 498.
+
+
+LaTeX Warning: Reference `app:F' on page 19 undefined on input line 513.
+
+
+LaTeX Warning: Reference `eq:3' on page 19 undefined on input line 522.
+
+
+LaTeX Warning: Hyper reference `source-s2' on page 19 undefined on input line 522.
+
+
+LaTeX Warning: Hyper reference `source-s4' on page 19 undefined on input line 522.
+
+
+LaTeX Warning: Reference `tab:3' on page 19 undefined on input line 522.
+
+[19]
+
+LaTeX Warning: Reference `prop:1' on page 20 undefined on input line 555.
+
+
+LaTeX Warning: Reference `alg:1' on page 20 undefined on input line 555.
+
+
+LaTeX Warning: Reference `sec:3.5' on page 20 undefined on input line 579.
+
+
+LaTeX Warning: Reference `fig:4' on page 20 undefined on input line 607.
+
+[20]
+
+LaTeX Warning: Hyper reference `source-s0' on page 21 undefined on input line 624.
+
+
+LaTeX Warning: Hyper reference `source-s3' on page 21 undefined on input line 624.
+
+
+LaTeX Warning: Hyper reference `source-s7' on page 21 undefined on input line 628.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 21 undefined on input line 628.
+
+
+LaTeX Warning: Citation `ref33' on page 21 undefined on input line 628.
+
+[21]
+
+LaTeX Warning: Citation `ref34' on page 22 undefined on input line 632.
+
+
+LaTeX Warning: Citation `ref33' on page 22 undefined on input line 636.
+
+
+LaTeX Warning: Hyper reference `source-s16' on page 22 undefined on input line 636.
+
+
+LaTeX Warning: Hyper reference `source-s5' on page 22 undefined on input line 645.
+
+
+LaTeX Warning: Hyper reference `source-s6' on page 22 undefined on input line 649.
+
+
+LaTeX Warning: Hyper reference `source-s13' on page 22 undefined on input line 653.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 22 undefined on input line 653.
+
+[22]
+
+LaTeX Warning: Reference `app:B' on page 23 undefined on input line 657.
+
+
+LaTeX Warning: Reference `app:E' on page 23 undefined on input line 666.
+
+
+LaTeX Warning: Hyper reference `source-s15' on page 23 undefined on input line 666.
+
+
+LaTeX Warning: Hyper reference `source-s16' on page 23 undefined on input line 666.
+
+
+LaTeX Warning: Reference `app:D' on page 23 undefined on input line 670.
+
+[23]
+
+LaTeX Warning: Reference `tab:3a' on page 24 undefined on input line 684.
+
+
+LaTeX Warning: Reference `sec:3.2' on page 24 undefined on input line 708.
+
+
+LaTeX Warning: Reference `sec:4.4' on page 24 undefined on input line 708.
+
+
+LaTeX Warning: Hyper reference `source-s0' on page 24 undefined on input line 727.
+
+
+LaTeX Warning: Hyper reference `source-s12' on page 24 undefined on input line 727.
+
+[24]
+
+LaTeX Warning: Reference `app:B' on page 25 undefined on input line 731.
+
+
+LaTeX Warning: Reference `app:B' on page 25 undefined on input line 735.
+
+
+LaTeX Warning: Hyper reference `source-s13' on page 25 undefined on input line 735.
+
+
+LaTeX Warning: Hyper reference `source-s1' on page 25 undefined on input line 739.
+
+
+LaTeX Warning: Hyper reference `source-s2' on page 25 undefined on input line 760.
+
+[25]
+
+LaTeX Warning: Reference `sec:2.4' on page 26 undefined on input line 764.
+
+
+LaTeX Warning: Reference `sec:4.4' on page 26 undefined on input line 768.
+
+
+LaTeX Warning: Reference `tab:4' on page 26 undefined on input line 768.
+
+
+LaTeX Warning: Hyper reference `source-s3' on page 26 undefined on input line 768.
+
+[26]
+
+LaTeX Warning: Hyper reference `source-s7' on page 27 undefined on input line 811.
+
+
+LaTeX Warning: Reference `tab:5' on page 27 undefined on input line 815.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 27 undefined on input line 815.
+
+[27]
+
+LaTeX Warning: Reference `tab:6' on page 28 undefined on input line 841.
+
+
+LaTeX Warning: Reference `fig:5' on page 28 undefined on input line 841.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 28 undefined on input line 868.
+
+
+LaTeX Warning: Reference `tab:6' on page 28 undefined on input line 873.
+
+[28]
+
+LaTeX Warning: Reference `tab:7' on page 29 undefined on input line 890.
+
+
+LaTeX Warning: Reference `app:E' on page 29 undefined on input line 890.
+
+
+LaTeX Warning: Hyper reference `source-s16' on page 29 undefined on input line 890.
+
+[29]
+
+LaTeX Warning: Reference `app:D' on page 30 undefined on input line 918.
+
+
+LaTeX Warning: Reference `tab:D2' on page 30 undefined on input line 918.
+
+
+LaTeX Warning: Reference `fig:6' on page 30 undefined on input line 922.
+
+
+LaTeX Warning: Hyper reference `source-s16' on page 30 undefined on input line 922.
+
+
+LaTeX Warning: Hyper reference `source-s16' on page 30 undefined on input line 933.
+
+
+LaTeX Warning: Reference `tab:7' on page 30 undefined on input line 933.
+
+
+LaTeX Warning: Reference `app:E' on page 30 undefined on input line 938.
+
+[30] [31]
+
+LaTeX Warning: Reference `app:C' on page 32 undefined on input line 952.
+
+
+LaTeX Warning: Reference `fig:8' on page 32 undefined on input line 952.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 32 undefined on input line 952.
+
+
+LaTeX Warning: Hyper reference `source-s9' on page 32 undefined on input line 952.
+
+
+LaTeX Warning: Reference `app:C' on page 32 undefined on input line 965.
+
+
+LaTeX Warning: Hyper reference `source-s14' on page 32 undefined on input line 965.
+
+
+LaTeX Warning: Reference `app:C' on page 32 undefined on input line 969.
+
+[32]
+
+LaTeX Warning: Hyper reference `source-s5' on page 33 undefined on input line 983.
+
+
+LaTeX Warning: Hyper reference `source-s6' on page 33 undefined on input line 991.
+
+
+LaTeX Warning: Reference `app:D' on page 33 undefined on input line 1008.
+
+
+LaTeX Warning: Reference `tab:D2' on page 33 undefined on input line 1008.
+
+
+LaTeX Warning: Reference `sec:3.4' on page 33 undefined on input line 1012.
+
+
+LaTeX Warning: Reference `app:D' on page 33 undefined on input line 1016.
+
+
+LaTeX Warning: Hyper reference `source-s15' on page 33 undefined on input line 1020.
+
+[33]
+
+LaTeX Warning: Citation `ref36' on page 34 undefined on input line 1024.
+
+
+LaTeX Warning: Hyper reference `source-s11' on page 34 undefined on input line 1024.
+
+
+LaTeX Warning: Hyper reference `source-s17' on page 34 undefined on input line 1024.
+
+
+LaTeX Warning: Reference `tab:A1' on page 34 undefined on input line 1032.
+
+
+LaTeX Warning: Reference `app:A' on page 34 undefined on input line 1032.
+
+
+LaTeX Warning: Citation `ref37' on page 34 undefined on input line 1036.
+
+
+LaTeX Warning: Citation `ref38' on page 34 undefined on input line 1036.
+
+
+LaTeX Warning: Reference `fig:7' on page 34 undefined on input line 1036.
+
+
+LaTeX Warning: Hyper reference `source-s17' on page 34 undefined on input line 1043.
+
+
+LaTeX Warning: Reference `sec:2.7' on page 34 undefined on input line 1048.
+
+
+LaTeX Warning: Hyper reference `source-s12' on page 34 undefined on input line 1048.
+
+
+LaTeX Warning: Reference `tab:6' on page 34 undefined on input line 1048.
+
+
+LaTeX Warning: Reference `tab:7' on page 34 undefined on input line 1048.
+
+
+LaTeX Warning: Reference `prop:1' on page 34 undefined on input line 1048.
+
+
+LaTeX Warning: Reference `tab:C1' on page 34 undefined on input line 1048.
+
+
+LaTeX Warning: Reference `tab:10' on page 34 undefined on input line 1052.
+
+[34] [35]
+
+LaTeX Warning: Reference `app:A' on page 36 undefined on input line 1082.
+
+
+LaTeX Warning: Hyper reference `source-s13' on page 36 undefined on input line 1082.
+
+
+LaTeX Warning: Hyper reference `source-s16' on page 36 undefined on input line 1082.
+
+[36]
+
+LaTeX Warning: Reference `sec:3.1' on page 37 undefined on input line 1118.
+
+
+LaTeX Warning: Reference `app:B' on page 37 undefined on input line 1118.
+
+
+LaTeX Warning: Reference `app:C' on page 37 undefined on input line 1118.
+
+
+LaTeX Warning: Reference `sec:3.7' on page 37 undefined on input line 1118.
+
+
+LaTeX Warning: Reference `app:A' on page 37 undefined on input line 1118.
+
+[37] [38]
+
+LaTeX Warning: Reference `app:C' on page 39 undefined on input line 1157.
+
+
+LaTeX Warning: Citation `ref21' on page 39 undefined on input line 1170.
+
+
+LaTeX Warning: Citation `ref31' on page 39 undefined on input line 1170.
+
+
+LaTeX Warning: Citation `ref6' on page 39 undefined on input line 1170.
+
+
+LaTeX Warning: Citation `ref18' on page 39 undefined on input line 1174.
+
+
+LaTeX Warning: Citation `ref30' on page 39 undefined on input line 1174.
+
+
+LaTeX Warning: Citation `ref25' on page 39 undefined on input line 1178.
+
+
+LaTeX Warning: Citation `ref26' on page 39 undefined on input line 1178.
+
+
+LaTeX Warning: Citation `ref39' on page 39 undefined on input line 1178.
+
+
+LaTeX Warning: Citation `ref32' on page 39 undefined on input line 1178.
+
+
+LaTeX Warning: Citation `ref40' on page 39 undefined on input line 1178.
+
+[39] [40]
+Underfull \hbox (badness 1152) in paragraph at lines 1247--1249
+[]\TU/LiberationSerif(0)/m/n/12 Y. Liu, H. Yu, S. Xie and Y. Zhang. “Deep Reinforcement Learning for Of-
+[41]
+Underfull \hbox (badness 1490) in paragraph at lines 1259--1261
+[]\TU/LiberationSerif(0)/m/n/12 M. Harchol-Balter. “Performance Modeling and Design of Computer Sys-
+
+Underfull \hbox (badness 1406) in paragraph at lines 1271--1273
+\TU/LiberationSerif(0)/m/n/12 ple in Randomized Load Balancing.” \TU/LiberationSerif(0)/m/it/12 IEEE INFOCOM\TU/LiberationSerif(0)/m/n/12 , 1131–1139, 2015.
+[42]
+Underfull \hbox (badness 1810) in paragraph at lines 1331--1333
+\TU/LiberationSerif(0)/m/it/12 IEEE Transactions on Mobile Computing\TU/LiberationSerif(0)/m/n/12 , 25(5), 7166–7181, 2026. DOI:
+[43] [44] [45]
+
+LaTeX Warning: Hyper reference `source-s17' on page 46 undefined on input line 1571.
+
+[46]
+
+LaTeX Warning: Reference `app:C' on page 47 undefined on input line 1588.
+
+
+LaTeX Warning: Hyper reference `source-s14' on page 47 undefined on input line 1588.
+
+
+LaTeX Warning: Reference `tab:B1' on page 47 undefined on input line 1600.
+
+[47]
+
+LaTeX Warning: Reference `tab:B2' on page 48 undefined on input line 1633.
+
+[48] [49] [50] [51]
+
+LaTeX Warning: Reference `tab:C1' on page 52 undefined on input line 1819.
+
+[52]
+
+LaTeX Warning: Hyper reference `source-s10' on page 53 undefined on input line 1852.
+
+
+LaTeX Warning: Hyper reference `source-s14' on page 53 undefined on input line 1852.
+
+
+LaTeX Warning: Reference `fig:8' on page 53 undefined on input line 1861.
+
+
+LaTeX Warning: Hyper reference `source-s8' on page 53 undefined on input line 1861.
+
+
+LaTeX Warning: Hyper reference `source-s9' on page 53 undefined on input line 1873.
+
+
+LaTeX Warning: Reference `alg:1' on page 53 undefined on input line 1877.
+
+[53]
+
+LaTeX Warning: Reference `app:C' on page 54 undefined on input line 1890.
+
+
+LaTeX Warning: Hyper reference `source-s14' on page 54 undefined on input line 1890.
+
+
+LaTeX Warning: Citation `ref41' on page 54 undefined on input line 1902.
+
+
+LaTeX Warning: Reference `app:C' on page 54 undefined on input line 1902.
+
+
+LaTeX Warning: Reference `tab:C1' on page 54 undefined on input line 1906.
+
+
+LaTeX Warning: Hyper reference `source-s10' on page 54 undefined on input line 1906.
+
+
+LaTeX Warning: Hyper reference `source-s14' on page 54 undefined on input line 1906.
+
+[54]
+
+LaTeX Warning: Reference `tab:C2' on page 55 undefined on input line 1918.
+
+
+LaTeX Warning: Hyper reference `source-s13' on page 55 undefined on input line 1918.
+
+
+LaTeX Warning: Hyper reference `source-s14' on page 55 undefined on input line 1918.
+
+
+LaTeX Warning: Reference `app:D' on page 55 undefined on input line 1959.
+
+
+LaTeX Warning: Reference `tab:C3' on page 55 undefined on input line 1964.
+
+
+LaTeX Warning: Reference `sec:2.3' on page 55 undefined on input line 1964.
+
+
+LaTeX Warning: Hyper reference `source-s15' on page 55 undefined on input line 1964.
+
+[55]
+
+LaTeX Warning: Reference `sec:3.5' on page 56 undefined on input line 1972.
+
+
+LaTeX Warning: Citation `ref35' on page 56 undefined on input line 1972.
+
+[56] [57]
+
+LaTeX Warning: Reference `app:D' on page 58 undefined on input line 2070.
+
+
+LaTeX Warning: Reference `tab:D2' on page 58 undefined on input line 2070.
+
+[58] [59] [60]
+
+LaTeX Warning: Reference `sec:3.4' on page 61 undefined on input line 2172.
+
+
+LaTeX Warning: Hyper reference `source-s4' on page 61 undefined on input line 2176.
+
+
+LaTeX Warning: Reference `sec:3.1' on page 61 undefined on input line 2188.
+
+
+LaTeX Warning: Reference `eq:5' on page 61 undefined on input line 2192.
+
+[61] (./TrafficTwin_Dissertation.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package rerunfilecheck Warning: File `TrafficTwin_Dissertation.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+ )
+(see the transcript file for additional information)
+Output written on TrafficTwin_Dissertation.xdv (61 pages, 1356168 bytes).
+Transcript written on TrafficTwin_Dissertation.log.
+Latexmk: Getting log file 'TrafficTwin_Dissertation.log'
+Latexmk: Examining 'TrafficTwin_Dissertation.fls'
+Latexmk: Examining 'TrafficTwin_Dissertation.log'
+Latexmk: References changed.
+Latexmk: Missing input file 'TrafficTwin_Dissertation.toc' message in .log file:
+  No file TrafficTwin_Dissertation.toc.
+Latexmk: Missing input file 'TrafficTwin_Dissertation.lof' message in .log file:
+  No file TrafficTwin_Dissertation.lof.
+Latexmk: Missing input file 'TrafficTwin_Dissertation.lot' message in .log file:
+  No file TrafficTwin_Dissertation.lot.
+Latexmk: References changed.
+Latexmk: References changed.
+Latexmk: Log file says output to 'TrafficTwin_Dissertation.xdv'
+Latexmk: applying rule 'xelatex'...
+Rule 'xelatex':  Reasons for rerun
+Changed files or newly in use/created:
+  TrafficTwin_Dissertation.aux
+  TrafficTwin_Dissertation.lof
+  TrafficTwin_Dissertation.lot
+  TrafficTwin_Dissertation.out
+  TrafficTwin_Dissertation.toc
+
+------------
+Run number 2 of rule 'xelatex'
+------------
+------------
+Running 'xelatex -no-pdf -interaction=nonstopmode -halt-on-error -recorder  "TrafficTwin_Dissertation.tex"'
+------------
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex)
+ restricted \write18 enabled.
+entering extended mode
+(./TrafficTwin_Dissertation.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-08-10>
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/size12.clo)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec-xetex.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.cfg))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amscls/amsthm.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics-def/xetex.def))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/array.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/longtable.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/tabularx.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/xltabular/xltabular.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/ltablex/ltablex.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/caption.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/ltcaption.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/algorithms/algorithm.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/float/float.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/ifthen.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fvextra/fvextra.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/lineno/lineno.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/xurl/xurl.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/url/url.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/setspace/setspace.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/ragged2e/ragged2e.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/placeins/placeins.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/needspace/needspace.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/hxetex.def (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-xetex.def) (./TrafficTwin_Dissertation.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: xetex
+(./TrafficTwin_Dissertation.out) (./TrafficTwin_Dissertation.out) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd) [1] (./TrafficTwin_Dissertation.toc [2]) [3] (./TrafficTwin_Dissertation.lof) (./TrafficTwin_Dissertation.lot) [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] [19] [20] [21] [22] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32] [33] [34] [35] [36] [37] [38] [39] [40] [41]
+Underfull \hbox (badness 1152) in paragraph at lines 1247--1249
+[]\TU/LiberationSerif(0)/m/n/12 Y. Liu, H. Yu, S. Xie and Y. Zhang. “Deep Reinforcement Learning for Of-
+[42]
+Underfull \hbox (badness 1490) in paragraph at lines 1259--1261
+[]\TU/LiberationSerif(0)/m/n/12 M. Harchol-Balter. “Performance Modeling and Design of Computer Sys-
+
+Underfull \hbox (badness 1406) in paragraph at lines 1271--1273
+\TU/LiberationSerif(0)/m/n/12 ple in Randomized Load Balancing.” \TU/LiberationSerif(0)/m/it/12 IEEE INFOCOM\TU/LiberationSerif(0)/m/n/12 , 1131–1139, 2015.
+[43]
+Underfull \hbox (badness 1810) in paragraph at lines 1331--1333
+\TU/LiberationSerif(0)/m/it/12 IEEE Transactions on Mobile Computing\TU/LiberationSerif(0)/m/n/12 , 25(5), 7166–7181, 2026. DOI:
+[44] [45] [46] [47] [48] [49] [50] [51] [52] [53] [54] [55] [56] [57] [58] [59] [60] [61] [62] (./TrafficTwin_Dissertation.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ )
+(see the transcript file for additional information)
+Output written on TrafficTwin_Dissertation.xdv (62 pages, 1469320 bytes).
+Transcript written on TrafficTwin_Dissertation.log.
+Latexmk: Getting log file 'TrafficTwin_Dissertation.log'
+Latexmk: Examining 'TrafficTwin_Dissertation.fls'
+Latexmk: Examining 'TrafficTwin_Dissertation.log'
+Latexmk: References changed.
+Latexmk: Log file says output to 'TrafficTwin_Dissertation.xdv'
+Latexmk: applying rule 'xelatex'...
+Rule 'xelatex':  Reasons for rerun
+Changed files or newly in use/created:
+  TrafficTwin_Dissertation.aux
+  TrafficTwin_Dissertation.lof
+  TrafficTwin_Dissertation.lot
+  TrafficTwin_Dissertation.toc
+
+------------
+Run number 3 of rule 'xelatex'
+------------
+------------
+Running 'xelatex -no-pdf -interaction=nonstopmode -halt-on-error -recorder  "TrafficTwin_Dissertation.tex"'
+------------
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex)
+ restricted \write18 enabled.
+entering extended mode
+(./TrafficTwin_Dissertation.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-08-10>
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/size12.clo)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec-xetex.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.cfg))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amscls/amsthm.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/graphics-def/xetex.def))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/array.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/longtable.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/tools/tabularx.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/xltabular/xltabular.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/ltablex/ltablex.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/caption.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/caption/ltcaption.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/algorithms/algorithm.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/float/float.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/ifthen.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fvextra/fvextra.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/lineno/lineno.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/xurl/xurl.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/url/url.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/setspace/setspace.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/ragged2e/ragged2e.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/placeins/placeins.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/needspace/needspace.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty)) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/hyperref/hxetex.def (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-xetex.def) (./TrafficTwin_Dissertation.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: xetex
+(./TrafficTwin_Dissertation.out) (./TrafficTwin_Dissertation.out) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/akashx/scratch/traffictwin-tex/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd) [1] (./TrafficTwin_Dissertation.toc [2]) [3] (./TrafficTwin_Dissertation.lof) (./TrafficTwin_Dissertation.lot) [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] [19] [20] [21] [22] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32] [33] [34] [35] [36] [37] [38] [39] [40] [41]
+Underfull \hbox (badness 1152) in paragraph at lines 1247--1249
+[]\TU/LiberationSerif(0)/m/n/12 Y. Liu, H. Yu, S. Xie and Y. Zhang. “Deep Reinforcement Learning for Of-
+[42]
+Underfull \hbox (badness 1490) in paragraph at lines 1259--1261
+[]\TU/LiberationSerif(0)/m/n/12 M. Harchol-Balter. “Performance Modeling and Design of Computer Sys-
+
+Underfull \hbox (badness 1406) in paragraph at lines 1271--1273
+\TU/LiberationSerif(0)/m/n/12 ple in Randomized Load Balancing.” \TU/LiberationSerif(0)/m/it/12 IEEE INFOCOM\TU/LiberationSerif(0)/m/n/12 , 1131–1139, 2015.
+[43]
+Underfull \hbox (badness 1810) in paragraph at lines 1331--1333
+\TU/LiberationSerif(0)/m/it/12 IEEE Transactions on Mobile Computing\TU/LiberationSerif(0)/m/n/12 , 25(5), 7166–7181, 2026. DOI:
+[44] [45] [46] [47] [48] [49] [50] [51] [52] [53] [54] [55] [56] [57] [58] [59] [60] [61] [62] (./TrafficTwin_Dissertation.aux) )
+(see the transcript file for additional information)
+Output written on TrafficTwin_Dissertation.xdv (62 pages, 1469340 bytes).
+Transcript written on TrafficTwin_Dissertation.log.
+Latexmk: Getting log file 'TrafficTwin_Dissertation.log'
+Latexmk: Examining 'TrafficTwin_Dissertation.fls'
+Latexmk: Examining 'TrafficTwin_Dissertation.log'
+Latexmk: Log file says output to 'TrafficTwin_Dissertation.xdv'
+Latexmk: applying rule 'xdvipdfmx'...
+Rule 'xdvipdfmx':  Reasons for rerun
+Changed files or newly in use/created:
+  TrafficTwin_Dissertation.xdv
+Category 'changed_source_rules':
+  xelatex
+
+------------
+Run number 1 of rule 'xdvipdfmx'
+------------
+------------
+Running 'xdvipdfmx -E -o "TrafficTwin_Dissertation.pdf"  "TrafficTwin_Dissertation.xdv"'
+------------
+TrafficTwin_Dissertation.xdv -> TrafficTwin_Dissertation.pdf
+[1][2][3][4][5][6][7][8][9][10][11][12][13][14][15][16][17][18][19][20][21][22][23][24][25][26][27][28][29][30][31][32][33][34][35][36][37][38][39][40][41][42][43][44][45][46][47][48][49][50][51][52][53][54][55][56][57][58][59][60][61][62]
+564957 bytes written
+Latexmk: All targets (TrafficTwin_Dissertation.xdv TrafficTwin_Dissertation.pdf) are up-to-date
+Latexmk: Undoing directory change

@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "baseline_all_checks_passed": true,
+  "mutations": {
+    "unrequested_abstract_sentence": {
+      "rejected": true,
+      "failed": [
+        "platform_connection_only_four_authorised_manuscript_changes"
+      ]
+    },
+    "removed_raw_validation_boundary": {
+      "rejected": true,
+      "failed": [
+        "platform_connection_only_four_authorised_manuscript_changes"
+      ]
+    },
+    "changed_primary_result": {
+      "rejected": true,
+      "failed": [
+        "platform_connection_only_four_authorised_manuscript_changes"
+      ]
+    },
+    "modified_operation_ledger": {
+      "rejected": true,
+      "failed": [
+        "platform_connection_four_operation_ledger_pinned"
+      ]
+    },
+    "modified_screenshot": {
+      "rejected": true,
+      "failed": [
+        "platform_connection_pinned_traffictwin_results_workflow"
+      ]
+    }
+  }
+}
