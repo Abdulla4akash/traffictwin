@@ -1,0 +1,15 @@
+{
+  "updated_at": "2026-09-15T23:44:05.512801+00:00",
+  "status": "awaiting_owner_contract_clarification",
+  "inventory": "complete",
+  "runtime_preflight": "passed",
+  "protocol": "draft_unsealed",
+  "new_qualification_attempts": 0,
+  "new_full_attempts": 0,
+  "new_validated_full_cells": 0,
+  "failures": 0,
+  "retries": 0,
+  "full_cells_remaining": 120,
+  "scientific_code_changed": false,
+  "required_owner_decision": "Confirm the proposed 14-exogenous-field/59-array qualification and trace-specific validation configuration; incident round-robin archive value unavailable."
+}
