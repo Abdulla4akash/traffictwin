@@ -1,0 +1,898 @@
+{
+  "status": "passed",
+  "completed_at": "2026-09-15T16:21:48.473368+00:00",
+  "qualification_seal_sha256": "e447681cfb4c570e95daea3b3ae65ffdf5d1a6cd0af9ad39191e0e9cdbbb2754",
+  "baseline_ledger_sha256": "37a7f1d8aa628f2e74b98855ae8f7e461bc31d7bde6efd7989075d4038c1d482",
+  "compatibility": {
+    "ingress_dla": {
+      "per_step.npz": [
+        "active",
+        "arrivals",
+        "done",
+        "exogenous_keys",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "observation_task_size",
+        "observation_task_type",
+        "rr_pointer_after",
+        "rr_pointer_before",
+        "rsu_busy_ms",
+        "rsu_load",
+        "rsu_pre_drain_busy_ms",
+        "rsu_pre_drain_load",
+        "rsu_start_busy_ms",
+        "rsu_start_load",
+        "slot_is_ev",
+        "slot_soc_initial",
+        "slot_tier",
+        "slot_tx_power_w",
+        "times",
+        "veh_action",
+        "veh_actor_logits",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_energy_j",
+        "veh_k",
+        "veh_load",
+        "veh_observations",
+        "veh_pre_drain_busy_ms",
+        "veh_pre_drain_load",
+        "veh_queue_ms",
+        "veh_soc_after",
+        "veh_soc_before",
+        "veh_start_busy_ms",
+        "veh_start_load",
+        "veh_v2i_capacity_mbps",
+        "veh_v2i_quality",
+        "veh_v2v_radio_viable",
+        "veh_v2v_target"
+      ],
+      "per_task.npz": [
+        "task_active",
+        "task_execution_rsu",
+        "task_final_admitted",
+        "task_forwarded",
+        "task_forwarding_latency_ms",
+        "task_ingress_rsu",
+        "task_lat_ms",
+        "task_local_service_ms",
+        "task_met",
+        "task_outcome",
+        "task_rsu_service_ms",
+        "task_selected_execution_rsu",
+        "task_sizes_mb",
+        "task_type",
+        "task_v2i_admitted",
+        "task_v2v_service_ms"
+      ]
+    },
+    "dla": {
+      "per_step.npz": [
+        "active",
+        "arrivals",
+        "done",
+        "exogenous_keys",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "observation_task_size",
+        "observation_task_type",
+        "rr_pointer_after",
+        "rr_pointer_before",
+        "rsu_busy_ms",
+        "rsu_load",
+        "rsu_pre_drain_busy_ms",
+        "rsu_pre_drain_load",
+        "rsu_start_busy_ms",
+        "rsu_start_load",
+        "slot_is_ev",
+        "slot_soc_initial",
+        "slot_tier",
+        "slot_tx_power_w",
+        "times",
+        "veh_action",
+        "veh_actor_logits",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_energy_j",
+        "veh_k",
+        "veh_load",
+        "veh_observations",
+        "veh_pre_drain_busy_ms",
+        "veh_pre_drain_load",
+        "veh_queue_ms",
+        "veh_soc_after",
+        "veh_soc_before",
+        "veh_start_busy_ms",
+        "veh_start_load",
+        "veh_v2i_capacity_mbps",
+        "veh_v2i_quality",
+        "veh_v2v_radio_viable",
+        "veh_v2v_target"
+      ],
+      "per_task.npz": [
+        "task_active",
+        "task_execution_rsu",
+        "task_final_admitted",
+        "task_forwarded",
+        "task_forwarding_latency_ms",
+        "task_ingress_rsu",
+        "task_lat_ms",
+        "task_local_service_ms",
+        "task_met",
+        "task_outcome",
+        "task_rsu_service_ms",
+        "task_selected_execution_rsu",
+        "task_sizes_mb",
+        "task_type",
+        "task_v2i_admitted",
+        "task_v2v_service_ms"
+      ]
+    },
+    "per_task_dla": {
+      "per_step.npz": [
+        "active",
+        "arrivals",
+        "done",
+        "exogenous_keys",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "observation_task_size",
+        "observation_task_type",
+        "rr_pointer_after",
+        "rr_pointer_before",
+        "rsu_busy_ms",
+        "rsu_load",
+        "rsu_pre_drain_busy_ms",
+        "rsu_pre_drain_load",
+        "rsu_start_busy_ms",
+        "rsu_start_load",
+        "slot_is_ev",
+        "slot_soc_initial",
+        "slot_tier",
+        "slot_tx_power_w",
+        "times",
+        "veh_action",
+        "veh_actor_logits",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_energy_j",
+        "veh_k",
+        "veh_load",
+        "veh_observations",
+        "veh_pre_drain_busy_ms",
+        "veh_pre_drain_load",
+        "veh_queue_ms",
+        "veh_soc_after",
+        "veh_soc_before",
+        "veh_start_busy_ms",
+        "veh_start_load",
+        "veh_v2i_capacity_mbps",
+        "veh_v2i_quality",
+        "veh_v2v_radio_viable",
+        "veh_v2v_target"
+      ],
+      "per_task.npz": [
+        "task_active",
+        "task_execution_rsu",
+        "task_final_admitted",
+        "task_forwarded",
+        "task_forwarding_latency_ms",
+        "task_ingress_rsu",
+        "task_lat_ms",
+        "task_local_service_ms",
+        "task_met",
+        "task_outcome",
+        "task_rsu_service_ms",
+        "task_selected_execution_rsu",
+        "task_sizes_mb",
+        "task_type",
+        "task_v2i_admitted",
+        "task_v2v_service_ms"
+      ]
+    },
+    "causal_round_robin": {
+      "per_step.npz": [
+        "active",
+        "arrivals",
+        "done",
+        "exogenous_keys",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "observation_task_size",
+        "observation_task_type",
+        "rr_pointer_after",
+        "rr_pointer_before",
+        "rsu_busy_ms",
+        "rsu_load",
+        "rsu_pre_drain_busy_ms",
+        "rsu_pre_drain_load",
+        "rsu_start_busy_ms",
+        "rsu_start_load",
+        "slot_is_ev",
+        "slot_soc_initial",
+        "slot_tier",
+        "slot_tx_power_w",
+        "times",
+        "veh_action",
+        "veh_actor_logits",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_energy_j",
+        "veh_k",
+        "veh_load",
+        "veh_observations",
+        "veh_pre_drain_busy_ms",
+        "veh_pre_drain_load",
+        "veh_queue_ms",
+        "veh_soc_after",
+        "veh_soc_before",
+        "veh_start_busy_ms",
+        "veh_start_load",
+        "veh_v2i_capacity_mbps",
+        "veh_v2i_quality",
+        "veh_v2v_radio_viable",
+        "veh_v2v_target"
+      ],
+      "per_task.npz": [
+        "task_active",
+        "task_execution_rsu",
+        "task_final_admitted",
+        "task_forwarded",
+        "task_forwarding_latency_ms",
+        "task_ingress_rsu",
+        "task_lat_ms",
+        "task_local_service_ms",
+        "task_met",
+        "task_outcome",
+        "task_rsu_service_ms",
+        "task_selected_execution_rsu",
+        "task_sizes_mb",
+        "task_type",
+        "task_v2i_admitted",
+        "task_v2v_service_ms"
+      ]
+    },
+    "p2c_frozen": {
+      "per_step.npz": [
+        "active",
+        "arrivals",
+        "done",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "rsu_busy_ms",
+        "rsu_load",
+        "slot_is_ev",
+        "slot_tier",
+        "times",
+        "veh_action",
+        "veh_actor_logits",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_k",
+        "veh_queue_ms"
+      ],
+      "per_task.npz": [
+        "task_active",
+        "task_execution_rsu",
+        "task_forwarded",
+        "task_forwarding_latency_ms",
+        "task_ingress_rsu",
+        "task_lat_ms",
+        "task_met",
+        "task_outcome",
+        "task_selected_execution_rsu",
+        "task_type",
+        "task_v2i_admitted"
+      ]
+    },
+    "p2c_prefix": {
+      "per_step.npz": [
+        "active",
+        "arrivals",
+        "done",
+        "exogenous_keys",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "observation_task_size",
+        "observation_task_type",
+        "rr_pointer_after",
+        "rr_pointer_before",
+        "rsu_busy_ms",
+        "rsu_load",
+        "rsu_pre_drain_busy_ms",
+        "rsu_pre_drain_load",
+        "rsu_start_busy_ms",
+        "rsu_start_load",
+        "slot_is_ev",
+        "slot_soc_initial",
+        "slot_tier",
+        "slot_tx_power_w",
+        "times",
+        "veh_action",
+        "veh_actor_logits",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_energy_j",
+        "veh_k",
+        "veh_load",
+        "veh_observations",
+        "veh_pre_drain_busy_ms",
+        "veh_pre_drain_load",
+        "veh_queue_ms",
+        "veh_soc_after",
+        "veh_soc_before",
+        "veh_start_busy_ms",
+        "veh_start_load",
+        "veh_v2i_capacity_mbps",
+        "veh_v2i_quality",
+        "veh_v2v_radio_viable",
+        "veh_v2v_target"
+      ],
+      "per_task.npz": [
+        "task_active",
+        "task_execution_rsu",
+        "task_final_admitted",
+        "task_forwarded",
+        "task_forwarding_latency_ms",
+        "task_ingress_rsu",
+        "task_lat_ms",
+        "task_local_service_ms",
+        "task_met",
+        "task_outcome",
+        "task_rsu_service_ms",
+        "task_selected_execution_rsu",
+        "task_sizes_mb",
+        "task_type",
+        "task_v2i_admitted",
+        "task_v2v_service_ms"
+      ]
+    }
+  },
+  "within_condition": {
+    "normal": [
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      }
+    ],
+    "08_half_speed": [
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      }
+    ],
+    "09_second_actor": [
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      }
+    ]
+  },
+  "cross_condition": {
+    "08_half_speed": [
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": {
+          "rsu_work": "exactly doubled",
+          "local_work": "unchanged"
+        },
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": {
+          "rsu_work": "exactly doubled",
+          "local_work": "unchanged"
+        },
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": {
+          "rsu_work": "exactly doubled",
+          "local_work": "unchanged"
+        },
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": {
+          "rsu_work": "exactly doubled",
+          "local_work": "unchanged"
+        },
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_actor_logits": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          },
+          "veh_observations": {
+            "identical": true,
+            "changed_values": 0,
+            "max_absolute_difference": 0.0
+          }
+        },
+        "actions_forced": false
+      }
+    ],
+    "09_second_actor": [
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": false,
+            "changed_values": 2276,
+            "max_absolute_difference": 2.0
+          },
+          "veh_actor_logits": {
+            "identical": false,
+            "changed_values": 193500,
+            "max_absolute_difference": 2.0566320344805717
+          },
+          "veh_observations": {
+            "identical": false,
+            "changed_values": 1520,
+            "max_absolute_difference": 0.20000000298023224
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": false,
+            "changed_values": 2276,
+            "max_absolute_difference": 2.0
+          },
+          "veh_actor_logits": {
+            "identical": false,
+            "changed_values": 193500,
+            "max_absolute_difference": 2.0566320344805717
+          },
+          "veh_observations": {
+            "identical": false,
+            "changed_values": 1520,
+            "max_absolute_difference": 0.20000000298023224
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": false,
+            "changed_values": 2276,
+            "max_absolute_difference": 2.0
+          },
+          "veh_actor_logits": {
+            "identical": false,
+            "changed_values": 193500,
+            "max_absolute_difference": 2.0566320344805717
+          },
+          "veh_observations": {
+            "identical": false,
+            "changed_values": 1520,
+            "max_absolute_difference": 0.20000000298023224
+          }
+        },
+        "actions_forced": false
+      },
+      {
+        "status": "passed",
+        "exogenous_inputs": "matched",
+        "service_activation": null,
+        "endogenous_differences": {
+          "veh_action": {
+            "identical": false,
+            "changed_values": 2276,
+            "max_absolute_difference": 2.0
+          },
+          "veh_actor_logits": {
+            "identical": false,
+            "changed_values": 193500,
+            "max_absolute_difference": 2.0566320344805717
+          },
+          "veh_observations": {
+            "identical": false,
+            "changed_values": 1520,
+            "max_absolute_difference": 0.20000000298023224
+          }
+        },
+        "actions_forced": false
+      }
+    ],
+    "p2c": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    }
+  },
+  "attempt_receipts": {
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/01_normal_ingress_dla/attempt_001/VALIDATED.json": "89c3ba3a0d6658d74810156b0a60dbf28191d68a7ee70ceed4014f97089bd524",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/02_normal_dla/attempt_001/VALIDATED.json": "ede63e6ab2482dd1c2fe413010bcbd8e370952f4524c4f6ad7eeceff250042c5",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/03_normal_per_task_dla/attempt_001/VALIDATED.json": "d104adcb149ba616eef850b8b966aad3aa8650c1ad496b57bb22cd899401b51c",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/04_normal_causal_round_robin/attempt_001/VALIDATED.json": "230e87e165463e9303763dc3ce48fb9d14966e65358ac099fa86d3c40cbc673b",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/05_07_two_choice_dla_p2c/attempt_001/VALIDATED.json": "1f66e92e3d609a7e2393775e5a284dc98601b64569e8f9db4af2c550a5c398e8",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/07_08_half_speed_ingress_dla/attempt_001/VALIDATED.json": "c43745299233220d8d1e6286821215d313e399eeb91958f23681da25d4d99b68",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/08_08_half_speed_dla/attempt_001/VALIDATED.json": "b3d733afdcf341f7e4bc3cbc26c8cc8fa3278f659ea16e86d439362652ae836d",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/09_08_half_speed_per_task_dla/attempt_001/VALIDATED.json": "c1dfcb25e7fed35d0d329754f95aeba28653e00990a68da91d330378b7522eae",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/10_08_half_speed_causal_round_robin/attempt_001/VALIDATED.json": "5acaed013152ba8c834c8e49ee334f18b4d6b69e577d37946c036ceae526b8ea",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/11_09_second_actor_ingress_dla/attempt_001/VALIDATED.json": "fe2b4fef78f7400c24606f386f1bb0840ae6f5d5c911a186707821805017332a",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/12_09_second_actor_dla/attempt_001/VALIDATED.json": "3ec664e4c83be6f73a494006b1876f4f6e50149aa4d6d15529b8e3f1f0ea06e8",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/13_09_second_actor_per_task_dla/attempt_001/VALIDATED.json": "62b8a12e8995b613c2c5f59e34bac881875f02199c0095fab67e76c0975badec",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/14_09_second_actor_causal_round_robin/attempt_001/VALIDATED.json": "17f06a4250c96291d326f02f76bb82f4dd4f4efc9b37f793bd20acfd064ea472",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/15_p2c_prefix/attempt_001/VALIDATED.json": "3d02351bcb0b5bdbc4811653c248441f36b0ce8274b7d0fc372947afbfdf86d1"
+  },
+  "reference_receipts": {
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/qualification/06_07_two_choice_dla_p2c/attempt_001/REFERENCE.json": "0b8522495ede39758db123a0583b9d0342da3b45e6928f3306e49e752bfe700c"
+  },
+  "short_attempts": 15
+}

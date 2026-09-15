@@ -1,0 +1,11 @@
+{
+  "captured_at": "2026-09-15T16:57:35.593993+00:00",
+  "captured_during_execution": true,
+  "os": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "processor": "Apple M5",
+  "memory_bytes": 17179869184,
+  "logical_cpus": 10,
+  "execution": "one serial evaluator process, float32 CPU; idle sleep prevented while runner active",
+  "plot_environment_separate_from_scientific_runtime": true
+}

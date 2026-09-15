@@ -1,0 +1,16 @@
+{
+  "status": "complete",
+  "recorded_at": "2026-09-15T20:31:43.073298+00:00",
+  "source_commit": "5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
+  "new_full_runs": 72,
+  "reused_controls": 32,
+  "all_independent_audits": "passed",
+  "report_review": "PASS",
+  "chart_visual_inspection": "passed",
+  "delivery_folder": "/Users/akashx/Desktop/Dissertation/Experiments 7-8-9 - 2026-09-15",
+  "archive": "/Users/akashx/Desktop/Dissertation/Experiments 7-8-9 - 2026-09-15.zip",
+  "archive_sha256": "92f954071d0e96de019b0e130565cafbece6afb17e8c41f843d36afb33c44128",
+  "archive_files": 730,
+  "raw_arrays_in_archive": false,
+  "findings_sha256": "c78cfe8ffadff3700603c73c2ba948fbda51d987164cc14300166efada87859e"
+}

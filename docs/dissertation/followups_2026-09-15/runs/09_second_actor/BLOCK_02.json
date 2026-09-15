@@ -1,0 +1,200 @@
+{
+  "status": "passed",
+  "study": "09_second_actor",
+  "block": 2,
+  "seal_sha256": "4ef9c00fd2211703e09a1a0b4ddb1b6ebffc724d27d0bb4604cb3a408d949d65",
+  "cell_receipts": {
+    "ingress_dla": "ff8a8e9a47d03b8ca70e2341c339215144cef8287dc69b7ea9a807594eb3a202",
+    "dla": "65b5c7eb49ae42848b4b2a0fb172c9d9fcddd8eb32128b6d97e70c8df6047110",
+    "per_task_dla": "95cf241e71c49d5ffc46c727bbdfbf91a04c6ded06e82800ae7a6aab8a6f1076",
+    "causal_round_robin": "83619a9c76125ea8e4c8b385444b900970e140850adcd6f1bfcd664bd7843593"
+  },
+  "within_condition": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    }
+  },
+  "historical_matching": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 99203,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4081700667738914
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 268776,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 99203,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4081700667738914
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 268776,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 99203,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4081700667738914
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 268776,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 99203,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4081700667738914
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 268776,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    }
+  }
+}

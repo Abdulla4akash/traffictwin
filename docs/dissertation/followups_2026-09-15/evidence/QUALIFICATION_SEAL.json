@@ -1,0 +1,65 @@
+{
+  "created_at": "2026-09-15T16:18:43.240678+00:00",
+  "sources": {
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/followups_2026-09-15/PROTOCOL.md": "68283ca97c24edadb31b177c0fd4b47b9a86b55eed1bd0ddf33e9ac95388ef52",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/followups_2026-09-15/analyse.py": "2bd83fad5a7f4b42be5253aab40dcc4497a713eadb289456fd2b46124cb28d0d",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/followups_2026-09-15/checks.py": "37a622eae683cb198b6076dd31fbf0467456463b0397922f07403d4d587a5db3",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/followups_2026-09-15/runner.py": "525d11118f669b380a80fabcdc6ea56bae060c6ffbc2ad1a785862635e1561bf",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/followups_2026-09-15/test_guards.py": "c3ce9fb34bdadadbbc4a4e24c6a034fb5fc24cd0733c82f3ac41c06a74aa7e6c",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/followups_2026-09-15/validation.py": "867f7dba2eb099c5f8c195c192d291ba74352284cb2c592f3ebe6bec66fe07ed",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/confirmation/SEALED_EXECUTION.json": "65028659439a8808fe825e0142e8276c9c293e09085b2db036131434085beca3",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/confirmation/validation.py": "3b3b3d8ee1f8015f328bf4c1850c0db20ff8eb27ab5bf11519c88c8b68e0e57b",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/experimental/build_evaluator_v2.py": "24097dd056d4f20c9d4111662862c7b941e755356fb92864c68a745d4c3d1100",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/experimental/evaluator_entry.py": "c69bbd3e121bc1cd960585cb57e76d8779fa1a506624c1531769ba551d4ccf9f",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/experimental/evaluator_v2.py": "ca8dbd0398e185c172475c47e6f84cab8b82543ecbd57a73ca47349beaf8af10",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/experimental/round_robin.py": "a17335a8c7d6ab82c543e3780c6cd5cfe4e5d7117ae188ce3303a67c3f3f55a0",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/experimental/vendor/e2_path_instrumentation.py": "6c764965fe07faf3238504bc20bd52ef4c03cfd458281bb7c4f3e6a09600d69a",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/joint_confirmation_2026-09-08/experimental/vendor/vec_jax.py": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09",
+    "/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/rsu_state_delay.py": "b4cf128d3eddf2fb11b0d58dde790c7441a38cfdd12fc82859e7c5a1c6d4f751"
+  },
+  "preflight": {
+    "timestamp": "2026-09-15T16:18:43.228624+00:00",
+    "runtime": {
+      "python": "3.11.15",
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "scipy": "1.17.1",
+      "x64": false,
+      "devices": [
+        "TFRT_CPU_0"
+      ]
+    },
+    "python_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "actor_sha256": {
+      "original": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "ukfleet": "b3eca1685245c59d1a3e86bd11ede887300bda1b00ba211a1913e467ad3f5183"
+    },
+    "free_gib": 124.29978561401367,
+    "numerical_environment": {
+      "JAX_ENABLE_X64": "false",
+      "JAX_PLATFORMS": "cpu",
+      "MKL_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": "0",
+      "VECLIB_MAXIMUM_THREADS": null,
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_STRESS_LANES": "0",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "XLA_FLAGS": null
+    }
+  },
+  "max_short_attempts": 16,
+  "max_steps": 300,
+  "protocol_sha256": "68283ca97c24edadb31b177c0fd4b47b9a86b55eed1bd0ddf33e9ac95388ef52"
+}

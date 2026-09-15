@@ -1,0 +1,185 @@
+{
+  "status": "passed",
+  "created_at": "2026-09-08T11:45:51.688600+00:00",
+  "qualification_seal_sha256": "f22722f2a0be602f9d52c4a12ec71e61efc5df417c22f7a468b411dd50f8d38c",
+  "runtime": {
+    "timestamp": "2026-09-08T11:44:43.193056+00:00",
+    "runtime": {
+      "python": "3.11.15",
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "x64": false,
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "platform": "macOS-26.4.1-arm64-arm-64bit",
+      "processor": "Apple M5",
+      "cpu_count": 10
+    },
+    "python": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+    "python_binary_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "runtime_root": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run",
+    "trace": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+    "actor": "/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "execution_environment": {
+      "JAX_COMPILATION_CACHE_DIR": null,
+      "JAX_ENABLE_X64": "false",
+      "JAX_PLATFORMS": "cpu",
+      "MKL_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": "0",
+      "PYTHONHOME": null,
+      "PYTHONOPTIMIZE": null,
+      "PYTHONPATH": null,
+      "VECLIB_MAXIMUM_THREADS": null,
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_STRESS_LANES": "0",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "XLA_FLAGS": null
+    },
+    "free_gib": 284.7781066894531
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "arm": "ingress_dla",
+      "frozen": true,
+      "steps": 300,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_01_ingress_dla",
+      "simulation_process_s": 8.777176667004824,
+      "validation_s": 0.0009069170337170362,
+      "receipt_sha256": "a059aa74a579fa9cecf246f9d306e25afabffb5d679097cf5310635a05807177"
+    },
+    {
+      "attempt": 2,
+      "arm": "ingress_dla",
+      "frozen": false,
+      "steps": 300,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_02_ingress_dla",
+      "simulation_process_s": 9.06205616693478,
+      "validation_s": 0.04262604098767042,
+      "receipt_sha256": "7f7e02cea5b29ab8d6756e97dbc432afd7a12a6c18595d4b459e02463680dfd9",
+      "compatibility": {
+        "status": "passed",
+        "shared_scientific_fields": 83,
+        "differences": [],
+        "excluded": [
+          "summary/wall_s"
+        ]
+      }
+    },
+    {
+      "attempt": 3,
+      "arm": "dla",
+      "frozen": true,
+      "steps": 300,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_03_dla",
+      "simulation_process_s": 8.786215625004843,
+      "validation_s": 0.0024365000426769257,
+      "receipt_sha256": "dabf14cb0f50bb74a778283e2c29a24270c9b7a9eab2514eb33c4f34d256d795"
+    },
+    {
+      "attempt": 4,
+      "arm": "dla",
+      "frozen": false,
+      "steps": 300,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_04_dla",
+      "simulation_process_s": 9.165714000002481,
+      "validation_s": 0.040887082926929,
+      "receipt_sha256": "0c72003da1e96b5f2f14e33f4667d44f555523f9926a5ea4748c7e41b360e3db",
+      "compatibility": {
+        "status": "passed",
+        "shared_scientific_fields": 83,
+        "differences": [],
+        "excluded": [
+          "summary/wall_s"
+        ]
+      }
+    },
+    {
+      "attempt": 5,
+      "arm": "per_task_dla",
+      "frozen": true,
+      "steps": 300,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_05_per_task_dla",
+      "simulation_process_s": 8.370419666985981,
+      "validation_s": 0.0008302500937134027,
+      "receipt_sha256": "8363a8d3397348f01c99f208188faaed995c9da670735ca1117d34fcdd69de08"
+    },
+    {
+      "attempt": 6,
+      "arm": "per_task_dla",
+      "frozen": false,
+      "steps": 300,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_06_per_task_dla",
+      "simulation_process_s": 8.618200832977891,
+      "validation_s": 0.03828066703863442,
+      "receipt_sha256": "1355c12385623ab502dd6f0cb235ded4efbd55a60fdbce85dd71f57d3fbdaf54",
+      "compatibility": {
+        "status": "passed",
+        "shared_scientific_fields": 83,
+        "differences": [],
+        "excluded": [
+          "summary/wall_s"
+        ]
+      }
+    },
+    {
+      "attempt": 7,
+      "arm": "causal_round_robin",
+      "frozen": false,
+      "steps": 300,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_07_causal_round_robin",
+      "simulation_process_s": 8.70187020895537,
+      "validation_s": 0.04070458305068314,
+      "receipt_sha256": "bdabc4666ff167df82e910c81aed684af309ba8b2e8201891659b03578e41f6b"
+    },
+    {
+      "attempt": 8,
+      "arm": "causal_round_robin",
+      "frozen": false,
+      "steps": 150,
+      "path": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/attempt_08_causal_round_robin",
+      "simulation_process_s": 6.612584667047486,
+      "validation_s": 0.022598584066145122,
+      "receipt_sha256": "82e30458bf636e5292f407c2b326bed7d6408a9b4e14ad1c5b2f6ccfccf60c4b"
+    }
+  ],
+  "negative_tests": [
+    {
+      "case": "corrupted_count",
+      "refused": true,
+      "error": "Integer count mismatch: n_offered: 20113.5 != 20113"
+    },
+    {
+      "case": "mismatched_shared_input",
+      "refused": true,
+      "error": "Shared exogenous input or cell seal mismatch"
+    },
+    {
+      "case": "missing_block_receipt",
+      "refused": true,
+      "error": "Missing passed block controls: /Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification/negative_tests/BLOCK_00.json"
+    },
+    {
+      "case": "changed_output_hash",
+      "refused": true,
+      "error": "Completed output changed"
+    }
+  ],
+  "block_receipt_sha256": "d5fdaf7ab6d8275cec0a7592a4a57ede2b9044b5a74dcb8eb69abcf4cdbcf87b",
+  "full_evaluations_launched": 0,
+  "qualification_outputs": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification",
+  "boundary": "Eight short runs, not independent fleet replications; no full outcomes inspected"
+}
