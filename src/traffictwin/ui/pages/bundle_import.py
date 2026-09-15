@@ -31,12 +31,11 @@ def render(config: UiConfig) -> None:
 
     st.title("Bundle Import & Validation")
     st.caption("Validated bundles are imported as historical or synthetic run evidence.")
-    if st.session_state.get("_v07_navigation_active"):
-        if st.button(
-            "Open dissertation experiment results (CSV tables and receipts)",
-            icon=":material/science:",
-        ):
-            st.switch_page("app_pages/experimental_results.py")
+    if st.session_state.get("_v07_navigation_active") and st.button(
+        "Open dissertation experiment results (CSV tables and receipts)",
+        icon=":material/science:",
+    ):
+        st.switch_page("app_pages/experimental_results.py")
     _render_example_shortcuts(config)
     bundle_path = Path(
         st.text_input(
