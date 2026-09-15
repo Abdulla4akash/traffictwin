@@ -55,6 +55,14 @@ class V07AdditivePageSpec:
     icon: str
 
 
+EXPERIMENTAL_RESULTS_PAGE_SPEC = V07AdditivePageSpec(
+    title="Experimental Results",
+    group="Results",
+    script="app_pages/experimental_results.py",
+    url_path="experimental-results",
+    icon=":material/science:",
+)
+
 MATCH_REVIEW_PAGE_SPEC = V07AdditivePageSpec(
     title="Match Review",
     group="Source evidence",
@@ -657,6 +665,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
             f"expansion routes must contain exactly 4 specs, got {len(_expansion_specs)}"
         )
     additive_specs = (
+        EXPERIMENTAL_RESULTS_PAGE_SPEC,
         MANCHESTER_PAGE_SPEC,
         SOURCE_HEALTH_PAGE_SPEC,
         MATCH_REVIEW_PAGE_SPEC,
@@ -713,6 +722,15 @@ def v07_navigation_pages() -> dict[str, list[object]]:
     }
     for group in V07_NAVIGATION_GROUPS:
         group_pages: list[object] = []
+        if group == EXPERIMENTAL_RESULTS_PAGE_SPEC.group:
+            group_pages.append(
+                st.Page(
+                    EXPERIMENTAL_RESULTS_PAGE_SPEC.script,
+                    title=EXPERIMENTAL_RESULTS_PAGE_SPEC.title,
+                    icon=EXPERIMENTAL_RESULTS_PAGE_SPEC.icon,
+                    url_path=EXPERIMENTAL_RESULTS_PAGE_SPEC.url_path,
+                )
+            )
         for spec in V07_PAGE_SPECS:
             if spec.group != group:
                 continue

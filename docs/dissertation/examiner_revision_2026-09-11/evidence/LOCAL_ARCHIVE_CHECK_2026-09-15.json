@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "baseline_commit": "477304f7f988f7d5d5ea5ae21d0e49eed1429e5a",
+  "manifest_sha256": "259675e6958f615124235fbade4cf0be306dbf81c8018580dd106cd84ff2cc3a",
+  "archive_roots": 8,
+  "checked_files": 938,
+  "checked_bytes": 29009151,
+  "failures": [],
+  "scope": "File integrity only; no code execution, raw-array analysis or backup"
+}

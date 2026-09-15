@@ -1,0 +1,1133 @@
+{
+  "retrieved_date": "2026-09-15",
+  "input_head": "582f84c5a24023eb6aecbd6a91e17beae82451fb",
+  "scope": "15 Crossref registrations and one official software citation; no owner paper reading or full-text verification is claimed",
+  "reference_count": 41,
+  "count_decision": "Owner explicitly confirmed all 16 additions, for 41 total; optional 3GPP omitted because no version was specified",
+  "metadata": [
+    {
+      "key": "liu_survey",
+      "authors": [
+        {
+          "given": "Lei",
+          "family": "Liu"
+        },
+        {
+          "given": "Chen",
+          "family": "Chen"
+        },
+        {
+          "given": "Qingqi",
+          "family": "Pei"
+        },
+        {
+          "given": "Sabita",
+          "family": "Maharjan"
+        },
+        {
+          "given": "Yan",
+          "family": "Zhang"
+        }
+      ],
+      "title": "Vehicular Edge Computing and Networking: A Survey",
+      "venue": "Mobile Networks and Applications",
+      "volume": "26",
+      "issue": "3",
+      "pages": "1145-1168",
+      "year": 2021,
+      "doi": "10.1007/s11036-020-01624-1",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1007%2Fs11036-020-01624-1",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2020,
+              7,
+              25
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2021,
+              6
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              2020,
+              7,
+              25
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "01070f160d2c880692269cfb260b2aff667d0b23c8e9185c52ac502628cea512",
+      "year_note": "Online publication 2020; final issue 26(3), 1145–1168 is dated 2021. Bibliography uses issue year.",
+      "reference_number": 1,
+      "crossref_registered_doi": "10.1007/s11036-020-01624-1"
+    },
+    {
+      "key": "raza",
+      "authors": [
+        {
+          "given": "Salman",
+          "family": "Raza"
+        },
+        {
+          "given": "Shangguang",
+          "family": "Wang"
+        },
+        {
+          "given": "Manzoor",
+          "family": "Ahmed"
+        },
+        {
+          "given": "Muhammad Rizwan",
+          "family": "Anwar"
+        }
+      ],
+      "title": "A Survey on Vehicular Edge Computing: Architecture, Applications, Technical Issues, and Future Directions",
+      "venue": "Wireless Communications and Mobile Computing",
+      "volume": "2019",
+      "issue": null,
+      "pages": "1-19",
+      "year": 2019,
+      "doi": "10.1155/2019/3159762",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1155/2019/3159762",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2019,
+              2,
+              24
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2019,
+              2,
+              24
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "353b96d862b833fd394ef8234d4c78243ae5d2a50fa08da60da93424a7854f9e",
+      "reference_number": 2,
+      "crossref_registered_doi": "10.1155/2019/3159762"
+    },
+    {
+      "key": "liu_layland",
+      "authors": [
+        {
+          "given": "C. L.",
+          "family": "Liu"
+        },
+        {
+          "given": "James W.",
+          "family": "Layland"
+        }
+      ],
+      "title": "Scheduling Algorithms for Multiprogramming in a Hard-Real-Time Environment",
+      "venue": "Journal of the ACM",
+      "volume": "20",
+      "issue": "1",
+      "pages": "46-61",
+      "year": 1973,
+      "doi": "10.1145/321738.321743",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1145%2F321738.321743",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              1973,
+              1
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              1973,
+              1
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              1973,
+              1
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "2968d3e109752cfd38777718d20a2c532b98bc2e9094952b65d5b6fb5a02bac9",
+      "reference_number": 4,
+      "crossref_registered_doi": "10.1145/321738.321743"
+    },
+    {
+      "key": "molisch",
+      "authors": [
+        {
+          "given": "Andreas",
+          "family": "Molisch"
+        },
+        {
+          "given": "Fredrik",
+          "family": "Tufvesson"
+        },
+        {
+          "given": "Johan",
+          "family": "Karedal"
+        },
+        {
+          "given": "Christoph",
+          "family": "Mecklenbrauker"
+        }
+      ],
+      "title": "A survey on vehicle-to-vehicle propagation channels",
+      "venue": "IEEE Wireless Communications",
+      "volume": "16",
+      "issue": "6",
+      "pages": "12-22",
+      "year": 2009,
+      "doi": "10.1109/MWC.2009.5361174",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1109%2FMWC.2009.5361174",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2009,
+              12
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2009,
+              12
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "30f709a96f9e82c542a17035e4333bdd54baa090b91a24c7d6b4388304c09592",
+      "reference_number": 5,
+      "crossref_registered_doi": "10.1109/mwc.2009.5361174"
+    },
+    {
+      "key": "zhang",
+      "authors": [
+        {
+          "given": "Jun",
+          "family": "Zhang"
+        },
+        {
+          "given": "Khaled B.",
+          "family": "Letaief"
+        }
+      ],
+      "title": "Mobile Edge Intelligence and Computing for the Internet of Vehicles",
+      "venue": "Proceedings of the IEEE",
+      "volume": "108",
+      "issue": "2",
+      "pages": "246-261",
+      "year": 2020,
+      "doi": "10.1109/JPROC.2019.2947490",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1109%2FJPROC.2019.2947490",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2020,
+              2
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2020,
+              2
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "0ada2e3e44e639b0e1cc264c9c26db5b1d797907e0165cf4f60e10763aa1224c",
+      "reference_number": 9,
+      "crossref_registered_doi": "10.1109/jproc.2019.2947490"
+    },
+    {
+      "key": "liu_drl",
+      "authors": [
+        {
+          "given": "Yi",
+          "family": "Liu"
+        },
+        {
+          "given": "Huimin",
+          "family": "Yu"
+        },
+        {
+          "given": "Shengli",
+          "family": "Xie"
+        },
+        {
+          "given": "Yan",
+          "family": "Zhang"
+        }
+      ],
+      "title": "Deep Reinforcement Learning for Offloading and Resource Allocation in Vehicle Edge Computing and Networks",
+      "venue": "IEEE Transactions on Vehicular Technology",
+      "volume": "68",
+      "issue": "11",
+      "pages": "11158-11168",
+      "year": 2019,
+      "doi": "10.1109/TVT.2019.2935450",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1109%2FTVT.2019.2935450",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2019,
+              11
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2019,
+              11
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "6c8ceaaa8e583e37443d437f12cae6ef3f71ae2729442b671383f69186461372",
+      "reference_number": 10,
+      "crossref_registered_doi": "10.1109/tvt.2019.2935450"
+    },
+    {
+      "key": "ning",
+      "authors": [
+        {
+          "given": "Zhaolong",
+          "family": "Ning"
+        },
+        {
+          "given": "Peiran",
+          "family": "Dong"
+        },
+        {
+          "given": "Xiaojie",
+          "family": "Wang"
+        },
+        {
+          "given": "Joel J. P. C.",
+          "family": "Rodrigues"
+        },
+        {
+          "given": "Feng",
+          "family": "Xia"
+        }
+      ],
+      "title": "Deep Reinforcement Learning for Vehicular Edge Computing: An Intelligent Offloading System",
+      "venue": "ACM Transactions on Intelligent Systems and Technology",
+      "volume": "10",
+      "issue": "6",
+      "pages": "1-24",
+      "year": 2019,
+      "doi": "10.1145/3317572",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1145%2F3317572",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2019,
+              10,
+              18
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2019,
+              11,
+              30
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              2019,
+              10,
+              18
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "52d3333658ee4bc7078253a8a57d3c38a5115fe0e219f7154c9678f733a8ebce",
+      "reference_number": 11,
+      "crossref_registered_doi": "10.1145/3317572"
+    },
+    {
+      "key": "weber",
+      "authors": [
+        {
+          "given": "Richard R.",
+          "family": "Weber"
+        }
+      ],
+      "title": "On the optimal assignment of customers to parallel servers",
+      "venue": "Journal of Applied Probability",
+      "volume": "15",
+      "issue": "2",
+      "pages": "406-413",
+      "year": 1978,
+      "doi": "10.2307/3213411",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.2307%2F3213411",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              1978,
+              6
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              1978,
+              6
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              2016,
+              7,
+              14
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "6984fafa13d84be3af92eff164ef9a53ff08e34e95ba836b368764dd9e0fc124",
+      "reference_number": 12,
+      "crossref_registered_doi": "10.2307/3213411"
+    },
+    {
+      "key": "harchol_book",
+      "authors": [
+        {
+          "given": "Mor",
+          "family": "Harchol-Balter"
+        }
+      ],
+      "title": "Performance Modeling and Design of Computer Systems: Queueing Theory in Action",
+      "venue": "Cambridge University Press",
+      "volume": null,
+      "issue": null,
+      "pages": null,
+      "year": 2013,
+      "doi": "10.1017/CBO9781139226424",
+      "type": "monograph",
+      "crossref_url": "https://api.crossref.org/works/10.1017%2FCBO9781139226424",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2013,
+              2,
+              5
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2013,
+              2,
+              18
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              2013,
+              2,
+              5
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "f81d9b23bbe444f3eea4b7c7eef0ab50fbf741764274fe1a768fe03f6c07842c",
+      "reference_number": 13,
+      "crossref_registered_doi": "10.1017/cbo9781139226424"
+    },
+    {
+      "key": "mitzenmacher",
+      "authors": [
+        {
+          "given": "M.",
+          "family": "Mitzenmacher"
+        }
+      ],
+      "title": "The power of two choices in randomized load balancing",
+      "venue": "IEEE Transactions on Parallel and Distributed Systems",
+      "volume": "12",
+      "issue": "10",
+      "pages": "1094-1104",
+      "year": 2001,
+      "doi": "10.1109/71.963420",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1109%2F71.963420",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2001
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2001
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "ccb4bf5b523cd9e65d42992a3c91fb47d3563694e610ef6f04b7b27fc45ae31a",
+      "reference_number": 17,
+      "crossref_registered_doi": "10.1109/71.963420"
+    },
+    {
+      "key": "boor",
+      "authors": [
+        {
+          "given": "Mark Van",
+          "family": "der Boor"
+        },
+        {
+          "given": "Sem C.",
+          "family": "Borst"
+        },
+        {
+          "given": "Johan S. H.",
+          "family": "Van Leeuwaarden"
+        },
+        {
+          "given": "Debankur",
+          "family": "Mukherjee"
+        }
+      ],
+      "title": "Scalable Load Balancing in Networked Systems: A Survey of Recent Advances",
+      "venue": "SIAM Review",
+      "volume": "64",
+      "issue": "3",
+      "pages": "554-622",
+      "year": 2022,
+      "doi": "10.1137/20M1323746",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1137%2F20M1323746",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2022,
+              8
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2022,
+              8
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              2022,
+              8,
+              4
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "ac47bd52e2bed4f53893cf3afaa6e1cc363d17cd3d6da3774de0ebf21b9b6052",
+      "reference_number": 19,
+      "crossref_registered_doi": "10.1137/20m1323746"
+    },
+    {
+      "key": "tao",
+      "authors": [
+        {
+          "given": "Fei",
+          "family": "Tao"
+        },
+        {
+          "given": "He",
+          "family": "Zhang"
+        },
+        {
+          "given": "Ang",
+          "family": "Liu"
+        },
+        {
+          "given": "A. Y. C.",
+          "family": "Nee"
+        }
+      ],
+      "title": "Digital Twin in Industry: State-of-the-Art",
+      "venue": "IEEE Transactions on Industrial Informatics",
+      "volume": "15",
+      "issue": "4",
+      "pages": "2405-2415",
+      "year": 2019,
+      "doi": "10.1109/TII.2018.2873186",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1109%2FTII.2018.2873186",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2019,
+              4
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2019,
+              4
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "ec1d1155523fc4bfdcdad1a5571ab29708f4599301876ea536ecf45b1c1a876b",
+      "reference_number": 28,
+      "crossref_registered_doi": "10.1109/tii.2018.2873186"
+    },
+    {
+      "key": "dunn",
+      "authors": [
+        {
+          "given": "Olive Jean",
+          "family": "Dunn"
+        }
+      ],
+      "title": "Multiple Comparisons among Means",
+      "venue": "Journal of the American Statistical Association",
+      "volume": "56",
+      "issue": "293",
+      "pages": "52-64",
+      "year": 1961,
+      "doi": "10.1080/01621459.1961.10482090",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1080/01621459.1961.10482090",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              1961,
+              3
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              1961,
+              3
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "86ecd5bfbc3f8a89ad570a9b5238d1d05d31a8d89e9c943ae8e445dcd52a2026",
+      "reference_number": 34,
+      "crossref_registered_doi": "10.1080/01621459.1961.10482090"
+    },
+    {
+      "key": "nosek",
+      "authors": [
+        {
+          "given": "Brian A.",
+          "family": "Nosek"
+        },
+        {
+          "given": "Charles R.",
+          "family": "Ebersole"
+        },
+        {
+          "given": "Alexander C.",
+          "family": "DeHaven"
+        },
+        {
+          "given": "David T.",
+          "family": "Mellor"
+        }
+      ],
+      "title": "The preregistration revolution",
+      "venue": "Proceedings of the National Academy of Sciences",
+      "volume": "115",
+      "issue": "11",
+      "pages": "2600-2606",
+      "year": 2018,
+      "doi": "10.1073/pnas.1708274114",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1073%2Fpnas.1708274114",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              2018,
+              3,
+              12
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              2018,
+              3,
+              13
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              2018,
+              3,
+              12
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "84ae94568e99b98e634997964a2df9b20e08b3dc1c3ac3b5a18fa41fa0ca0c8e",
+      "reference_number": 33,
+      "crossref_registered_doi": "10.1073/pnas.1708274114"
+    },
+    {
+      "key": "goldberg",
+      "authors": [
+        {
+          "given": "David",
+          "family": "Goldberg"
+        }
+      ],
+      "title": "What every computer scientist should know about floating-point arithmetic",
+      "venue": "ACM Computing Surveys",
+      "volume": "23",
+      "issue": "1",
+      "pages": "5-48",
+      "year": 1991,
+      "doi": "10.1145/103162.103163",
+      "type": "journal-article",
+      "crossref_url": "https://api.crossref.org/works/10.1145%2F103162.103163",
+      "crossref_dates": {
+        "published": {
+          "date-parts": [
+            [
+              1991,
+              3
+            ]
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            [
+              1991,
+              3
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              1991,
+              3
+            ]
+          ]
+        }
+      },
+      "verification": "Crossref registration identity and bibliographic metadata only",
+      "owner_abstract_and_cited_section_review": "pending",
+      "full_text_review_claimed": false,
+      "crossref_message_sha256": "81bb529b7dc8cc25d62c8306c6aaaae2e4d0ff1d85f6c61fa8929d3050120730",
+      "reference_number": 41,
+      "crossref_registered_doi": "10.1145/103162.103163"
+    },
+    {
+      "key": "jax",
+      "authors": [
+        "James Bradbury",
+        "Roy Frostig",
+        "Peter Hawkins",
+        "Matthew James Johnson",
+        "Chris Leary",
+        "Dougal Maclaurin",
+        "George Necula",
+        "Adam Paszke",
+        "Jake VanderPlas",
+        "Skye Wanderman-Milne",
+        "Qiao Zhang"
+      ],
+      "title": "JAX: composable transformations of Python+NumPy programs",
+      "venue": "Software",
+      "year": 2018,
+      "version": "0.4.30",
+      "doi": null,
+      "url": "https://github.com/jax-ml/jax",
+      "citation_source": "https://raw.githubusercontent.com/jax-ml/jax/jax-v0.4.30/CITATION.bib",
+      "citation_bib": "@software{jax2018github,\n  author = {James Bradbury and Roy Frostig and Peter Hawkins and Matthew James Johnson and Chris Leary and Dougal Maclaurin and George Necula and Adam Paszke and Jake Vander{P}las and Skye Wanderman-{M}ilne and Qiao Zhang},\n  title = {{JAX}: composable transformations of {P}ython+{N}um{P}y programs},\n  url = {http://github.com/google/jax},\n  version = {0.3.13},\n  year = {2018},\n}\n",
+      "verification": "Official software citation inspected; version 0.4.30 is the manuscript runtime, while the tag citation file retains stale version 0.3.13",
+      "owner_software_version_verification": "pending",
+      "full_text_review_claimed": false,
+      "reference_number": 36
+    }
+  ],
+  "attachment_points": [
+    {
+      "point": 1,
+      "section": "1.1",
+      "original_sentence": "A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I).",
+      "keys": [
+        "liu_survey",
+        "raza"
+      ],
+      "cited_sentence": "A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I) [[1]](#ref-1), [[2]](#ref-2).",
+      "reference_numbers": [
+        1,
+        2
+      ]
+    },
+    {
+      "point": 2,
+      "section": "1.1",
+      "original_sentence": "Deadline attainment matters because a computed answer has value only within the time window in which an application can use it.",
+      "keys": [
+        "liu_layland"
+      ],
+      "cited_sentence": "Deadline attainment matters because a computed answer has value only within the time window in which an application can use it [[4]](#ref-4).",
+      "reference_numbers": [
+        4
+      ]
+    },
+    {
+      "point": 3,
+      "section": "1.1",
+      "original_sentence": "Mobility makes this harder: radio conditions and the vehicles around an RSU can change while previously admitted work still occupies its server.",
+      "keys": [
+        "molisch"
+      ],
+      "cited_sentence": "Mobility makes this harder: radio conditions and the vehicles around an RSU can change while previously admitted work still occupies its server [[5]](#ref-5).",
+      "reference_numbers": [
+        5
+      ]
+    },
+    {
+      "point": 4,
+      "section": "1.1",
+      "original_sentence": "Research on RSU-to-RSU cooperation [[24]](#ref-24) and task inference across vehicle, RSU and edge resources [[25]](#ref-25) supplies a wider context for execution placement; I do not transfer its performance claims to TrafficTwin.",
+      "keys": [
+        "zhang",
+        "liu_drl",
+        "ning"
+      ],
+      "cited_sentence": "Research on RSU-to-RSU cooperation [[7]](#ref-7) and task inference across vehicle, RSU and edge resources [[8]](#ref-8) supplies a wider context for execution placement, as does deep-reinforcement-learning offloading in vehicular edge networks [[9]](#ref-9), [[10]](#ref-10), [[11]](#ref-11); I do not transfer its performance claims to TrafficTwin.",
+      "reference_numbers": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "point": 5,
+      "section": "1.2",
+      "original_sentence": "Shortest-queue dispatch compares numbers of jobs; shortest-workload dispatch compares their outstanding service requirements.",
+      "keys": [
+        "weber",
+        "harchol_book"
+      ],
+      "cited_sentence": "Shortest-queue dispatch compares numbers of jobs; shortest-workload dispatch compares their outstanding service requirements [[12]](#ref-12), [[13]](#ref-13).",
+      "reference_numbers": [
+        12,
+        13
+      ]
+    },
+    {
+      "point": 6,
+      "section": "1.2",
+      "original_sentence": "The evaluator also implements a power-of-two-choices variant (`dla_p2c`) that was not evaluated here.",
+      "keys": [
+        "mitzenmacher"
+      ],
+      "cited_sentence": "The evaluator also implements a power-of-two-choices variant (`dla_p2c`) that was not evaluated here [[17]](#ref-17).",
+      "reference_numbers": [
+        17
+      ]
+    },
+    {
+      "point": 7,
+      "section": "1.2",
+      "original_sentence": "Common destinations and local updates therefore predate TrafficTwin.",
+      "keys": [
+        "boor"
+      ],
+      "cited_sentence": "Common destinations and local updates therefore predate TrafficTwin [[19]](#ref-19).",
+      "reference_numbers": [
+        19
+      ]
+    },
+    {
+      "point": 8,
+      "section": "1.2",
+      "original_sentence": "Digital-twin work spans distinct interventions.",
+      "keys": [
+        "tao"
+      ],
+      "cited_sentence": "Digital-twin work spans distinct interventions [[28]](#ref-28).",
+      "reference_numbers": [
+        28
+      ]
+    },
+    {
+      "point": 9,
+      "section": "2.6",
+      "original_sentence": "The original morning protocol additionally uses Bonferroni simultaneous intervals for three contrasts, with critical value t at probability 1 − 0.05/(2 × 3), three degrees of freedom.",
+      "keys": [
+        "dunn"
+      ],
+      "cited_sentence": "The original morning protocol additionally uses Bonferroni simultaneous intervals for three contrasts, with critical value t at probability 1 − 0.05/(2 × 3), three degrees of freedom [[34]](#ref-34).",
+      "reference_numbers": [
+        34
+      ]
+    },
+    {
+      "point": 10,
+      "section": "2.6",
+      "original_sentence": "The local protocol and manifest preceded the new outcomes, but there was no external preregistration [[S7]](#source-s7), [[S8]](#source-s8).",
+      "keys": [
+        "nosek"
+      ],
+      "cited_sentence": "The local protocol and manifest preceded the new outcomes, but there was no external preregistration [[S7]](#source-s7), [[S8]](#source-s8) [[33]](#ref-33).",
+      "reference_numbers": [
+        33
+      ]
+    },
+    {
+      "point": 10,
+      "section": "2.6",
+      "original_sentence": "Controls, rotating arm order and analysis were sealed before full outcomes.",
+      "keys": [
+        "nosek"
+      ],
+      "cited_sentence": "Controls, rotating arm order and analysis were sealed before full outcomes [[33]](#ref-33).",
+      "reference_numbers": [
+        33
+      ]
+    },
+    {
+      "point": 11,
+      "section": "Appendix C.8",
+      "original_sentence": "Inclusive prefix sums followed by subtraction can round differently from causal accumulation, changing a strict gate even for sub-0.001 ms differences.",
+      "keys": [
+        "goldberg"
+      ],
+      "cited_sentence": "Inclusive prefix sums followed by subtraction can round differently from causal accumulation, changing a strict gate even for sub-0.001 ms differences [[41]](#ref-41).",
+      "reference_numbers": [
+        41
+      ]
+    },
+    {
+      "point": 12,
+      "section": "3.7",
+      "original_sentence": "The research path combines a trace-driven JAX evaluator, versioned schedulers, sealed runner and separate validation/analysis.",
+      "keys": [
+        "jax"
+      ],
+      "cited_sentence": "The research path combines a trace-driven JAX evaluator, versioned schedulers, sealed runner and separate validation/analysis [[36]](#ref-36).",
+      "reference_numbers": [
+        36
+      ]
+    }
+  ],
+  "reference_renumbering": [
+    {
+      "input_number": 1,
+      "output_number": 3
+    },
+    {
+      "input_number": 2,
+      "output_number": 14
+    },
+    {
+      "input_number": 3,
+      "output_number": 23
+    },
+    {
+      "input_number": 4,
+      "output_number": 24
+    },
+    {
+      "input_number": 5,
+      "output_number": 25
+    },
+    {
+      "input_number": 6,
+      "output_number": 26
+    },
+    {
+      "input_number": 7,
+      "output_number": 27
+    },
+    {
+      "input_number": 8,
+      "output_number": 22
+    },
+    {
+      "input_number": 9,
+      "output_number": 15
+    },
+    {
+      "input_number": 10,
+      "output_number": 18
+    },
+    {
+      "input_number": 11,
+      "output_number": 20
+    },
+    {
+      "input_number": 12,
+      "output_number": 21
+    },
+    {
+      "input_number": 13,
+      "output_number": 16
+    },
+    {
+      "input_number": 14,
+      "output_number": 35
+    },
+    {
+      "input_number": 15,
+      "output_number": 29
+    },
+    {
+      "input_number": 16,
+      "output_number": 30
+    },
+    {
+      "input_number": 17,
+      "output_number": 31
+    },
+    {
+      "input_number": 18,
+      "output_number": 6
+    },
+    {
+      "input_number": 19,
+      "output_number": 39
+    },
+    {
+      "input_number": 20,
+      "output_number": 37
+    },
+    {
+      "input_number": 21,
+      "output_number": 38
+    },
+    {
+      "input_number": 22,
+      "output_number": 32
+    },
+    {
+      "input_number": 23,
+      "output_number": 40
+    },
+    {
+      "input_number": 24,
+      "output_number": 7
+    },
+    {
+      "input_number": 25,
+      "output_number": 8
+    }
+  ],
+  "prose_scope_check": "Exact reconstruction after removing new citations and the one authorised DRL clause, reversing citation renumbering and restoring the five original plain citation labels in Table 1",
+  "table_1_citation_renumbering": {
+    "2": 14,
+    "9": 15,
+    "13": 16,
+    "10": 18,
+    "11": 20
+  }
+}

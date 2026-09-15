@@ -1,0 +1,51 @@
+{
+  "sources": {
+    "3gpp-ts-22.186-v16.2.0": {
+      "reference_number": 42,
+      "title": "Service requirements for enhanced V2X scenarios",
+      "document_identifier": "3GPP TS 22.186 version 16.2.0 Release 16; ETSI TS 122 186 V16.2.0 (2020-11)",
+      "primary_url": "https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf",
+      "access_date": "2026-09-15",
+      "verification_method": "Downloaded primary ETSI PDF; extracted text and visually inspected printed pages 9 and 10 (PDF pages 10 and 11).",
+      "file_sha256": "68390ad54bcffe2f944d6a4f25921d88dd1b04dc8471c5ce544a31c58ea99447",
+      "verified_claim": {
+        "clause": "5.3",
+        "table": "5.3-1",
+        "requirements": [
+          "R.5.3-004",
+          "R.5.3-005"
+        ],
+        "maximum_end_to_end_latency_ms": 100,
+        "scenario": "Automated-driving information sharing between a UE and RSU; lower and higher automation."
+      },
+      "declined_claim": "No advanced-driving requirement class spanning 100–500 ms was verified. The 500 in advanced-driving requirement R.5.3-006 denotes metres of communication range, not milliseconds. A 500 ms latency requirement belongs to platooning reporting R.5.2-008 in Table 5.2-1, printed page 9.",
+      "manuscript_handling": "Cites the verified 100 ms requirement, distinguishes communications from task-completion deadlines, and retains a bracketed owner note about the unverified spanning class. Uses the title of the inspected version, not an unverified title from the prompt.",
+      "owner_reading_claimed": false,
+      "new_doi": false
+    },
+    "who-global-status-road-safety-2023": {
+      "reference_number": 43,
+      "title": "Global status report on road safety 2023",
+      "publisher": "World Health Organization",
+      "publication_year": 2023,
+      "isbn": "978-92-4-008651-7",
+      "primary_url": "https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content",
+      "landing_page": "https://www.who.int/publications/i/item/9789240086517",
+      "access_date": "2026-09-15",
+      "verification_method": "Downloaded the primary WHO PDF through the link on its publication page; extracted executive summary p. viii and main p. 4 and visually inspected p. 4 (PDF page 16).",
+      "file_sha256": "8d65d10d3b8cbc018fb4701130fad953425699104c6560c7aee5308e5890e2b5",
+      "verified_claim": {
+        "estimated_annual_road_traffic_deaths": 1190000,
+        "estimate_year": 2021,
+        "printed_pages": [
+          "viii",
+          "4"
+        ]
+      },
+      "manuscript_handling": "Estimation year is explicit. No other mortality statistic added; no simulator road-safety benefit inferred.",
+      "owner_reading_claimed": false,
+      "new_doi": false
+    }
+  },
+  "note": "Both new references are reports/standards without newly introduced DOIs. Verification uses primary document text and page images; pre-existing DOI receipts remain intact."
+}

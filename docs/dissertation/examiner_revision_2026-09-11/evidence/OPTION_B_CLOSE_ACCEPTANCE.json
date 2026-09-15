@@ -1,0 +1,21 @@
+{
+  "status": "PASS_CLOSING_CONTRACT",
+  "baseline_commit": "2c29392cbf04bf060aacb0f03f1fbb900842d54a",
+  "words": 8914,
+  "prose_only_words": 7714,
+  "package_max": 8950,
+  "prose_only_min": 7600,
+  "pages": 62,
+  "validation_passed": true,
+  "validation_checks": 137,
+  "preservation_checks": 93,
+  "mutation_probes": 11,
+  "stakes_branch": "500 ms verified: clause 5.2, Table 5.2-1, R.5.2-008; 100 ms clause 5.3, Table 5.3-1, R.5.3-004/005",
+  "ethics_status": "Owner confirmed completing the tool and that ethics approval was not required, 15 September 2026; assistant did not observe an authenticated tool outcome.",
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3",
+    "TrafficTwin_Dissertation.tex": "57e2133857491eed28ba1e83da04c2affaacfb95108d26f184de45271bf35f65",
+    "TrafficTwin_Dissertation.pdf": "f42d02333363aad5450210a6df5968dfd7a5a4905ce03fa920fda30aaa7cf429"
+  },
+  "scope": "Closing revision only. Existing submission gates remain separate; no merge, formal independent integration approval or scientific execution."
+}

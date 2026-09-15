@@ -1,0 +1,242 @@
+"""Check an additive editorial revision against preserved source and receipts."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from pathlib import Path
+
+import fitz
+from markdown_it import MarkdownIt
+from validate_option_b import PROJECT_TITLE, check_option_b
+from validate_platform_connection import restore_platform_connection
+
+HERE = Path(__file__).resolve().parents[1]
+ROOT = HERE.parents[2]
+OLD = ROOT / "docs/dissertation/editorial_final_2026-09-09"
+
+
+def sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def tables(text: str) -> dict[str, list[str]]:
+    """Preserve exact table rows while allowing captions and numbering to change."""
+    output = {}
+    parts = re.split(r"(?m)^\*Table ([A-F]?\d+[a-z]?)\.", text)
+    for index in range(1, len(parts), 2):
+        number, following = parts[index : index + 2]
+        lines = following.splitlines()
+        start = next((i for i, line in enumerate(lines) if line.startswith("|")), None)
+        if start is None:
+            continue
+        rows = []
+        for line in lines[start:]:
+            if not line.startswith("|"):
+                break
+            rows.append(line)
+        output[number] = rows
+    return output
+
+
+def main() -> None:
+    original = (OLD / "TrafficTwin_Dissertation.md").read_text()
+    revised = (HERE / "TrafficTwin_Dissertation.md").read_text()
+    oldmap = json.loads((OLD / "document/SOURCE_MAP.json").read_text())
+    newmap = json.loads((HERE / "document/SOURCE_MAP.json").read_text())
+    before, after = tables(original), tables(revised)
+    mapping = {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "C2",
+        "9": "C3",
+        "10": "D2",
+        "B2": "B2",
+        "C1": "C1",
+        "D1": "D1",
+        "E1": "E1",
+        "E2": "E2",
+    }
+    checks = {f"table_{a}_to_{b}_rows_unchanged": before[a] == after[b] for a, b in mapping.items()}
+    # Bibliography renumbering changes only the five literature labels in Table 1.
+    table_1_citations = {"2": "14", "9": "15", "13": "16", "10": "18", "11": "20"}
+    expected_table_1 = [
+        re.sub(
+            r"\[(2|9|13|10|11)\]",
+            lambda m: f"[[{table_1_citations[m[1]]}]](#ref-{table_1_citations[m[1]]})",
+            row,
+        )
+        for row in before["1"]
+    ]
+    checks["table_1_to_1_rows_unchanged"] = after["1"] == expected_table_1
+    # Owner-authorised Table 3 disclosure adds only these two unevaluated modes.
+    disclosure_rows = [
+        "| `p2c` | Per-vehicle two random candidates, least workload | Off | Live |",
+        "| `dla_p2c` | Per-vehicle two random candidates, least workload | On | Live |",
+    ]
+    checks["table_3_to_3_rows_unchanged"] = after["3"][:-2] == before["3"]
+    checks["table_3_only_authorised_disclosure_rows_added"] = after["3"] == (
+        before["3"] + disclosure_rows
+    )
+    restored, _ = restore_platform_connection(ROOT, HERE, revised)
+    checks["abstract_unchanged_before_authorised_scale_sentence"] = (
+        original.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
+        == restored.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
+    )
+    proposition = re.search(r"(?m)^\*\*Proposition 1 .*", original)
+    checks["proposition_statement_unchanged"] = (
+        proposition is not None and proposition[0] in revised
+    )
+    checks["algorithms_unchanged"] = oldmap["algorithms"] == newmap["algorithms"]
+    checks["equations_unchanged"] = oldmap["equations"] == newmap["equations"]
+    for asset in sorted((OLD / "assets").glob("*.svg")):
+        checks[f"preserved_svg_{asset.stem}"] = sha(asset) == sha(HERE / "assets" / asset.name)
+    checks["three_research_questions"] = len(re.findall(r"\*\*RQ[123]:", revised)) == 3
+    checks["no_rq4"] = "RQ4" not in revised
+    checks["forty_six_references"] = len(newmap["bibkeys"]) == 46
+    cited_order = list(dict.fromkeys(re.findall(r"\[\[\d+\]\]\(#ref-(\d+)\)", revised)))
+    # Stable identifiers preserve prior citations; additions need not be in appearance order.
+    checks["references_have_stable_baseline_and_five_additions"] = newmap["bibkeys"] == [
+        f"ref{n}" for n in range(1, 47)
+    ]
+    checks["every_reference_cited"] = {f"ref{n}" for n in cited_order} == set(newmap["bibkeys"])
+    captions = re.findall(r"(?m)^\*(?:Figure|Table) .*", revised)
+    checks["every_caption_has_reading"] = all("Reading:" in c for c in captions)
+    readings = [c.split("Reading:", 1)[1].strip() for c in captions]
+    checks["unique_caption_readings"] = len(readings) == len(set(readings))
+    checks["no_editorial_ownership_placeholders_in_body"] = all(
+        phrase not in revised
+        for phrase in ["for author review", "still require the candidate's", "[Owner note:"]
+    )
+    counts = json.loads((HERE / "document/WORD_COUNT.json").read_text())
+    count = counts["words"]
+    # Retain the earlier owner gate as a disclosed failure; the later authorised
+    # abstract sentence is separately checked against the rubric ceiling.
+    checks["word_count_in_range"] = counts["prose_only_words"] >= 7600 and count <= 8950
+    checks["rubric_word_count_in_range"] = 7000 <= count <= 9000
+    checks["package_count_is_headline"] = (
+        counts["headline_words"] == count and counts["headline_method"] == "package"
+    )
+    checks.update(check_option_b(ROOT, HERE, revised, tables))
+    parser = MarkdownIt("commonmark").enable("table")
+    missing = []
+    anchors = set(re.findall(r'<a id="([^"]+)"', revised))
+    for token in parser.parse(revised):
+        for child in token.children or []:
+            if child.type not in ("link_open", "image"):
+                continue
+            target = child.attrGet("href") or child.attrGet("src") or ""
+            if target.startswith(("http://", "https://")):
+                continue
+            if target.startswith("#"):
+                if target[1:] not in anchors:
+                    missing.append(target)
+            elif not (HERE / target.partition("#")[0]).exists():
+                missing.append(target)
+    checks["manuscript_links_resolve"] = not missing
+    pdf = fitz.open(HERE / "TrafficTwin_Dissertation.pdf")
+    checks["pdf_metadata_has_project_title"] = pdf.metadata["title"] == PROJECT_TITLE
+    checks["pdf_metadata_has_author"] = pdf.metadata["author"] == "S M Abdulla Al Mamun"
+    checks["pdf_cover_has_requested_project_title"] = PROJECT_TITLE in " ".join(
+        pdf[0].get_text().split()
+    )
+    pdftext = "\n".join(page.get_text() for page in pdf)
+    log = (HERE / "TrafficTwin_Dissertation.log").read_text(errors="replace")
+    checks["no_overfull_boxes"] = "Overfull \\" not in log
+    checks["no_missing_glyphs"] = "Missing character:" not in log
+    checks["no_undefined_references"] = "undefined references" not in log.lower()
+    checks["pdf_has_disclosure"] = "Assistance and attribution" in pdftext
+    checks["pdf_has_expected_figures"] = all(f"Figure {n}:" in pdftext for n in range(1, 9))
+    contents_sentence = (
+        f"Word count: {count:,} (main text including tables, equations and pseudocode; "
+        "excluding captions, references, appendices and front matter); "
+        f"{counts['prose_only_words']:,} excluding tables and pseudocode."
+    )
+    checks["pdf_contents_has_both_counts_package_first"] = contents_sentence in " ".join(
+        re.sub(r"(?<=\w)-\n(?=\w)", "", pdftext).split()
+    )
+    checks["pdf_has_appendix_f_and_table_d2"] = "Appendix F." in pdftext and "Table D2:" in pdftext
+    checks["pdf_has_relocated_table_a1"] = "Table A1:" in pdftext
+    # Reproducible lexical diagnostic only, not a semantic quality score.
+    sentences = []
+    for block in newmap["blocks"]:
+        if block["kind"] == "bibliography_open":
+            break
+        if block["kind"] != "paragraph":
+            continue
+        text = re.sub(r"\[\[.*?\]\]\(.*?\)", "", block["source"])
+        ending = re.split(r"(?<=[.!?])\s+", text.strip())[-1]
+        flagged = bool(
+            re.search(
+                r"\b(not|neither|cannot|without|limit\w*|restrict\w*|unresolved|uncertain\w*|"
+                r"conditional|unavailable|ambigu\w*|unrun)\b",
+                ending,
+                re.I,
+            )
+        )
+        sentences.append({"source_block": block["id"], "ending": ending, "flagged": flagged})
+    flag_count = sum(item["flagged"] for item in sentences)
+    record = {
+        "base_commit": "1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8",
+        "checks": checks,
+        "passed": all(checks.values()),
+        "missing_links": missing,
+        "words": count,
+        "prose_only_words": counts["prose_only_words"],
+        "word_limit_status": {
+            "earlier_owner_ceiling": 8950,
+            "earlier_owner_ceiling_met": count <= 8950,
+            "excess_over_earlier_ceiling": max(count - 8950, 0),
+            "rubric_range": [7000, 9000],
+            "rubric_range_met": 7000 <= count <= 9000,
+            "interpretation": "Later owner authorised the current 8,984-word version; "
+            "the earlier ceiling remains unmet, not silently waived.",
+        },
+        "author_confirmation": {
+            "date": "2026-09-15",
+            "source": "AUTHOR_ACTIONS.md",
+            "status": "owner-confirmed; not independently certified by automation",
+        },
+        "pages": len(pdf),
+        "captions": len(captions),
+        "hashes": {
+            name: sha(HERE / name)
+            for name in [
+                "TrafficTwin_Dissertation.md",
+                "TrafficTwin_Dissertation.tex",
+                "TrafficTwin_Dissertation.pdf",
+            ]
+        },
+        "ending_audit": {
+            "method": "Lexical screen of final prose sentence; not semantic grading",
+            "paragraphs": len(sentences),
+            "flagged": flag_count,
+            "flagged_percent": 100 * flag_count / max(len(sentences), 1),
+        },
+        "not_certified": [
+            "assessment AI permission",
+            "signed institutional declarations",
+            "incident geographic layout",
+            "off-machine raw backup",
+            "recorded assessed video",
+            "full-text review of both newly cited Fan papers",
+            "owner reading of the added papers and JAX citation/version verification",
+            "independent exact-SHA review",
+            "full regression-suite pass",
+        ],
+    }
+    (HERE / "document/ENDING_AUDIT.json").write_text(json.dumps(sentences, indent=2) + "\n")
+    (HERE / "document/REVISION_VALIDATION.json").write_text(json.dumps(record, indent=2) + "\n")
+    print(json.dumps(record, indent=2))
+    if not record["passed"]:
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

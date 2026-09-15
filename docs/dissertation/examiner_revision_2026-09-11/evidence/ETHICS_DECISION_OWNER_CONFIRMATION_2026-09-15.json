@@ -1,0 +1,13 @@
+{
+  "date": "2026-09-15",
+  "status": "OWNER_CONFIRMED",
+  "owner_message": "see we dont need i just checked it myself",
+  "context": "Reply to request to sign in to UoM Ethics Decision Tool or provide the project outcome.",
+  "recorded_outcome": "Ethics approval not required",
+  "basis": "Owner attestation of completed project-specific decision-tool check; not an independently observed tool screen or formal ethics approval.",
+  "scope": "Simulated SUMO traces; no human participants or personal data, as stated in manuscript.",
+  "assistant_access": "Official University guidance read; tool navigation redirected to University sign-in in Chrome; no credentials entered and no application submitted.",
+  "guidance_url": "https://www.manchester.ac.uk/research/environment/governance/ethics/approval/",
+  "tool_url": "https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html",
+  "reference_number": 44
+}

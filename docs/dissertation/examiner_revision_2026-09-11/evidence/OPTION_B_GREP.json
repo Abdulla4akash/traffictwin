@@ -1,0 +1,123 @@
+[
+  {
+    "check": "New 4.2",
+    "pattern": "^### 4\\.2 Analysis of the project approach$",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      512
+    ],
+    "passed": true
+  },
+  {
+    "check": "New 2.9",
+    "pattern": "^### 2\\.9 Method selection and alternatives$",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      294
+    ],
+    "passed": true
+  },
+  {
+    "check": "Ethics paragraph",
+    "pattern": "^\\*\\*Ethical and professional considerations\\.\\*\\*",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      124
+    ],
+    "passed": true
+  },
+  {
+    "check": "Objective tags",
+    "pattern": "^(?:Addresses O|O[1-5] (?:and O[1-5] )?address(?:es)? RQ|O[1-5] addresses the mechanism)",
+    "expected": 7,
+    "actual": 7,
+    "lines": [
+      315,
+      333,
+      356,
+      391,
+      419,
+      433,
+      445
+    ],
+    "passed": true
+  },
+  {
+    "check": "Setting / Results labels",
+    "pattern": "^\\*\\*(?:Setting|Results)\\.\\*\\*",
+    "expected": 8,
+    "actual": 8,
+    "lines": [
+      335,
+      339,
+      358,
+      360,
+      393,
+      395,
+      435,
+      437
+    ],
+    "passed": true
+  },
+  {
+    "check": "Proposition remark",
+    "pattern": "^\\*\\*Remark\\.\\*\\*",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      425
+    ],
+    "passed": true
+  },
+  {
+    "check": "Appendix F heading",
+    "pattern": "^## Appendix F\\.",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      1046
+    ],
+    "passed": true
+  },
+  {
+    "check": "Relocated Table D2 caption",
+    "pattern": "^\\*Table D2\\.",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      964
+    ],
+    "passed": true
+  },
+  {
+    "check": "Stale Table 8 reference/caption",
+    "pattern": "Table 8",
+    "expected": 0,
+    "actual": 0,
+    "lines": [],
+    "passed": true
+  },
+  {
+    "check": "WHO figure",
+    "pattern": "1\\.19 million",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      34
+    ],
+    "passed": true
+  },
+  {
+    "check": "Standards owner note",
+    "pattern": "\\[Owner note:",
+    "expected": 1,
+    "actual": 1,
+    "lines": [
+      34
+    ],
+    "passed": true
+  }
+]

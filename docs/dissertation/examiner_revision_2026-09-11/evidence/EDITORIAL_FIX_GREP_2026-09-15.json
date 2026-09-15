@@ -1,0 +1,60 @@
+{
+  "patterns": {
+    "main_table_8": "^\\*Table 8\\.",
+    "main_table_9": "^\\*Table 9\\.",
+    "obsolete_table_10_or_11": "\\bTable (?:10|11)\\b",
+    "mitzenmacher_citations": "\\[\\[45\\]\\]\\(#ref-45\\)",
+    "kovalenko_citations": "\\[\\[46\\]\\]\\(#ref-46\\)",
+    "figure_2_caption": "^\\*Figure 2\\.",
+    "overall_conclusion": "^Within the studied evaluator and matched populations",
+    "owner_placeholder": "\\[Owner note:"
+  },
+  "hits": {
+    "main_table_8": [
+      {
+        "line": 465,
+        "text": "*Table 8. Validity limits and their consequences for interpretation. Reading: use each row to identify the evidence needed before extending the corresponding claim.*"
+      }
+    ],
+    "main_table_9": [
+      {
+        "line": 489,
+        "text": "*Table 9. Objective-by-objective verdict for the completed work. “Met” refers to the stated evaluator/software scope, not real-road deployment or unperformed user testing. Reading: the evidence supports the dispatch findings while leaving historical measurement impact and external validation as distinct open obligations.*"
+      }
+    ],
+    "obsolete_table_10_or_11": [],
+    "mitzenmacher_citations": [
+      {
+        "line": 64,
+        "text": "**Local information and common destinations.** Vargaftik, Keslassy and Orda's Local Shortest Queue (LSQ) policies maintain possibly outdated queue-count estimates at multiple dispatchers. Their slotted model can send all jobs arriving at one dispatcher in a slot to one locally shortest queue, with random tie-breaking. Algorithms update local estimates by the jobs sent and refresh selected entries through communication. Their stability result requires stated arrival/service assumptions and bounded expected estimation error [[18]](#ref-18). Common destinations, stale-information herding [[45]](#ref-45) and local updates therefore predate TrafficTwin [[19]](#ref-19). TrafficTwin uses service-work information, deterministic ties, a backlog gate, five ordered slots and one-second aggregate draining. Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes."
+      },
+      {
+        "line": 415,
+        "text": "Common-target placement assigned morning work only to RSUs 0–4, whereas causal per-task placement used all nine. With K substeps and R RSUs, selecting one destination per substep admits new work to at most min(K, R) destinations in a batch. Empty starts, lowest-index ties, positive admissions and no intervening drain further produce the recurring low-index prefix. Under the exact gate/service model, workload remains below 538.889 ms before the 1,000 ms drain, explaining the recurring empty starts. Appendix C retains the reconstructed states and Figure 8 [[S8]](#source-s8), [[S9]](#source-s9). The live-state mechanism differs from stale-information herding [[45]](#ref-45); federation benefits remain implementation-specific [[46]](#ref-46)."
+      }
+    ],
+    "kovalenko_citations": [
+      {
+        "line": 68,
+        "text": "Kovalenko et al. report lower deadline-miss rates with heterogeneous federation than no redirection [[46]](#ref-46). Their probabilistic placement and communication model differ from TrafficTwin's frozen-actor comparison; Table 1 compares mechanisms."
+      },
+      {
+        "line": 415,
+        "text": "Common-target placement assigned morning work only to RSUs 0–4, whereas causal per-task placement used all nine. With K substeps and R RSUs, selecting one destination per substep admits new work to at most min(K, R) destinations in a batch. Empty starts, lowest-index ties, positive admissions and no intervening drain further produce the recurring low-index prefix. Under the exact gate/service model, workload remains below 538.889 ms before the 1,000 ms drain, explaining the recurring empty starts. Appendix C retains the reconstructed states and Figure 8 [[S8]](#source-s8), [[S9]](#source-s9). The live-state mechanism differs from stale-information herding [[45]](#ref-45); federation benefits remain implementation-specific [[46]](#ref-46)."
+      }
+    ],
+    "figure_2_caption": [
+      {
+        "line": 140,
+        "text": "*Figure 2. Morning trace RSU positions copied from the canonical input-validation record, with original zero-based indices. The incident trace contains ten RSUs; its positions are not reconstructed here. Local network coordinates are not latitude/longitude or a verified street-map projection [[S8]](#source-s8). Reading: the nine morning locations are spatial inputs, whereas the dispatch comparisons change task destinations without moving these RSUs.*"
+      }
+    ],
+    "overall_conclusion": [
+      {
+        "line": 483,
+        "text": "Within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule."
+      }
+    ],
+    "owner_placeholder": []
+  }
+}

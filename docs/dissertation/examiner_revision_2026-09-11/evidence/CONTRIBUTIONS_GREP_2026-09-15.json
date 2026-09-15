@@ -1,0 +1,52 @@
+{
+  "contributions_lead": [
+    {
+      "line": 108,
+      "text": "**Contributions.** The Declaration records supplied components and assistance. My contributions are:"
+    }
+  ],
+  "C_items": [
+    {
+      "line": 110,
+      "text": "**C1.** Identifying the mismatch between task scoring and queue admission in the inherited evaluator, repaired by Putra on 5 August 2026 and qualified in E0 (Section 3.1)."
+    },
+    {
+      "line": 112,
+      "text": "**C2.** Identifying and explaining common-target concentration: one target per substep, morning work confined to RSUs 0–4, the min(K,R) bound and Proposition 1 (Section 3.5; Appendix C)."
+    },
+    {
+      "line": 114,
+      "text": "**C3.** Specifying and implementing the causal per-task selector and the causal round-robin comparator, with explicit reservation, restart and pointer contracts (Sections 2.5 and 2.8)."
+    },
+    {
+      "line": 116,
+      "text": "**C4.** Designing the sealed runner, validators and analysis that completed 32 cells and eight block receipts without a retry (Appendix E)."
+    },
+    {
+      "line": 118,
+      "text": "**C5.** Designing and executing the comparison of six infrastructure policies over three replication stages and more than eighty full evaluator runs, with offered-task accounting and prespecified simultaneous intervals (Sections 2.6 and 3.2–3.4)."
+    },
+    {
+      "line": 120,
+      "text": "**C6.** Completing the report-age and forwarding sensitivities, the scheduler cost benchmark, and the TrafficTwin product inventory with its disclosed test outcomes (Sections 3.6 and 3.7; Appendix A)."
+    }
+  ],
+  "fallback_N": [
+    {
+      "line": 118,
+      "text": "**C5.** Designing and executing the comparison of six infrastructure policies over three replication stages and more than eighty full evaluator runs, with offered-task accounting and prespecified simultaneous intervals (Sections 2.6 and 3.2–3.4)."
+    }
+  ],
+  "F1_sentence": [
+    {
+      "line": 949,
+      "text": "Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[35]](#ref-35). Fixed order and uncontrolled frequency/thermal state limit timing comparisons; durations and IQRs remain available."
+    }
+  ],
+  "protected_shares": [
+    {
+      "line": 417,
+      "text": "The unrounded mean increments give **84.8% for ingress-to-round-robin and 15.2% for the additional round-robin-to-per-task step**. These are descriptive shares of arm-mean differences, not causal mechanism shares or a fourth declared inferential contrast. The closer workload-awareness comparison is per-task versus causal round-robin: cyclic spreading captures most of the ingress gain, with a smaller, consistently positive workload-aware increment."
+    }
+  ]
+}

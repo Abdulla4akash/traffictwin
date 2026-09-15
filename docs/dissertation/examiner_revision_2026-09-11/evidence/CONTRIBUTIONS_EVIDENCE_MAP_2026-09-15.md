@@ -1,0 +1,3 @@
+# Contributions evidence map
+
+The owner supplied the six C-items on 15 September 2026 and authorised exact insertion with designated B trims. Existing Declaration/3.7/4.2, original scientific receipts and the new run-count derivation bound the claims. C1 maps to 3.1/E0; C2 to 3.5/Appendix C; C3 to 2.5/2.8 and the disclosed assistance; C4 to sealed confirmation/Appendix E; C5 to archived campaign records with per-summary horizon qualification; C6 to 3.6/3.7/Appendix A. No new scientific execution or claim of unaided authorship. The exact A wording is preserved except the prescribed count fallback. The ledger identifies every permitted trim and any conditional F1 move; all other manuscript bytes must be recoverable.

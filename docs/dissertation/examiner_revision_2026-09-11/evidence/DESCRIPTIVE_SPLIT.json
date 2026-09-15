@@ -1,0 +1,19 @@
+{
+  "source": "docs/dissertation/joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv",
+  "source_sha256": "44b55e5f18a852f53deefa294982f4100a955945fd47f46bf2e419ab58303017",
+  "replication_unit": "paired block",
+  "blocks": 8,
+  "weighting": "equal block",
+  "mean_attainment_pct": {
+    "dla": 84.86851249532836,
+    "ingress_dla": 88.37247962800257,
+    "causal_round_robin": 91.8788530430183,
+    "per_task_dla": 92.50937602684048
+  },
+  "per_task_minus_ingress_pp": 4.13689639883791,
+  "round_robin_minus_ingress_pp": 3.5063734150157124,
+  "per_task_minus_round_robin_pp": 0.630522983822198,
+  "spreading_step_share_pct": 84.75855029873803,
+  "additional_step_share_pct": 15.241449701261972,
+  "interpretation": "Post-hoc additive description of mean contrasts; not causal shares or a new declared interval."
+}

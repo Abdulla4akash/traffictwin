@@ -1,0 +1,104 @@
+{
+  "date": "2026-09-15",
+  "task": "Introduction balance",
+  "input_head": "62e26f6cba266afdde542477e7063c88bef5ef1c",
+  "restoration_reference": "23d99199b6be5cb6d9738f46587d588b56a62908",
+  "scope_checks": {
+    "three_definitions_restored_with_only_two_first_person_changes": true,
+    "section_1_2_exactly_two_authorised_sentence_changes": true,
+    "manuscript_unchanged_outside_1_1_1_2_4_4": true,
+    "all_table_rows_unchanged_from_input_head": true,
+    "all_27_captions_unchanged_from_input_head": true,
+    "duplicate_reading_captions": 0,
+    "frozen_path_diff_from_origin_main_empty": true,
+    "main_unchanged": true,
+    "scientific_runs_launched": 0
+  },
+  "word_count": {
+    "words": 9156,
+    "prose_only_words": 7853,
+    "headline_words": 7853,
+    "headline_method": "prose_only",
+    "acceptance_bounds": {
+      "prose_only_min": 7600,
+      "prose_only_max": 8400,
+      "package_max": 9300
+    },
+    "prose_only_method": "Same tokenisation and boundaries as package method; additionally excludes table bodies and pseudocode",
+    "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded"
+  },
+  "document_validation": {
+    "checks_passed": 38,
+    "pages": 56,
+    "overfull_boxes": 0,
+    "missing_glyphs": 0,
+    "unresolved_references": 0
+  },
+  "render_review": {
+    "pages_rendered_and_inspected": 56,
+    "method": "Poppler page renders and contact-sheet visual inspection by the editing assistant",
+    "observed_defects": [],
+    "independent_review": false
+  },
+  "grep_line_counts": {
+    "author_reported": {
+      "md": 0,
+      "tex": 0
+    },
+    "not_yet_performed": {
+      "md": 0,
+      "tex": 0
+    },
+    "Abdulla's": {
+      "md": 0,
+      "tex": 0
+    },
+    "This_synthesis_is_retrospective": {
+      "md": 0,
+      "tex": 0
+    },
+    "no_known_backup": {
+      "md": 0,
+      "tex": 0
+    },
+    "Prasetia_Putra": {
+      "md": 3,
+      "tex": 3
+    },
+    "dla_p2c": {
+      "md": 6,
+      "tex": 6
+    }
+  },
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "12c383a7a7bf7637e0f30abe9d38b5b1f4d52624fd621b376d2d1f67001cba24",
+    "TrafficTwin_Dissertation.tex": "172b185f207d7541721ded89ee33fbf33683b9fc8e136a0d24cfbd5b48edb873",
+    "TrafficTwin_Dissertation.pdf": "631fb38854fbaee76817ded7f5f32980e98878ec06ea455161aef182798c1519"
+  },
+  "section_1_2_diff_sha256": "b9ded403e9f0cab2a163ceb6dfe19f0c53826e265c49936cfaa308e9e3e0997e",
+  "tex_log": {
+    "path": "evidence/latexmk-intro-balance-2026-09-15.log",
+    "raw_sha256": "6c90304fe5c92aae399c49c84f5d465ed42de3bc5c92d9017d23fe2c424ef9a1",
+    "committed_sha256": "4f2bb5f24804407b70552794a8b6132674118e6ece0e5693bb9d53c80cbfa771",
+    "normalisation": "Trailing whitespace only"
+  },
+  "archive_integrity": {
+    "status": "passed",
+    "baseline_commit": "477304f7f988f7d5d5ea5ae21d0e49eed1429e5a",
+    "manifest_sha256": "259675e6958f615124235fbade4cf0be306dbf81c8018580dd106cd84ff2cc3a",
+    "archive_roots": 8,
+    "checked_files": 938,
+    "checked_bytes": 29009151,
+    "failures": [],
+    "scope": "File integrity only; no code execution, raw-array analysis or backup"
+  },
+  "static_checks": {
+    "ruff_check_document": "passed",
+    "ruff_format_check_document": "passed"
+  },
+  "not_run_in_this_followup": [
+    "Scientific campaigns",
+    "Full product test suite",
+    "Compact numeric verifier; preceding 15 September receipt retained"
+  ]
+}

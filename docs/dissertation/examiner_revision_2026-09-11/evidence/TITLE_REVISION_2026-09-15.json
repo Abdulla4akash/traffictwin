@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-15",
+  "baseline_commit": "10ca7f29bafbe70b92d8a917684a61af3b11e65f",
+  "title_before": "TrafficTwin: Admission and Dispatch Semantics in Vehicular Edge Computing under a Frozen MAPPO Policy",
+  "title_after": "Dynamic Resource Management for Intelligent Transport Systems",
+  "subtitle": null,
+  "manuscript_change": "First Markdown heading only; all remaining manuscript bytes identical.",
+  "counts": {
+    "words": 8914,
+    "prose_only_words": 7714,
+    "headline_words": 8914,
+    "headline_method": "package",
+    "acceptance_bounds": {
+      "prose_only_min": 7600,
+      "package_max": 8950
+    },
+    "prose_only_method": "Same tokenisation and boundaries as package method; additionally excludes table bodies and pseudocode",
+    "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded"
+  },
+  "pages": 62,
+  "validation_passed": true,
+  "validation_checks": 140,
+  "preservation_checks": 95,
+  "visual_check": "Final title page rendered with Poppler and visually inspected; pages 2\u201362 render pixel-identically to baseline at 72 dpi using PyMuPDF.",
+  "cover_layout": "A centered title box at 72% text width keeps the title on two balanced lines.",
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8",
+    "TrafficTwin_Dissertation.tex": "994589cfff2083899bf9676545c76ee14982d3e906dc6587477dd4405f42529c",
+    "TrafficTwin_Dissertation.pdf": "50149c8f3bbab38c46e7484e93ececc6fe7942601f788ebd9fd83650fe8099ba"
+  },
+  "scientific_runs": 0
+}
