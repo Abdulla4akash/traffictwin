@@ -26,12 +26,12 @@
   },
   {
     "source_block": 10,
-    "ending": "I use offered-task deadline attainment to make that distinction explicit: the question is how much of the requested work receives a timely result.",
-    "flagged": false
+    "ending": "I therefore measure timely results over all offered tasks, so successful transmission or selective admission cannot stand in for useful completion.",
+    "flagged": true
   },
   {
     "source_block": 11,
-    "ending": "In this dissertation, those concerns motivate a controlled question about infrastructure decisions under fixed vehicle-policy weights, rather than a claim to reproduce all the timing requirements of an operational transport application.",
+    "ending": "This motivates examining infrastructure decisions under fixed vehicle-policy weights.",
     "flagged": false
   },
   {
@@ -41,22 +41,22 @@
   },
   {
     "source_block": 13,
-    "ending": "It also makes an unfavourable result informative: a scheduler can spread nominal demand or use a least-workload label without improving the proportion of all offered tasks that finish in time.",
+    "ending": "Research on RSU-to-RSU cooperation  and task inference across vehicle, RSU and edge resources  supplies a wider context for execution placement; I do not transfer its performance claims to TrafficTwin.",
     "flagged": true
   },
   {
     "source_block": 14,
-    "ending": "Figure 1 separates the vehicle's offloading mode from infrastructure execution and admission .",
+    "ending": "Figure 1 shows the decision boundary studied here: the vehicle selects an offloading mode, while the infrastructure resolves the execution destination and admission .",
     "flagged": false
   },
   {
     "source_block": 15,
-    "ending": "I retain rejected tasks in the offered denominator so selective admission cannot conceal failures.",
-    "flagged": true
+    "ending": "I retain rejected tasks in the offered population; measuring success only among admitted work would allow selective rejection to change the population being compared.",
+    "flagged": false
   },
   {
     "source_block": 16,
-    "ending": "I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's weights; matched inputs and action checks distinguish infrastructure effects from retraining and observation feedback.",
+    "ending": "The study compares scheduling implementations supporting an existing actor.",
     "flagged": false
   },
   {
@@ -81,12 +81,12 @@
   },
   {
     "source_block": 24,
-    "ending": "Neither the label nor balanced allocation establishes optimality.",
-    "flagged": true
+    "ending": "TrafficTwin's inherited `jsq` name is misleading if read literally: the implemented selector compares service milliseconds, while a separate task count enforces finite admission capacity.",
+    "flagged": false
   },
   {
     "source_block": 25,
-    "ending": "TrafficTwin tests the latter and assumes immediate service-work information and acknowledgement, unlike Sparrow's worker-triggered binding.",
+    "ending": "Its immediate service-work reservation is also different from Sparrow's worker-triggered task binding: TrafficTwin assumes the necessary information and acknowledgement are already available.",
     "flagged": false
   },
   {
@@ -96,12 +96,12 @@
   },
   {
     "source_block": 27,
-    "ending": "TrafficTwin instead uses service work, deterministic ties, a backlog gate, five ordered slots and one-second draining; LSQ's stability and communication results do not establish its finite-horizon deadline performance.",
+    "ending": "Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes.",
     "flagged": true
   },
   {
     "source_block": 28,
-    "ending": "Neither the denominator nor the admission principle is new.",
+    "ending": "That denominator is a deliberate measurement choice, not a newly invented admission algorithm.",
     "flagged": true
   },
   {
@@ -111,7 +111,7 @@
   },
   {
     "source_block": 31,
-    "ending": "SUMO trajectories  do not independently validate the coupled radio/computing model.",
+    "ending": "This distinction explains why a source-correct result can be scientifically useful while remaining conditional on simulation semantics.",
     "flagged": true
   },
   {
@@ -616,7 +616,7 @@
   },
   {
     "source_block": 179,
-    "ending": "I excluded the morning pilot from primary inference, and the later sealed joint blocks gave the additional comparator a separate, explicit evidence boundary.",
+    "ending": "I excluded the morning pilot from primary inference; the later sealed joint blocks gave the additional comparator a separate evidence boundary.",
     "flagged": false
   },
   {
@@ -631,7 +631,7 @@
   },
   {
     "source_block": 182,
-    "ending": "This experience reinforced the need to record design decisions, supplied code, automated assistance and personal verification separately throughout the work.",
+    "ending": "The lesson was to record design decisions, supplied code, automated assistance and personal verification separately throughout the work.",
     "flagged": false
   }
 ]

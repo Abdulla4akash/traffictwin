@@ -42,8 +42,8 @@
   },
   "passed": true,
   "missing_links": [],
-  "words": 8987,
-  "prose_only_words": 7684,
+  "words": 9156,
+  "prose_only_words": 7853,
   "author_confirmation": {
     "date": "2026-09-15",
     "source": "AUTHOR_ACTIONS.md",
@@ -52,15 +52,15 @@
   "pages": 56,
   "captions": 27,
   "hashes": {
-    "TrafficTwin_Dissertation.md": "84f8da436f571b68f921a3899f885858ed5dab019d092f737c030ec9c31bcced",
-    "TrafficTwin_Dissertation.tex": "d7954b0e53078183a25ea8a5768bc355d497248147ac18d2e4ff4709b6ab7a02",
-    "TrafficTwin_Dissertation.pdf": "34d703633b631d9b90a01b88c682755be10ce4013809a805b2f62780fdbb9ece"
+    "TrafficTwin_Dissertation.md": "12c383a7a7bf7637e0f30abe9d38b5b1f4d52624fd621b376d2d1f67001cba24",
+    "TrafficTwin_Dissertation.tex": "172b185f207d7541721ded89ee33fbf33683b9fc8e136a0d24cfbd5b48edb873",
+    "TrafficTwin_Dissertation.pdf": "631fb38854fbaee76817ded7f5f32980e98878ec06ea455161aef182798c1519"
   },
   "ending_audit": {
     "method": "Lexical screen of final prose sentence; not semantic grading",
     "paragraphs": 127,
-    "flagged": 33,
-    "flagged_percent": 25.984251968503937
+    "flagged": 32,
+    "flagged_percent": 25.19685039370079
   },
   "not_certified": [
     "assessment AI permission",

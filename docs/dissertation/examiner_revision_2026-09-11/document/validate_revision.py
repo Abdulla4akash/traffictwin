@@ -95,7 +95,7 @@ def main() -> None:
     )
     counts = json.loads((HERE / "document/WORD_COUNT.json").read_text())
     count = counts["words"]
-    checks["word_count_in_range"] = 7000 <= count <= 9000
+    checks["word_count_in_range"] = 7600 <= counts["prose_only_words"] <= 8400 and count <= 9300
     parser = MarkdownIt("commonmark").enable("table")
     missing = []
     anchors = set(re.findall(r'<a id="([^"]+)"', revised))

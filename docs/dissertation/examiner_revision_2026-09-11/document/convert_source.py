@@ -415,9 +415,9 @@ Student ID: & \rule{95mm}{0.3pt}
 \end{tabular}
 \clearpage
 \tableofcontents
-\vfill\noindent\textbf{Word count: WORDCOUNT.} References, appendices, captions and front matter
-excluded; Abstract, table text and pseudocode included. The counting receipt records
-tokenisation.\par
+\vfill\noindent\textbf{Word count: PROSECOUNT} (Abstract and main text, excluding tables,
+pseudocode, captions, references, appendices and front matter); WORDCOUNT including table text
+and pseudocode.\par
 \clearpage
 {\small\singlespacing
 \listoffigures
@@ -842,6 +842,13 @@ prose_words = len(re.findall(r"[\w]+(?:[’'-][\w]+)*", " ".join(prose_counted))
         {
             "words": words,
             "prose_only_words": prose_words,
+            "headline_words": prose_words,
+            "headline_method": "prose_only",
+            "acceptance_bounds": {
+                "prose_only_min": 7600,
+                "prose_only_max": 8400,
+                "package_max": 9300,
+            },
             "prose_only_method": (
                 "Same tokenisation and boundaries as package method; "
                 "additionally excludes table bodies and pseudocode"
@@ -856,7 +863,7 @@ prose_words = len(re.findall(r"[\w]+(?:[’'-][\w]+)*", " ".join(prose_counted))
     )
     + "\n"
 )
-preamble = preamble.replace("WORDCOUNT", f"{words:,}")
+preamble = preamble.replace("WORDCOUNT", f"{words:,}").replace("PROSECOUNT", f"{prose_words:,}")
 tex = preamble + "\n".join(body) + "\n\\end{document}\n"
 (OUT / "TrafficTwin_Dissertation.tex").write_text(tex)
 record = {

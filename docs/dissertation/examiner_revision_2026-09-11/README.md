@@ -29,7 +29,7 @@ ruff format --check "$D/document"
 
 The manuscript uses preconverted PDF figures through `includegraphics`; it does not need shell escape or Inkscape during TeX compilation. Inkscape is needed only to regenerate the five vector conversions. No font files are redistributed.
 
-The final word count is emitted by the converter and printed under the contents. Main text, Abstract, tables, equations and pseudocode are included; captions, references, appendices and front matter are excluded. The ending audit is an explicit lexical screen, not a semantic marking rubric or proof of prose quality.
+The converter prints the prose-only count first under the contents: Abstract and main text, excluding table bodies, pseudocode, captions, references, appendices and front matter. The same sentence gives the package count, which additionally includes table text and pseudocode. The owner-set acceptance bounds for this follow-up are 7,600–8,400 prose-only words and at most 9,300 package words. The ending audit is an explicit lexical screen, not a semantic marking rubric or proof of prose quality.
 
 ## What remains outside automated completion
 
@@ -48,14 +48,20 @@ The requested C.10 failure classification was corrected from the hosted log: onl
 
 ### Build identity and acceptance
 
-- Package method: **8,987 words** (table text and pseudocode included).
-- Prose-only: **7,684 words** (same boundaries, excluding table bodies and pseudocode).
+- Headline prose-only: **7,853 words** (Abstract and main text; table bodies, pseudocode, captions, references, appendices and front matter excluded).
+- Package method: **9,156 words** (same boundaries, with table text and pseudocode included).
 - XeLaTeX: **56 pages**, 38 document checks passed; zero overfull boxes, missing glyphs and unresolved references.
 - All 56 pages rendered and inspected by the editing assistant; this is not independent review.
 - Local compact verifier: 32 cells / eight blocks passed; no evaluator or raw-task reanalysis.
 - Frozen archive gate: 938 files across eight roots passed; protected-path diff against `origin/main` is empty. `main` remains `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`.
-- Markdown SHA256: `84f8da436f571b68f921a3899f885858ed5dab019d092f737c030ec9c31bcced`.
-- TeX SHA256: `d7954b0e53078183a25ea8a5768bc355d497248147ac18d2e4ff4709b6ab7a02`.
-- PDF SHA256: `34d703633b631d9b90a01b88c682755be10ce4013809a805b2f62780fdbb9ece`.
+- Markdown SHA256: `12c383a7a7bf7637e0f30abe9d38b5b1f4d52624fd621b376d2d1f67001cba24`.
+- TeX SHA256: `172b185f207d7541721ded89ee33fbf33683b9fc8e136a0d24cfbd5b48edb873`.
+- PDF SHA256: `631fb38854fbaee76817ded7f5f32980e98878ec06ea455161aef182798c1519`.
 
-See [acceptance results](evidence/ACCEPTANCE_2026-09-15.json), [local TeX log (trailing whitespace normalised)](evidence/latexmk-2026-09-15.log), [local compact receipt](evidence/LOCAL_COMPACT_CHECKS_2026-09-15.json) and [archive receipt](evidence/LOCAL_ARCHIVE_CHECK_2026-09-15.json). The original `revision_recipe.json` is the historical 11 September transfer recipe; ordinary builds use the current Markdown directly.
+See the current [Introduction-balance acceptance results](evidence/INTRO_BALANCE_2026-09-15.json) and [TeX log (trailing whitespace normalised)](evidence/latexmk-intro-balance-2026-09-15.log). Earlier 15 September records remain historical: [authorship-revision acceptance](evidence/ACCEPTANCE_2026-09-15.json), [earlier TeX log](evidence/latexmk-2026-09-15.log), [local compact receipt](evidence/LOCAL_COMPACT_CHECKS_2026-09-15.json) and [archive receipt](evidence/LOCAL_ARCHIVE_CHECK_2026-09-15.json). The original `revision_recipe.json` is the historical 11 September transfer recipe; ordinary builds use the current Markdown directly.
+
+### 15 September Introduction rebalance
+
+The three Section 1.1 definitions are restored from `23d9919`, with only two first-person decision changes. Section 1.2 is restored with exactly the requested removal of its opening provenance sentence and addition of the unevaluated two-choice sentence; its exact diff is in PR #142. Only the new stakes passage in 1.1 and the four-paragraph reflection in 4.4 were shortened. No manuscript text outside 1.1, 1.2 and 4.4 changed in this follow-up, and every table row and caption is identical to input head `62e26f6`.
+
+The contents page now leads with the prose-only count, and the validator applies the requested dual count limits. Item 1 of my author confirmation now uses first-person wording. The Markdown was regenerated to TeX, compiled, validated and rendered on this Mac; the current identity is listed above. No scientific campaign or new full-suite run was performed.

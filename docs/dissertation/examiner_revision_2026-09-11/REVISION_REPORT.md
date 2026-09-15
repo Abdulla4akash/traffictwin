@@ -52,3 +52,13 @@ Cho verification: [Crossref DOI record](https://api.crossref.org/works/10.1109/T
 The Table 3 validator accepts exactly the two requested disclosure rows after every original row. Original numerical table rows, equations, algorithms, proposition, Abstract and SVG sources remain protected against the frozen editorial package. Narrative updates to Tables 9, 10 and B1 are the explicitly requested evidence/limitation disclosures.
 
 C.10 evidence correction: the supplied instruction classified all 56 failures as tier-4 UI presentation text assertions. The downloaded completed-job log identifies only five in that file, with the other failures distributed across provenance/ancestry, artifact and other UI tests. The manuscript reports the observed scope. `evidence/HOSTED_TEST_RESULT_2026-09-11.json` records every failing test ID and per-file counts; no product repair or new full-suite run is claimed.
+
+## 15 September Introduction rebalance — input `62e26f6`
+
+The follow-up restores the three full definition paragraphs and the argumentative Section 1.2 review from `23d9919`. Definition changes are limited to first-person decision voice. The review differs only by the requested removal of its opening provenance sentence and addition of the unevaluated `dla_p2c` sentence. The exact review diff is included in PR #142.
+
+Only the two new passages were tightened: the Section 1.1 stakes and the four-paragraph Section 4.4 reflection. No other manuscript section was cut or changed. All table rows and all 27 captions match input head `62e26f6`; equations, algorithms, proposition, Abstract and SVG sources retain their protected checks.
+
+The contents page leads with **7,853 prose-only words**, followed in the same sentence by **9,156 including table text and pseudocode**. The owner-set follow-up ceilings are 7,600–8,400 prose-only words and at most 9,300 package words; the validator now checks both. The 56-page XeLaTeX build passes all 38 checks, with zero duplicate Reading captions, overfull boxes, missing glyphs or unresolved references. All pages were rendered and inspected by the editing assistant. Item 1 of my author confirmation now uses first-person wording.
+
+The current source/PDF hashes, scope assertions, build-log identity and fresh 938-file archive result are recorded in [the follow-up acceptance receipt](evidence/INTRO_BALANCE_2026-09-15.json). The earlier acceptance receipt remains a historical record of the preceding revision. Existing permission, access, preservation, institutional, video and independent-review boundaries remain open. No new scientific run or full regression-suite pass is claimed.
