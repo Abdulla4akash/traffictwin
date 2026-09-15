@@ -1,0 +1,52 @@
+{
+  "baseline_commit": "da499546207afe33d878eca2ba709f5efbb1e673",
+  "passed": false,
+  "status": "STOPPED_AT_OWNER_WORD_LIMIT",
+  "failed_check": "word_count_in_range",
+  "ceiling": 8950,
+  "excess_words": 10,
+  "before_counts": {
+    "package": 8938,
+    "prose_only": 7738
+  },
+  "after_A_B": {
+    "package": 8975,
+    "prose_only": 7775
+  },
+  "after_F1": {
+    "package": 8960,
+    "prose_only": 7760
+  },
+  "F1_used": true,
+  "further_manuscript_trimming": false,
+  "pages": 63,
+  "preservation_checks_passed": 157,
+  "combined_checks_passed": 203,
+  "combined_checks_total": 204,
+  "printed_N": "more than eighty",
+  "deduplicated_campaign_inventory": 82,
+  "nominal_expected_sum": 83,
+  "direct_summary_horizons": 56,
+  "unavailable_per_run_summary_horizons": 26,
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "5fe0b6dc38c3fde1282affb502ea72d650ef0ea59f59c741086a333a962258cc",
+    "TrafficTwin_Dissertation.tex": "739fb2f99119afe068a8fb309084fb2acd97d790858b20dc8ea3daa8aec22411",
+    "TrafficTwin_Dissertation.pdf": "f85bf697f62beb68b850e042f55cde316ea4c8a4c5c15a58aaea6951b44486e9"
+  },
+  "visual_review": {
+    "rendered_pages": 63,
+    "contact_sheets_inspected": 4,
+    "full_pages_inspected": [
+      2,
+      3,
+      16,
+      35,
+      36,
+      40,
+      41,
+      58
+    ],
+    "findings": "No clipping, overlap or numbering defect found."
+  },
+  "independent_review": "To be bound to exact pushed SHA in draft PR body; this receipt predates the commit."
+}

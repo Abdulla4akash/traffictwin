@@ -24,6 +24,9 @@ PRE_TITLE_MARKDOWN_SHA256 = "938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2d
 EDITORIAL_BASELINE = "7075b2576292cc9a98854bf5664449df66617b96"
 EDITORIAL_BASELINE_SHA256 = "1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8"
 EDITORIAL_LEDGER_SHA256 = "b0bc1ec096fe58cab2baf1db414618c92ad7bb81ac81f6bd72345248e16237f9"
+CONTRIBUTIONS_BASELINE = "da499546207afe33d878eca2ba709f5efbb1e673"
+CONTRIBUTIONS_BASELINE_SHA256 = "f3867b5ff9d2937faab842b14409914e2747452e1cc2c5093961b2860f394537"
+CONTRIBUTIONS_LEDGER_SHA256 = "e181ea6b38731f324f85caa31ba68611c89657c154366b8c46d4640b08cfc371"
 
 
 def section(text: str, number: str) -> str:
@@ -36,6 +39,122 @@ def section(text: str, number: str) -> str:
 def appendix(text: str, letter: str) -> str:
     tail = text.split("## Appendix " + letter + ". ", 1)[1]
     return tail.split("\n## Appendix ", 1)[0]
+
+
+def check_contributions(
+    root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
+) -> tuple[str, dict[str, bool]]:
+    """Bind the owner's contributions and designated trims to the reviewed source."""
+    baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
+        ["/usr/bin/git", "show", f"{CONTRIBUTIONS_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
+        cwd=root,
+        text=True,
+    )
+    ledger = (here / "evidence/CONTRIBUTIONS_OPERATIONS_2026-09-15.json").read_bytes()
+    record = json.loads(ledger)
+    checks = {
+        "contributions_baseline_hash": hashlib.sha256(baseline.encode()).hexdigest()
+        == CONTRIBUTIONS_BASELINE_SHA256
+        == record["baseline_markdown_sha256"],
+        "contributions_authorised_operation_ledger_hash": hashlib.sha256(ledger).hexdigest()
+        == CONTRIBUTIONS_LEDGER_SHA256,
+    }
+    restored = revised
+    reversible = True
+    for op in reversed(record["operations"]):
+        if not op["new"] or restored.count(op["new"]) != 1:
+            reversible = False
+            break
+        restored = restored.replace(op["new"], op["old"], 1)
+    checks["contributions_only_A_B_and_F1_source_changes"] = reversible and restored == baseline
+    paragraphs = record["contribution_paragraphs"]
+    checks["contributions_seven_paragraphs_once_in_order_at_end_of_1_3"] = (
+        len(paragraphs) == 7
+        and all(revised.count(body) == 1 for body in paragraphs)
+        and section(revised, "1.3").rstrip().endswith("\n\n".join(paragraphs))
+    )
+    for i, deletion in enumerate(record["deletions"], 1):
+        checks[f"contributions_B_deletion_{i}_absent"] = deletion["body"] not in revised
+    checks["contributions_3_4_equivalent_shares_statement_retained"] = (
+        "84.8% for ingress-to-round-robin and 15.2% for the additional round-robin-to-per-task step"
+        in section(revised, "3.4")
+    )
+    for number in ["1.2", "3.2", "3.3", "3.4", "3.5", "3.6"]:
+        checks[f"contributions_section_{number}_byte_identical_to_da49954"] = section(
+            revised, number
+        ) == section(baseline, number)
+    checks["contributions_all_twenty_table_bodies_unchanged"] = (
+        table_parser(revised) == table_parser(baseline) and len(table_parser(revised)) == 20
+    )
+    checks["contributions_references_1_to_46_unchanged"] = (
+        revised.split("## References\n", 1)[1].split("## Appendix A.", 1)[0]
+        == baseline.split("## References\n", 1)[1].split("## Appendix A.", 1)[0]
+    )
+    verification = (
+        next(
+            paragraph
+            for paragraph in baseline.split("\n\n")
+            if paragraph.startswith("I designed the research questions")
+        )
+        .split("I ran or authorised every campaign,", 1)[1]
+        .split(" The contribution is", 1)[0]
+    )
+    checks["contributions_author_verification_and_declaration_pointer_retained"] = (
+        "I ran or authorised every campaign," + verification in section(revised, "3.7")
+        and "contribution statement (Section 3.7)" in revised.split("## Acknowledgements", 1)[0]
+    )
+    if record["fallback_F1_used"]:
+        body = record["fallback_F1_body"]
+        checks["contributions_F1_only_after_count_failure_and_verbatim"] = (
+            record["before_F1_counts"]["words"] > 8950
+            and body in section(baseline, "3.7")
+            and body not in section(revised, "3.7")
+            and revised.count(body) == appendix(revised, "D").count(body) == 1
+            and appendix(revised, "D").split("\n\n")[1].endswith(body)
+        )
+    count_path = here / "evidence" / record["run_count_derivation"]
+    checks["contributions_run_count_derivation_present_and_pinned"] = (
+        count_path.is_file()
+        and hashlib.sha256(count_path.read_bytes()).hexdigest()
+        == record["run_count_derivation_sha256"]
+    )
+    count = json.loads(count_path.read_text())
+    runs = [run for group in count["components"] for run in group["runs"]]
+    checks["contributions_run_inventory_sum_and_deduplication"] = (
+        sum(group["count"] for group in count["components"])
+        == len(runs)
+        == len({run["original_summary_sha256"] for run in runs})
+        == count["completed_campaign_inventory_total"]
+        == 82
+    )
+    receipt_checks = []
+    for run in runs:
+        path = root / run["receipt"]
+        raw = path.read_bytes()
+        value = json.loads(raw)
+        for part in run["json_pointer"].strip("/").split("/"):
+            value = value[int(part)] if isinstance(value, list) else value[part]
+        receipt_checks.append(
+            hashlib.sha256(raw).hexdigest() == run["receipt_sha256"]
+            and (
+                value == run["observed_horizon"] in (3600, 10800)
+                if run["observed_horizon"] is not None
+                else run["original_summary_sha256"]
+                == value.get("sha256", value.get("full_summary_sha256"))
+            )
+        )
+    checks["contributions_run_receipts_and_observed_horizons_match"] = all(receipt_checks)
+    checks["contributions_count_fallback_honours_missing_summary_horizons"] = (
+        not count["exact_number_printed"]
+        and count["printed_value"] == "more than eighty"
+        and count["completed_campaign_inventory_total"] > 80
+        and count["components_without_per_run_summary_horizons"] == ["E1", "E2c", "E2d"]
+        and count["direct_summary_horizon_count"]
+        == sum(run["observed_horizon"] is not None for run in runs)
+        == 56
+        and "and more than eighty full evaluator runs" in paragraphs[5]
+    )
+    return restored, checks
 
 
 def check_editorial_fixes(
@@ -187,6 +306,7 @@ def check_option_b(
     root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
 ) -> dict[str, bool]:
     # Each newer, explicitly authorised layer recovers the exact preceding manuscript.
+    revised, contributions_checks = check_contributions(root, here, revised, table_parser)
     revised, editorial_checks = check_editorial_fixes(root, here, revised, table_parser)
     # The owner authorised only the first-line title change after 10ca7f2.
     requested_heading = "# " + PROJECT_TITLE + "\n"
@@ -303,6 +423,7 @@ def check_option_b(
     checks.update(closing_checks)
     checks.update(title_checks)
     checks.update(editorial_checks)
+    checks.update(contributions_checks)
     return checks
 
 

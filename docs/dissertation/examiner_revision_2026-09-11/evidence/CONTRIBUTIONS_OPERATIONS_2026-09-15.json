@@ -1,0 +1,115 @@
+{
+  "baseline_commit": "da499546207afe33d878eca2ba709f5efbb1e673",
+  "baseline_markdown_sha256": "f3867b5ff9d2937faab842b14409914e2747452e1cc2c5093961b2860f394537",
+  "operations": [
+    {
+      "kind": "A_contributions",
+      "source_section": "1.3",
+      "old": "### 1.4 Scope and report structure",
+      "new": "**Contributions.** The Declaration records supplied components and assistance. My contributions are:\n\n**C1.** Identifying the mismatch between task scoring and queue admission in the inherited evaluator, repaired by Putra on 5 August 2026 and qualified in E0 (Section 3.1).\n\n**C2.** Identifying and explaining common-target concentration: one target per substep, morning work confined to RSUs 0–4, the min(K,R) bound and Proposition 1 (Section 3.5; Appendix C).\n\n**C3.** Specifying and implementing the causal per-task selector and the causal round-robin comparator, with explicit reservation, restart and pointer contracts (Sections 2.5 and 2.8).\n\n**C4.** Designing the sealed runner, validators and analysis that completed 32 cells and eight block receipts without a retry (Appendix E).\n\n**C5.** Designing and executing the comparison of six infrastructure policies over three replication stages and more than eighty full evaluator runs, with offered-task accounting and prespecified simultaneous intervals (Sections 2.6 and 3.2–3.4).\n\n**C6.** Completing the report-age and forwarding sensitivities, the scheduler cost benchmark, and the TrafficTwin product inventory with its disclosed test outcomes (Sections 3.6 and 3.7; Appendix A).\n\n### 1.4 Scope and report structure"
+    },
+    {
+      "kind": "B1_complexity",
+      "source_section": "4.2",
+      "old": "**Complexity and scope.** I coordinated an investigation across two Manchester scenarios, one frozen actor and three replication stages: incident draws, prospective morning replication and joint-randomness confirmation. The research path combines a frozen JAX evaluator of 1,204 lines, a versioned confirmation copy of 1,331 lines, four infrastructure schedulers with explicit contracts, and a sealed 32-cell campaign with validators and receipts. An exact-model proposition and its numerical boundary complement a separate scheduler benchmark. TrafficTwin supplies the surrounding product: 678 Python files and 8,301 collected tests. These sizes describe the integration scope; the contribution lies in specifying and investigating the comparison, with supplied components acknowledged.",
+      "new": "**Complexity and scope.** I coordinated an investigation across two Manchester scenarios, one frozen actor and three replication stages: incident draws, prospective morning replication and joint-randomness confirmation. Table A1 in Appendix A lists component sizes and recorded checks."
+    },
+    {
+      "kind": "B2_RQ2_duplicate",
+      "source_section": "4.3",
+      "old": "RQ2 is answered by two distinct morning samples. The original four fleet draws excluded the inspected pilot and met their simultaneous-interval reversal criterion. The new eight joint fleet/evaluator blocks reproduced that result: per-task minus ingress was +4.137 percentage points and common-target minus ingress −3.504. Descriptively, the cyclic spreading step captures 84.8% of the per-task gain over ingress, and the further workload-aware increment 15.2%; these are arm-mean shares, not causal mechanism shares. Per-task exceeded causal round-robin by +0.631 points, with its simultaneous interval entirely positive.",
+      "new": "RQ2 is answered by two distinct morning samples. The original four fleet draws excluded the inspected pilot and met their simultaneous-interval reversal criterion. The new eight joint fleet/evaluator blocks reproduced that result: per-task minus ingress was +4.137 percentage points and common-target minus ingress −3.504. Per-task exceeded causal round-robin by +0.631 points, with its simultaneous interval entirely positive."
+    },
+    {
+      "kind": "B3_contribution_duplicates",
+      "source_section": "3.7",
+      "old": "I designed the research questions and every evaluation experiment in this report: the E1 capacity levels, the E2b ingress-with-gate control, the E2c four-draw replication, the E2d per-task implementation and its reuse of the E2c controls, the morning pilot and its exclusion, the primary seeds, the three declared contrasts, the round-robin comparator, and the eight joint fleet/evaluator blocks with rotating arm order. The report-age levels in Section 2.7 follow my supervisor's suggestion. The software was developed with generative-AI assistance: Codex and ChatGPT produced code and tooling to my specification, which I reviewed and in many cases modified before it was run (vec_env commit 2f63706 records the per-task mode under my name). Putra supplied the actor, environment and the accounting repair [[S12]](#source-s12). I ran or authorised every campaign, recomputed the block-0 paired effect from the offered counts, checked the Table 6 and Table 7 intervals, worked through Proposition 1 and Table C1, and traced the common-target selection in the frozen evaluator source. The contribution is the formulation, design and investigation of the comparison, not the inherited software.",
+      "new": "I designed the research questions and every evaluation experiment in this report: the E1 capacity levels, the E2b ingress-with-gate control, the E2c four-draw replication, the E2d per-task implementation and its reuse of the E2c controls, the morning pilot and its exclusion, the primary seeds, the three declared contrasts, the round-robin comparator, and the eight joint fleet/evaluator blocks with rotating arm order. The software was developed with generative-AI assistance: Codex and ChatGPT produced code and tooling to my specification, which I reviewed and in many cases modified before it was run (vec_env commit 2f63706 records the per-task mode under my name). Putra supplied the actor, environment and the accounting repair [[S12]](#source-s12). I ran or authorised every campaign, recomputed the block-0 paired effect from the offered counts, checked the Table 6 and Table 7 intervals, worked through Proposition 1 and Table C1, and traced the common-target selection in the frozen evaluator source."
+    },
+    {
+      "kind": "B4_hosted_detail",
+      "source_section": "3.7",
+      "old": "The inventory measures project scope, not individually authored new code. Hosted run [34631121188](https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188), 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (including five tier-4 UI text assertions in `tests/unit/ui/test_page_presentation_tier4.py`, plus provenance/ancestry, artifact and other UI checks), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles [[37]](#ref-37), [[38]](#ref-38). Figure 7 shows the actual Streamlit interface.",
+      "new": "The inventory measures project scope, not individually authored new code. Hosted run [34631121188](https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188), 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles [[37]](#ref-37), [[38]](#ref-38). Figure 7 shows the actual Streamlit interface."
+    },
+    {
+      "kind": "B5_scope_duplicate",
+      "source_section": "1.4",
+      "old": "Section 3.7 separately assesses TrafficTwin's Streamlit interface, typed services, command-line workflows and provenance facilities; their existence does not establish execution of the research campaigns or effects on physical Manchester traffic.",
+      "new": "Section 3.7 assesses the TrafficTwin product separately; its existence does not establish execution of the research campaigns or effects on physical Manchester traffic."
+    },
+    {
+      "kind": "F1_timing_limit_move",
+      "source_section": "3.7",
+      "old": "Fixed order and uncontrolled frequency/thermal state limit timing comparisons; durations and IQRs remain available. Sparse padding traverses N positions. Per-task outpaced three-pass reconciliation, and cyclic selection cost less. Section 3.4 separately assesses attainment.",
+      "new": "Sparse padding traverses N positions. Per-task outpaced three-pass reconciliation, and cyclic selection cost less. Section 3.4 separately assesses attainment."
+    },
+    {
+      "kind": "F1_timing_limit_move",
+      "source_section": "Appendix D",
+      "old": "Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[35]](#ref-35).",
+      "new": "Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[35]](#ref-35). Fixed order and uncontrolled frequency/thermal state limit timing comparisons; durations and IQRs remain available."
+    }
+  ],
+  "contribution_paragraphs": [
+    "**Contributions.** The Declaration records supplied components and assistance. My contributions are:",
+    "**C1.** Identifying the mismatch between task scoring and queue admission in the inherited evaluator, repaired by Putra on 5 August 2026 and qualified in E0 (Section 3.1).",
+    "**C2.** Identifying and explaining common-target concentration: one target per substep, morning work confined to RSUs 0–4, the min(K,R) bound and Proposition 1 (Section 3.5; Appendix C).",
+    "**C3.** Specifying and implementing the causal per-task selector and the causal round-robin comparator, with explicit reservation, restart and pointer contracts (Sections 2.5 and 2.8).",
+    "**C4.** Designing the sealed runner, validators and analysis that completed 32 cells and eight block receipts without a retry (Appendix E).",
+    "**C5.** Designing and executing the comparison of six infrastructure policies over three replication stages and more than eighty full evaluator runs, with offered-task accounting and prespecified simultaneous intervals (Sections 2.6 and 3.2–3.4).",
+    "**C6.** Completing the report-age and forwarding sensitivities, the scheduler cost benchmark, and the TrafficTwin product inventory with its disclosed test outcomes (Sections 3.6 and 3.7; Appendix A)."
+  ],
+  "deletions": [
+    {
+      "source": "4.2",
+      "body": "The research path combines a frozen JAX evaluator of 1,204 lines, a versioned confirmation copy of 1,331 lines, four infrastructure schedulers with explicit contracts, and a sealed 32-cell campaign with validators and receipts. An exact-model proposition and its numerical boundary complement a separate scheduler benchmark. TrafficTwin supplies the surrounding product: 678 Python files and 8,301 collected tests."
+    },
+    {
+      "source": "4.2",
+      "body": "These sizes describe the integration scope; the contribution lies in specifying and investigating the comparison, with supplied components acknowledged."
+    },
+    {
+      "source": "4.3",
+      "body": "Descriptively, the cyclic spreading step captures 84.8% of the per-task gain over ingress, and the further workload-aware increment 15.2%; these are arm-mean shares, not causal mechanism shares."
+    },
+    {
+      "source": "3.7",
+      "body": "The report-age levels in Section 2.7 follow my supervisor's suggestion."
+    },
+    {
+      "source": "3.7",
+      "body": "The contribution is the formulation, design and investigation of the comparison, not the inherited software."
+    },
+    {
+      "source": "3.7",
+      "body": "(including five tier-4 UI text assertions in `tests/unit/ui/test_page_presentation_tier4.py`, plus provenance/ancestry, artifact and other UI checks)"
+    },
+    {
+      "source": "1.4",
+      "body": "Section 3.7 separately assesses TrafficTwin's Streamlit interface, typed services, command-line workflows and provenance facilities; their existence does not establish execution of the research campaigns or effects on physical Manchester traffic."
+    }
+  ],
+  "run_count_derivation": "CONTRIBUTIONS_RUN_COUNT_2026-09-15.json",
+  "run_count_derivation_sha256": "5dc0f564f7924750651dec67890ea17dbfdca8978b0bef7b4fd0e03e0b53a54d",
+  "fallback_F1_used": true,
+  "source_precision_notes": [
+    "B1 named start/end span contains three existing sentences, despite the prompt saying two. Replaced only that specified span and final sentence.",
+    "B2 is substantively repeated in protected 3.4 but not byte-identical; 3.4 is preserved exactly.",
+    "B3 deletes only its two named sentences; the assistance and Putra attribution sentences remain."
+  ],
+  "before_F1_counts": {
+    "words": 8975,
+    "prose_only_words": 7775,
+    "headline_words": 8975,
+    "headline_method": "package",
+    "acceptance_bounds": {
+      "prose_only_min": 7600,
+      "package_max": 8950
+    },
+    "prose_only_method": "Same tokenisation and boundaries as package method; additionally excludes table bodies and pseudocode",
+    "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded"
+  },
+  "fallback_F1_body": "Fixed order and uncontrolled frequency/thermal state limit timing comparisons; durations and IQRs remain available.",
+  "fallback_F1_body_sha256": "d0dbd9a2e43521ece3d509c56766b0bf97a7ecf776029fecbdf324920c5bb508"
+}

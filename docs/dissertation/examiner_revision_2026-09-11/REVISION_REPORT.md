@@ -1,5 +1,19 @@
 # Revision record — TrafficTwin examiner revision
 
+## Contributions block — 15 September 2026; input `da49954`; count gate unmet
+
+**Stopped at 8,960 strict / 7,760 prose-only words after A+B+F1: ten over the requested strict ceiling.** The supplied contribution block and designated trims landed together. A+B gave 8,975/7,775; F1 moved its exact 15-word timing-limit sentence from 3.7 to Appendix D's first paragraph. No additional manuscript edit followed. The title is unchanged; PDF is 63 pages.
+
+C5 uses the requested **“more than eighty”** fallback. The expected total of 83 double-counts the E0 reference reused in E1. Deduplication gives 82 campaign records (E0 1, E1 14, E2 3, E2b 1, E2c 8, E2d 4, state-delay 5, morning pilot 2, morning replication 12, joint confirmation 32). Only 56 unique per-run summary horizons can be inspected directly; the 26 remaining E1/E2c/E2d records retain completed campaign evidence and planned horizons, but lack their per-run summary fields. The derivation records receipt paths and hashes, the E0/E1 shared identity, exclusions and the precision limit.
+
+The extended validator checks seven paragraphs, designated deletions, protected sections, current table bodies, bibliography, F1, receipt hashes and count fallback; its pinned ledger reverses exactly to `da49954` before earlier guards run. **157/157 preservation checks pass; combined validation is 203/204 with only the word-count check failing.** Reinserted B.2 duplication is detected. Build and Ruff checks pass; contents and changed pages inspected. All prior protected scientific content remains unchanged. Owner contribution attestation appended to AUTHOR_ACTIONS.
+
+- Markdown SHA256: `5fe0b6dc38c3fde1282affb502ea72d650ef0ea59f59c741086a333a962258cc`.
+- TeX SHA256: `739fb2f99119afe068a8fb309084fb2acd97d790858b20dc8ea3daa8aec22411`.
+- PDF SHA256: `f85bf697f62beb68b850e042f55cde316ea4c8a4c5c15a58aaea6951b44486e9`.
+
+[Stop report and full derivation](CONTRIBUTIONS_REVIEW_2026-09-15.md) · [run-count record](evidence/CONTRIBUTIONS_RUN_COUNT_2026-09-15.json) · [operations](evidence/CONTRIBUTIONS_OPERATIONS_2026-09-15.json) · [acceptance](evidence/CONTRIBUTIONS_ACCEPTANCE_2026-09-15.json). Existing submission gates remain open; no new scientific execution, frozen-package change or main change. Earlier passing counts and artifact identities below are historical.
+
 ## Six-point editorial fixes — 15 September 2026; input `7075b25`
 
 All six requested defects are addressed. The literature suggestion required qualification: arXiv:1905.04458 is Kovalenko et al.; it supports a comparison under different assumptions, not an identical accounting method or an opposite overall conclusion. Primary text and Crossref verification support new references 45–46 in Sections 1.2 and 3.5. The user's latest instruction authorises those narrow changes to previously protected prose.

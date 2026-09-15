@@ -1,55 +1,45 @@
 # Dynamic Resource Management for Intelligent Transport Systems
 
-**Six-point revision passes: 8,938 strict/package words / 7,738 prose-only words; 62-page PDF.** The title stays, with no subtitle. The draft PR remains open for review; [submission gates](SUBMISSION_GATES.md) remain separate.
+**Contributions revision stopped at the requested word-count gate: 8,960 strict/package words / 7,760 prose-only words.** Strict is **10 above 8,950**; prose meets the 7,600 floor. The **63-page PDF** is a reviewable draft. Further manuscript editing stopped after the prescribed F1 fallback. The title stays unchanged.
 
-[PDF](TrafficTwin_Dissertation.pdf) · [Markdown source](TrafficTwin_Dissertation.md) · [generated TeX](TrafficTwin_Dissertation.tex) · [six-point review](EDITORIAL_FIX_REVIEW_2026-09-15.md) · [revision history](REVISION_REPORT.md) · [validation](document/REVISION_VALIDATION.json)
+[PDF](TrafficTwin_Dissertation.pdf) · [Markdown](TrafficTwin_Dissertation.md) · [generated TeX](TrafficTwin_Dissertation.tex) · [contributions stop report](CONTRIBUTIONS_REVIEW_2026-09-15.md) · [revision history](REVISION_REPORT.md) · [validation](document/REVISION_VALIDATION.json)
 
-## Current changes
+## Current change
 
-- Main tables 10 → 8 and 11 → 9; Table 3a retained. Table bodies unchanged.
-- Mitzenmacher (2000) and Kovalenko et al. (2019) added as references 45–46 in Sections 1.2 and 3.5. Primary texts support stale-information herding and a federation comparison under different assumptions. An identical accounting method or opposite overall conclusion is not claimed.
-- Two short 1.1 transition paragraphs merged; Figure 2 with its introduction and caption moved verbatim to 2.3; WHO figure linked to timely information sharing as motivation.
-- Overall conclusion moved verbatim from end of 4.4 to open Section 4.
-- PDF title and author metadata populated. AUTHOR_ACTIONS now records 3GPP reference 42, version 16.2.0, as added after its earlier omission.
-
-The pre-review manuscript is `7075b2576292cc9a98854bf5664449df66617b96`. The research/product source base remains `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`. Markdown is the source. No scientific runs, frozen-package edits or main changes.
+Section 1.3 ends with the owner's Contributions lead and C1–C6, verbatim except C5's prescribed “more than eighty” fallback. Only B.1–B.5's named spans were trimmed. The 3.7 timing-limit sentence moves verbatim to Appendix D under F1, which was triggered by the A+B count of 8,975. AUTHOR_ACTIONS records the owner's contribution statement supplied on 15 September 2026. C3 retains the supplied wording; the Declaration and Section 3.7 retain assistance and supplied-component attribution.
 
 ## Counts and checks
 
-| Stage | Package count (headline) | Prose-only count |
+| Stage | Strict/package headline | Prose-only |
 |---|---:|---:|
-| Baseline `9b49efc` | 9,180 | 7,877 |
-| Option B `2c29392` | 9,388 | 8,017 |
-| Closing and title `7075b25` | 8,914 | 7,714 |
-| Current six-point revision | **8,938** | **7,738** |
-| Acceptance | ≤ 8,950 | ≥ 7,600 |
+| Reviewed `da49954` | 8,938 | 7,738 |
+| Contributions A+B | 8,975 | 7,775 |
+| Current A+B+F1 | **8,960** | **7,760** |
+| Required | ≤ 8,950 | ≥ 7,600 |
 
-The contents page prints strict first. The package method includes Abstract, main headings/body, table text, equations and pseudocode; it excludes captions, references, appendices and front matter. Prose-only additionally excludes table bodies and pseudocode. [WORD_COUNT.json](document/WORD_COUNT.json) records both.
+The count rose by 22 words; the requested zero-net-cost goal was not achieved. The count method and bounds are unchanged. The contents prints strict first; [WORD_COUNT.json](document/WORD_COUNT.json) includes tables, equations and pseudocode in the headline, excluding captions, references, appendices and front matter. Prose-only additionally excludes table bodies and pseudocode.
 
-- `validate_revision.py`: **178/178 passed**; `validate_option_b.py`: **131/131 preservation guards passed**.
-- All twenty pre-review table bodies preserved; all equations, algorithms and the proposition unchanged.
-- Sections 1.2 and 3.5 have only the newly authorised literature changes. A pinned [operation ledger](evidence/EDITORIAL_FIX_OPERATIONS_2026-09-15.json) recovers `7075b25` exactly before all earlier protection checks run. Sections 3.2–3.4 and 3.6 remain byte-identical to the pre-review manuscript.
-- Earlier appendix moves and pointers remain verbatim. Historical Table 8 → D2 and Table 9 → A1 remain in place; their former main numbers are now assigned to validity limits and objective verdicts. [Historical moved-content map](OPTION_B_CLOSE_REVIEW.md).
-- [Six mutation probes](evidence/EDITORIAL_FIX_MUTATION_CHECKS_2026-09-15.json) detect concrete preservation failures.
-- PDF: **62 pages**, all rendered and inspected. Zero overfull boxes, missing glyphs, undefined references or duplicate captions. Title and author metadata verified. Ruff lint/format passed for all six document Python files.
+- Preservation validator: **157/157 pass**. Combined validator: **203/204 pass; `word_count_in_range` fails**.
+- Sections 1.2 and 3.2–3.6 byte-identical to `da49954`; all twenty table bodies, six equations, two algorithms, proposition and references 1–46 unchanged.
+- The pinned [ledger](evidence/CONTRIBUTIONS_OPERATIONS_2026-09-15.json) recovers `da49954` exactly before every prior protection layer runs. Earlier appendix moves remain verbatim.
+- A [mutation probe](evidence/CONTRIBUTIONS_MUTATION_CHECK_2026-09-15.json) rejects reinsertion of a deleted sentence.
+- Clean XeLaTeX/latexmk build, 63 pages rendered, contents and all changed-text locations inspected. Zero overfull boxes, missing glyphs, undefined references or duplicate captions. PDF title/author metadata retained. Ruff lint/format pass for six document scripts.
 
-## Primary sources and ethics
+## Evaluator-run derivation
 
-References 45–46 have primary-text and Crossref checks with URLs, locators and hashes in [current source registration](evidence/reference-registration-editorial-fixes-2026-09-15.json). Reference 46's first author is Anna Kovalenko; Hussain is second. The cited results do not establish an identical admission/accounting contract with TrafficTwin.
+The supplied components total 83, but E1 reuses E0's reference, proven by the same raw locator and summary hash. Counting it once gives **82 distinct completed-campaign records**: 1+14+3+1+8+4+5+2+12+32. Smokes, probes, reused controls and duplicate archives are excluded.
 
-3GPP TS 22.186 v16.2.0 gives 100 ms for automated-driving information sharing (Table 5.3-1, R.5.3-004/005) and 500 ms for platooning reporting (Table 5.2-1, R.5.2-008). WHO's 1.19 million road-death estimate retains **2021**. [Closing source registration](evidence/reference-registration-option-b-close-2026-09-15.json) preserves their primary verification. References 1–44 remain byte-identical in this round.
-
-The owner confirms completing the UoM Ethics Decision Tool and that approval is not required. This remains an author check, **not an independently observed result or formal approval**; see [confirmation](evidence/ETHICS_DECISION_OWNER_CONFIRMATION_2026-09-15.json). Assistant source verification does not certify the owner's reading. Earlier dated receipts remain historical.
+**The manuscript prints “more than eighty”.** Only 56 unique full-horizon summary fields are directly available. E1/E2c/E2d retain completed campaign receipts and manifest horizons for the other 26, but not the per-run summary fields required for printing an exact number. [Derivation](evidence/CONTRIBUTIONS_RUN_COUNT_2026-09-15.json) records all paths, hashes, horizon evidence and deduplication. No new scientific run was launched.
 
 ## SHA256
 
-- TrafficTwin_Dissertation.md: `f3867b5ff9d2937faab842b14409914e2747452e1cc2c5093961b2860f394537`
-- TrafficTwin_Dissertation.tex: `ab1cd44adecfa4f8feb82783c1908d12e986c234275a0df4596b7ded1b0fa524`
-- TrafficTwin_Dissertation.pdf: `33244964119ca80406200004460ab335cd446bae26213356facf6375134f6dcd`
+- TrafficTwin_Dissertation.md: `5fe0b6dc38c3fde1282affb502ea72d650ef0ea59f59c741086a333a962258cc`
+- TrafficTwin_Dissertation.tex: `739fb2f99119afe068a8fb309084fb2acd97d790858b20dc8ea3daa8aec22411`
+- TrafficTwin_Dissertation.pdf: `f85bf697f62beb68b850e042f55cde316ea4c8a4c5c15a58aaea6951b44486e9`
 
 ## Build and check
 
-Use the document environment with MarkdownIt, NumPy, SciPy, Matplotlib, PyMuPDF, XeLaTeX and latexmk. Preservation baselines `9b49efc`, `2c29392` and `7075b25` must be available. Existing PDF figures require no conversion during an ordinary rebuild.
+Use the existing document environment with MarkdownIt, NumPy, SciPy, Matplotlib, PyMuPDF, XeLaTeX and latexmk. Preserve Git baselines `9b49efc`, `2c29392`, `7075b25` and `da49954`. Current combined validation intentionally reports the unmet word-count gate; do not relax its bound.
 
 ```sh
 pkg_dir=docs/dissertation/examiner_revision_2026-09-11
@@ -61,8 +51,8 @@ ruff check "$pkg_dir/document"
 ruff format --check "$pkg_dir/document"
 ```
 
-[Current build log](evidence/latexmk-editorial-fixes-2026-09-15.log) · [grep table](evidence/EDITORIAL_FIX_GREP_2026-09-15.json) · [acceptance](evidence/EDITORIAL_FIX_ACCEPTANCE_2026-09-15.json). Prior [compact arithmetic](evidence/OPTION_B_CLOSE_COMPACT_CHECKS.json) and [archive integrity](evidence/OPTION_B_CLOSE_ARCHIVE_CHECK.json) receipts remain historical. The original `revision_recipe.json` is historical; ordinary builds use current Markdown.
+[Build log](evidence/latexmk-contributions-2026-09-15.log) · [grep receipt](evidence/CONTRIBUTIONS_GREP_2026-09-15.json) · [stop receipt](evidence/CONTRIBUTIONS_ACCEPTANCE_2026-09-15.json). The original `revision_recipe.json` and earlier acceptance receipts remain historical. [Earlier six-point review](EDITORIAL_FIX_REVIEW_2026-09-15.md) records the prior passing candidate; [Option B closing review](OPTION_B_CLOSE_REVIEW.md) retains the full earlier move map.
 
 ## Existing boundaries
 
-Hosted run 34631121188's 8,301 collected tests, 8,179 passes, **56 failures**, and 66 skips remain disclosed in the manuscript and [failure inventory](evidence/HOSTED_TEST_RESULT_2026-09-11.json). No fresh global test suite or usability result is claimed. E3 remains unexecuted. Author confirmations are in [AUTHOR_ACTIONS.md](AUTHOR_ACTIONS.md); assessed video, institutional front matter, AI permission and examiner access/backup requirements remain in [SUBMISSION_GATES.md](SUBMISSION_GATES.md). No merge or formal independent integration approval is implied.
+Main remains `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`; frozen packages and scientific results are unchanged. The hosted 56 test failures remain disclosed; no fresh global suite, usability result or E3 execution is claimed. The owner-confirmed ethics-tool outcome and primary references remain unchanged. [AI permission, institutional front matter/copyright, examiner access and video gates](SUBMISSION_GATES.md) remain open. Keep the PR draft; no passing count acceptance or formal integration approval is implied.

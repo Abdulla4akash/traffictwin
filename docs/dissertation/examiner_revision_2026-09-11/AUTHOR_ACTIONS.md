@@ -39,3 +39,5 @@ The 16 added references are listed with their attachment points in [the registra
 ## Ethics decision-tool confirmation — 15 September 2026
 
 I confirmed that I checked the University of Manchester Ethics Decision Tool and that ethics approval is not required for this project. My reply was: “see we dont need i just checked it myself.” This is my confirmation of the screening outcome; the editing assistant did not observe an authenticated result. See [the dated receipt](evidence/ETHICS_DECISION_OWNER_CONFIRMATION_2026-09-15.json) and manuscript reference 44.
+
+The six C-items in Section 1.3 are my own contribution statement, supplied by me on 15 September 2026.

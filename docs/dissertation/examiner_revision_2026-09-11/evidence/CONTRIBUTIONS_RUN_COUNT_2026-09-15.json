@@ -1,0 +1,903 @@
+{
+  "baseline_commit": "da499546207afe33d878eca2ba709f5efbb1e673",
+  "rule": "Full-horizon evaluator runs only: incident 3600, morning 10800. Count reused cells once; exclude smokes, probes, retrospective recomputation and archived duplicate copies.",
+  "components": [
+    {
+      "component": "E0",
+      "count": 1,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_full_reference_validation_v1.json",
+          "receipt_sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+          "json_pointer": "/runs/0/scientific_summary/T",
+          "original_summary_sha256": "1ed26e6c8a4411b9a4e27dacf4d9381c8f8430a37c434f93b36f1150d8c661e1",
+          "observed_horizon": 3600,
+          "label": {
+            "fleet_seed": null,
+            "cap_label": null,
+            "label": "run_1"
+          }
+        }
+      ],
+      "horizon_evidence": "observed in embedded summary"
+    },
+    {
+      "component": "E1",
+      "count": 14,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/0/output_evidence/summary.json",
+          "original_summary_sha256": "abde7cffdc21e73a074b6cb3bd10e54a25fb70c3008b6d6cba0e679b12fd8d14",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 0,
+            "cap_label": "0p75",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/2/output_evidence/summary.json",
+          "original_summary_sha256": "c3bd33440f2328a0e40d948896b4b2882673d42946b2e14b19a386288d34af58",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 0,
+            "cap_label": "40x",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/3/output_evidence/summary.json",
+          "original_summary_sha256": "d2be5e57598e4e894b9a1c5fa647656ea6d83cc88a67d5ae89a586941a4b32fc",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 1,
+            "cap_label": "0p75",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/4/output_evidence/summary.json",
+          "original_summary_sha256": "f8ce142cc1492b343f2587887ae8a2374147855852c76a0a66eeda16d64dff7a",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 1,
+            "cap_label": "2p5",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/5/output_evidence/summary.json",
+          "original_summary_sha256": "908054e9ca297ad956a08c58221ff8885e27bbf792af48e0953539d7b36fc86a",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 1,
+            "cap_label": "40x",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/6/output_evidence/summary.json",
+          "original_summary_sha256": "61ca4703bda87492a1021190f06785aeab418ddd7283856eef1ef34639d64188",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 2,
+            "cap_label": "0p75",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/7/output_evidence/summary.json",
+          "original_summary_sha256": "55d81abce1f6cfc48f5de9ff96a20f4e87821dc10ca82a08398ca50794ef0f69",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 2,
+            "cap_label": "2p5",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/8/output_evidence/summary.json",
+          "original_summary_sha256": "21d7328d54aa3692c2ebe1c21c8fbd3e6530fd5ec0fe6af611d77e2aedb21541",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 2,
+            "cap_label": "40x",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/9/output_evidence/summary.json",
+          "original_summary_sha256": "99c42ab26c59b0693214d656bd6108be09f1b48a8f090e750fc08fed1312a908",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 3,
+            "cap_label": "0p75",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/10/output_evidence/summary.json",
+          "original_summary_sha256": "39118dc7bbf567f1d74d8670d06297f2ab22a886ab247cf3413441588c244c26",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 3,
+            "cap_label": "2p5",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/11/output_evidence/summary.json",
+          "original_summary_sha256": "a0c16b087160c946afe916a0136863bb4702584d1b7a8cd3a6c6925c545875af",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 3,
+            "cap_label": "40x",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/12/output_evidence/summary.json",
+          "original_summary_sha256": "403bd11cf7d5a66daa4585fa669cb135314fa6ecdaf464173cb02d24aca32e46",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 4,
+            "cap_label": "0p75",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/13/output_evidence/summary.json",
+          "original_summary_sha256": "d75f014104b01adaa8bdce576a6edfa862ff6767afb59c139c891a1985da3e25",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 4,
+            "cap_label": "2p5",
+            "label": null
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+          "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+          "json_pointer": "/runs/14/output_evidence/summary.json",
+          "original_summary_sha256": "fa002b52427e99656e594f6fc1e13ecd52087d118efd1489a934c324a552c1bc",
+          "observed_horizon": null,
+          "label": {
+            "fleet_seed": 4,
+            "cap_label": "40x",
+            "label": null
+          }
+        }
+      ],
+      "horizon_evidence": "accepted campaign/full-cell records and manifest; individual summary horizon absent from compact receipt",
+      "manifest_horizon": {
+        "file": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json",
+        "sha256": "43fafbd73b5e5e0035fe9bf23f4046ff3a50fdd665352a3d6c415f50059fa19d",
+        "json_pointer": "/scope/full_steps",
+        "planned_horizon": 3600,
+        "is_observed_summary": false
+      }
+    },
+    {
+      "component": "E2",
+      "count": 3,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+          "receipt_sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f",
+          "json_pointer": "/full_validation/runs/0/summary/T",
+          "original_summary_sha256": "755329546803d56d87864a66d07244c07c2624d5df5f6e3a95306dc59081b05f",
+          "observed_horizon": 3600,
+          "label": "off"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+          "receipt_sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f",
+          "json_pointer": "/full_validation/runs/1/summary/T",
+          "original_summary_sha256": "76ccd983738a1a86da8b0be2351cda35ceb44348f9290add544b6a6aff909bd2",
+          "observed_horizon": 3600,
+          "label": "jsq"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+          "receipt_sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f",
+          "json_pointer": "/full_validation/runs/2/summary/T",
+          "original_summary_sha256": "7d64193ff4a2501b7e8a83fc098abe28f4cb1f15143252edce8ff9d1291db172",
+          "observed_horizon": 3600,
+          "label": "dla"
+        }
+      ],
+      "horizon_evidence": "observed in embedded summary"
+    },
+    {
+      "component": "E2b",
+      "count": 1,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+          "receipt_sha256": "c73a23a98342d58ed6a54a26d32b27f702e33705b2489c2ba0ffae9a8eec1389",
+          "json_pointer": "/full_validation/runs/0/summary/T",
+          "original_summary_sha256": "894696e0c76ca9ba78c0cec69b1ecd300007cdf6b0deae65afd9f6f6a7e7120f",
+          "observed_horizon": 3600,
+          "label": "ingress_dla"
+        }
+      ],
+      "horizon_evidence": "observed in embedded summary"
+    },
+    {
+      "component": "E2c",
+      "count": 8,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/0",
+          "original_summary_sha256": "c960e2bfd4d374960d1c67d15578c61ad7a27c971aacec6ff069b84192f1ea9d",
+          "observed_horizon": null,
+          "label": {
+            "arm": "ingress_dla",
+            "cell_index": 1,
+            "fleet_seed": 1
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/1",
+          "original_summary_sha256": "64a384f4ca575a1731e67e1eaa570f7ec9b2c86913337529f01d34e7551c394a",
+          "observed_horizon": null,
+          "label": {
+            "arm": "dla",
+            "cell_index": 2,
+            "fleet_seed": 1
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/2",
+          "original_summary_sha256": "e925cf2f4a9b912752bb34fd68dbff78c16df5d4749a67b66c872c0ccb7c5e47",
+          "observed_horizon": null,
+          "label": {
+            "arm": "ingress_dla",
+            "cell_index": 3,
+            "fleet_seed": 2
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/3",
+          "original_summary_sha256": "9fc2a8b7b304c30267cc06f0f4a465232ae854ba63688fedfaf6cd1a22fb543e",
+          "observed_horizon": null,
+          "label": {
+            "arm": "dla",
+            "cell_index": 4,
+            "fleet_seed": 2
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/4",
+          "original_summary_sha256": "23e6c1726e0a2acadd91c6e0d7c70f6e8301dee3bb94cf111fc7a54da44a6814",
+          "observed_horizon": null,
+          "label": {
+            "arm": "ingress_dla",
+            "cell_index": 5,
+            "fleet_seed": 3
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/5",
+          "original_summary_sha256": "a8765a72308430a4b242365598baa4074dee7bbc523f426c5946deb62abb8c82",
+          "observed_horizon": null,
+          "label": {
+            "arm": "dla",
+            "cell_index": 6,
+            "fleet_seed": 3
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/6",
+          "original_summary_sha256": "3601ddb52a2b3aa6bb0795755371c34bd36bb6dddfcca5391687098c1741ccbe",
+          "observed_horizon": null,
+          "label": {
+            "arm": "ingress_dla",
+            "cell_index": 7,
+            "fleet_seed": 4
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+          "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+          "json_pointer": "/cell_evidence/7",
+          "original_summary_sha256": "d63e068080a2d6fc3f13d2b8a83229af8410c011e3cff8634ae08cb8214c22fe",
+          "observed_horizon": null,
+          "label": {
+            "arm": "dla",
+            "cell_index": 8,
+            "fleet_seed": 4
+          }
+        }
+      ],
+      "horizon_evidence": "accepted campaign/full-cell records and manifest; individual summary horizon absent from compact receipt",
+      "manifest_horizon": {
+        "file": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_manifest_v1_public_sanitized.json",
+        "sha256": "2cb5a05582ac907a630206bffd4de0c2850a20368bd7eb73807992e218f8a7b9",
+        "json_pointer": "/design/steps",
+        "planned_horizon": 3600,
+        "is_observed_summary": false
+      }
+    },
+    {
+      "component": "E2d",
+      "count": 4,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+          "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+          "json_pointer": "/cell_evidence/0",
+          "original_summary_sha256": "39eff70e3969aaf374d0f44b8c21a140611f50a4d5ac3aad4ea9aaf9aa3ddbab",
+          "observed_horizon": null,
+          "label": {
+            "arm": "per_task_dla",
+            "cell_index": 1,
+            "fleet_seed": 1
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+          "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+          "json_pointer": "/cell_evidence/1",
+          "original_summary_sha256": "01d79f0205acdbdc82128e3a9963f6a76ec0dbe2df7b68c1e388369eb1a287d9",
+          "observed_horizon": null,
+          "label": {
+            "arm": "per_task_dla",
+            "cell_index": 2,
+            "fleet_seed": 2
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+          "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+          "json_pointer": "/cell_evidence/2",
+          "original_summary_sha256": "40bf35717925e3d140dad53751b6013d03ea3a0411800e6fafaa6c3552e6ac3b",
+          "observed_horizon": null,
+          "label": {
+            "arm": "per_task_dla",
+            "cell_index": 3,
+            "fleet_seed": 3
+          }
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+          "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+          "json_pointer": "/cell_evidence/3",
+          "original_summary_sha256": "88045a34d16d1015f405a813df57e493b2edf650480b32b310ac08e0dba054ca",
+          "observed_horizon": null,
+          "label": {
+            "arm": "per_task_dla",
+            "cell_index": 4,
+            "fleet_seed": 4
+          }
+        }
+      ],
+      "horizon_evidence": "accepted campaign/full-cell records and manifest; individual summary horizon absent from compact receipt",
+      "manifest_horizon": {
+        "file": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_manifest_v1_public_sanitized.json",
+        "sha256": "582c5c0b254ab780f75b0c5b1f11829449c17d59bfe65443746724441552e096",
+        "json_pointer": "/design/steps",
+        "planned_horizon": 3600,
+        "is_observed_summary": false
+      }
+    },
+    {
+      "component": "state-delay pilot",
+      "count": 5,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+          "receipt_sha256": "41691598a3aea615bbee4a7100438b8b997c587703b7ff1bd367feacb2e557f1",
+          "json_pointer": "/T",
+          "original_summary_sha256": "41691598a3aea615bbee4a7100438b8b997c587703b7ff1bd367feacb2e557f1",
+          "observed_horizon": 3600,
+          "label": "01_fresh/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/summary.json",
+          "receipt_sha256": "32c131f35e19943a66da33ed6e0a5bf655f3882fa151d5796eccd0b1cfd5aa07",
+          "json_pointer": "/T",
+          "original_summary_sha256": "32c131f35e19943a66da33ed6e0a5bf655f3882fa151d5796eccd0b1cfd5aa07",
+          "observed_horizon": 3600,
+          "label": "02_delay_100/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/summary.json",
+          "receipt_sha256": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909",
+          "json_pointer": "/T",
+          "original_summary_sha256": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909",
+          "observed_horizon": 3600,
+          "label": "03_delay_500/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/summary.json",
+          "receipt_sha256": "7d62afce843b9ad1a369dd8bcfe03e6e4d110e70bc0803f73753f0af2fbf67ff",
+          "json_pointer": "/T",
+          "original_summary_sha256": "7d62afce843b9ad1a369dd8bcfe03e6e4d110e70bc0803f73753f0af2fbf67ff",
+          "observed_horizon": 3600,
+          "label": "04_delay_1000/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/summary.json",
+          "receipt_sha256": "d819cf787f676488e3cdcad7b3e438cfd02a16dc38a5013f75f9f8a2d724da2a",
+          "json_pointer": "/T",
+          "original_summary_sha256": "d819cf787f676488e3cdcad7b3e438cfd02a16dc38a5013f75f9f8a2d724da2a",
+          "observed_horizon": 3600,
+          "label": "05_ingress/attempt_001"
+        }
+      ],
+      "horizon_evidence": "observed in archived per-run summary"
+    },
+    {
+      "component": "morning pilot",
+      "count": 2,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+          "receipt_sha256": "ff9cf8736d980226a843618c6fa52d665e994e63b706e158853821d98cddb1cf",
+          "json_pointer": "/T",
+          "original_summary_sha256": "ff9cf8736d980226a843618c6fa52d665e994e63b706e158853821d98cddb1cf",
+          "observed_horizon": 10800,
+          "label": "01_fresh/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/summary.json",
+          "receipt_sha256": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837",
+          "json_pointer": "/T",
+          "original_summary_sha256": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837",
+          "observed_horizon": 10800,
+          "label": "02_ingress/attempt_001"
+        }
+      ],
+      "horizon_evidence": "observed in archived per-run summary"
+    },
+    {
+      "component": "morning replication",
+      "count": 12,
+      "runs": [
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/summary.json",
+          "receipt_sha256": "c27fef3949d866eab10c0f564324bd2dc5520d755b24087fc0a09a5764ae13f1",
+          "json_pointer": "/T",
+          "original_summary_sha256": "c27fef3949d866eab10c0f564324bd2dc5520d755b24087fc0a09a5764ae13f1",
+          "observed_horizon": 10800,
+          "label": "seed_0_common_target/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json",
+          "receipt_sha256": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209",
+          "json_pointer": "/T",
+          "original_summary_sha256": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209",
+          "observed_horizon": 10800,
+          "label": "seed_0_ingress/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json",
+          "receipt_sha256": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca",
+          "json_pointer": "/T",
+          "original_summary_sha256": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca",
+          "observed_horizon": 10800,
+          "label": "seed_0_per_task/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/summary.json",
+          "receipt_sha256": "d7ffa15306e38549b3887290305b925482ae0db23362531e5b1fadfbaaea6bae",
+          "json_pointer": "/T",
+          "original_summary_sha256": "d7ffa15306e38549b3887290305b925482ae0db23362531e5b1fadfbaaea6bae",
+          "observed_horizon": 10800,
+          "label": "seed_2_common_target/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json",
+          "receipt_sha256": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56",
+          "json_pointer": "/T",
+          "original_summary_sha256": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56",
+          "observed_horizon": 10800,
+          "label": "seed_2_ingress/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json",
+          "receipt_sha256": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108",
+          "json_pointer": "/T",
+          "original_summary_sha256": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108",
+          "observed_horizon": 10800,
+          "label": "seed_2_per_task/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/summary.json",
+          "receipt_sha256": "cc51a89625c92bf7d59ef1ac95917a75af19e72c43c7619a7a95d9c3c6e6439e",
+          "json_pointer": "/T",
+          "original_summary_sha256": "cc51a89625c92bf7d59ef1ac95917a75af19e72c43c7619a7a95d9c3c6e6439e",
+          "observed_horizon": 10800,
+          "label": "seed_3_common_target/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json",
+          "receipt_sha256": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba",
+          "json_pointer": "/T",
+          "original_summary_sha256": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba",
+          "observed_horizon": 10800,
+          "label": "seed_3_ingress/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json",
+          "receipt_sha256": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c",
+          "json_pointer": "/T",
+          "original_summary_sha256": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c",
+          "observed_horizon": 10800,
+          "label": "seed_3_per_task/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/summary.json",
+          "receipt_sha256": "d43eaa7ffc1f84c41e9336e983a6379531b7f21c01a98f515acc4c1b78cec73b",
+          "json_pointer": "/T",
+          "original_summary_sha256": "d43eaa7ffc1f84c41e9336e983a6379531b7f21c01a98f515acc4c1b78cec73b",
+          "observed_horizon": 10800,
+          "label": "seed_4_common_target/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json",
+          "receipt_sha256": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda",
+          "json_pointer": "/T",
+          "original_summary_sha256": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda",
+          "observed_horizon": 10800,
+          "label": "seed_4_ingress/attempt_001"
+        },
+        {
+          "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json",
+          "receipt_sha256": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2",
+          "json_pointer": "/T",
+          "original_summary_sha256": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2",
+          "observed_horizon": 10800,
+          "label": "seed_4_per_task/attempt_001"
+        }
+      ],
+      "horizon_evidence": "observed in archived per-run summary"
+    },
+    {
+      "component": "joint confirmation",
+      "count": 32,
+      "runs": [
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_causal_round_robin/summary.json",
+          "receipt_sha256": "9e7ea8681a79b2dfbaec0d087feed5e231fee08cbae2240732a1c83fbd66d133",
+          "json_pointer": "/T",
+          "original_summary_sha256": "9e7ea8681a79b2dfbaec0d087feed5e231fee08cbae2240732a1c83fbd66d133",
+          "observed_horizon": 10800,
+          "label": "block_00_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_dla/summary.json",
+          "receipt_sha256": "734f76660fd50b74b0b84935d9fa8a27e36ef4572d70e5c1c8cdb741e20b953a",
+          "json_pointer": "/T",
+          "original_summary_sha256": "734f76660fd50b74b0b84935d9fa8a27e36ef4572d70e5c1c8cdb741e20b953a",
+          "observed_horizon": 10800,
+          "label": "block_00_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_ingress_dla/summary.json",
+          "receipt_sha256": "b11bedff74285c5c9b03a886400f00b3b08238e0dcce2b7397b57ba670426c2c",
+          "json_pointer": "/T",
+          "original_summary_sha256": "b11bedff74285c5c9b03a886400f00b3b08238e0dcce2b7397b57ba670426c2c",
+          "observed_horizon": 10800,
+          "label": "block_00_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_per_task_dla/summary.json",
+          "receipt_sha256": "5178eb41afc97c34227ac3d6035f9f40951ed6516bede422c3124f0a152731a8",
+          "json_pointer": "/T",
+          "original_summary_sha256": "5178eb41afc97c34227ac3d6035f9f40951ed6516bede422c3124f0a152731a8",
+          "observed_horizon": 10800,
+          "label": "block_00_per_task_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_causal_round_robin/summary.json",
+          "receipt_sha256": "c0d75ebc4d07e3f40e59832a4657893b7f203d240230694f6ff330a992d66b62",
+          "json_pointer": "/T",
+          "original_summary_sha256": "c0d75ebc4d07e3f40e59832a4657893b7f203d240230694f6ff330a992d66b62",
+          "observed_horizon": 10800,
+          "label": "block_01_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_dla/summary.json",
+          "receipt_sha256": "dde32ae36127f6956edc8d876d38d9ceca991f31c8b217446c65c98254bf3d97",
+          "json_pointer": "/T",
+          "original_summary_sha256": "dde32ae36127f6956edc8d876d38d9ceca991f31c8b217446c65c98254bf3d97",
+          "observed_horizon": 10800,
+          "label": "block_01_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_ingress_dla/summary.json",
+          "receipt_sha256": "2b4824da113f5b541b616bd21df93c4ea0aaa6b85b84daf5135ff63ae886b1ca",
+          "json_pointer": "/T",
+          "original_summary_sha256": "2b4824da113f5b541b616bd21df93c4ea0aaa6b85b84daf5135ff63ae886b1ca",
+          "observed_horizon": 10800,
+          "label": "block_01_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_per_task_dla/summary.json",
+          "receipt_sha256": "f69a8b1973f082fc73d53acc86eb0b6974cbac6422d6ba5d29601fb8dc4cb0c6",
+          "json_pointer": "/T",
+          "original_summary_sha256": "f69a8b1973f082fc73d53acc86eb0b6974cbac6422d6ba5d29601fb8dc4cb0c6",
+          "observed_horizon": 10800,
+          "label": "block_01_per_task_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_causal_round_robin/summary.json",
+          "receipt_sha256": "2e0a2b5da8539324638ca0b17f2018259c576b8b5164c50ec100bb5de9f49b45",
+          "json_pointer": "/T",
+          "original_summary_sha256": "2e0a2b5da8539324638ca0b17f2018259c576b8b5164c50ec100bb5de9f49b45",
+          "observed_horizon": 10800,
+          "label": "block_02_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_dla/summary.json",
+          "receipt_sha256": "8274448cf9bd4e474fcd73c889b5455a922db9a434b57427cc82a855cb442908",
+          "json_pointer": "/T",
+          "original_summary_sha256": "8274448cf9bd4e474fcd73c889b5455a922db9a434b57427cc82a855cb442908",
+          "observed_horizon": 10800,
+          "label": "block_02_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_ingress_dla/summary.json",
+          "receipt_sha256": "8462145db76ae8bcadc3b437dde6634707866e84d8eb03fb9510b0b063500763",
+          "json_pointer": "/T",
+          "original_summary_sha256": "8462145db76ae8bcadc3b437dde6634707866e84d8eb03fb9510b0b063500763",
+          "observed_horizon": 10800,
+          "label": "block_02_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_per_task_dla/summary.json",
+          "receipt_sha256": "fe6972cd049481ec64fce09807d045d00d6b7261d2bae2d8c98a54d7206baae1",
+          "json_pointer": "/T",
+          "original_summary_sha256": "fe6972cd049481ec64fce09807d045d00d6b7261d2bae2d8c98a54d7206baae1",
+          "observed_horizon": 10800,
+          "label": "block_02_per_task_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_causal_round_robin/summary.json",
+          "receipt_sha256": "706f4942b4407e8ac3dcc8e55e83f37bb89d41309d766625dfa7bd538dcd6d8e",
+          "json_pointer": "/T",
+          "original_summary_sha256": "706f4942b4407e8ac3dcc8e55e83f37bb89d41309d766625dfa7bd538dcd6d8e",
+          "observed_horizon": 10800,
+          "label": "block_03_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_dla/summary.json",
+          "receipt_sha256": "2505a20dcbecd3c360e58344729bc14ed29181344acb1c1a065f0314caed1c90",
+          "json_pointer": "/T",
+          "original_summary_sha256": "2505a20dcbecd3c360e58344729bc14ed29181344acb1c1a065f0314caed1c90",
+          "observed_horizon": 10800,
+          "label": "block_03_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_ingress_dla/summary.json",
+          "receipt_sha256": "f87226ca663d3a479cfbde748c5a29bee4cef2817e0c0e9539a0b6afb7658c22",
+          "json_pointer": "/T",
+          "original_summary_sha256": "f87226ca663d3a479cfbde748c5a29bee4cef2817e0c0e9539a0b6afb7658c22",
+          "observed_horizon": 10800,
+          "label": "block_03_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_per_task_dla/summary.json",
+          "receipt_sha256": "67c73ed3abe7e8194aad27e3d37209699af1b120b9cd474cf335f3033b5bc041",
+          "json_pointer": "/T",
+          "original_summary_sha256": "67c73ed3abe7e8194aad27e3d37209699af1b120b9cd474cf335f3033b5bc041",
+          "observed_horizon": 10800,
+          "label": "block_03_per_task_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_causal_round_robin/summary.json",
+          "receipt_sha256": "71c898d6762eab26c3d3774658ee7b53b6f6e980f47944840d86b94c17e0fbc1",
+          "json_pointer": "/T",
+          "original_summary_sha256": "71c898d6762eab26c3d3774658ee7b53b6f6e980f47944840d86b94c17e0fbc1",
+          "observed_horizon": 10800,
+          "label": "block_04_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_dla/summary.json",
+          "receipt_sha256": "413a78d20068f70bc1b8702dda684e2f8b0561ed52365d54ee36f76edeb2e7ac",
+          "json_pointer": "/T",
+          "original_summary_sha256": "413a78d20068f70bc1b8702dda684e2f8b0561ed52365d54ee36f76edeb2e7ac",
+          "observed_horizon": 10800,
+          "label": "block_04_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_ingress_dla/summary.json",
+          "receipt_sha256": "32f06c1e531b6c1449270b06f1a73810d9d7c2a81ebaa47d301356abfa95fd15",
+          "json_pointer": "/T",
+          "original_summary_sha256": "32f06c1e531b6c1449270b06f1a73810d9d7c2a81ebaa47d301356abfa95fd15",
+          "observed_horizon": 10800,
+          "label": "block_04_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_per_task_dla/summary.json",
+          "receipt_sha256": "898f8102bdbe870b7c02736308cdd6eb5d51db0aa0487daac54598f896f8b760",
+          "json_pointer": "/T",
+          "original_summary_sha256": "898f8102bdbe870b7c02736308cdd6eb5d51db0aa0487daac54598f896f8b760",
+          "observed_horizon": 10800,
+          "label": "block_04_per_task_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_causal_round_robin/summary.json",
+          "receipt_sha256": "eba3664eca37a5e3557662abf0b8659447844504c11fcb66b9ab87dc8347c9f1",
+          "json_pointer": "/T",
+          "original_summary_sha256": "eba3664eca37a5e3557662abf0b8659447844504c11fcb66b9ab87dc8347c9f1",
+          "observed_horizon": 10800,
+          "label": "block_05_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_dla/summary.json",
+          "receipt_sha256": "8050f21774abda2b69982fb0890b40aeab409d9ae52e76a1d4d6ed16a2745605",
+          "json_pointer": "/T",
+          "original_summary_sha256": "8050f21774abda2b69982fb0890b40aeab409d9ae52e76a1d4d6ed16a2745605",
+          "observed_horizon": 10800,
+          "label": "block_05_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_ingress_dla/summary.json",
+          "receipt_sha256": "ce7d800383076431369468bc67df37e7c30e8915cd072928188c29a65935ec3f",
+          "json_pointer": "/T",
+          "original_summary_sha256": "ce7d800383076431369468bc67df37e7c30e8915cd072928188c29a65935ec3f",
+          "observed_horizon": 10800,
+          "label": "block_05_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_per_task_dla/summary.json",
+          "receipt_sha256": "a36bc71343ac5f4e099f80ee405502575596d5925e476f9d03ba42d9bb952eec",
+          "json_pointer": "/T",
+          "original_summary_sha256": "a36bc71343ac5f4e099f80ee405502575596d5925e476f9d03ba42d9bb952eec",
+          "observed_horizon": 10800,
+          "label": "block_05_per_task_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_causal_round_robin/summary.json",
+          "receipt_sha256": "eb435be26a8803998a06b31dd317a4adb2568e8a937c708dc3e980e2684fdc67",
+          "json_pointer": "/T",
+          "original_summary_sha256": "eb435be26a8803998a06b31dd317a4adb2568e8a937c708dc3e980e2684fdc67",
+          "observed_horizon": 10800,
+          "label": "block_06_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_dla/summary.json",
+          "receipt_sha256": "d202ff1a3bf1aaf699f88e4ad613b9096511f573162061ed2e2a59a323574a3e",
+          "json_pointer": "/T",
+          "original_summary_sha256": "d202ff1a3bf1aaf699f88e4ad613b9096511f573162061ed2e2a59a323574a3e",
+          "observed_horizon": 10800,
+          "label": "block_06_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_ingress_dla/summary.json",
+          "receipt_sha256": "7b2dc2d1650cb29c0e307890d1f91a0921f4ecbce551617374015ddf156eec4e",
+          "json_pointer": "/T",
+          "original_summary_sha256": "7b2dc2d1650cb29c0e307890d1f91a0921f4ecbce551617374015ddf156eec4e",
+          "observed_horizon": 10800,
+          "label": "block_06_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_per_task_dla/summary.json",
+          "receipt_sha256": "a2aa26c5d1c1ecb5c6ead9e95538e8b0b03a0c149a70769e1d38d25d4bdc4285",
+          "json_pointer": "/T",
+          "original_summary_sha256": "a2aa26c5d1c1ecb5c6ead9e95538e8b0b03a0c149a70769e1d38d25d4bdc4285",
+          "observed_horizon": 10800,
+          "label": "block_06_per_task_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_causal_round_robin/summary.json",
+          "receipt_sha256": "26ec73bd387f29f4181ff6cff47b1e13f6a3eaaa8a369981c92eb1f65405dfa5",
+          "json_pointer": "/T",
+          "original_summary_sha256": "26ec73bd387f29f4181ff6cff47b1e13f6a3eaaa8a369981c92eb1f65405dfa5",
+          "observed_horizon": 10800,
+          "label": "block_07_causal_round_robin"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_dla/summary.json",
+          "receipt_sha256": "dac4805780fc50abd92b921eed5a8b6a43e9cec9d520afc1b41f49f2767e2294",
+          "json_pointer": "/T",
+          "original_summary_sha256": "dac4805780fc50abd92b921eed5a8b6a43e9cec9d520afc1b41f49f2767e2294",
+          "observed_horizon": 10800,
+          "label": "block_07_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_ingress_dla/summary.json",
+          "receipt_sha256": "4a8f1df0599be7fbae2f0108116d3616d594d1453a9139cd1e3446d2c3d9849b",
+          "json_pointer": "/T",
+          "original_summary_sha256": "4a8f1df0599be7fbae2f0108116d3616d594d1453a9139cd1e3446d2c3d9849b",
+          "observed_horizon": 10800,
+          "label": "block_07_ingress_dla"
+        },
+        {
+          "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_per_task_dla/summary.json",
+          "receipt_sha256": "02cfc8bf43837a09e8a9b4ca41a18221c9f2fb8f21eff6514bda03befedbea91",
+          "json_pointer": "/T",
+          "original_summary_sha256": "02cfc8bf43837a09e8a9b4ca41a18221c9f2fb8f21eff6514bda03befedbea91",
+          "observed_horizon": 10800,
+          "label": "block_07_per_task_dla"
+        }
+      ],
+      "horizon_evidence": "observed in archived per-run summary"
+    }
+  ],
+  "nominal_total_before_deduplication": 83,
+  "duplicate_reuse": [
+    {
+      "excluded": {
+        "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+        "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+        "json_pointer": "/runs/1/output_evidence/summary.json",
+        "original_summary_sha256": "1ed26e6c8a4411b9a4e27dacf4d9381c8f8430a37c434f93b36f1150d8c661e1",
+        "observed_horizon": null,
+        "label": {
+          "fleet_seed": 0,
+          "cap_label": "2p5",
+          "label": null
+        }
+      },
+      "counted_under": "E0",
+      "reuse_manifest": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json",
+      "reuse_manifest_sha256": "43fafbd73b5e5e0035fe9bf23f4046ff3a50fdd665352a3d6c415f50059fa19d",
+      "reuse_json_pointer": "/reused_seed0_artifacts/2p5"
+    }
+  ],
+  "completed_campaign_inventory_total": 82,
+  "direct_summary_horizon_count": 56,
+  "components_without_per_run_summary_horizons": [
+    "E1",
+    "E2c",
+    "E2d"
+  ],
+  "all_counted_original_summary_hashes_unique": true,
+  "exact_number_printed": false,
+  "printed_value": "more than eighty",
+  "fallback_reason": "Accepted campaign receipts account for 82 distinct full-run summaries after removing the E1 reuse of E0, but per-summary T cannot be independently re-established for the 26 non-reused E1/E2c/E2d records in these compact archives. Apply the owner-prescribed nonnumeric fallback, not an exact 82 claim.",
+  "exclusions": [
+    "E0 bounded smoke and repeat",
+    "E1 has 15 cells, but seed 0/cap 2p5 is the already-counted E0 reference; E1 contributes 14 new runs",
+    "E2b three reused E2 cells already counted in E2",
+    "E2c reused seed-0 pilot records already counted in E2/E2b",
+    "E2d reused eight E2c controls already counted in E2c",
+    "Ten-step smokes, preflight and replay probes",
+    "Four short forwarding qualification probes; full records reused from state-delay pilot",
+    "Retrospective audits, scheduler fixtures and duplicate archive copies"
+  ]
+}
