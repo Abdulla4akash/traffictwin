@@ -124,7 +124,8 @@ def test_manifest_cannot_escape_checkout(tmp_path: Path) -> None:
 def test_repository_exclusions_leave_editorial_and_maintained_code_checked() -> None:
     config = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
     exclusions = config["tool"]["ruff"]["extend-exclude"]
-    assert len(exclusions) == 8
+    assert len(exclusions) == 9
+    assert "docs/dissertation/followups_2026-09-15" in exclusions
     for maintained in (
         Path("src"),
         Path("tests"),

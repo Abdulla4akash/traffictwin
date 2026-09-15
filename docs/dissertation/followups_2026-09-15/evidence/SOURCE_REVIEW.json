@@ -1,0 +1,18 @@
+{
+  "verdict": "APPROVE",
+  "source_commit": "5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
+  "reviewer": "/root/successor_review",
+  "recorded_at": "2026-09-15T16:27:01.832683+00:00",
+  "terminal_verdict": "VERDICT: APPROVE exact SHA 5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
+  "findings": [],
+  "checks": [
+    "local/remote exact source identity",
+    "9 guard tests passed",
+    "16 original qualification source bindings unchanged",
+    "15 short-run receipts unchanged",
+    "scientific source and protocol compatibility",
+    "changed original protocol and successor analysis source refused",
+    "git diff --check passed",
+    "no new full-study outputs before review"
+  ]
+}

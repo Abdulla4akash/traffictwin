@@ -1,0 +1,32 @@
+{
+  "status": "complete",
+  "new_full_cells": 72,
+  "started_at": "2026-09-15T16:27:06.333831+00:00",
+  "finished_at": "2026-09-15T20:22:19.094235+00:00",
+  "full_campaign_elapsed_hours": 3.9202112233333333,
+  "new_cell_wall_hours": 3.9005162920730636,
+  "studies": {
+    "07_two_choice": {
+      "full_cells": 8,
+      "started_at": "2026-09-15T16:27:06.333831+00:00",
+      "completed_at": "2026-09-15T16:53:58.231812+00:00",
+      "elapsed_minutes": 26.86496635,
+      "cell_wall_minutes": 26.752771739600213
+    },
+    "08_half_speed": {
+      "full_cells": 32,
+      "started_at": "2026-09-15T16:53:58.240523+00:00",
+      "completed_at": "2026-09-15T18:41:28.490377+00:00",
+      "elapsed_minutes": 107.50416423333333,
+      "cell_wall_minutes": 107.00635314236666
+    },
+    "09_second_actor": {
+      "full_cells": 32,
+      "started_at": "2026-09-15T18:41:28.503164+00:00",
+      "completed_at": "2026-09-15T20:22:07.366226+00:00",
+      "elapsed_minutes": 100.6477177,
+      "cell_wall_minutes": 100.27185264241695
+    }
+  },
+  "scope": "Full execution and validation only; qualification, setup, final analysis, auditing and reporting excluded."
+}

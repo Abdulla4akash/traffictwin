@@ -1,0 +1,888 @@
+{
+  "date": "2026-09-08T11:46:02.362164+00:00",
+  "reserved_pairs": [
+    [
+      100,
+      200
+    ],
+    [
+      101,
+      201
+    ],
+    [
+      102,
+      202
+    ],
+    [
+      103,
+      203
+    ],
+    [
+      104,
+      204
+    ],
+    [
+      105,
+      205
+    ],
+    [
+      106,
+      206
+    ],
+    [
+      107,
+      207
+    ]
+  ],
+  "repository_records": [
+    {
+      "path": "docs/evaluation/anonymised_result_schema.json",
+      "sha256": "41f5dff4cb55868a585a936bde40e684fd98aebbfed3db01d5bcb759c029a103"
+    },
+    {
+      "path": "docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json",
+      "sha256": "7e1eb25c156d423db9d6e3608505b8e9b373ec5de07d06dd1f92203b546d3696"
+    },
+    {
+      "path": "docs/evaluation/bcap_training_approval_20260728.json",
+      "sha256": "8cf45cb746376ab980147fe737608015832c493d87bd45ec9698cdcce7d828bc"
+    },
+    {
+      "path": "docs/evaluation/bdomain_training_approval_20260728.json",
+      "sha256": "0a261ac48218377acd758ba2303f1036c42689bae2d83010a958a53b1ff6b0bc"
+    },
+    {
+      "path": "docs/evaluation/bmask_training_approval_20260728.json",
+      "sha256": "3a8d4c3faa52b3c5665b21f1b3089d5810debc6147cbe6b91ab22f0d62e9712b"
+    },
+    {
+      "path": "docs/evaluation/breward_training_approval_20260728.json",
+      "sha256": "fb408ee4e5b66ba465c55ab5baf6e42fe9f4e5db157a005203d07c9bc7d645fd"
+    },
+    {
+      "path": "docs/evaluation/common_target_mechanism_audit_2026-09-07/ARCHIVE_INVENTORY.json",
+      "sha256": "a2e79b904bc7c6e04dda64d58484e4ea574b85672a8be033ecb386c6a7875c3e"
+    },
+    {
+      "path": "docs/evaluation/common_target_mechanism_audit_2026-09-07/ARCHIVE_VERIFICATION.json",
+      "sha256": "8a592c1e13655e784b5d65d63d718e5a95fed7c0b93d2168abf9c4075e47bb20"
+    },
+    {
+      "path": "docs/evaluation/common_target_mechanism_audit_2026-09-07/evidence/audit_results.json",
+      "sha256": "fd6b86a3c3336b4455f1f56d3b08b40d2ac638f07842ede67b24500e39712629"
+    },
+    {
+      "path": "docs/evaluation/common_target_mechanism_audit_2026-09-07/evidence/verification.json",
+      "sha256": "def4f96a104518c565501c166c92cd897f3e24b4ec76ca6123d6798ff6847569"
+    },
+    {
+      "path": "docs/evaluation/common_target_mechanism_audit_2026-09-07/evidence/worked_examples.json",
+      "sha256": "26d8290971992f9b785b63188abf578e0d07a40963b742137a8acb7985f126d2"
+    },
+    {
+      "path": "docs/evaluation/mock_results.json",
+      "sha256": "0a17c0eddd3cecd917fd7ef71901389bc8c9e25863b54fa2e9343baa95bfa57a"
+    },
+    {
+      "path": "docs/evaluation/technical_accessibility_qa_20260802.json",
+      "sha256": "5776af8de587ee68f068d01b67c4a76e877d99261b5f71ba05a1901386359941"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/ARCHIVE_INVENTORY.json",
+      "sha256": "2c1f6a756594449432e3848b306732cfe0066437691b9f323b477dd6a16509cc"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/COMPACT_VERIFICATION.json",
+      "sha256": "f51f56e8d8e0eafaec651aa344294e39fb4e6da258cfc0fc7748cf57ff203fb3"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/analysis_validation.json",
+      "sha256": "8e12ec1fb18d116f5ad6c2bdb4830397c89e9e95f10ecec5a1fc4fda3c6cb9ef"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/manifest.json",
+      "sha256": "7230e5284b290879da99f4532574ec564c5b12f64a6d289d7debb8c5fabe1bda"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/manifest_initial_latency_guard.json",
+      "sha256": "cf87b35eea21f2230c59cea0e3efdc0cc55d44bd23b1799cb0b232d120f9bf41"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/plot_environment.json",
+      "sha256": "a759ab5132d222831905dc8dcfce5e7682c10384f96d7084eec7b10d1ce70ae3"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_1/command.json",
+      "sha256": "405fbce862516a1b17ad0f096b01069e28f3f17c388925f064528e0fb8043a5d"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_1/summary.json",
+      "sha256": "4839f11553adb8b6b36daadfdaccebf72dd73f55a2fdb8cd622ba098d34eef7e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_10/command.json",
+      "sha256": "ebdf24a24dddf24a47abd6995354f77dbbbf2fc3ce0027bf6ddf310d5409624f"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_10/summary.json",
+      "sha256": "1c1a232633b121f886bf40c2ebf1ba2345ef9b457cb413893e50bb35ca284a32"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_2p5/command.json",
+      "sha256": "0493503c742f5c748f25cb08865c4a062f1e97a303f179795ffdbdbda89281fb"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_2p5/summary.json",
+      "sha256": "d0a2b5c23c59b634d372321e583a551baca8a45eec149678a21725014447c357"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_5/command.json",
+      "sha256": "a290137b3346f45ee457407c87f3437a24a96ea7287cff92aa87a9e09125fc17"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification/cost_5/summary.json",
+      "sha256": "945adf7d2cbd881b27dbed07f84f8a5228046957f098969906221862d822b5a6"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/qualification.json",
+      "sha256": "e66182df57ca0e978b6ca5be79de48328414c070a9a0148e8cc6ac4e63b5d143"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/validation/evidence/rsu_state_delay_compatibility_v1.json",
+      "sha256": "bac76ab1108a998820811a54c9c71c1580bae3d8076162def8957b21bc2ac597"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/analysis_validation.json",
+      "sha256": "fb87a9186d4c589e06e8ed59071253c523045cbcbf51c3ce7423656de4352a46"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/benchmark.json",
+      "sha256": "6e054cdbba9a399e0bbaec480bb1076fa62440a8570902b789ffc8bd0f8c6c97"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json",
+      "sha256": "c9fda2815cfb429c40d9f1727d2830f818a02cfd4524427125520824c17e1c1b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+      "sha256": "ff9cf8736d980226a843618c6fa52d665e994e63b706e158853821d98cddb1cf"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json",
+      "sha256": "24361b1e581f11934b2c126fe3d11b42fca2a0e69bbe41164cf5e7d1ae44fdb2"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/command.json",
+      "sha256": "3b18410caffb45070810de11d706f2deaa35ece7dfae749ba2104c8b9a7def56"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/summary.json",
+      "sha256": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/validation.json",
+      "sha256": "0768f4433453ac802c0fb1c9b4d0c352d96b64f2d3bd003b13f80d2019ac9187"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/input_validation.json",
+      "sha256": "0da9f36901216ffc68fbb282f1cea26ad751ac549dfa2992959e2ab39fbff71a"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/launch.json",
+      "sha256": "49b01852e987ed927f52c1c790982e453eaa29c909efddf6264a934680178f3b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/manifest.json",
+      "sha256": "17e5687b6dc62504a5f64c74165e4d243f2f5d1e91b0fe06a1fd3b43c8259352"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/preflight/fresh/attempt_001/command.json",
+      "sha256": "d63ccd202f3a7abbf03897c1c01a6b293df469ed0c6d6d7d112c3d9f1f47a150"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/preflight/fresh/attempt_001/summary.json",
+      "sha256": "0c5958fa64cddfc3c643caea66556a14db8d59664ba7c8f4a4dc32d195965232"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/preflight/fresh/attempt_001/validation.json",
+      "sha256": "d82df9136831e033f25888f5eddf907bc424d97a7db5d53c562e936e0b3798f5"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/preflight/ingress/attempt_001/command.json",
+      "sha256": "e42c4c5d120a8636a3b34d792b21870f3a5418b365c6a96abf5bf66cc2e43293"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/preflight/ingress/attempt_001/summary.json",
+      "sha256": "0a0262bc476a887a973ef6483a9f6e89e4b2e19d0eacccd437f495ceb6e42ce7"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/preflight/ingress/attempt_001/validation.json",
+      "sha256": "cc96d85a506c80ee2208677ce6e056c972ac2e49cc38517d0a212ded7bbfe205"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/status.json",
+      "sha256": "2ae71c917702721edc67d24c36eeacd559f5d400b7703bcdb195843325eb5629"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/analysis_validation.json",
+      "sha256": "f08018f1330474db43f214c182749aaed17e4bcdb4fc322e58a62ec0acc8158b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/command.json",
+      "sha256": "b7aa7dd1255615b2fd2d46ce06055fad906fb8f6a55041cf1e6fa4db1f8d7bf2"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/summary.json",
+      "sha256": "c27fef3949d866eab10c0f564324bd2dc5520d755b24087fc0a09a5764ae13f1"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/validation.json",
+      "sha256": "64ebaa66abdc05da5cb5b750fd050e14634bee42b956e80b1077d672b1bbcca1"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/workload_validation.json",
+      "sha256": "46c6e1079707ef8adadca2f3dab66b93bce5686d6cf74de03d533aa236b183ae"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/command.json",
+      "sha256": "32d4b5e22e8a35553c87eb6f7e9a0ebe23cfa94fd46a3ad437a4ee3460c3ba41"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json",
+      "sha256": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/validation.json",
+      "sha256": "17853bf379c24f3805b88fe4e94d1d2f64261e909d8890469672a8fbb09a8bdd"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/workload_validation.json",
+      "sha256": "8a4af4f739e451c0b007cb3e2971ab236675342f022b2be0e2af940d8950f609"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/command.json",
+      "sha256": "38f6f0e566d592a4aea89f3bd000e181047ea4de3efdebc548565a49c3fde5a1"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json",
+      "sha256": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/validation.json",
+      "sha256": "db7000719b4e2f7edf78e11d92c4621266eb84182dc9c1b88de5d963b71217aa"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/workload_validation.json",
+      "sha256": "4499fc0909923433de9b048126afaec37739538883e1085be5655946655a8157"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/command.json",
+      "sha256": "dd65009c7b7b4bcdc6f65b403c9420d4a65602b9d0d8de1747084adff8afa70a"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/summary.json",
+      "sha256": "d7ffa15306e38549b3887290305b925482ae0db23362531e5b1fadfbaaea6bae"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/validation.json",
+      "sha256": "c4c6c494a490d8a5c8ad2e10d29b141ea06bc0134a4240be3db3959ea6eafc43"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/workload_validation.json",
+      "sha256": "a1c396b2d1f8caf1e65e03da73f0363133b6a44e29608f6f5d9c2c3a3d825c69"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/command.json",
+      "sha256": "1520f03f779098e85d67e4d2bc239ace681aa585866ed4d87e407c2c06b60543"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json",
+      "sha256": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/validation.json",
+      "sha256": "c45b39522b3cfd7fc8b89a71619ac09fe5d093dcabe6e7d82dd70a20fd6a0dd7"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/workload_validation.json",
+      "sha256": "d9dc57ee44d9cf117cce2917d2d59c4b6faf0994c2c09d0d841eb7c85759883c"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/command.json",
+      "sha256": "705adabda8786f5f6e9685165e5e42f79f717dcbb33d2dc6b2bea528127f5121"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json",
+      "sha256": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/validation.json",
+      "sha256": "c45b1184ec213152b74254238e9e5ae7702be90248e5e5a284545d24ee5b7625"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/workload_validation.json",
+      "sha256": "ed41babace38e82b7c60751d9b4e03f1ec7f48ef3eec7af7e43beef77ef1480a"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/command.json",
+      "sha256": "b23f2be1512bc7f1c82be6a7e3d1888aa072c349b0fd16b5dcbca03461df04f3"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/summary.json",
+      "sha256": "cc51a89625c92bf7d59ef1ac95917a75af19e72c43c7619a7a95d9c3c6e6439e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/validation.json",
+      "sha256": "0043cbf007a2c7d8ff5e6e8e1d71bc74b8ef27c2dcb63e89512848118c781410"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/workload_validation.json",
+      "sha256": "30723728d790039f56115e10c7232f98e760efe4f05216f0fee0bcb3d107cb29"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/command.json",
+      "sha256": "efaf56d22ccf2054130eaa0c1267cd90ba9f6a21431ddac2dde2baaad89baf73"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json",
+      "sha256": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/validation.json",
+      "sha256": "4b567e0c71b8232e647f837f2e204c8797a4fab699e42739f6a3abecf2fe9605"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/workload_validation.json",
+      "sha256": "b042895fcbdb9a5f741fa3caf11462087c883741b6599146e10907e4da00be4f"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/command.json",
+      "sha256": "271104fd87f00b66b8723ece4e227bb50cc957fdd9a06f6a3105c71fbfe088d1"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json",
+      "sha256": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/validation.json",
+      "sha256": "18ffb77bdbbce063791f18b719d813110f2b0e44f3fa873bc7429ac3fadeafd5"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/workload_validation.json",
+      "sha256": "fba01949c24d3870195ba016b34200ce4c9587e82a1e2ed8d113a8187c143905"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/command.json",
+      "sha256": "795fee17aa64111f31ff0bc43906b5537aebb6ccab65dd46cf1e6ce255f860bf"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/summary.json",
+      "sha256": "d43eaa7ffc1f84c41e9336e983a6379531b7f21c01a98f515acc4c1b78cec73b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/validation.json",
+      "sha256": "c9989668c6a0b71bb290983a46f06dbceb6af43997efadb467f4bf39a0c36f4a"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/workload_validation.json",
+      "sha256": "b05e1ce03b3b7b9bfde3da4f8d5002e38c2c429cddb482583d75cb978db91c41"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/command.json",
+      "sha256": "18074f0ca6a316d012f7c83d8a1f1eb0cddefbc20b3efd6cd6642360ed068cb1"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json",
+      "sha256": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/validation.json",
+      "sha256": "bcbd0c8b710bff0c8a9b412e61e883f4187988a695b14b02fbf4a6b846b88b41"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/workload_validation.json",
+      "sha256": "daa886d8911b5f0e7b6a0d027a21eefe1037396c649657712279453fc5344583"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/command.json",
+      "sha256": "56e05b138231aeda6d95f7741f3eead040e4da8768db64986eecc8895eaae003"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json",
+      "sha256": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/validation.json",
+      "sha256": "8bc36257a4d6f48d471a2daf9b1818cca7f770c7b19f7928aae619990f288350"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/workload_validation.json",
+      "sha256": "c225f71d1609b34fe729ab02dbb9bcdb18dc4f3f71c66dfebcf99c4d4520b03d"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/completion.json",
+      "sha256": "d7f990f1e3474c7137caedb23480bee844c86685eaa6b5fbde2b711406bd69e4"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/input_validation.json",
+      "sha256": "0da9f36901216ffc68fbb282f1cea26ad751ac549dfa2992959e2ab39fbff71a"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/launch.json",
+      "sha256": "31a1e9771460e318144aba57f67f7291bc35f7897b0a5e19c04498d86b273a80"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/manifest.json",
+      "sha256": "53327aa7f015d595c17d21f598d4bb1b2cdd21cb1511c2dec706dfc258360fc7"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/plot_environment.json",
+      "sha256": "b7fded92a150832222d1bf09135d97e5f8952c2cbe078e75cfb979dbbd1414ab"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_common_target/attempt_001/command.json",
+      "sha256": "c0f5bc06429f83598b7aa45acdd0267db2a5141acb119e029d98a026c0b8ee55"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_common_target/attempt_001/summary.json",
+      "sha256": "68bf299710638df8766cf5371102a22eb4e697a96901e66ef69cca46a2eb5e36"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_common_target/attempt_001/validation.json",
+      "sha256": "7ed9530f42ecb4980502fe14195d4563e8b4ba14f49b51b030dd121b62a395d4"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_common_target/attempt_001/workload_validation.json",
+      "sha256": "d638300d46d66dfe3341eb51594d58d8742448e6f93551b087845e74e6f71309"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_ingress/attempt_001/command.json",
+      "sha256": "2a1bbba2eecef9026837d8832f75ae17f3469b9d88bf594f46ea79d01b2c9b4f"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_ingress/attempt_001/summary.json",
+      "sha256": "7772150e4fa255ed4335e733e482a7a8efc216640bc69bd99d75912b03f5c023"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_ingress/attempt_001/validation.json",
+      "sha256": "19b57448b6f35339c5e79b5dc16e7252610fc60be2d8dc3b08c2cfe361dd8292"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_ingress/attempt_001/workload_validation.json",
+      "sha256": "2083529bab0f7ac04647249f1abee38d0a48aff84bec6d1f706959b867c837b9"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_per_task/attempt_001/command.json",
+      "sha256": "7b23f101ac0de3b4a542cb73499d7563e1947cf284157ab0672b25ca7d95b29b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_per_task/attempt_001/summary.json",
+      "sha256": "bb61ddfcbde0fd4fee7f9f70ff940a7cb61ca7757ec435224c645937188e6095"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_per_task/attempt_001/validation.json",
+      "sha256": "cb1fba35e1407f407d7aabb67fb1927fac9d4939c1567a2b94bd941da3bdc672"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_0_per_task/attempt_001/workload_validation.json",
+      "sha256": "f5d90fc2b1a62b5c9a3cbe5204b4fee8a6a335109e9525d50f42a27076131b8b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_common_target/attempt_001/command.json",
+      "sha256": "6d53a462286db56354b12e4442dd00d9ae22f902afb6b32474535e67e06b09bd"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_common_target/attempt_001/summary.json",
+      "sha256": "a187c79d758c306920144147fda7e35be9113954798a270c3af69c471adcaac7"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_common_target/attempt_001/validation.json",
+      "sha256": "eea26c5e406672a241292a243841ecb44b9f4439e028eb2a0a65b2b2739c1b31"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_common_target/attempt_001/workload_validation.json",
+      "sha256": "e1854d75463e3096b6bba9bb891c2f3d4cd687279e3a14834c62c52fa87430ee"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_ingress/attempt_001/command.json",
+      "sha256": "a823ac3dfa8c2b51a29745732d3d8942fe2d6fa15ad3ea3d2a275d6ef06ba941"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_ingress/attempt_001/summary.json",
+      "sha256": "d1a6a546bc9f4887027f9f7d7bf166c44332ec6db3c4e3399395d96b3cd4929d"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_ingress/attempt_001/validation.json",
+      "sha256": "5d2bdad05c14a42094676551df67ef4a9a434fb485d1acf50f7056e095891860"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_ingress/attempt_001/workload_validation.json",
+      "sha256": "828ee15d2a71ad7d042d13a6c4c504b3c61d0bffa4d98c913a8a20e60956a179"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_per_task/attempt_001/command.json",
+      "sha256": "b8b6e99abc72af76c8dd1d7b29f1d43873c124599ac329bdfb24746b3b79da09"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_per_task/attempt_001/summary.json",
+      "sha256": "16f9b429fcc46002b05f7bfae12a9e84a3fb4461bff8b3df3c76bca8f061d1e3"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_per_task/attempt_001/validation.json",
+      "sha256": "b633724891adf4f0bc85c15ca9084b6fb7c0cdea1c1843cefd344d5141086ca8"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_2_per_task/attempt_001/workload_validation.json",
+      "sha256": "86ef4dc8ee2815a79b4a50eef20fd8e955c1b14b390b0f8bad41e81852f51e47"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_common_target/attempt_001/command.json",
+      "sha256": "63a4691c718c59bcd19ab5d074f93ccf4e0ace553604d3f81088887ee588507e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_common_target/attempt_001/summary.json",
+      "sha256": "6739fc9f8f1d056083be6bcf124ef00865a8bcf8a8d62be87d787193639fc366"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_common_target/attempt_001/validation.json",
+      "sha256": "23f2ef3bb7c5d10d5c050c47222068920d7a218176985dd26db2630ea4a14eae"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_common_target/attempt_001/workload_validation.json",
+      "sha256": "eda675a4872cb110297a9280041c6e4f7a2df7a2a03044115b2a6c81016fc17b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_ingress/attempt_001/command.json",
+      "sha256": "c246f43052c8b9967b51367e92a01427c09be791880b634b1a93e6a9bd6a2198"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_ingress/attempt_001/summary.json",
+      "sha256": "1fadb1dac55a3815956065e5e26f77689673d471774f4cbfa4fa2ded7c63483b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_ingress/attempt_001/validation.json",
+      "sha256": "cc4a1f924b7b8a7990e95ea0cc091f022be853be2e535148be47441f4c24bba6"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_ingress/attempt_001/workload_validation.json",
+      "sha256": "ec43c5597f54c5fd339fd4778455847e557699384b83d657d2acc839e7d914bb"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_per_task/attempt_001/command.json",
+      "sha256": "5d5df5c3d673cb677a0963b23422e603fad1dfc5840c996d7f0b2911a0f91901"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_per_task/attempt_001/summary.json",
+      "sha256": "685b8185957ca33837376912ad653af5f49b911f5fb90d838c763ce9cfb8becb"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_per_task/attempt_001/validation.json",
+      "sha256": "bd4e22a34442f2b016223a22eba14fea5eee86806818aad5684155c68cf301f9"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_3_per_task/attempt_001/workload_validation.json",
+      "sha256": "e75c0a622020fefba8ec3a2b89eb6a3557296670687de0d3d3dafa6cb0fb4dc3"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_common_target/attempt_001/command.json",
+      "sha256": "db88d919f63fef764379d9e3985eba3470603e33c7619289bc8cf64dcaa9887e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_common_target/attempt_001/summary.json",
+      "sha256": "d6ccdb1eb25001417b5c7fcc0d9d9f8164705cc190ed26f0aab74c32dee6d711"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_common_target/attempt_001/validation.json",
+      "sha256": "6e4f751e381bd5063a2ec82636fbd590e455dbf7c6b7de0921b2fea77633fb71"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_common_target/attempt_001/workload_validation.json",
+      "sha256": "3d69fe5a61f42dce0876e8eb1180fbe1af5b6008da35ec92e29b9ba270717970"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_ingress/attempt_001/command.json",
+      "sha256": "142edfbe655d20f7fcf27bc7ece744fafdbb39c27f4159ef2275dc9dea071403"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_ingress/attempt_001/summary.json",
+      "sha256": "2869839bc32f4a255ff5db56ce6f617d3d8886a3575885ab0f1ef20555a61b35"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_ingress/attempt_001/validation.json",
+      "sha256": "f028e8d4f36e3378a8253fc78e36f65adacd0dc4dd3426733abab8bd84fbf4d8"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_ingress/attempt_001/workload_validation.json",
+      "sha256": "ee6546e466de0512cfd06b19a125dd1191a8370c70a0986774f39a473f082ee7"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_per_task/attempt_001/command.json",
+      "sha256": "4a0fddc1d386cdb710899068956b579724a435ee19b67e811c9c8e141363d688"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_per_task/attempt_001/summary.json",
+      "sha256": "fa5bc14fc63bf45a859d42bb3d024e7ab32a9fabc062497d45791ab6c4e9b9b3"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_per_task/attempt_001/validation.json",
+      "sha256": "7442d47664a10c8d15dfc68e6a04a80f9dccf96be2c7b51e5909e30beb22c93f"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/preflight/seed_4_per_task/attempt_001/workload_validation.json",
+      "sha256": "9dc2661f861b7b5c8f32851277dbd848452ec692b3222e02259f28bf2e5f8483"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/status.json",
+      "sha256": "4ff8ac9e2e38c02e4444ed69cfed251a41128da2ccea3ef9ac5382b0177e0953"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/workload_qualification.json",
+      "sha256": "71b5e648400239e2b4398bd757ee4c78c2f70debdfa96020fc94a4e2f0f77c1e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_full_reference_manifest_v1.json",
+      "sha256": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_full_reference_validation_v1.json",
+      "sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_manifest_v1.json",
+      "sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_validation_v1.json",
+      "sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_comparison_v1.json",
+      "sha256": "b2f7e8bf8769e7359bf5731b4b98d1007d294ed55595ec4977886f976d600ec3"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_evidence_index_v1.json",
+      "sha256": "aeecdece2cbfffef4d7e68ac398c42fb2f36af5a6a1256536f58186c547f74e5"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json",
+      "sha256": "43fafbd73b5e5e0035fe9bf23f4046ff3a50fdd665352a3d6c415f50059fa19d"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_evidence_index_v1_public_sanitized.json",
+      "sha256": "8431afb31ba7de7960d0c947970ee7d0c627d61d70f293c15f6512c3a177743b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_path_forwarding_summary_v1.json",
+      "sha256": "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_comparison_v1_public_sanitized.json",
+      "sha256": "988660bd2a2783cf45ab8bb8d5631e65fc8fbb9e11b5c8f0be99030712b2222d"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_manifest_v1_public_sanitized.json",
+      "sha256": "69790a0736bb62bb9cd9822e989cdb52596597fbc047a9bc1770cfc375319939"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_evidence_index_v1_public_sanitized.json",
+      "sha256": "74b041ac254ad4709e1b5de5bd3d80886e461e01978f76a3ef12659c1ba41d6e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_comparison_v1_public_sanitized.json",
+      "sha256": "ef1821f94739816ac2777323029e1a0711294116d23eba43215e7a5aa1d5c2fd"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_manifest_v1_public_sanitized.json",
+      "sha256": "f2af61bf936d77ec8a78c156058e0404a7a2b7bd826705390e5d7b8c3779f701"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+      "sha256": "c73a23a98342d58ed6a54a26d32b27f702e33705b2489c2ba0ffae9a8eec1389"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_path_summary_v1.json",
+      "sha256": "dd48da132856e6199463cc195d93d007436c2cdb187133f8fa68962710c14c38"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_mechanism_summary_v1_public_sanitized.json",
+      "sha256": "7150beae11ce62adc9374c4da07259f00ba4bb41711f055dfe107f4a0c7912bd"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_comparison_v1_public_sanitized.json",
+      "sha256": "300fbadb332ea08c68d531e752a1e41423192fdc74219150f67fe6ec6c9fc2ba"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_evidence_index_v1_public_sanitized.json",
+      "sha256": "5d2b39d077b332503d7aec9985fa7145a13c0b54ca465da1f4d4cb5580961f49"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_manifest_v1_public_sanitized.json",
+      "sha256": "2cb5a05582ac907a630206bffd4de0c2850a20368bd7eb73807992e218f8a7b9"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_evidence_index_v1_public_sanitized.json",
+      "sha256": "76638238c0b6026faf4650a492b5fa4ec3eb86b1d58fc669c7b8e1889b2bd53d"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_mechanism_summary_v1_public_sanitized.json",
+      "sha256": "887e2268d541624a67c193d719d3340bc4e54237337ab49029539ac0ad7012f8"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_comparison_v1_public_sanitized.json",
+      "sha256": "95b70613461c56c0cebd1b4eed78af80db1760a4f1991c0b3d9149394f15dfdb"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_manifest_v1_public_sanitized.json",
+      "sha256": "582c5c0b254ab780f75b0c5b1f11829449c17d59bfe65443746724441552e096"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+      "sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/command.json",
+      "sha256": "27dbb298268450fea9fbcbab5d5be2870e3ae4a0d778f26419fd07d0e874218e"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+      "sha256": "41691598a3aea615bbee4a7100438b8b997c587703b7ff1bd367feacb2e557f1"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/validation.json",
+      "sha256": "fb207195cf7077f50a5bcb7ae6b460bc1ad9acf7d418cd251029d9c0f0c41040"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/command.json",
+      "sha256": "9ec4426fb44f252bee8a3756425eb833ba92c1f7c616ef077c32106e29d62198"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/summary.json",
+      "sha256": "32c131f35e19943a66da33ed6e0a5bf655f3882fa151d5796eccd0b1cfd5aa07"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/validation.json",
+      "sha256": "efa41ddec6387afe09fb4fdcb0fd2a1b0dbd0727c41a37235b8bb2bf0d70c558"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/command.json",
+      "sha256": "d2d315fd21de998fa49811a8a3aca5a527ba58b4f5ff1556cdde83c5a0d295b1"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/summary.json",
+      "sha256": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/validation.json",
+      "sha256": "f3172030c40eed1207bfe466e38ae6918029878234f0152bcffb88b90273c22b"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/command.json",
+      "sha256": "ed9e553ed58c1b0c0fa72c2feb1a8749f5f62667d3dc10a323a2c973b44e85c9"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/summary.json",
+      "sha256": "7d62afce843b9ad1a369dd8bcfe03e6e4d110e70bc0803f73753f0af2fbf67ff"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/validation.json",
+      "sha256": "12cb157046d2839d80a90c297bd1c389f3ac2a3069b65b114cb547e7c805bb33"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/command.json",
+      "sha256": "885b8599cc14abca2622d7d8c5d3a7710a80f7275eeb71a72f9d1abb61b070ec"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/summary.json",
+      "sha256": "d819cf787f676488e3cdcad7b3e438cfd02a16dc38a5013f75f9f8a2d724da2a"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/validation.json",
+      "sha256": "437101482a442ca0aa7314fe638c2994872349cea7de9e006b44c42403739b99"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/launch.json",
+      "sha256": "2d759f70d06748721ead7f903345c694a835e46d3ee193a24d3fed53413d3039"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/manifest.json",
+      "sha256": "9defec2c7a2b8ad4b3229066d9c0c1f2dde23da79e24d524bf66b43023b7f772"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json",
+      "sha256": "21a06774497c2fdc4304392fcb50e1291bb80592a127f6d770ad45ecd4b53ecf"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/preflight/attempt_001/command.json",
+      "sha256": "751eb1424370fb96a6f2cd4addeb54d9c5c35641b5832a41d71e7217cb982dde"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/preflight/attempt_001/summary.json",
+      "sha256": "f36885ceb6d12f86b22d87321084c4da23f345e382573e878150ae62c19709b8"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/preflight/attempt_001/validation.json",
+      "sha256": "2de022ae0931bb730ba6670b18027998f2b6db5394479bf831a0f2be563f3b61"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/bad_count/summary.json",
+      "sha256": "4b1634563705e5dedac93685b319e1c78fe2acec91a6f63f84b15596ccc41429"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/delay_100/summary.json",
+      "sha256": "b0835f248e3d5f3ddb9806579c0d6b64299bb9b5f45c4334b8eac1187d0aee35"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/delay_100/validation.json",
+      "sha256": "d808d895c0c666f24ca456dc8d84034bce8963e726e4a13678f3e6ed616a4149"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/delay_1000/summary.json",
+      "sha256": "d041a17d2f47908fa2ec82df99ca1086154a93684aeadef1d10cadf4f88b0d64"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/delay_1000/validation.json",
+      "sha256": "6baeb711f5a12122fe4060c03c79d5efe832002dbfea3dd7a23d7c792440e084"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/delay_500/summary.json",
+      "sha256": "b72c697fe48196d3ffa8ea74e5a39c52a74b71a5241752d70c9fe4cd6435afa5"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/delay_500/validation.json",
+      "sha256": "f6877aaa5d21a465cfd1f91d872a8c9c71ff91bc01ef587dbdd10d7cd2d60871"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/fresh/summary.json",
+      "sha256": "c11286d1a822aab7127ab05e25833726cf23666468f2d3a0cd054a5f35f1de67"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/runner_checks/fresh/validation.json",
+      "sha256": "c31a97b8adf84ffd1c29251ad5cc8ba7c6af79330a2c1896991be2afed0cb9d9"
+    },
+    {
+      "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/status.json",
+      "sha256": "80a8e3df0044ffc16211e55c498b99f2fa24c1a73f182fe73d7cf31eae9b08ad"
+    }
+  ],
+  "identified_current_confirmation_locations": [
+    "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-2026-09-08"
+  ],
+  "prior_unrun_root_exists": false,
+  "additional_summaries": [],
+  "conflicts": [],
+  "status": "no_pair_conflict_found",
+  "scope": "Surviving repository evaluation JSON records and explicitly identified current confirmation locations; not a claim about every possible copy. Historical raw-output recovery excluded."
+}

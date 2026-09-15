@@ -1,0 +1,200 @@
+{
+  "status": "passed",
+  "study": "09_second_actor",
+  "block": 5,
+  "seal_sha256": "4ef9c00fd2211703e09a1a0b4ddb1b6ebffc724d27d0bb4604cb3a408d949d65",
+  "cell_receipts": {
+    "ingress_dla": "437b5a52c0f6a9549fba2def9c9c1da350f6ef02c6706b2a22dfb28f51d02dee",
+    "dla": "4a7ebe50828296f506089e734eb6c008723008bfec514c301a12a429684c90ff",
+    "per_task_dla": "82483fc0eb4563d3a795e8343daa6e02a04db412d117432bd9335d6f2b12dbc5",
+    "causal_round_robin": "9f9b407e1d35641345970c34098fa34ae9a8f20884fc1452fdd3f1dddfa18096"
+  },
+  "within_condition": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    }
+  },
+  "historical_matching": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 116100,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4729726314544678
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 302650,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 116100,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4729726314544678
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 302650,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 116100,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4729726314544678
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 302650,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": false,
+          "changed_values": 116100,
+          "max_absolute_difference": 2.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 6966000,
+          "max_absolute_difference": 2.4729726314544678
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 302650,
+          "max_absolute_difference": 0.5
+        }
+      },
+      "actions_forced": false
+    }
+  }
+}

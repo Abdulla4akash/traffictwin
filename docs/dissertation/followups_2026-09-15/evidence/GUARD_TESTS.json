@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "source_commit": "5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
+  "command": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python -m unittest -v test_guards",
+  "tests": 9,
+  "failures": 0,
+  "skipped": 0,
+  "elapsed_seconds": 5.662,
+  "tested_before_commit_with_identical_source": true,
+  "recorded_at": "2026-09-15T16:25:31.486378+00:00"
+}

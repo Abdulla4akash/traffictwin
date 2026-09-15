@@ -1,0 +1,331 @@
+{
+  "schema": "morning_joint_seed_rr_execution_v2",
+  "date": "2026-09-08T11:50:32.626565+00:00",
+  "execute_new_confirmation": true,
+  "status": "authorised_qualified_before_full_outcomes",
+  "arms": [
+    "ingress_dla",
+    "dla",
+    "per_task_dla",
+    "causal_round_robin"
+  ],
+  "blocks": [
+    {
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm_order": [
+        "ingress_dla",
+        "dla",
+        "per_task_dla",
+        "causal_round_robin"
+      ]
+    },
+    {
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm_order": [
+        "dla",
+        "per_task_dla",
+        "causal_round_robin",
+        "ingress_dla"
+      ]
+    },
+    {
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm_order": [
+        "per_task_dla",
+        "causal_round_robin",
+        "ingress_dla",
+        "dla"
+      ]
+    },
+    {
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm_order": [
+        "causal_round_robin",
+        "ingress_dla",
+        "dla",
+        "per_task_dla"
+      ]
+    },
+    {
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm_order": [
+        "ingress_dla",
+        "dla",
+        "per_task_dla",
+        "causal_round_robin"
+      ]
+    },
+    {
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm_order": [
+        "dla",
+        "per_task_dla",
+        "causal_round_robin",
+        "ingress_dla"
+      ]
+    },
+    {
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm_order": [
+        "per_task_dla",
+        "causal_round_robin",
+        "ingress_dla",
+        "dla"
+      ]
+    },
+    {
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm_order": [
+        "causal_round_robin",
+        "ingress_dla",
+        "dla",
+        "per_task_dla"
+      ]
+    }
+  ],
+  "controls": {
+    "T": 10800,
+    "N": 215,
+    "R": 9,
+    "K": 5,
+    "capacity_tasks": 6220,
+    "fleet": "uk2030",
+    "service": 1.0,
+    "forwarding_ms": 0.0,
+    "entry_queue_reset": true,
+    "soc_reset": false
+  },
+  "seed_inventory": {
+    "rule": "first absent fleet integers >=100 and evaluator integers >=200, zipped ascending; source scope is surviving evaluation manifests",
+    "observed_fleet_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "observed_evaluator_seeds": [
+      0
+    ],
+    "manifests": [
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/manifest.json",
+        "sha256": "7230e5284b290879da99f4532574ec564c5b12f64a6d289d7debb8c5fabe1bda"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/forwarding-sensitivity-2026-09-07/manifest_initial_latency_guard.json",
+        "sha256": "cf87b35eea21f2230c59cea0e3efdc0cc55d44bd23b1799cb0b232d120f9bf41"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/manifest.json",
+        "sha256": "17e5687b6dc62504a5f64c74165e4d243f2f5d1e91b0fe06a1fd3b43c8259352"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/manifest.json",
+        "sha256": "53327aa7f015d595c17d21f598d4bb1b2cdd21cb1511c2dec706dfc258360fc7"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_full_reference_manifest_v1.json",
+        "sha256": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_manifest_v1.json",
+        "sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json",
+        "sha256": "43fafbd73b5e5e0035fe9bf23f4046ff3a50fdd665352a3d6c415f50059fa19d"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_manifest_v1_public_sanitized.json",
+        "sha256": "69790a0736bb62bb9cd9822e989cdb52596597fbc047a9bc1770cfc375319939"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_manifest_v1_public_sanitized.json",
+        "sha256": "f2af61bf936d77ec8a78c156058e0404a7a2b7bd826705390e5d7b8c3779f701"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_manifest_v1_public_sanitized.json",
+        "sha256": "2cb5a05582ac907a630206bffd4de0c2850a20368bd7eb73807992e218f8a7b9"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_manifest_v1_public_sanitized.json",
+        "sha256": "582c5c0b254ab780f75b0c5b1f11829449c17d59bfe65443746724441552e096"
+      },
+      {
+        "path": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/manifest.json",
+        "sha256": "9defec2c7a2b8ad4b3229066d9c0c1f2dde23da79e24d524bf66b43023b7f772"
+      }
+    ]
+  },
+  "inputs": {
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+  },
+  "sources": {
+    "docs/dissertation/empirical_extension_2026-09-08/analysis/PROTOCOL.md": "548d32f7843e1756afc4ab68485407a51edd66d80b11490ff846dacbda9a488d",
+    "docs/dissertation/empirical_extension_2026-09-08/analysis/results/COMPARATOR_TESTS.json": "09983c43295261cde4300344e6721efef11ad9693f5a2adc31399091f41930c8",
+    "docs/dissertation/empirical_extension_2026-09-08/analysis/results/COMPATIBILITY_TESTS.json": "b0d69ed8c9066412f4d52cd85e71d04174c33be7fc8d54015aecc1845982a838",
+    "docs/dissertation/empirical_extension_2026-09-08/confirmation/PROTOCOL.md": "f977f855c9572d563560835c6f39443805b7f1f3e940c6daed948f384ae9a99e",
+    "docs/dissertation/empirical_extension_2026-09-08/confirmation/SEALED.json": "0ca2ef2b2dc9e25c0cedd6e4a39daeb26b72b66c03a2c5efe8b3f0b1a973fcd8",
+    "docs/dissertation/empirical_extension_2026-09-08/confirmation/analyse.py": "680dc1541d67e7262fd3bd199440579d99896efbd24ad4d63e625dd668d7884f",
+    "docs/dissertation/empirical_extension_2026-09-08/confirmation/runner.py": "ef5cbd71ae56a2ab110ca8f3b951ea2c7738f2958702cf81d2ccc499e511fbe1",
+    "docs/dissertation/empirical_extension_2026-09-08/confirmation/test_runner.py": "6b46ef7e5151ce6c4619b9341b420e14679d972f77e89c62d6dd0b27f3870f1c",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/build_evaluator.py": "cf9037b34755126ef4c29867cb60450178eace3e2700598dc024d2590a0c44cb",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/evaluator_entry.py": "1a1158ad458106d83dbe5ad17590774dc7bc8eb6cd76a94e791144b7a079c427",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/evaluator_v1.py": "f76cc43321665b8716b3ac9697060f362c1d70628013ab6cd7b3fdb0587915e9",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/kernels.py": "1e822ef231837a4641dc3e0b323dd23c55efb1c42135ce5acebb86d4d16cb706",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/round_robin.py": "a17335a8c7d6ab82c543e3780c6cd5cfe4e5d7117ae188ce3303a67c3f3f55a0",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/test_comparator.py": "6ff6ca636841eec5f809d61fe9daac5fca16b35aa962056d00621dbd3003cf68",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/test_compatibility.py": "312041291241a14e80dccafaa3b1436405d4e0f4430b12b01c05314be65eb991",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/vendor/e2_path_instrumentation.py": "6c764965fe07faf3238504bc20bd52ef4c03cfd458281bb7c4f3e6a09600d69a",
+    "docs/dissertation/empirical_extension_2026-09-08/experimental/vendor/vec_jax.py": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/EXECUTION_AMENDMENT.md": "44d05aa83188b6ffaf63588f2aa7a5f3a1eaa56762fd4bba73580fd9d7c312cb",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/analyse.py": "e6819970a5a73e88739aef085f39d5a61c5e4e0221f6f0012fc7ed2a929e902b",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/qualify.py": "2e41769f37095232a347d0a4aa77a76a6083c932df6dc464687ccb4cde544756",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/runner.py": "d57b3a5a9c238a1a224fd68f509c56616f588160ee6c6eeed4c22334722fffa7",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/test_execution_guards.py": "71e0b0b49ce7458f1b8cb7b6c133f251a2fb4dce72c4a16f4ce960c212e9ce01",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/validation.py": "3b3b3d8ee1f8015f328bf4c1850c0db20ff8eb27ab5bf11519c88c8b68e0e57b",
+    "docs/dissertation/joint_confirmation_2026-09-08/experimental/build_evaluator_v2.py": "24097dd056d4f20c9d4111662862c7b941e755356fb92864c68a745d4c3d1100",
+    "docs/dissertation/joint_confirmation_2026-09-08/experimental/evaluator_entry.py": "c69bbd3e121bc1cd960585cb57e76d8779fa1a506624c1531769ba551d4ccf9f",
+    "docs/dissertation/joint_confirmation_2026-09-08/experimental/evaluator_v2.py": "ca8dbd0398e185c172475c47e6f84cab8b82543ecbd57a73ca47349beaf8af10",
+    "docs/dissertation/joint_confirmation_2026-09-08/experimental/round_robin.py": "a17335a8c7d6ab82c543e3780c6cd5cfe4e5d7117ae188ce3303a67c3f3f55a0",
+    "docs/dissertation/joint_confirmation_2026-09-08/experimental/vendor/e2_path_instrumentation.py": "6c764965fe07faf3238504bc20bd52ef4c03cfd458281bb7c4f3e6a09600d69a",
+    "docs/dissertation/joint_confirmation_2026-09-08/experimental/vendor/vec_jax.py": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09",
+    "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/eval_sumo_stage1_mc.py": "2824d9c2ef09e7748cd420d1ab2f0526d28157b8986605dc831397b6c618c07e",
+    "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/rsu_state_delay.py": "b4cf128d3eddf2fb11b0d58dde790c7441a38cfdd12fc82859e7c5a1c6d4f751",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/PROTOCOL_EXECUTION.md": "5ef1ab619371d3c5b1955728dade117c913b12e5da7e27f1fdf241c3b5403921",
+    "docs/dissertation/joint_confirmation_2026-09-08/confirmation/QUALIFICATION_SEAL_v1.json": "f22722f2a0be602f9d52c4a12ec71e61efc5df417c22f7a468b411dd50f8d38c",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/QUALIFICATION_FOLLOWUP.json": "97c378b245dbc1864a5c94dad73442ee7549b43f572df1d71da5043799474e28",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/SEED_AVAILABILITY.json": "73b9bee7974445773c594e073fc2d3f9998789f6f17f5b79360a8b9bb2ebbc55",
+    "docs/dissertation/joint_confirmation_2026-09-08/evidence/QUALIFICATION.json": "147d6ccd004b230eb4f81b660877e3353a7c5327bd07e2a1777bc6d2781e362a"
+  },
+  "budget": {
+    "max_attempts": 32,
+    "max_seconds_per_attempt": 10800,
+    "min_initial_free_gib": 50,
+    "min_cell_free_gib": 20
+  },
+  "execution_environment": {
+    "JAX_ENABLE_X64": "false",
+    "JAX_PLATFORMS": "cpu",
+    "PYTHONHASHSEED": "0",
+    "VEC_JAX_K_MAX": "5",
+    "VEC_JAX_K_MIN": "0",
+    "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+    "VEC_JAX_MODEL_C": "1",
+    "VEC_JAX_PRIORITY_ALPHA": "0",
+    "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+    "VEC_JAX_STRESS_ARRIVAL": "1",
+    "VEC_JAX_STRESS_LANES": "0",
+    "VEC_JAX_STRESS_SPEED": "0"
+  },
+  "original_disabled_seal_sha256": "0ca2ef2b2dc9e25c0cedd6e4a39daeb26b72b66c03a2c5efe8b3f0b1a973fcd8",
+  "reviewed_baseline": "c049f00f2247bfbd1196d5e6524de8198fdd2df7",
+  "runtime": {
+    "timestamp": "2026-09-08T11:44:43.193056+00:00",
+    "runtime": {
+      "python": "3.11.15",
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "x64": false,
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "platform": "macOS-26.4.1-arm64-arm-64bit",
+      "processor": "Apple M5",
+      "cpu_count": 10
+    },
+    "python": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+    "python_binary_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "runtime_root": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run",
+    "trace": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+    "actor": "/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "execution_environment": {
+      "JAX_COMPILATION_CACHE_DIR": null,
+      "JAX_ENABLE_X64": "false",
+      "JAX_PLATFORMS": "cpu",
+      "MKL_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": "0",
+      "PYTHONHOME": null,
+      "PYTHONOPTIMIZE": null,
+      "PYTHONPATH": null,
+      "VECLIB_MAXIMUM_THREADS": null,
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_STRESS_LANES": "0",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "XLA_FLAGS": null
+    },
+    "free_gib": 284.7781066894531
+  },
+  "output_root": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/campaign",
+  "study_lock": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/STUDY.lock",
+  "qualification": {
+    "status": "passed",
+    "path": "docs/dissertation/joint_confirmation_2026-09-08/evidence/QUALIFICATION_FOLLOWUP.json",
+    "sha256": "97c378b245dbc1864a5c94dad73442ee7549b43f572df1d71da5043799474e28",
+    "short_attempts": 8,
+    "max_short_steps": 300,
+    "raw_root": "/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-raw-2026-09-08/qualification"
+  },
+  "analysis": {
+    "metric": "successes/all offered tasks",
+    "contrasts": [
+      [
+        "per_task_dla",
+        "ingress_dla"
+      ],
+      [
+        "dla",
+        "ingress_dla"
+      ],
+      [
+        "per_task_dla",
+        "causal_round_robin"
+      ]
+    ],
+    "equal_block_weighting": true,
+    "paired_blocks": 8,
+    "df": 7,
+    "family_size": 3,
+    "critical": "scipy.stats.t.ppf(1-0.05/6,7)",
+    "incomplete": "no completed primary confirmation"
+  },
+  "tolerances": {
+    "discrete": "exact",
+    "json_numerator_tasks": 1e-06,
+    "service_absolute_ms": 0.01,
+    "drain_absolute_ms": 0.001,
+    "drain_relative": 1e-06
+  },
+  "new_full_outcomes_seen_before_seal": 0
+}

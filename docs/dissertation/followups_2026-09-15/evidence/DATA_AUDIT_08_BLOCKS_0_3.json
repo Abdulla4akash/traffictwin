@@ -1,0 +1,351 @@
+{
+  "status": "passed",
+  "audit": "independent completed half-speed raw-data audit",
+  "source_commit": "5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
+  "execution_seal_sha256": "4ef9c00fd2211703e09a1a0b4ddb1b6ebffc724d27d0bb4604cb3a408d949d65",
+  "baseline_ledger_sha256": "37a7f1d8aa628f2e74b98855ae8f7e461bc31d7bde6efd7989075d4038c1d482",
+  "blocks": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "full_cells_validated": 16,
+  "valid_blocks": 4,
+  "steps_per_cell": 10800,
+  "historical_raw_fields_reopened": [
+    "task_rsu_service_ms",
+    "task_local_service_ms"
+  ],
+  "new_receipts": [
+    {
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "ingress_dla",
+      "steps": 10800,
+      "offered": 1744761,
+      "admitted": 1588043,
+      "successes": 1459542,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_00_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "9d7a0b5c644be19606f20846cc5667f9d25b5a0b764f46622ce7c0da12917461",
+      "output_sha256": {
+        "summary.json": "1ae8bb3b6bde8a72094c6c09228ba27aade85860e1b8b2bc9d98f7b4b862f221",
+        "per_step.npz": "d8bfde94bf9033944f1c02aa00f8862cb519956ae956d3f6177fb2d46f175e20",
+        "per_task.npz": "bdb3d4bd28cabc507ccfefaa376b10a9221a16448aa4342be0808113e5aa7351"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "dla",
+      "steps": 10800,
+      "offered": 1744761,
+      "admitted": 1518266,
+      "successes": 1395027,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_00_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4f7d22c493112b6021c395998d2814867d74e0175fb3e1a27144d69b84a1e222",
+      "output_sha256": {
+        "summary.json": "b7cdd80e91862c156d52fe8f89e03b0e871445d24a6d909fc14556a54ba376a4",
+        "per_step.npz": "6a48314f5cff28af7e3a82fca478508fbdcedb7905664809c056be0762fea964",
+        "per_task.npz": "93724f8690b3715a6e914d33091c9d2066cf3b4227ee506d73b96d15907f51a9"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "per_task_dla",
+      "steps": 10800,
+      "offered": 1744761,
+      "admitted": 1681045,
+      "successes": 1535482,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_00_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "bf8eba6e28831e4008f8954419d247bc6ea6a73a4e7c1be50c3b3aff13a1e6b1",
+      "output_sha256": {
+        "summary.json": "3416eaa5604bbac068622b32390febc0c5d290ed56011f931705824426e3f2f9",
+        "per_step.npz": "c0ead4211dbabb58150d3f141a6a85a1f8267569ac778f3aabc42052417982a9",
+        "per_task.npz": "ba05dbbccae51e79220f878dd2b3d902e63e5886320a6d3d4cde4663aa7ca200"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "causal_round_robin",
+      "steps": 10800,
+      "offered": 1744761,
+      "admitted": 1659213,
+      "successes": 1520911,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_00_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "609c5975079b77099119f85e0356ff35eb272450f5f2faf92acdf656c47ecff0",
+      "output_sha256": {
+        "summary.json": "3df99f61697eb67d478c45714a0a266ecc3f4a259255df94bff943062cb2e4bb",
+        "per_step.npz": "8f5e03c059978457d3bc5e032af2ee51e6666db998734723f7ccad7428aeebc4",
+        "per_task.npz": "08902fc72bde7779bc9a4092cdf0a0b4b23e3d0c24307d16b80dea421d59cccc"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "ingress_dla",
+      "steps": 10800,
+      "offered": 1740970,
+      "admitted": 1599204,
+      "successes": 1471320,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_01_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "25fc9e8c91d69d7e7e2c0a64be6e36b4ac666ccce094eb8bede94eac989b5b27",
+      "output_sha256": {
+        "summary.json": "5db05f5b99a316dc4198ef63c74a002aff79d02188d17bb53ddcb61a961c9468",
+        "per_step.npz": "536c226a3f023f6ef35daef61fc610509b123d830f19aa1a29b020b30e98e99e",
+        "per_task.npz": "e49e716cc1e3aed5be6a5c41d7261f21a68ce404a1b7ccb0797295bb9d0001b4"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "dla",
+      "steps": 10800,
+      "offered": 1740970,
+      "admitted": 1532916,
+      "successes": 1410211,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_01_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1b44fae7fa746446818ae5ae34829d63b6486f1600f57a1f8bbd041d232ac9cd",
+      "output_sha256": {
+        "summary.json": "07be7d0de7c83b86b17e0231f7dd8bd51aa476ccfe0caab7af79ed1bb0366a4b",
+        "per_step.npz": "48e5649bf760faf098bffe4152b57392665785d0e2fbfb3aa49ebd8fe8deec48",
+        "per_task.npz": "7f3cae2d5b8f3fd85e5e1d80f979cca4e00e5930bb70453858199e88e50c76ee"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "per_task_dla",
+      "steps": 10800,
+      "offered": 1740970,
+      "admitted": 1689282,
+      "successes": 1545448,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_01_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "adf181d7718ac9fa1a113077205b7aa3baa5bcaabfac177b28d09fc115405805",
+      "output_sha256": {
+        "summary.json": "271967e9a17b71d2d0049b748a4b93cccb5baca481e45f1b7459c40d751b2120",
+        "per_step.npz": "781699ffe8445b4b57895513962443041c40cbeddf4efaa99464f2e151e745bc",
+        "per_task.npz": "e6dd6589d82dd609cb24ae5b27bb0b1eac2c5cf98eee2f1fe77db5ec529dfbee"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "causal_round_robin",
+      "steps": 10800,
+      "offered": 1740970,
+      "admitted": 1667559,
+      "successes": 1530919,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_01_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "680df9b47a9fd8b83369391048a1b8f63e136717f39e5b6c904d9cfb4fd8cb0f",
+      "output_sha256": {
+        "summary.json": "d29834113dd498c031cf1af7347accd9ad95e4e7518b90b2294e46b85000e714",
+        "per_step.npz": "569dcebeeedc21c472475d21be34d84b340548207408c81c0d846814f919f7ac",
+        "per_task.npz": "b3d3bf750193c7d889e9db1b0003552e40cc80596e00170bf70909189366ac68"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "ingress_dla",
+      "steps": 10800,
+      "offered": 1741855,
+      "admitted": 1565474,
+      "successes": 1438365,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_02_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "bbfe1117f63a83515227d108882829cbe5b4c1a95fb7d28a590bf22c5786d928",
+      "output_sha256": {
+        "summary.json": "c2388c9a6d3642255b5f051ea659e025c2d95342ffbc0e68601e6bdb829ca5d4",
+        "per_step.npz": "06dc750d6d027373cb56c4bfd53ae9b8d059eee25209ec6255d5b04ce9afd9b1",
+        "per_task.npz": "42cd455ae76f9694f9ece49ba0d0e26d8298a621bf69c6ce00496bbb9f6fdafd"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "dla",
+      "steps": 10800,
+      "offered": 1741855,
+      "admitted": 1487822,
+      "successes": 1366432,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_02_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "529a9d7514b778e961bebe6af61de4e93d59d3aa3c673858016148a2ebeb7855",
+      "output_sha256": {
+        "summary.json": "0acc8ebe5c9d40958dd2dabb39490baeb908cb41116e41be40d3a5bc1478e557",
+        "per_step.npz": "6684ceb165307d8ee87f3d39b0c0aa425d4eb9840ca1a96c48b2dcd5ffff8db4",
+        "per_task.npz": "0726fffd7d766ebf7d3337d0b0439c5c5858a7cfb800d4446d17ba0c025c51b8"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "per_task_dla",
+      "steps": 10800,
+      "offered": 1741855,
+      "admitted": 1661207,
+      "successes": 1516187,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_02_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b0441a567b6dd362aa96924bac5a343fdc4b15f3a603cbf55c611defa484ce04",
+      "output_sha256": {
+        "summary.json": "7d5f14b10734409a3246669e11a6c7f2a7c3813dc3aeaa639b28e3917ee3860b",
+        "per_step.npz": "ff247bf85b788ecaf5c80c307a94cd544846ad2475f3ef1f4a0f9f44299d6be3",
+        "per_task.npz": "b7e1f83b62a7c836bd07020da70575570511550ba0a39d591b952b257d82b7ad"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "causal_round_robin",
+      "steps": 10800,
+      "offered": 1741855,
+      "admitted": 1639322,
+      "successes": 1501980,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_02_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3e48a8ff2b01855551b9bef2c9336719002376b8c818930a71429e57eb48b18c",
+      "output_sha256": {
+        "summary.json": "4f6c5910ae99c1c7749508fb0c4c669b31574bb58c7f8285ebe4e299100bba89",
+        "per_step.npz": "e02a9307de324f5e90da6c8ef2810e1d8fc72d2a9140d5984632b838a9960e5c",
+        "per_task.npz": "df6ac0a1a46a1f6f098a512fd4c2b933ab167851f0e9e5383c5584e5d10baeee"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "ingress_dla",
+      "steps": 10800,
+      "offered": 1744227,
+      "admitted": 1618861,
+      "successes": 1499534,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "317d344137bf74fc1569f0c201977d4aadf7233c798d2bc8712035f000fd086c",
+      "output_sha256": {
+        "summary.json": "9811b85921afec0c14d49488a091eb2f104a30a4edf7ab2e899802dbd877abd0",
+        "per_step.npz": "804dca60fbac4cd1c1f6f96ef84a3064225cedaff7db6a09ddcffab565c9cbf8",
+        "per_task.npz": "37d7d3d1c72b8003afde15993bcb85a04173143465a86af1d9363177e3bb61ec"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "dla",
+      "steps": 10800,
+      "offered": 1744227,
+      "admitted": 1560806,
+      "successes": 1446894,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_03_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2d980808fe9e142e8625b8826f4eb5ea29fb8c17c0247eb2a08e5da690bfeee9",
+      "output_sha256": {
+        "summary.json": "e5b6616ddaa5b8e2cc39da0446877e7e8d69ce17ce5190092134692c49a1ede0",
+        "per_step.npz": "8bcb819c0b7699d6e81180dc0d1133122c70abe756740d213e503dd8c856820d",
+        "per_task.npz": "e09017958118d989f8bca4bc4ddbd5df18e934ef334acbd27decbeccfa8ebdf3"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "per_task_dla",
+      "steps": 10800,
+      "offered": 1744227,
+      "admitted": 1707571,
+      "successes": 1573341,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_03_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "5f0ada1526f4077f21b614d3b24d54699cfbe8b933a8a6319d29893ecb09eddf",
+      "output_sha256": {
+        "summary.json": "8df178471be3f5e6a1c1ddb73a168f96c26a35a8e51216f7233a51fc783fbb5e",
+        "per_step.npz": "58f78c9ed19f6f0c23e2c816babec47761a0c55c43276390c85c35147ce14d1d",
+        "per_task.npz": "ffdd6ea83a28a5a748b07b7e4f468929b5c5e85db23365f0b2c4cf82fe75601b"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    },
+    {
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "causal_round_robin",
+      "steps": 10800,
+      "offered": 1744227,
+      "admitted": 1685631,
+      "successes": 1558388,
+      "receipt_path": "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/block_03_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e843e65ad6407d77452b3e6010cf97c9bbc5dbc1e76ae0d622e167d3cdd07a09",
+      "output_sha256": {
+        "summary.json": "0ba33d72024759b6e7dc9b880a54c9c4297876c81d51f779710fde2634300cb4",
+        "per_step.npz": "956435a5c8a8dcb6dfa0e935622d9ae2cc4b6a5c70c5c1e0ea27314c1d58846f",
+        "per_task.npz": "5856b4ca737ae3dd100adc32cf3ba340d85b6d2eecf9d83e70c344fb376329b2"
+      },
+      "rsu_service_activation": "exactly doubled in raw float32 arrays",
+      "local_service": "raw arrays exactly unchanged",
+      "shared_input_fields_checked": 14
+    }
+  ],
+  "block_receipt_sha256": {
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/BLOCK_00.json": "23c35902a8d45e6a44e632967af3a772c33af8cf4d96cf94078b3296d04bcfdc",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/BLOCK_01.json": "130926afaa31ec4c9ea1a9345b21a496daa52c3bb361a90b9e39bdba58f47455",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/BLOCK_02.json": "bfb5374a5ab565e179e38e67378f0432436be7490a816711b2d2f13dafb6e9d9",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-followups-raw-2026-09-15/08_half_speed/BLOCK_03.json": "75157ee445adacff9766cc31f4ebb59f07330629daf829b1b99187dff0a48475"
+  },
+  "hypothesis_contrasts_calculated": false,
+  "scientific_workloads_launched": 0,
+  "elapsed_s": 24.910057332999713
+}

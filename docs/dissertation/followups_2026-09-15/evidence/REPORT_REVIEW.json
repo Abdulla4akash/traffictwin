@@ -1,0 +1,54 @@
+{
+  "verdict": "PASS",
+  "reviewer": "/root/p2c_data_audit",
+  "reviewed_at": "2026-09-15T20:30:44.230044+00:00",
+  "scope": "Fresh bounded read-only report review; no raw-array reread or new simulation.",
+  "source_commit": "5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
+  "reviewed_files_sha256": {
+    "FINDINGS.md": "c78cfe8ffadff3700603c73c2ba948fbda51d987164cc14300166efada87859e",
+    "README.md": "596e0984d124514c3f75f817117b487aaeccf64f130d7daf3bea047c3c635b62",
+    "RESULTS.md": "3573b179a21188cfff5adaa4b0ed9c407b26f76cef4154ddb9415eace7465dbb"
+  },
+  "supporting_files_sha256": {
+    "ANALYSIS.json": "a71008f741b06aee5601dd8fc774242b72d890d928dc547452db0b227222c5d3",
+    "PROTOCOL.md": "68283ca97c24edadb31b177c0fd4b47b9a86b55eed1bd0ddf33e9ac95388ef52",
+    "PACKET_MANIFEST.json": "008c49b20b1a52124c6aff5ffbfd0d4ea5052354df36ad2758859909db90c709",
+    "evidence/TIMINGS.json": "fbb8d69d17b77702eaf8695c8ee893bdc4449cbcaeaa8fd6417bfae59a6c5dd6",
+    "evidence/FINAL_ANALYSIS_AUDIT.json": "80eadc477b9803d63cf997c3ff096c3c962a080f9ffec3fe4615cfe9e4716c16",
+    "evidence/DATA_AUDIT_07.json": "4bdb19f33976b71ac8dd98d515fc7d573141088c8f49fc9e076a3cd14b4f8453",
+    "evidence/DATA_AUDIT_08_BLOCKS_0_3.json": "4413837ba0b9de0dbbafe14cecf217d2a33f62a181b01234cbda26ff891fefb5",
+    "evidence/DATA_AUDIT_08_BLOCKS_4_7.json": "738faefcdacbb9e27a870496354619ff2d4d513721e5514d3e56d666c1412faf",
+    "evidence/DATA_AUDIT_09.json": "b6f686e503b39a045d6f7efa26b0520497416c53bb05501e85deafe9178ce368"
+  },
+  "checks": [
+    "All13 RESULTS means and all10 effect/interval rows round correctly from exact ANALYSIS.json.",
+    "All FINDINGS effects, intervals, attainment values and runtime claims round correctly, including corrected actor/RR lower endpoint +0.432.",
+    "Timing is elapsed full execution/validation: 26.9,107.5,100.6 minutes; total3h55m; preparation/qualification/final analysis/audits/reporting explicitly excluded.",
+    "Counts72 new/32 reused,10800 steps,8 blocks,104 rows,80 effects and30 interval sets agree with completion and audit records.",
+    "Family-of-ten Student-t uncertainty uses df7; zero-crossing P2C/RR result remains inconclusive without equivalence claim.",
+    "Positive per-task and negative common-target comparisons and directly tested half-speed gap increase support the bounded hypotheses/RQ discussion.",
+    "RQ1/RQ2/RQ3 checked against current dissertation; latest proposed RQ2 confines cyclic/sampled comparisons to baseline and distinguishes service/actor extensions.",
+    "Native P2C sampling with replacement and substep snapshot differ from causal per-task reservation visibility; no pure sampling ablation is claimed.",
+    "Same training seed100, two distributions/checkpoints, single trace, reused eight blocks and separate sensitivity conditions are disclosed; no independent actor-seed or combined condition claim.",
+    "DATA_AUDIT_09 proves positive changed task-bearing vehicle-second counts in all32 actor cells and preservation of all14 exogenous fields and service work.",
+    "All72 new cells covered by passed raw audits; no failed/retried/excluded full attempts in delivered metadata.",
+    "All720 manifest copies verified against recorded size and SHA-256; README count and compact/raw distinction are correct."
+  ],
+  "actor_task_bearing_decision_change": {
+    "cells_with_positive_changes": 32,
+    "minimum_per_cell": 77290,
+    "maximum_per_cell": 90201,
+    "counts_per_block_each_arm": [
+      85748,
+      79739,
+      77290,
+      85148,
+      85327,
+      90201,
+      88305,
+      82228
+    ]
+  },
+  "corrections_required": [],
+  "qualification": "ZIP composition is handled by the controller after this review; this receipt reviews the delivered folder/report claims and compact-copy manifest."
+}

@@ -1,0 +1,6 @@
+{
+  "verdict": "REQUEST_CHANGES",
+  "source_commit": "14259d7f26ee852de6139fef9c1ea361132c75d6",
+  "reviewer": "/root/source_review",
+  "finding": "Execution sealing failed to enforce qualification-bound baseline and qualification-seal hashes. Reproduced on temporary copies; no real data changed."
+}

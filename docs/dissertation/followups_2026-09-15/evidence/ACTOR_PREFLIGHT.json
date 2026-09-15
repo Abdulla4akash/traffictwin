@@ -1,0 +1,30 @@
+{
+  "status": "static_preflight_passed",
+  "selection_before_new_outcomes": true,
+  "checkpoint": "/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim_ukfleet2030__envs128__lr3e-3__seed100_actor_params.npz",
+  "sha256": "b3eca1685245c59d1a3e86bd11ede887300bda1b00ba211a1913e467ad3f5183",
+  "architecture": [
+    17,
+    64,
+    64,
+    3
+  ],
+  "dtype": "float32",
+  "both_training_seed": 100,
+  "training_record": "/Users/akashx/Downloads/diss_mat/tos-data-full/records/TRAINING_ukfleettrain_mappo.md",
+  "training_record_sha256": "901b1558d56e8614a305dcd11a355e10267dbfd6f46c4a20c2f345701b37d677",
+  "original_training_tier_probabilities": [
+    0.7,
+    0.25,
+    0.05
+  ],
+  "uk_training_tier_probabilities": [
+    0.4,
+    0.35,
+    0.25
+  ],
+  "original_training_ev_probability": 0.3,
+  "uk_training_ev_probability": 0.22,
+  "scope": "training-fleet-distribution sensitivity, not independent training-seed replication",
+  "preflight_reviewer": "/root/actor_preflight"
+}

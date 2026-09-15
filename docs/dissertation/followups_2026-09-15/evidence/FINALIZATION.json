@@ -1,0 +1,80 @@
+{
+  "status": "passed",
+  "finished_at": "2026-09-15T20:23:09.308400+00:00",
+  "phases": [
+    {
+      "phase": "half_speed_remaining_raw_audit",
+      "started_at": "2026-09-15T18:41:33.037646+00:00",
+      "finished_at": "2026-09-15T18:41:59.535809+00:00",
+      "command": [
+        "nice",
+        "-n",
+        "15",
+        "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+        "-u",
+        "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/audit_half.py",
+        "--blocks",
+        "4",
+        "5",
+        "6",
+        "7",
+        "--output",
+        "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/DATA_AUDIT_08_BLOCKS_4_7.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "phase": "second_actor_raw_audit",
+      "started_at": "2026-09-15T20:22:22.667674+00:00",
+      "finished_at": "2026-09-15T20:22:53.396417+00:00",
+      "command": [
+        "nice",
+        "-n",
+        "15",
+        "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+        "-u",
+        "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/audit_actor.py",
+        "--blocks",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "--output",
+        "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/DATA_AUDIT_09.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "phase": "sealed_analysis",
+      "started_at": "2026-09-15T20:22:53.396498+00:00",
+      "finished_at": "2026-09-15T20:23:08.827292+00:00",
+      "command": [
+        "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+        "-u",
+        "analyse.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "phase": "independent_arithmetic",
+      "started_at": "2026-09-15T20:23:08.827436+00:00",
+      "finished_at": "2026-09-15T20:23:09.304017+00:00",
+      "command": [
+        "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+        "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/audit_arithmetic.py"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "audit_sources": {
+    "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/audit_half.py": "6a33fb24784bba543a841d7b962477a64066efb5e21cc6459ef7617cd2bc99cb",
+    "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/audit_actor.py": "0888d32cabd9925c041da0f8dfc04f5ba7567e2cb120ca0e45931e3e14786cbe",
+    "/Users/akashx/scratch/traffictwin-followups-guarded-2026-09-15/docs/dissertation/followups_2026-09-15/evidence/audit_arithmetic.py": "e5711fcbf38893640582fd14cc8c0f89465b15f13ecdf48475a935d462314773"
+  },
+  "analysis_sha256": "a71008f741b06aee5601dd8fc774242b72d890d928dc547452db0b227222c5d3",
+  "arithmetic_audit_sha256": "80eadc477b9803d63cf997c3ff096c3c962a080f9ffec3fe4615cfe9e4716c16"
+}
