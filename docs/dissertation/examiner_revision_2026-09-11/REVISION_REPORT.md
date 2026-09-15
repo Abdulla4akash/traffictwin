@@ -1,5 +1,19 @@
 # Revision record — TrafficTwin examiner revision
 
+## Project title restored — 15 September 2026; input `10ca7f2`
+
+The owner chose **Dynamic Resource Management for Intelligent Transport Systems**, with no subtitle. Only the first Markdown heading changes. The converter gives the cover title a centered box for two balanced lines. The report retains TrafficTwin as its software name.
+
+All remaining manuscript bytes are identical to `10ca7f29bafbe70b92d8a917684a61af3b11e65f`. Counts remain **8,914 strict / 7,714 prose-only**, and the PDF remains **62 pages**. Pages 2–62 render pixel-identically to the previous PDF; the rebuilt cover was visually inspected. Both validators pass: **140 combined checks / 95 preservation checks**. The title exception is explicit and recovers the prior manuscript SHA256 before applying every existing preservation guard. No scientific or frozen-package change.
+
+Current identities:
+
+- Markdown SHA256: `1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8`.
+- TeX SHA256: `994589cfff2083899bf9676545c76ee14982d3e906dc6587477dd4405f42529c`.
+- PDF SHA256: `50149c8f3bbab38c46e7484e93ececc6fe7942601f788ebd9fd83650fe8099ba`.
+
+[Title receipt](evidence/TITLE_REVISION_2026-09-15.json) and [build log](evidence/latexmk-title-revision-2026-09-15.log) supersede earlier artifact identities. The historical closing receipts, maps and reviews below remain unchanged. Ruff lint/format passes; the PR remains draft. Exact-SHA independent review is recorded in the PR body after push.
+
 ## Option B closing revision — 15 September 2026
 
 **Closing contract passes: 8,914 strict/package words and 7,714 prose-only words.** The source started at `2c29392cbf04bf060aacb0f03f1fbb900842d54a`. The strict count is 36 below the requested 8,950 ceiling; prose-only is 114 above 7,600. This closes the count defect in the earlier Option B stop report.

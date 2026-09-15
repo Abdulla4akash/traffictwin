@@ -129,7 +129,10 @@
     "close_stakes_name_both_requirement_classes": true,
     "close_ethics_outcome_attributed_and_cited": true,
     "close_prior_moves_still_verbatim_in_current_appendices": true,
+    "title_matches_original_project_name": true,
+    "title_revision_preserves_all_other_manuscript_bytes": true,
     "manuscript_links_resolve": true,
+    "pdf_cover_has_requested_project_title": true,
     "no_overfull_boxes": true,
     "no_missing_glyphs": true,
     "no_undefined_references": true,
@@ -151,9 +154,9 @@
   "pages": 62,
   "captions": 28,
   "hashes": {
-    "TrafficTwin_Dissertation.md": "938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3",
-    "TrafficTwin_Dissertation.tex": "57e2133857491eed28ba1e83da04c2affaacfb95108d26f184de45271bf35f65",
-    "TrafficTwin_Dissertation.pdf": "f42d02333363aad5450210a6df5968dfd7a5a4905ce03fa920fda30aaa7cf429"
+    "TrafficTwin_Dissertation.md": "1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8",
+    "TrafficTwin_Dissertation.tex": "994589cfff2083899bf9676545c76ee14982d3e906dc6587477dd4405f42529c",
+    "TrafficTwin_Dissertation.pdf": "50149c8f3bbab38c46e7484e93ececc6fe7942601f788ebd9fd83650fe8099ba"
   },
   "ending_audit": {
     "method": "Lexical screen of final prose sentence; not semantic grading",

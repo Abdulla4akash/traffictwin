@@ -1,7 +1,7 @@
 {
-  "source_sha256": "938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3",
-  "markdown_sha256": "938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3",
-  "tex_sha256": "57e2133857491eed28ba1e83da04c2affaacfb95108d26f184de45271bf35f65",
+  "source_sha256": "1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8",
+  "markdown_sha256": "1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8",
+  "tex_sha256": "994589cfff2083899bf9676545c76ee14982d3e906dc6587477dd4405f42529c",
   "links_rebased": {
     "CLAIM_SOURCE_MAP.md": "CLAIM_SOURCE_MAP.md",
     "../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/README.md": "../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/README.md",
@@ -86,8 +86,8 @@
     {
       "id": 0,
       "kind": "title",
-      "source": "TrafficTwin: Admission and Dispatch Semantics in Vehicular Edge Computing under a Frozen MAPPO Policy",
-      "latex": "TrafficTwin: Admission and Dispatch Semantics in Vehicular Edge Computing under a Frozen MAPPO Policy"
+      "source": "Dynamic Resource Management for Intelligent Transport Systems",
+      "latex": "Dynamic Resource Management for Intelligent Transport Systems"
     },
     {
       "id": 2,

@@ -1,4 +1,6 @@
-# TrafficTwin — examiner revision, Option B closed, 15 September 2026
+# Dynamic Resource Management for Intelligent Transport Systems
+
+**Title updated to the original project name, with no subtitle.** [Title change and build identity](evidence/TITLE_REVISION_2026-09-15.json).
 
 **Closing revision passes: 8,914 strict/package words / 7,714 prose-only words; 62-page PDF.** The count meets ≤8,950 and ≥7,600 respectively. The draft PR remains open for review. Existing [submission gates](SUBMISSION_GATES.md) remain separate.
 
@@ -21,7 +23,7 @@ The research/product source base remains `1e01b755b8b633f43c9c7bb6fdd0d75beb6469
 
 The contents page prints strict first. The package method includes Abstract, main headings/body, table text, equations and pseudocode; it excludes captions, references, appendices and front matter. Prose-only additionally excludes table bodies and pseudocode. [WORD_COUNT.json](document/WORD_COUNT.json) records both.
 
-- `validate_revision.py`: **137/137 passed**; `validate_option_b.py`: **93/93 preservation guards passed**.
+- `validate_revision.py`: **140/140 passed**; `validate_option_b.py`: **95/95 preservation guards passed**.
 - Section 1.2 byte-identical to `9b49efc`; Sections 3.2–3.6 byte-identical to `2c29392`.
 - All twenty pre-closing table bodies preserved; Table 9 → A1, earlier Table 8 → D2. All equations, algorithms and the proposition unchanged.
 - [Eleven mutation probes](evidence/OPTION_B_CLOSE_MUTATION_CHECKS.json) detect concrete preservation failures.
@@ -36,9 +38,9 @@ The owner confirms completing the UoM Ethics Decision Tool and that approval is 
 
 ## SHA256
 
-- TrafficTwin_Dissertation.md: `938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3`
-- TrafficTwin_Dissertation.tex: `57e2133857491eed28ba1e83da04c2affaacfb95108d26f184de45271bf35f65`
-- TrafficTwin_Dissertation.pdf: `f42d02333363aad5450210a6df5968dfd7a5a4905ce03fa920fda30aaa7cf429`
+- TrafficTwin_Dissertation.md: `1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8`
+- TrafficTwin_Dissertation.tex: `994589cfff2083899bf9676545c76ee14982d3e906dc6587477dd4405f42529c`
+- TrafficTwin_Dissertation.pdf: `50149c8f3bbab38c46e7484e93ececc6fe7942601f788ebd9fd83650fe8099ba`
 
 ## Build and check
 
@@ -56,7 +58,7 @@ ruff check "$pkg_dir/document"
 ruff format --check "$pkg_dir/document"
 ```
 
-[Build log](evidence/latexmk-option-b-close-2026-09-15.log) · [grep table](evidence/OPTION_B_CLOSE_GREP.json) · [closing operation ledger](evidence/OPTION_B_CLOSE_OPERATIONS.json) · [acceptance](evidence/OPTION_B_CLOSE_ACCEPTANCE.json). The original `revision_recipe.json` is historical; ordinary builds use current Markdown.
+[Current build log](evidence/latexmk-title-revision-2026-09-15.log) · [grep table](evidence/OPTION_B_CLOSE_GREP.json) · [closing operation ledger](evidence/OPTION_B_CLOSE_OPERATIONS.json) · [acceptance](evidence/OPTION_B_CLOSE_ACCEPTANCE.json). The original `revision_recipe.json` is historical; ordinary builds use current Markdown.
 
 ## Existing boundaries
 

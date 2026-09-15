@@ -1,4 +1,4 @@
-# TrafficTwin: Admission and Dispatch Semantics in Vehicular Edge Computing under a Frozen MAPPO Policy
+# Dynamic Resource Management for Intelligent Transport Systems
 
 S M Abdulla Al Mamun  
 The University of Manchester  

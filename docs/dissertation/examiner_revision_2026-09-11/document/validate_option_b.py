@@ -15,6 +15,12 @@ BASELINE_SHA256 = "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086
 CLOSE_BASELINE = "2c29392cbf04bf060aacb0f03f1fbb900842d54a"
 CLOSE_BASELINE_SHA256 = "307862fcc37558df585b0e867a0766aa3616cd810ee0595df398dd3ffaf0cf89"
 CLOSE_LEDGER_SHA256 = "75fda6f1fcac0fe9f38d8df150cfd4b62619a10bedf11c04f6bf46c7a9cfb65d"
+PROJECT_TITLE = "Dynamic Resource Management for Intelligent Transport Systems"
+PREVIOUS_TITLE = (
+    "TrafficTwin: Admission and Dispatch Semantics in Vehicular Edge Computing "
+    "under a Frozen MAPPO Policy"
+)
+PRE_TITLE_MARKDOWN_SHA256 = "938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3"
 
 
 def section(text: str, number: str) -> str:
@@ -103,6 +109,14 @@ def check_closing_moves(
 def check_option_b(
     root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
 ) -> dict[str, bool]:
+    # The owner authorised only the first-line title change after 10ca7f2.
+    requested_heading = "# " + PROJECT_TITLE + "\n"
+    title_checks = {"title_matches_original_project_name": revised.startswith(requested_heading)}
+    if revised.startswith(requested_heading):
+        revised = "# " + PREVIOUS_TITLE + "\n" + revised[len(requested_heading) :]
+    title_checks["title_revision_preserves_all_other_manuscript_bytes"] = (
+        hashlib.sha256(revised.encode()).hexdigest() == PRE_TITLE_MARKDOWN_SHA256
+    )
     revised, closing_checks = check_closing_moves(root, here, revised, table_parser)
     baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
         ["/usr/bin/git", "show", f"{BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
@@ -208,6 +222,7 @@ def check_option_b(
         name.startswith(PACKAGE + "/") for name in changed
     )
     checks.update(closing_checks)
+    checks.update(title_checks)
     return checks
 
 

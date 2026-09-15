@@ -401,7 +401,7 @@ preamble = r"""% Additive source-synchronised revision. Build and inspection rec
 \thispagestyle{empty}
 \begin{center}
 \vspace*{12mm}
-{\Large\bfseries TITLE\par}
+\parbox{0.72\textwidth}{\centering\Large\bfseries TITLE\par}\par
 \vspace{18mm}
 {\large S M Abdulla Al Mamun\par}
 \vspace{12mm}

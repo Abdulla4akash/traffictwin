@@ -9,7 +9,7 @@ from pathlib import Path
 
 import fitz
 from markdown_it import MarkdownIt
-from validate_option_b import check_option_b
+from validate_option_b import PROJECT_TITLE, check_option_b
 
 HERE = Path(__file__).resolve().parents[1]
 ROOT = HERE.parents[2]
@@ -136,6 +136,9 @@ def main() -> None:
                 missing.append(target)
     checks["manuscript_links_resolve"] = not missing
     pdf = fitz.open(HERE / "TrafficTwin_Dissertation.pdf")
+    checks["pdf_cover_has_requested_project_title"] = PROJECT_TITLE in " ".join(
+        pdf[0].get_text().split()
+    )
     pdftext = "\n".join(page.get_text() for page in pdf)
     log = (HERE / "TrafficTwin_Dissertation.log").read_text(errors="replace")
     checks["no_overfull_boxes"] = "Overfull \\" not in log
