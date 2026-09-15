@@ -33,7 +33,7 @@ The converter prints the prose-only count first under the contents: Abstract and
 
 ## What remains outside automated completion
 
-I confirmed my design decisions, AI-assisted implementation and personal modifications, and completion of all eight author checks on 15 September 2026. AI-use permission, examiner access, award/student details, signature and prescribed declaration/copyright wording remain open. A morning RSU coordinate figure is authenticated; an incident street/layout figure is not fabricated. The bibliography contains 25 entries, but registration metadata for the two additional Fan papers is not a full-text methodological review.
+I confirmed my design decisions, AI-assisted implementation and personal modifications, and completion of all eight author checks on 15 September 2026. AI-use permission, examiner access, award/student details, signature and prescribed declaration/copyright wording remain open. A morning RSU coordinate figure is authenticated; an incident street/layout figure is not fabricated. The bibliography contains 41 entries. The 15 newly added DOI references have Crossref metadata checks, and JAX has an official software citation. I still need to read each new paper’s abstract and cited section by eye and verify the software version before submission. The two Fan papers retain bibliographic verification only; full-text reading is not claimed.
 
 The [video materials](video/RECORDING_PLAN.md) and copy-only preservation script support the remaining tasks; neither means the assessed video or an off-machine backup exists. The original raw folder must remain intact. No merge or independent approval is implied by this package.
 
@@ -48,20 +48,26 @@ The requested C.10 failure classification was corrected from the hosted log: onl
 
 ### Build identity and acceptance
 
-- Headline prose-only: **7,853 words** (Abstract and main text; table bodies, pseudocode, captions, references, appendices and front matter excluded).
-- Package method: **9,156 words** (same boundaries, with table text and pseudocode included).
-- XeLaTeX: **56 pages**, 38 document checks passed; zero overfull boxes, missing glyphs and unresolved references.
-- All 56 pages rendered and inspected by the editing assistant; this is not independent review.
+- Headline prose-only: **7,877 words** (Abstract and main text; table bodies, pseudocode, captions, references, appendices and front matter excluded).
+- Package method: **9,180 words** (same boundaries, with table text and pseudocode included).
+- XeLaTeX: **58 pages**, 40 document checks passed; zero overfull boxes, missing glyphs and unresolved references.
+- All 58 pages rendered and inspected by the editing assistant; this is not independent review.
 - Local compact verifier: 32 cells / eight blocks passed; no evaluator or raw-task reanalysis.
 - Frozen archive gate: 938 files across eight roots passed; protected-path diff against `origin/main` is empty. `main` remains `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`.
-- Markdown SHA256: `12c383a7a7bf7637e0f30abe9d38b5b1f4d52624fd621b376d2d1f67001cba24`.
-- TeX SHA256: `172b185f207d7541721ded89ee33fbf33683b9fc8e136a0d24cfbd5b48edb873`.
-- PDF SHA256: `631fb38854fbaee76817ded7f5f32980e98878ec06ea455161aef182798c1519`.
+- Markdown SHA256: `1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086ced`.
+- TeX SHA256: `0d565bc25e7da89e61ea906a948c153e1e75f8f6e030fd15362505d9e920bb43`.
+- PDF SHA256: `cab5d22c85b94693bccfb44f1bf2cc61d91d59d4745bccfd8a671296de0e7cfa`.
 
-See the current [Introduction-balance acceptance results](evidence/INTRO_BALANCE_2026-09-15.json) and [TeX log (trailing whitespace normalised)](evidence/latexmk-intro-balance-2026-09-15.log). Earlier 15 September records remain historical: [authorship-revision acceptance](evidence/ACCEPTANCE_2026-09-15.json), [earlier TeX log](evidence/latexmk-2026-09-15.log), [local compact receipt](evidence/LOCAL_COMPACT_CHECKS_2026-09-15.json) and [archive receipt](evidence/LOCAL_ARCHIVE_CHECK_2026-09-15.json). The original `revision_recipe.json` is the historical 11 September transfer recipe; ordinary builds use the current Markdown directly.
+See the current [citation acceptance results](evidence/CITATIONS_ACCEPTANCE_2026-09-15.json), [reference registration and attachment map](evidence/reference-registration-2026-09-15.json) and [TeX log](evidence/latexmk-citations-2026-09-15.log). Earlier 15 September records remain historical: [Introduction-balance acceptance](evidence/INTRO_BALANCE_2026-09-15.json), [Introduction-balance TeX log](evidence/latexmk-intro-balance-2026-09-15.log), [authorship-revision acceptance](evidence/ACCEPTANCE_2026-09-15.json), [earlier TeX log](evidence/latexmk-2026-09-15.log), [local compact receipt](evidence/LOCAL_COMPACT_CHECKS_2026-09-15.json) and [archive receipt](evidence/LOCAL_ARCHIVE_CHECK_2026-09-15.json). The original `revision_recipe.json` is the historical 11 September transfer recipe; ordinary builds use the current Markdown directly.
 
 ### 15 September Introduction rebalance
 
 The three Section 1.1 definitions are restored from `23d9919`, with only two first-person decision changes. Section 1.2 is restored with exactly the requested removal of its opening provenance sentence and addition of the unevaluated two-choice sentence; its exact diff is in PR #142. Only the new stakes passage in 1.1 and the four-paragraph reflection in 4.4 were shortened. No manuscript text outside 1.1, 1.2 and 4.4 changed in this follow-up, and every table row and caption is identical to input head `62e26f6`.
 
 The contents page now leads with the prose-only count, and the validator applies the requested dual count limits. Item 1 of my author confirmation now uses first-person wording. The Markdown was regenerated to TeX, compiled, validated and rendered on this Mac; the current identity is listed above. No scientific campaign or new full-suite run was performed.
+
+### 15 September citation attachments
+
+Added the 15 listed DOI references and JAX at the twelve requested attachment points (thirteen locations because Nosek is cited twice). The owner confirmed **41 total references**; the optional 3GPP standard was omitted because no version was supplied. Every new DOI resolves to its intended Crossref record and occurs on exactly one bibliography line in the generated TeX. Entries are numbered by first appearance, including the five existing literature labels in Table 1. Its comparison wording and all scientific numbers remain unchanged.
+
+The only prose addition is the authorised DRL context clause. The new [registration receipt](evidence/reference-registration-2026-09-15.json) records exact attachment sentences, metadata and reading boundaries. Liu's survey uses its final 2021 issue year, with the 2020 online date recorded. No owner reading or full-text review is claimed. The current counts, hashes and 58-page/40-check build identity are listed above.

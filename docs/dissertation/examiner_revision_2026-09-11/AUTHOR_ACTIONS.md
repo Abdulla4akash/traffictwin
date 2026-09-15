@@ -31,3 +31,7 @@
   spreading, and what remains conditional on this trace, actor and evaluator.
 
 These confirmations record my statement; automated validation does not constitute supervisor approval. Award wording, student ID, signature, prescribed University copyright text and video recording remain open in SUBMISSION_GATES.md.
+
+## New reference checks before submission — 15 September 2026
+
+The 16 added references are listed with their attachment points in [the registration receipt](evidence/reference-registration-2026-09-15.json). I still need to read at least each paper's abstract and cited section by eye and verify the JAX software citation/version before submission. The assistant checked Crossref metadata for the 15 DOI entries and the official JAX citation; these checks do not record my reading or a full-text review. The optional 3GPP standard was omitted because no version was specified. The earlier eight completed defence exercises remain a separate confirmation.

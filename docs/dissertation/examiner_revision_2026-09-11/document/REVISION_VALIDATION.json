@@ -28,7 +28,9 @@
     "preserved_svg_task_accounting": true,
     "three_research_questions": true,
     "no_rq4": true,
-    "twenty_five_references": true,
+    "forty_one_references": true,
+    "references_numbered_by_first_appearance": true,
+    "every_reference_cited": true,
     "every_caption_has_reading": true,
     "unique_caption_readings": true,
     "no_editorial_ownership_placeholders_in_body": true,
@@ -42,19 +44,19 @@
   },
   "passed": true,
   "missing_links": [],
-  "words": 9156,
-  "prose_only_words": 7853,
+  "words": 9180,
+  "prose_only_words": 7877,
   "author_confirmation": {
     "date": "2026-09-15",
     "source": "AUTHOR_ACTIONS.md",
     "status": "owner-confirmed; not independently certified by automation"
   },
-  "pages": 56,
+  "pages": 58,
   "captions": 27,
   "hashes": {
-    "TrafficTwin_Dissertation.md": "12c383a7a7bf7637e0f30abe9d38b5b1f4d52624fd621b376d2d1f67001cba24",
-    "TrafficTwin_Dissertation.tex": "172b185f207d7541721ded89ee33fbf33683b9fc8e136a0d24cfbd5b48edb873",
-    "TrafficTwin_Dissertation.pdf": "631fb38854fbaee76817ded7f5f32980e98878ec06ea455161aef182798c1519"
+    "TrafficTwin_Dissertation.md": "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086ced",
+    "TrafficTwin_Dissertation.tex": "0d565bc25e7da89e61ea906a948c153e1e75f8f6e030fd15362505d9e920bb43",
+    "TrafficTwin_Dissertation.pdf": "cab5d22c85b94693bccfb44f1bf2cc61d91d59d4745bccfd8a671296de0e7cfa"
   },
   "ending_audit": {
     "method": "Lexical screen of final prose sentence; not semantic grading",
@@ -69,6 +71,7 @@
     "off-machine raw backup",
     "recorded assessed video",
     "full-text review of both newly cited Fan papers",
+    "owner reading of the added papers and JAX citation/version verification",
     "independent exact-SHA review",
     "full regression-suite pass"
   ]

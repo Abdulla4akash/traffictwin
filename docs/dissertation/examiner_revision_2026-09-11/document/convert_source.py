@@ -808,7 +808,7 @@ while i < len(tokens):
         i += 1
         continue
     raise ValueError(("unexpected block", i, t.type, t.content))
-assert bibnums == [str(i) for i in range(1, 26)]
+assert bibnums == [str(i) for i in range(1, 42)]
 counted = []
 prose_counted = []
 for block in blocks:

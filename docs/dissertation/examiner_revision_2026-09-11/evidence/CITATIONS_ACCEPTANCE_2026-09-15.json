@@ -1,0 +1,163 @@
+{
+  "date": "2026-09-15",
+  "task": "Verified citation attachments",
+  "input_head": "582f84c5a24023eb6aecbd6a91e17beae82451fb",
+  "reference_count": 41,
+  "crossref_verified_doi_entries": 15,
+  "software_entries_added": 1,
+  "optional_standard_included": false,
+  "attachment_points": 12,
+  "attachment_locations": 13,
+  "every_requested_sentence_attachment_passed": true,
+  "reference_numbering_by_first_appearance": true,
+  "all_existing_bibliographic_entries_preserved": true,
+  "source_scope_check": "Byte-exact reconstruction of input after removing new citations and the authorised DRL clause, reversing renumbering and restoring Table 1 citation labels",
+  "all_scientific_numbers_unchanged": true,
+  "table_count": 19,
+  "table_1_changes": "Only the five literature citation labels; exact protection guard passes",
+  "all_27_captions_unchanged": true,
+  "duplicate_reading_captions": 0,
+  "word_count": {
+    "words": 9180,
+    "prose_only_words": 7877,
+    "headline_words": 7877,
+    "headline_method": "prose_only",
+    "acceptance_bounds": {
+      "prose_only_min": 7600,
+      "prose_only_max": 8400,
+      "package_max": 9300
+    },
+    "prose_only_method": "Same tokenisation and boundaries as package method; additionally excludes table bodies and pseudocode",
+    "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded"
+  },
+  "validation_checks_passed": 40,
+  "pages": 58,
+  "overfull_boxes": 0,
+  "missing_glyphs": 0,
+  "unresolved_references": 0,
+  "visual_qa": {
+    "pages_rendered_and_inspected": 58,
+    "method": "Poppler renders inspected by the editing assistant",
+    "observed_defects": [],
+    "independent_review": false
+  },
+  "doi_bibliography_grep": [
+    {
+      "doi": "10.1007/s11036-020-01624-1",
+      "reference_number": 1,
+      "tex_line": 1149,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1155/2019/3159762",
+      "reference_number": 2,
+      "tex_line": 1153,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1145/321738.321743",
+      "reference_number": 4,
+      "tex_line": 1161,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1109/MWC.2009.5361174",
+      "reference_number": 5,
+      "tex_line": 1165,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1109/JPROC.2019.2947490",
+      "reference_number": 9,
+      "tex_line": 1181,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1109/TVT.2019.2935450",
+      "reference_number": 10,
+      "tex_line": 1185,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1145/3317572",
+      "reference_number": 11,
+      "tex_line": 1189,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.2307/3213411",
+      "reference_number": 12,
+      "tex_line": 1193,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1017/CBO9781139226424",
+      "reference_number": 13,
+      "tex_line": 1197,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1109/71.963420",
+      "reference_number": 17,
+      "tex_line": 1213,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1137/20M1323746",
+      "reference_number": 19,
+      "tex_line": 1221,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1109/TII.2018.2873186",
+      "reference_number": 28,
+      "tex_line": 1257,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1080/01621459.1961.10482090",
+      "reference_number": 34,
+      "tex_line": 1281,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1073/pnas.1708274114",
+      "reference_number": 33,
+      "tex_line": 1277,
+      "grep_cF_lines": 1
+    },
+    {
+      "doi": "10.1145/103162.103163",
+      "reference_number": 41,
+      "tex_line": 1309,
+      "grep_cF_lines": 1
+    }
+  ],
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086ced",
+    "TrafficTwin_Dissertation.tex": "0d565bc25e7da89e61ea906a948c153e1e75f8f6e030fd15362505d9e920bb43",
+    "TrafficTwin_Dissertation.pdf": "cab5d22c85b94693bccfb44f1bf2cc61d91d59d4745bccfd8a671296de0e7cfa"
+  },
+  "tex_log": {
+    "path": "evidence/latexmk-citations-2026-09-15.log",
+    "raw_sha256": "d927605068a4e0efcb44a81cadb163ebee8ffc72f0b1c0a1fc7e2a7a4e1ad133",
+    "committed_sha256": "ae5c14d273c5c06031ef29a3f8d12020af05fbe374c0dccac23aa352e965d066",
+    "normalisation": "Trailing whitespace only"
+  },
+  "archive_integrity": {
+    "status": "passed",
+    "baseline_commit": "477304f7f988f7d5d5ea5ae21d0e49eed1429e5a",
+    "manifest_sha256": "259675e6958f615124235fbade4cf0be306dbf81c8018580dd106cd84ff2cc3a",
+    "archive_roots": 8,
+    "checked_files": 938,
+    "checked_bytes": 29009151,
+    "failures": [],
+    "scope": "File integrity only; no code execution, raw-array analysis or backup"
+  },
+  "frozen_diff_from_origin_main_empty": true,
+  "main_unchanged": true,
+  "ruff_check": "passed",
+  "ruff_format_check": "passed",
+  "scientific_runs_launched": 0,
+  "owner_reading": "Pending abstract/cited-section review of each new paper and JAX software citation/version check; no full-text review claimed"
+}

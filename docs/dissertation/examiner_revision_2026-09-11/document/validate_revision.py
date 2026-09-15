@@ -62,6 +62,17 @@ def main() -> None:
         "E2": "E2",
     }
     checks = {f"table_{a}_to_{b}_rows_unchanged": before[a] == after[b] for a, b in mapping.items()}
+    # Bibliography renumbering changes only the five literature labels in Table 1.
+    table_1_citations = {"2": "14", "9": "15", "13": "16", "10": "18", "11": "20"}
+    expected_table_1 = [
+        re.sub(
+            r"\[(2|9|13|10|11)\]",
+            lambda m: f"[[{table_1_citations[m[1]]}]](#ref-{table_1_citations[m[1]]})",
+            row,
+        )
+        for row in before["1"]
+    ]
+    checks["table_1_to_1_rows_unchanged"] = after["1"] == expected_table_1
     # Owner-authorised Table 3 disclosure adds only these two unevaluated modes.
     disclosure_rows = [
         "| `p2c` | Per-vehicle two random candidates, least workload | Off | Live |",
@@ -85,7 +96,12 @@ def main() -> None:
         checks[f"preserved_svg_{asset.stem}"] = sha(asset) == sha(HERE / "assets" / asset.name)
     checks["three_research_questions"] = len(re.findall(r"\*\*RQ[123]:", revised)) == 3
     checks["no_rq4"] = "RQ4" not in revised
-    checks["twenty_five_references"] = len(newmap["bibkeys"]) == 25
+    checks["forty_one_references"] = len(newmap["bibkeys"]) == 41
+    cited_order = list(dict.fromkeys(re.findall(r"\[\[\d+\]\]\(#ref-(\d+)\)", revised)))
+    checks["references_numbered_by_first_appearance"] = cited_order == [
+        str(n) for n in range(1, 42)
+    ]
+    checks["every_reference_cited"] = {f"ref{n}" for n in cited_order} == set(newmap["bibkeys"])
     captions = re.findall(r"(?m)^\*(?:Figure|Table) .*", revised)
     checks["every_caption_has_reading"] = all("Reading:" in c for c in captions)
     readings = [c.split("Reading:", 1)[1].strip() for c in captions]
@@ -174,6 +190,7 @@ def main() -> None:
             "off-machine raw backup",
             "recorded assessed video",
             "full-text review of both newly cited Fan papers",
+            "owner reading of the added papers and JAX citation/version verification",
             "independent exact-SHA review",
             "full regression-suite pass",
         ],

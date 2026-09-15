@@ -29,15 +29,15 @@ The findings support a bounded benefit from workload awareness beyond spreading.
 
 ### 1.1 Problem and motivation
 
-Vehicular edge computing concerns where a vehicle's computational tasks should run and whether their results can return before a deadline. A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I). A roadside unit (RSU) combines a radio access point with a simulated computing server in this study. Offloading therefore couples communication conditions with the work already waiting for computation [[1]](#ref-1).
+Vehicular edge computing concerns where a vehicle's computational tasks should run and whether their results can return before a deadline. A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I) [[1]](#ref-1), [[2]](#ref-2). A roadside unit (RSU) combines a radio access point with a simulated computing server in this study. Offloading therefore couples communication conditions with the work already waiting for computation [[3]](#ref-3).
 
-Deadline attainment matters because a computed answer has value only within the time window in which an application can use it. Offloading gives a vehicle access to additional computing resources, but transmission and waiting can consume that window. The mobile-edge literature frames the problem as joint communication and computation management [[1]](#ref-1). I therefore measure timely results over all offered tasks, so successful transmission or selective admission cannot stand in for useful completion.
+Deadline attainment matters because a computed answer has value only within the time window in which an application can use it [[4]](#ref-4). Offloading gives a vehicle access to additional computing resources, but transmission and waiting can consume that window. The mobile-edge literature frames the problem as joint communication and computation management [[3]](#ref-3). I therefore measure timely results over all offered tasks, so successful transmission or selective admission cannot stand in for useful completion.
 
-Mobility makes this harder: radio conditions and the vehicles around an RSU can change while previously admitted work still occupies its server. A good connection at offloading does not establish spare computing service. Research on heterogeneous vehicular edge computing accordingly considers communication and resource allocation together with stringent latency requirements [[18]](#ref-18). This motivates examining infrastructure decisions under fixed vehicle-policy weights.
+Mobility makes this harder: radio conditions and the vehicles around an RSU can change while previously admitted work still occupies its server [[5]](#ref-5). A good connection at offloading does not establish spare computing service. Research on heterogeneous vehicular edge computing accordingly considers communication and resource allocation together with stringent latency requirements [[6]](#ref-6). This motivates examining infrastructure decisions under fixed vehicle-policy weights.
 
 The Manchester scenarios give the comparison a concrete traffic setting. I use saved SUMO working-day and incident-model traces as repeatable inputs, exposing the same scheduling rules to different scenario conditions. These simulated movements do not establish live performance on Manchester roads. An operator must decide whether to retain ingress execution, distribute work or alter admission, accounting for coordination cost and available service.
 
-Research on RSU-to-RSU cooperation [[24]](#ref-24) and task inference across vehicle, RSU and edge resources [[25]](#ref-25) supplies a wider context for execution placement; I do not transfer its performance claims to TrafficTwin.
+Research on RSU-to-RSU cooperation [[7]](#ref-7) and task inference across vehicle, RSU and edge resources [[8]](#ref-8) supplies a wider context for execution placement, as does deep-reinforcement-learning offloading in vehicular edge networks [[9]](#ref-9), [[10]](#ref-10), [[11]](#ref-11); I do not transfer its performance claims to TrafficTwin.
 
 The **ingress RSU** is the roadside unit through which a vehicle reaches the infrastructure. TrafficTwin chooses ingress using the strongest simulated radio link. **Execution placement** is the subsequent choice of server for the task. Keeping execution at ingress avoids logical forwarding, but strong radio quality says nothing about that server's backlog. Assigning the work to another RSU can reduce waiting while introducing a different information and coordination requirement. Figure 1 shows the decision boundary studied here: the vehicle selects an offloading mode, while the infrastructure resolves the execution destination and admission [[S4]](#source-s4).
 
@@ -51,7 +51,7 @@ The programme progressed from accounting and capacity to opposite ingress rankin
 
 *Figure 1. Experimental responsibility boundaries. Only admitted V2I work enters the selected execution queue; logical forwarding applies when ingress and execution differ. Resource scaling is outside the completed comparison [[S11]](#source-s11). Reading: follow the separation between vehicle mode choice, radio ingress and infrastructure execution placement.*
 
-Communication and computation jointly determine whether an offloaded task returns in time [[1]](#ref-1), [[18]](#ref-18).
+Communication and computation jointly determine whether an offloaded task returns in time [[3]](#ref-3), [[6]](#ref-6).
 
 Figure 2 shows the authenticated morning RSU layout in local trace metres, not deployed Manchester equipment. Incident coordinates are absent from the compact evidence and are not invented. Each comparison preserves its scenario's trace and layout (Table 2).
 
@@ -63,15 +63,15 @@ Figure 2 shows the authenticated morning RSU layout in local trace metres, not d
 
 With RL supplying the upstream policy, the closest comparison is parallel-server dispatch: what information estimates waiting time, and when an assignment changes it.
 
-**Queue count and remaining work.** Shortest-queue dispatch compares numbers of jobs; shortest-workload dispatch compares their outstanding service requirements. With heterogeneous task sizes, these orderings can disagree. Harchol-Balter, Crovella and Murta explicitly study dynamic least-work-remaining assignment when service demand is known, alongside random, round-robin and size-based assignment. Their model assumes immediate per-arrival assignment, identical hosts, non-preemptive first-come-first-served service and Poisson arrivals. Their analysis shows that preferred assignment policies depend on task-size variability [[2]](#ref-2). Consequently, neither choosing the least workload nor achieving balanced allocation establishes universal optimality. TrafficTwin's inherited `jsq` name is misleading if read literally: the implemented selector compares service milliseconds, while a separate task count enforces finite admission capacity.
+**Queue count and remaining work.** Shortest-queue dispatch compares numbers of jobs; shortest-workload dispatch compares their outstanding service requirements [[12]](#ref-12), [[13]](#ref-13). With heterogeneous task sizes, these orderings can disagree. Harchol-Balter, Crovella and Murta explicitly study dynamic least-work-remaining assignment when service demand is known, alongside random, round-robin and size-based assignment. Their model assumes immediate per-arrival assignment, identical hosts, non-preemptive first-come-first-served service and Poisson arrivals. Their analysis shows that preferred assignment policies depend on task-size variability [[14]](#ref-14). Consequently, neither choosing the least workload nor achieving balanced allocation establishes universal optimality. TrafficTwin's inherited `jsq` name is misleading if read literally: the implemented selector compares service milliseconds, while a separate task count enforces finite admission capacity.
 
-**Batch decisions and reservations.** Batching does not inherently imply sending a batch to one server. Sparrow pools probes across a parallel job and spreads its tasks over selected workers; late binding queues reservations and assigns tasks when workers become ready. Its discussion identifies both queue-count prediction errors and races between schedulers using apparently idle workers [[9]](#ref-9). This distinguishes two issues that a generic “batch versus per-task” description would conflate: sharing information across candidates can help, whereas committing many assignments against one unchanged destination can concentrate work. TrafficTwin evaluates the latter implementation. Its immediate service-work reservation is also different from Sparrow's worker-triggered task binding: TrafficTwin assumes the necessary information and acknowledgement are already available.
+**Batch decisions and reservations.** Batching does not inherently imply sending a batch to one server. Sparrow pools probes across a parallel job and spreads its tasks over selected workers; late binding queues reservations and assigns tasks when workers become ready. Its discussion identifies both queue-count prediction errors and races between schedulers using apparently idle workers [[15]](#ref-15). This distinguishes two issues that a generic “batch versus per-task” description would conflate: sharing information across candidates can help, whereas committing many assignments against one unchanged destination can concentrate work. TrafficTwin evaluates the latter implementation. Its immediate service-work reservation is also different from Sparrow's worker-triggered task binding: TrafficTwin assumes the necessary information and acknowledgement are already available.
 
-Ying, Srikant and Kang make the reservation distinction especially explicit: batch-filling samples queue counts, assigns tasks one by one and updates the chosen queue after each assignment. Their analysis assumes identical servers, exponential service, Poisson batch arrivals and random ties [[13]](#ref-13). This is close prior art for sequential within-batch updates. The evaluator also implements a power-of-two-choices variant (`dla_p2c`) that was not evaluated here. Although the evaluator comments mention their batch-filling work, its common-target reconciliation does not implement that destination rule. TrafficTwin's causal change is therefore an adaptation of established dispatch semantics, evaluated with workload information and deadline admission, rather than a novel batching principle.
+Ying, Srikant and Kang make the reservation distinction especially explicit: batch-filling samples queue counts, assigns tasks one by one and updates the chosen queue after each assignment. Their analysis assumes identical servers, exponential service, Poisson batch arrivals and random ties [[16]](#ref-16). This is close prior art for sequential within-batch updates. The evaluator also implements a power-of-two-choices variant (`dla_p2c`) that was not evaluated here [[17]](#ref-17). Although the evaluator comments mention their batch-filling work, its common-target reconciliation does not implement that destination rule. TrafficTwin's causal change is therefore an adaptation of established dispatch semantics, evaluated with workload information and deadline admission, rather than a novel batching principle.
 
-**Local information and common destinations.** Vargaftik, Keslassy and Orda's Local Shortest Queue (LSQ) policies maintain possibly outdated queue-count estimates at multiple dispatchers. Their slotted model can send all jobs arriving at one dispatcher in a slot to one locally shortest queue, with random tie-breaking. Algorithms update local estimates by the jobs sent and refresh selected entries through communication. Their stability result requires stated arrival/service assumptions and bounded expected estimation error [[10]](#ref-10). Common destinations and local updates therefore predate TrafficTwin. Here they use service-work information, deterministic ties, a backlog gate, five ordered slots and one-second aggregate draining. Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes.
+**Local information and common destinations.** Vargaftik, Keslassy and Orda's Local Shortest Queue (LSQ) policies maintain possibly outdated queue-count estimates at multiple dispatchers. Their slotted model can send all jobs arriving at one dispatcher in a slot to one locally shortest queue, with random tie-breaking. Algorithms update local estimates by the jobs sent and refresh selected entries through communication. Their stability result requires stated arrival/service assumptions and bounded expected estimation error [[18]](#ref-18). Common destinations and local updates therefore predate TrafficTwin [[19]](#ref-19). Here they use service-work information, deterministic ties, a backlog gate, five ordered slots and one-second aggregate draining. Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes.
 
-**Admission and useful completion.** Niño-Mora jointly studies admission and routing to heterogeneous multiserver queues, charging separately for rejection and admitted deadline misses. The model uses Poisson arrivals, exponential service, soft deadlines and state-dependent index policies; admitted late jobs remain until completion [[11]](#ref-11). This establishes admission as an optimisation decision with consequences beyond the admitted population. TrafficTwin instead preserves a simple inherited backlog filter to make the placement contrast interpretable. The gate does not estimate the complete response time or promise success. Counting successes over all offered tasks makes a reject-all policy score zero and prevents selective admission from concealing failures. That denominator is a deliberate measurement choice, not a newly invented admission algorithm.
+**Admission and useful completion.** Niño-Mora jointly studies admission and routing to heterogeneous multiserver queues, charging separately for rejection and admitted deadline misses. The model uses Poisson arrivals, exponential service, soft deadlines and state-dependent index policies; admitted late jobs remain until completion [[20]](#ref-20). This establishes admission as an optimisation decision with consequences beyond the admitted population. TrafficTwin instead preserves a simple inherited backlog filter to make the placement contrast interpretable. The gate does not estimate the complete response time or promise success. Counting successes over all offered tasks makes a reject-all policy score zero and prevents selective admission from concealing failures. That denominator is a deliberate measurement choice, not a newly invented admission algorithm.
 
 Differences in arrival processes, objectives and resource models prevent treating published performance scores as controlled benchmarks. Table 1 instead compares the operational mechanisms relevant to TrafficTwin.
 
@@ -79,21 +79,21 @@ Differences in arrival processes, objectives and resource models prevent treatin
 
 | Work / decision layer and arrivals | Information and update semantics | Admission / objective | Relationship to TrafficTwin |
 |---|---|---|---|
-| Harchol-Balter et al. [2]: dispatch each arrival | Known service work; central per-arrival choice | Mean waiting time; size-normalised waiting | Closest least-workload comparator; no vehicular gate |
-| Sparrow [9]: parallel-job task placement | Sampled workers; queued reservations; worker replies bind tasks | Job response time; placement constraints | Batch spreading differs from one common destination; communication is explicit |
-| Ying et al. [13]: tasks within an arriving batch | Sampled counts; update after each assignment; random ties | Delay and sampling cost | Closest within-batch update rule; no deadline gate |
-| LSQ [10]: dispatcher batch per time slot | Local queue counts; own-assignment increments and sampled/pushed updates | Stability under specified assumptions | Common routing is established; random ties and distributed estimates differ |
-| Niño-Mora [11]: joint admission/routing per arrival | Queue counts and model-based indices | Rejection and deadline-miss costs | Supports joint evaluation, not the inherited backlog predicate |
+| Harchol-Balter et al. [[14]](#ref-14): dispatch each arrival | Known service work; central per-arrival choice | Mean waiting time; size-normalised waiting | Closest least-workload comparator; no vehicular gate |
+| Sparrow [[15]](#ref-15): parallel-job task placement | Sampled workers; queued reservations; worker replies bind tasks | Job response time; placement constraints | Batch spreading differs from one common destination; communication is explicit |
+| Ying et al. [[16]](#ref-16): tasks within an arriving batch | Sampled counts; update after each assignment; random ties | Delay and sampling cost | Closest within-batch update rule; no deadline gate |
+| LSQ [[18]](#ref-18): dispatcher batch per time slot | Local queue counts; own-assignment increments and sampled/pushed updates | Stability under specified assumptions | Common routing is established; random ties and distributed estimates differ |
+| Niño-Mora [[20]](#ref-20): joint admission/routing per arrival | Queue counts and model-based indices | Rejection and deadline-miss costs | Supports joint evaluation, not the inherited backlog predicate |
 | TrafficTwin common-target: one choice per substep | Global service work; vectorised candidate offsets and three reconciliations | Backlog gate plus finite task limit | Frozen vehicle policy; instantaneous logical forwarding |
 | TrafficTwin per-task: ordered candidate scan | Global service work; actual admitted work reserved immediately | Same predicate and limit, causal admission | Tested implementation change; global information is assumed |
 
-**Attribution and simulation validity.** Sargent distinguishes verification of a computer model from operational validation for its intended application [[12]](#ref-12). TrafficTwin's conservation and replay checks primarily establish the former; observed physical RSU service and network measurements would be needed for stronger deployment claims. SUMO supplies a microscopic simulation framework [[8]](#ref-8), but importing its trajectories does not independently validate a coupled radio/computing model. This distinction explains why a source-correct result can be scientifically useful while remaining conditional on simulation semantics.
+**Attribution and simulation validity.** Sargent distinguishes verification of a computer model from operational validation for its intended application [[21]](#ref-21). TrafficTwin's conservation and replay checks primarily establish the former; observed physical RSU service and network measurements would be needed for stronger deployment claims. SUMO supplies a microscopic simulation framework [[22]](#ref-22), but importing its trajectories does not independently validate a coupled radio/computing model. This distinction explains why a source-correct result can be scientifically useful while remaining conditional on simulation semantics.
 
-PPO and MAPPO identify the reused actor's provenance [[3]](#ref-3), [[4]](#ref-4). Henderson et al., Agarwal et al. and Gorsane et al. motivate exposing implementation choices and finite-run uncertainty [[5]](#ref-5), [[6]](#ref-6), [[7]](#ref-7). TrafficTwin checks action equality empirically and uses draws or joint-seed blocks, not tasks, as replications.
+PPO and MAPPO identify the reused actor's provenance [[23]](#ref-23), [[24]](#ref-24). Henderson et al., Agarwal et al. and Gorsane et al. motivate exposing implementation choices and finite-run uncertainty [[25]](#ref-25), [[26]](#ref-26), [[27]](#ref-27). TrafficTwin checks action equality empirically and uses draws or joint-seed blocks, not tasks, as replications.
 
-Digital-twin work spans distinct interventions. Dasgupta et al. study adaptive traffic control [[15]](#ref-15); Xie, Wu and Fan study offloading and allocation with estimation error at a single base station [[16]](#ref-16). Cho et al. explicitly model parallel computation queues [[17]](#ref-17). These differ from the fixed-actor, multiple-RSU dispatch comparison here, motivating clear control and queue semantics.
+Digital-twin work spans distinct interventions [[28]](#ref-28). Dasgupta et al. study adaptive traffic control [[29]](#ref-29); Xie, Wu and Fan study offloading and allocation with estimation error at a single base station [[30]](#ref-30). Cho et al. explicitly model parallel computation queues [[31]](#ref-31). These differ from the fixed-actor, multiple-RSU dispatch comparison here, motivating clear control and queue semantics.
 
-Communication remains part of feasibility: Wu et al. model heterogeneous links under latency/reliability constraints [[18]](#ref-18), while hybrid vehicular/cloud offloading coordinates communication-constrained V2V and edge resources [[22]](#ref-22). TrafficTwin instead fixes vehicle mode choice to expose infrastructure dispatch.
+Communication remains part of feasibility: Wu et al. model heterogeneous links under latency/reliability constraints [[6]](#ref-6), while hybrid vehicular/cloud offloading coordinates communication-constrained V2V and edge resources [[32]](#ref-32). TrafficTwin instead fixes vehicle mode choice to expose infrastructure dispatch.
 
 ### 1.3 Aim, objectives and research questions
 
@@ -111,7 +111,7 @@ Five objectives organise the programme. The aim is to assess infrastructure admi
 
 Three research questions follow. **RQ1:** Under matched gate-enabled controls, how do common-target and causal per-task placement compare with ingress execution, and what implementation semantics explain the observed direction reversal? **RQ2:** Does the reversal recur in separate morning samples, and does workload-aware causal placement add benefit over cyclic spreading in the new joint-randomness blocks? **RQ3:** What do the completed information-age and fixed-forwarding sensitivities establish about the boundaries of per-task placement?
 
-Established work addresses least-workload routing, within-batch updates and vehicular cooperation [[2]](#ref-2), [[13]](#ref-13), [[24]](#ref-24), [[25]](#ref-25). The gap addressed here is narrower: whether the operational timing of destination selection and reservation reverses a matched deadline-attainment comparison under a preserved vehicle actor. The contribution joins offered-task accounting, explicit implementation contracts and separate replications; it is not a new dispatch principle. Section 4.1 gives an objective-by-objective verdict.
+Established work addresses least-workload routing, within-batch updates and vehicular cooperation [[14]](#ref-14), [[16]](#ref-16), [[7]](#ref-7), [[8]](#ref-8). The gap addressed here is narrower: whether the operational timing of destination selection and reservation reverses a matched deadline-attainment comparison under a preserved vehicle actor. The contribution joins offered-task accounting, explicit implementation contracts and separate replications; it is not a new dispatch principle. Section 4.1 gives an objective-by-objective verdict.
 
 ### 1.4 Scope and report structure
 
@@ -263,11 +263,11 @@ Figure 4 is a constructed mechanics example, neither a recorded task group nor a
 
 E0 and E1 form the validation and scoping stage. E0 supplies the recorded measurement foundation; E1 compares three queue limits at fixed service over five matched draws; E2/E2b explore placement and admission on one draw. E2c compares common-target with ingress on new incident seeds 1–4. After inspecting them, E2d adds per-task placement on those same draws and reuses their controls: an adaptive extension, not new independent observations [[S0]](#source-s0)–[[S3]](#source-s3).
 
-The morning pilot uses seed 1 for ingress and per-task placement. After inspecting it, the replication declares seeds 0, 2, 3 and 4 and all three arms, yielding twelve new full runs. The primary contrasts are per-task minus ingress, common-target minus ingress, and per-task minus common-target. The pilot is excluded; a supplementary two-arm five-draw summary is descriptive. The local protocol and manifest preceded the new outcomes, but there was no external preregistration [[S7]](#source-s7), [[S8]](#source-s8).
+The morning pilot uses seed 1 for ingress and per-task placement. After inspecting it, the replication declares seeds 0, 2, 3 and 4 and all three arms, yielding twelve new full runs. The primary contrasts are per-task minus ingress, common-target minus ingress, and per-task minus common-target. The pilot is excluded; a supplementary two-arm five-draw summary is descriptive. The local protocol and manifest preceded the new outcomes, but there was no external preregistration [[S7]](#source-s7), [[S8]](#source-s8) [[33]](#ref-33).
 
-For each contrast, a fleet draw supplies one paired difference in percentage points. Draws receive equal weight. The mean difference has a Student-t interval, mean ± t × sample standard deviation / square root of n. Incident E2c/E2d retain their reported individual 95% intervals. The original morning protocol additionally uses Bonferroni simultaneous intervals for three contrasts, with critical value t at probability 1 − 0.05/(2 × 3), three degrees of freedom. Its reversal criterion requires the simultaneous common-target-minus-ingress interval below zero and the per-task-minus-ingress interval above zero. Four draws cannot strongly diagnose distributional assumptions; these small-sample intervals remain conditional parametric summaries, not task-level significance tests.
+For each contrast, a fleet draw supplies one paired difference in percentage points. Draws receive equal weight. The mean difference has a Student-t interval, mean ± t × sample standard deviation / square root of n. Incident E2c/E2d retain their reported individual 95% intervals. The original morning protocol additionally uses Bonferroni simultaneous intervals for three contrasts, with critical value t at probability 1 − 0.05/(2 × 3), three degrees of freedom [[34]](#ref-34). Its reversal criterion requires the simultaneous common-target-minus-ingress interval below zero and the per-task-minus-ingress interval above zero. Four draws cannot strongly diagnose distributional assumptions; these small-sample intervals remain conditional parametric summaries, not task-level significance tests.
 
-The later confirmation uses eight paired fleet/evaluator-seed blocks, (100,200) through (107,207), and four arms: ingress, common-target, per-task and causal round-robin. Controls, rotating arm order and analysis were sealed before full outcomes. Per-task minus ingress, common-target minus ingress and per-task minus round-robin receive equal block weights and two-sided Bonferroni simultaneous 95% Student-t intervals, df=7. The same two-direction criterion tests recurrence; original draws and pilots remain separate. Independent joint blocks and approximately normal paired effects remain assumptions that eight blocks cannot strongly diagnose [[S16]](#source-s16).
+The later confirmation uses eight paired fleet/evaluator-seed blocks, (100,200) through (107,207), and four arms: ingress, common-target, per-task and causal round-robin. Controls, rotating arm order and analysis were sealed before full outcomes [[33]](#ref-33). Per-task minus ingress, common-target minus ingress and per-task minus round-robin receive equal block weights and two-sided Bonferroni simultaneous 95% Student-t intervals, df=7. The same two-direction criterion tests recurrence; original draws and pilots remain separate. Independent joint blocks and approximately normal paired effects remain assumptions that eight blocks cannot strongly diagnose [[S16]](#source-s16).
 
 ### 2.7 Sensitivities, mechanism audit and validation
 
@@ -285,7 +285,7 @@ Retrospective diagnostics distinguish simultaneous common-target admission A, ca
 
 Causal round-robin isolates workload awareness from spreading. Its pointer starts at RSU 0, persists across substeps/batches, and advances modulo R for every active positive-radio V2I attempt, including rejections. Unavailable radio and padding do not advance it; there is no retry or full-node skipping. Order, sampled work, gate/capacity, precision, accounting, forwarding and drain match per-task placement. Repeated passes restart identically; the pointer commits once. A versioned evaluator preserves frozen implementations. Qualification checks compatibility, shared inputs, admission accounting and restart; Appendix E bounds coverage [[S15]](#source-s15), [[S16]](#source-s16).
 
-Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[14]](#ref-14).
+Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[35]](#ref-35).
 
 Retrospective type aggregation retains all types and draws without subgroup significance tests, using the eight authenticated ingress/per-task files from the original four-draw morning sample. Categories supply admission, gate rejection and admitted misses; type totals must reproduce all-task summaries and paired net changes.
 
@@ -424,7 +424,7 @@ Compiler buffer reuse and elimination of unused broadcasts or identical passes a
 
 Compilation took 0.058–0.267 seconds per configuration, separate from lowering and execution. Transfer, peak memory and full-evaluator costs were unmeasured; host time is not simulated latency or a roadside guarantee [[S15]](#source-s15).
 
-The research path combines a trace-driven JAX evaluator, versioned schedulers, sealed runner and separate validation/analysis. The product supplies Streamlit, typed services and command-line scenario, import, comparison and evidence workflows, exposing provenance alongside measurements [[S11]](#source-s11), [[S17]](#source-s17).
+The research path combines a trace-driven JAX evaluator, versioned schedulers, sealed runner and separate validation/analysis [[36]](#ref-36). The product supplies Streamlit, typed services and command-line scenario, import, comparison and evidence workflows, exposing provenance alongside measurements [[S11]](#source-s11), [[S17]](#source-s17).
 
 Contracts require admission before recorded execution and a passing validation receipt before accepting a scientific cell. The runner binds source, seeds and outputs; interface-ready E3 remains unexecuted.
 
@@ -439,7 +439,7 @@ Contracts require admission before recorded execution and a passing validation r
 | Campaign validators | 160 lines plus compact verifier | 8 block receipts; 32-cell compact recomputation | Reject inconsistent inputs, counts and identities | Separates successful execution from admissible evidence |
 | TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |
 
-The inventory measures project scope, not individually authored new code. Hosted run [34631121188](https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188), 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (including five tier-4 UI text assertions in `tests/unit/ui/test_page_presentation_tier4.py`, plus provenance/ancestry, artifact and other UI checks), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles [[20]](#ref-20), [[21]](#ref-21). Figure 7 shows the actual Streamlit interface.
+The inventory measures project scope, not individually authored new code. Hosted run [34631121188](https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188), 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (including five tier-4 UI text assertions in `tests/unit/ui/test_page_presentation_tier4.py`, plus provenance/ancestry, artifact and other UI checks), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles [[37]](#ref-37), [[38]](#ref-38). Figure 7 shows the actual Streamlit interface.
 
 ![TrafficTwin Streamlit interface at the inspected source](assets/traffictwin_streamlit.png)
 
@@ -495,11 +495,11 @@ The exact-model bound and gate/service/drain assumptions explain recurring desti
 
 First, I would evaluate `dla_p2c` on the sealed eight blocks under identical controls, to separate randomised sampling from exact least-workload selection. This post-hoc addition would be outside the sealed family.
 
-Second, an event-level service and communication model should be checked against measured timing, including transfers and individual departures. Simulation verification and VEC communication/resource models provide the relevant foundation [[12]](#ref-12), [[17]](#ref-17), [[18]](#ref-18). The decisive test would be whether the reversal survives a calibrated timing model, not whether another abstract queue simulation produces more significant digits.
+Second, an event-level service and communication model should be checked against measured timing, including transfers and individual departures. Simulation verification and VEC communication/resource models provide the relevant foundation [[21]](#ref-21), [[31]](#ref-31), [[6]](#ref-6). The decisive test would be whether the reversal survives a calibrated timing model, not whether another abstract queue simulation produces more significant digits.
 
-Third, I would separate imperfect workload estimates, acknowledgement delay and admission policy, following imperfect-information routing and digital-twin estimation models [[10]](#ref-10), [[16]](#ref-16). This tests how live admission protects placement based on older reports.
+Third, I would separate imperfect workload estimates, acknowledgement delay and admission policy, following imperfect-information routing and digital-twin estimation models [[18]](#ref-18), [[30]](#ref-30). This tests how live admission protects placement based on older reports.
 
-Fourth, I would test independently selected traces and actors under prospective controls and seed-level reporting [[5]](#ref-5), [[6]](#ref-6), [[19]](#ref-19). Action masking and V2V-helper selection need separate studies [[22]](#ref-22), [[23]](#ref-23); product user evaluation requires its own protocol.
+Fourth, I would test independently selected traces and actors under prospective controls and seed-level reporting [[25]](#ref-25), [[26]](#ref-26), [[39]](#ref-39). Action masking and V2V-helper selection need separate studies [[32]](#ref-32), [[40]](#ref-40); product user evaluation requires its own protocol.
 
 Within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule.
 
@@ -516,79 +516,127 @@ I controlled AI assistance through specifications, code review, personal modific
 ## References
 
 <a id="ref-1"></a>
-[1] Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. “A Survey on Mobile Edge Computing: The Communication Perspective.” *IEEE Communications Surveys & Tutorials*, 19(4), 2322–2358, 2017. DOI: 10.1109/COMST.2017.2745201. [Author manuscript](https://arxiv.org/abs/1701.01090).
+[1] L. Liu, C. Chen, Q. Pei, S. Maharjan and Y. Zhang. “Vehicular Edge Computing and Networking: A Survey.” *Mobile Networks and Applications*, 26(3), 1145–1168, 2021. DOI: 10.1007/s11036-020-01624-1. [Source](https://doi.org/10.1007/s11036-020-01624-1).
 
 <a id="ref-2"></a>
-[2] M. Harchol-Balter, M. E. Crovella and C. D. Murta. “On Choosing a Task Assignment Policy for a Distributed Server System.” *Computer Performance Evaluation (TOOLS 1998)*, LNCS 1469, 231–242, 1998. DOI: 10.1007/3-540-68061-6_19. [Author manuscript](https://www.cs.cmu.edu/~harchol/Papers/tools.pdf).
+[2] S. Raza, S. Wang, M. Ahmed and M. R. Anwar. “A Survey on Vehicular Edge Computing: Architecture, Applications, Technical Issues, and Future Directions.” *Wireless Communications and Mobile Computing*, 2019, 1–19, 2019. DOI: 10.1155/2019/3159762. [Source](https://doi.org/10.1155/2019/3159762).
 
 <a id="ref-3"></a>
-[3] J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. “Proximal Policy Optimization Algorithms.” arXiv:1707.06347, 2017. [Author manuscript](https://arxiv.org/abs/1707.06347).
+[3] Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. “A Survey on Mobile Edge Computing: The Communication Perspective.” *IEEE Communications Surveys & Tutorials*, 19(4), 2322–2358, 2017. DOI: 10.1109/COMST.2017.2745201. [Author manuscript](https://arxiv.org/abs/1701.01090).
 
 <a id="ref-4"></a>
-[4] C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. “The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games.” *Advances in Neural Information Processing Systems*, 35, 24611–24624, 2022. [Proceedings paper](https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf).
+[4] C. L. Liu and J. W. Layland. “Scheduling Algorithms for Multiprogramming in a Hard-Real-Time Environment.” *Journal of the ACM*, 20(1), 46–61, 1973. DOI: 10.1145/321738.321743. [Source](https://doi.org/10.1145/321738.321743).
 
 <a id="ref-5"></a>
-[5] P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. “Deep Reinforcement Learning That Matters.” *Proceedings of the AAAI Conference on Artificial Intelligence*, 32(1), 2018. DOI: 10.1609/aaai.v32i1.11694. [Publisher record](https://ojs.aaai.org/index.php/AAAI/article/view/11694).
+[5] A. Molisch, F. Tufvesson, J. Karedal and C. Mecklenbrauker. “A survey on vehicle-to-vehicle propagation channels.” *IEEE Wireless Communications*, 16(6), 12–22, 2009. DOI: 10.1109/MWC.2009.5361174. [Source](https://doi.org/10.1109/MWC.2009.5361174).
 
 <a id="ref-6"></a>
-[6] R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. “Deep Reinforcement Learning at the Edge of the Statistical Precipice.” *Advances in Neural Information Processing Systems*, 34, 29304–29320, 2021. [Proceedings record](https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html).
+[6] Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. “URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.” arXiv:2311.18352, 2023. [Source](https://arxiv.org/abs/2311.18352).
 
 <a id="ref-7"></a>
-[7] R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. “Towards a Standardised Performance Evaluation Protocol for Cooperative MARL.” *Advances in Neural Information Processing Systems*, 35, 5510–5521, 2022. [Author manuscript](https://arxiv.org/abs/2209.10485).
+[7] W. Fan, Y. Zhang, G. Zhou and Y. Liu. “Deep Reinforcement Learning-Based Task Offloading for Vehicular Edge Computing With Flexible RSU-RSU Cooperation.” *IEEE Transactions on Intelligent Transportation Systems*, 25(7), 7712–7725, 2024. DOI: 10.1109/TITS.2024.3349546. [Source](https://doi.org/10.1109/TITS.2024.3349546).
 
 <a id="ref-8"></a>
-[8] P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. “Microscopic Traffic Simulation using SUMO.” *21st International Conference on Intelligent Transportation Systems (ITSC)*, 2575–2582, 2018. DOI: 10.1109/ITSC.2018.8569938. [DLR author repository](https://elib.dlr.de/127994/).
+[8] W. Fan, Y. Yu, C. Bao and Y. Liu. “Vehicular Edge Intelligence: DRL-Based Resource Orchestration for Task Inference in Vehicle-RSU-Edge Collaborative Networks.” *IEEE Transactions on Mobile Computing*, 24(10), 10927–10944, 2025. DOI: 10.1109/TMC.2025.3572296. [Source](https://doi.org/10.1109/TMC.2025.3572296).
 
 <a id="ref-9"></a>
-[9] K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. “Sparrow: Distributed, Low Latency Scheduling.” *24th ACM Symposium on Operating Systems Principles*, 69–84, 2013. DOI: 10.1145/2517349.2522716. [Proceedings paper](https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf).
+[9] J. Zhang and K. B. Letaief. “Mobile Edge Intelligence and Computing for the Internet of Vehicles.” *Proceedings of the IEEE*, 108(2), 246–261, 2020. DOI: 10.1109/JPROC.2019.2947490. [Source](https://doi.org/10.1109/JPROC.2019.2947490).
 
 <a id="ref-10"></a>
-[10] S. Vargaftik, I. Keslassy and A. Orda. “LSQ: Load Balancing in Large-Scale Heterogeneous Systems With Multiple Dispatchers.” *IEEE/ACM Transactions on Networking*, 28(3), 1186–1198, 2020. DOI: 10.1109/TNET.2020.2980061. [Author manuscript](https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf).
+[10] Y. Liu, H. Yu, S. Xie and Y. Zhang. “Deep Reinforcement Learning for Offloading and Resource Allocation in Vehicle Edge Computing and Networks.” *IEEE Transactions on Vehicular Technology*, 68(11), 11158–11168, 2019. DOI: 10.1109/TVT.2019.2935450. [Source](https://doi.org/10.1109/TVT.2019.2935450).
 
 <a id="ref-11"></a>
-[11] J. Niño-Mora. “Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.” *Computers & Operations Research*, 39, 3431–3444, 2012. DOI: 10.1016/j.cor.2012.05.004. [Author manuscript, deposited 2022](https://arxiv.org/abs/2207.12815).
+[11] Z. Ning, P. Dong, X. Wang, J. J. P. C. Rodrigues and F. Xia. “Deep Reinforcement Learning for Vehicular Edge Computing: An Intelligent Offloading System.” *ACM Transactions on Intelligent Systems and Technology*, 10(6), 1–24, 2019. DOI: 10.1145/3317572. [Source](https://doi.org/10.1145/3317572).
 
 <a id="ref-12"></a>
-[12] R. G. Sargent. “Verification and Validation of Simulation Models.” *Proceedings of the 2011 Winter Simulation Conference*, 183–198, 2011. [Proceedings paper](https://www.informs-sim.org/wsc11papers/016.pdf).
+[12] R. R. Weber. “On the optimal assignment of customers to parallel servers.” *Journal of Applied Probability*, 15(2), 406–413, 1978. DOI: 10.2307/3213411. [Source](https://doi.org/10.2307/3213411).
 
 <a id="ref-13"></a>
-[13] L. Ying, R. Srikant and X. Kang. “The Power of Slightly More than One Sample in Randomized Load Balancing.” *IEEE INFOCOM*, 1131–1139, 2015. [doi:10.1109/INFOCOM.2015.7218487](https://doi.org/10.1109/INFOCOM.2015.7218487). [Author technical manuscript](https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf).
+[13] M. Harchol-Balter. “Performance Modeling and Design of Computer Systems: Queueing Theory in Action.” *Cambridge University Press*, 2013. DOI: 10.1017/CBO9781139226424. [Source](https://doi.org/10.1017/CBO9781139226424).
 
 <a id="ref-14"></a>
-[14] JAX authors. “Benchmarking JAX code.” Official JAX documentation, accessed 8 September 2026. [Benchmarking guidance](https://docs.jax.dev/en/latest/benchmarking.html). Used for timing procedure, not scheduler efficacy.
+[14] M. Harchol-Balter, M. E. Crovella and C. D. Murta. “On Choosing a Task Assignment Policy for a Distributed Server System.” *Computer Performance Evaluation (TOOLS 1998)*, LNCS 1469, 231–242, 1998. DOI: 10.1007/3-540-68061-6_19. [Author manuscript](https://www.cs.cmu.edu/~harchol/Papers/tools.pdf).
 
 <a id="ref-15"></a>
-[15] S. Dasgupta, M. Rahman, A. D. Lidbe, W. Lu and S. Jones. “A Transportation Digital-Twin Approach for Adaptive Traffic Control Systems.” arXiv:2109.10863, 2021. [Source](https://arxiv.org/abs/2109.10863).
+[15] K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. “Sparrow: Distributed, Low Latency Scheduling.” *24th ACM Symposium on Operating Systems Principles*, 69–84, 2013. DOI: 10.1145/2517349.2522716. [Proceedings paper](https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf).
 
 <a id="ref-16"></a>
-[16] Y. Xie, Q. Wu and P. Fan. “Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.” arXiv:2407.11310, 2024. [Source](https://arxiv.org/abs/2407.11310).
+[16] L. Ying, R. Srikant and X. Kang. “The Power of Slightly More than One Sample in Randomized Load Balancing.” *IEEE INFOCOM*, 1131–1139, 2015. [doi:10.1109/INFOCOM.2015.7218487](https://doi.org/10.1109/INFOCOM.2015.7218487). [Author technical manuscript](https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf).
 
 <a id="ref-17"></a>
-[17] S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. “Autonomous Task Offloading of Vehicular Edge Computing with Parallel Computation Queues.” *IEEE Transactions on Mobile Computing*, 25(5), 7166–7181, 2026. DOI: 10.1109/TMC.2025.3640244. Author version arXiv:2509.03935v2. [Source](https://arxiv.org/abs/2509.03935v2).
+[17] M. Mitzenmacher. “The power of two choices in randomized load balancing.” *IEEE Transactions on Parallel and Distributed Systems*, 12(10), 1094–1104, 2001. DOI: 10.1109/71.963420. [Source](https://doi.org/10.1109/71.963420).
 
 <a id="ref-18"></a>
-[18] Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. “URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.” arXiv:2311.18352, 2023. [Source](https://arxiv.org/abs/2311.18352).
+[18] S. Vargaftik, I. Keslassy and A. Orda. “LSQ: Load Balancing in Large-Scale Heterogeneous Systems With Multiple Dispatchers.” *IEEE/ACM Transactions on Networking*, 28(3), 1186–1198, 2020. DOI: 10.1109/TNET.2020.2980061. [Author manuscript](https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf).
 
 <a id="ref-19"></a>
-[19] J. Pineau, P. Vincent-Lamarre, K. Sinha, V. Larivière, A. Beygelzimer, F. d'Alché-Buc, E. Fox and H. Larochelle. “Improving Reproducibility in Machine Learning Research (A Report from the NeurIPS 2019 Reproducibility Program).” *Journal of Machine Learning Research*, 22(164), 1–20, 2021. [Source](https://jmlr.org/papers/v22/20-303.html).
+[19] M. van der Boor, S. C. Borst, J. S. H. van Leeuwaarden and D. Mukherjee. “Scalable Load Balancing in Networked Systems: A Survey of Recent Advances.” *SIAM Review*, 64(3), 554–622, 2022. DOI: 10.1137/20M1323746. [Source](https://doi.org/10.1137/20M1323746).
 
 <a id="ref-20"></a>
-[20] G. Wilson et al. “Best Practices for Scientific Computing.” *PLOS Biology*, 12(1), e1001745, 2014. DOI: 10.1371/journal.pbio.1001745. [Source](https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745).
+[20] J. Niño-Mora. “Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.” *Computers & Operations Research*, 39, 3431–3444, 2012. DOI: 10.1016/j.cor.2012.05.004. [Author manuscript, deposited 2022](https://arxiv.org/abs/2207.12815).
 
 <a id="ref-21"></a>
-[21] G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig. “Ten Simple Rules for Reproducible Computational Research.” *PLOS Computational Biology*, 9(10), e1003285, 2013. DOI: 10.1371/journal.pcbi.1003285. [Source](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285).
+[21] R. G. Sargent. “Verification and Validation of Simulation Models.” *Proceedings of the 2011 Winter Simulation Conference*, 183–198, 2011. [Proceedings paper](https://www.informs-sim.org/wsc11papers/016.pdf).
 
 <a id="ref-22"></a>
-[22] E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. “Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.” arXiv:2010.05693, 2020. [Source](https://arxiv.org/abs/2010.05693).
+[22] P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. “Microscopic Traffic Simulation using SUMO.” *21st International Conference on Intelligent Transportation Systems (ITSC)*, 2575–2582, 2018. DOI: 10.1109/ITSC.2018.8569938. [DLR author repository](https://elib.dlr.de/127994/).
 
 <a id="ref-23"></a>
-[23] S. Huang and S. Ontañón. “A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.” arXiv:2006.14171, 2020. [Source](https://arxiv.org/abs/2006.14171).
+[23] J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. “Proximal Policy Optimization Algorithms.” arXiv:1707.06347, 2017. [Author manuscript](https://arxiv.org/abs/1707.06347).
 
 <a id="ref-24"></a>
-[24] W. Fan, Y. Zhang, G. Zhou and Y. Liu. “Deep Reinforcement Learning-Based Task Offloading for Vehicular Edge Computing With Flexible RSU-RSU Cooperation.” *IEEE Transactions on Intelligent Transportation Systems*, 25(7), 7712–7725, 2024. DOI: 10.1109/TITS.2024.3349546. [Source](https://doi.org/10.1109/TITS.2024.3349546).
+[24] C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. “The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games.” *Advances in Neural Information Processing Systems*, 35, 24611–24624, 2022. [Proceedings paper](https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf).
 
 <a id="ref-25"></a>
-[25] W. Fan, Y. Yu, C. Bao and Y. Liu. “Vehicular Edge Intelligence: DRL-Based Resource Orchestration for Task Inference in Vehicle-RSU-Edge Collaborative Networks.” *IEEE Transactions on Mobile Computing*, 24(10), 10927–10944, 2025. DOI: 10.1109/TMC.2025.3572296. [Source](https://doi.org/10.1109/TMC.2025.3572296).
+[25] P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. “Deep Reinforcement Learning That Matters.” *Proceedings of the AAAI Conference on Artificial Intelligence*, 32(1), 2018. DOI: 10.1609/aaai.v32i1.11694. [Publisher record](https://ojs.aaai.org/index.php/AAAI/article/view/11694).
+
+<a id="ref-26"></a>
+[26] R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. “Deep Reinforcement Learning at the Edge of the Statistical Precipice.” *Advances in Neural Information Processing Systems*, 34, 29304–29320, 2021. [Proceedings record](https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html).
+
+<a id="ref-27"></a>
+[27] R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. “Towards a Standardised Performance Evaluation Protocol for Cooperative MARL.” *Advances in Neural Information Processing Systems*, 35, 5510–5521, 2022. [Author manuscript](https://arxiv.org/abs/2209.10485).
+
+<a id="ref-28"></a>
+[28] F. Tao, H. Zhang, A. Liu and A. Y. C. Nee. “Digital Twin in Industry: State-of-the-Art.” *IEEE Transactions on Industrial Informatics*, 15(4), 2405–2415, 2019. DOI: 10.1109/TII.2018.2873186. [Source](https://doi.org/10.1109/TII.2018.2873186).
+
+<a id="ref-29"></a>
+[29] S. Dasgupta, M. Rahman, A. D. Lidbe, W. Lu and S. Jones. “A Transportation Digital-Twin Approach for Adaptive Traffic Control Systems.” arXiv:2109.10863, 2021. [Source](https://arxiv.org/abs/2109.10863).
+
+<a id="ref-30"></a>
+[30] Y. Xie, Q. Wu and P. Fan. “Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.” arXiv:2407.11310, 2024. [Source](https://arxiv.org/abs/2407.11310).
+
+<a id="ref-31"></a>
+[31] S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. “Autonomous Task Offloading of Vehicular Edge Computing with Parallel Computation Queues.” *IEEE Transactions on Mobile Computing*, 25(5), 7166–7181, 2026. DOI: 10.1109/TMC.2025.3640244. Author version arXiv:2509.03935v2. [Source](https://arxiv.org/abs/2509.03935v2).
+
+<a id="ref-32"></a>
+[32] E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. “Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.” arXiv:2010.05693, 2020. [Source](https://arxiv.org/abs/2010.05693).
+
+<a id="ref-33"></a>
+[33] B. A. Nosek, C. R. Ebersole, A. C. DeHaven and D. T. Mellor. “The preregistration revolution.” *Proceedings of the National Academy of Sciences*, 115(11), 2600–2606, 2018. DOI: 10.1073/pnas.1708274114. [Source](https://doi.org/10.1073/pnas.1708274114).
+
+<a id="ref-34"></a>
+[34] O. J. Dunn. “Multiple Comparisons among Means.” *Journal of the American Statistical Association*, 56(293), 52–64, 1961. DOI: 10.1080/01621459.1961.10482090. [Source](https://doi.org/10.1080/01621459.1961.10482090).
+
+<a id="ref-35"></a>
+[35] JAX authors. “Benchmarking JAX code.” Official JAX documentation, accessed 8 September 2026. [Benchmarking guidance](https://docs.jax.dev/en/latest/benchmarking.html). Used for timing procedure, not scheduler efficacy.
+
+<a id="ref-36"></a>
+[36] J. Bradbury et al. “JAX: composable transformations of Python+NumPy programs.” Software, version 0.4.30, 2018. [Source](https://github.com/jax-ml/jax).
+
+<a id="ref-37"></a>
+[37] G. Wilson et al. “Best Practices for Scientific Computing.” *PLOS Biology*, 12(1), e1001745, 2014. DOI: 10.1371/journal.pbio.1001745. [Source](https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745).
+
+<a id="ref-38"></a>
+[38] G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig. “Ten Simple Rules for Reproducible Computational Research.” *PLOS Computational Biology*, 9(10), e1003285, 2013. DOI: 10.1371/journal.pcbi.1003285. [Source](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285).
+
+<a id="ref-39"></a>
+[39] J. Pineau, P. Vincent-Lamarre, K. Sinha, V. Larivière, A. Beygelzimer, F. d'Alché-Buc, E. Fox and H. Larochelle. “Improving Reproducibility in Machine Learning Research (A Report from the NeurIPS 2019 Reproducibility Program).” *Journal of Machine Learning Research*, 22(164), 1–20, 2021. [Source](https://jmlr.org/papers/v22/20-303.html).
+
+<a id="ref-40"></a>
+[40] S. Huang and S. Ontañón. “A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.” arXiv:2006.14171, 2020. [Source](https://arxiv.org/abs/2006.14171).
+
+<a id="ref-41"></a>
+[41] D. Goldberg. “What every computer scientist should know about floating-point arithmetic.” *ACM Computing Surveys*, 23(1), 5–48, 1991. DOI: 10.1145/103162.103163. [Source](https://doi.org/10.1145/103162.103163).
 
 ## Appendix A. Evidence sources and reproducibility
 
@@ -794,7 +842,7 @@ Here “production” means the studied evaluator configuration, not deployed ro
 
 The same model makes clearing structural from empty initialisation. The last admitted task sees less than 500 ms of backlog and contributes at most approximately 38.889 ms of service. Each queue therefore remains below 538.889 ms before a 1,000 ms drain. The observed zero endpoints and reconstructed maxima near 538 ms agree with this consequence. Queue clearing and the resulting destination prefix thus follow from the stated gate/service/timing assumptions, not traffic density alone. This deduction is conditional on exact admission arithmetic and service multiplier 1.
 
-Float32 limits executable equivalence. Inclusive prefix sums followed by subtraction can round differently from causal accumulation, changing a strict gate even for sub-0.001 ms differences. The completed numerical investigation includes discrete disagreements and a constructed alternating mask; that task misses its deadline under either treatment. These fixtures neither establish full-trajectory reachability nor measure historical prevalence. Appendix C retains the intermediate masks, threshold values and unsuccessful transfers, alongside the exact proof.
+Float32 limits executable equivalence. Inclusive prefix sums followed by subtraction can round differently from causal accumulation, changing a strict gate even for sub-0.001 ms differences [[41]](#ref-41). The completed numerical investigation includes discrete disagreements and a constructed alternating mask; that task misses its deadline under either treatment. These fixtures neither establish full-trajectory reachability nor measure historical prevalence. Appendix C retains the intermediate masks, threshold values and unsuccessful transfers, alongside the exact proof.
 
 Reselection can also lose completions. In the two-RSU illustration, both arms admit eight tasks; fixed-target admission completes eight and per-task reselection seven. Spreading earlier long-deadline work makes a later 100 ms task finish at 112.929 rather than 91.818 ms. Current workload omits future deadlines and the gate omits own service. Table C1 preserves the calculation: production task values, reduced infrastructure, zero transfers, and B replaying A targets rather than acting autonomously. Twelve transfers to the studied dimensions retained no loss. This identifies a possible interaction, not the cause or frequency of recorded losses; proposed full-evaluator prefixes remain unrun [[S10]](#source-s10), [[S14]](#source-s14).
 

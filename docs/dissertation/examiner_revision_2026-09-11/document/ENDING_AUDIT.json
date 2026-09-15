@@ -41,7 +41,7 @@
   },
   {
     "source_block": 13,
-    "ending": "Research on RSU-to-RSU cooperation  and task inference across vehicle, RSU and edge resources  supplies a wider context for execution placement; I do not transfer its performance claims to TrafficTwin.",
+    "ending": "Research on RSU-to-RSU cooperation  and task inference across vehicle, RSU and edge resources  supplies a wider context for execution placement, as does deep-reinforcement-learning offloading in vehicular edge networks , , ; I do not transfer its performance claims to TrafficTwin.",
     "flagged": true
   },
   {
@@ -316,7 +316,7 @@
   },
   {
     "source_block": 92,
-    "ending": "The local protocol and manifest preceded the new outcomes, but there was no external preregistration , .",
+    "ending": "The local protocol and manifest preceded the new outcomes, but there was no external preregistration ,  .",
     "flagged": false
   },
   {
