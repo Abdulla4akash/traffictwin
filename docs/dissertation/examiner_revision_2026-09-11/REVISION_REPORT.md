@@ -1,5 +1,19 @@
 # Revision record — TrafficTwin examiner revision
 
+## Platform workflow and abstract scale - 15 September 2026; input `b3b8dbc`
+
+The owner's later instructions authorised Claude suggestions 4 and 5 and subsequently requested push/merge of the current version. Four pinned replacements add the first-abstract-paragraph scale sentence, change Figure 7's context sentence, replace its generic screenshot/caption with the real completed-study workflow, and link S17 to the new capture receipt. The generated list title and word count follow those changes; a page break keeps Table 8 intact. No other manuscript text changes, numerical table changes, new experiment or raw-array revalidation are introduced.
+
+Current counts are **8,984 strict / 7,784 prose-only**, 24 counted words above the earlier contributions candidate. The **8,950 owner gate is still failed by 34**; the separate **7,000-9,000 rubric check passes**. The earlier stop and all older acceptance/operation receipts remain historical records, not overwritten approvals or revised thresholds.
+
+The four-operation preservation overlay reverses to the exact `b3b8dbc` manuscript before the existing contribution/editorial/Option B guards. All 168 preservation checks pass. Combined checks are 215/216, with only the disclosed older word ceiling failing. The new document-only change scope is measured from integration base `bdab52a`, which already contains the separately reviewed platform; it does not misclassify those pre-existing product files as new document edits. Five concrete mutation probes reject changes outside the authorised contract.
+
+The canonical PDF uses package-relative evidence links. All 99 local links resolve, and its 63 page images match the verified Desktop delivery exactly. The abstract/count, figure/list, surrounding layout and S17 pages were rendered and inspected. The original Desktop [scale-update receipt](evidence/ABSTRACT_SCALE_UPDATE.json) is preserved unchanged and retains its Desktop PDF hash; [canonical acceptance](evidence/PLATFORM_CONNECTION_ACCEPTANCE_2026-09-15.json) records the new repository PDF hash and validation scope. Capture source `5e18707`, final product source `17d6b21` and historical experiment identities remain distinct.
+
+This build has no overfull boxes, missing glyphs or undefined references. Ruff passes all seven document scripts. Independent exact-SHA review is pending the parent-coordinated push; document-builder verification is not independent approval. Existing institutional, permission, access and video submission items remain unchanged.
+
+## Earlier revision history
+
 ## Contributions block — 15 September 2026; input `da49954`; count gate unmet
 
 **Stopped at 8,960 strict / 7,760 prose-only words after A+B+F1: ten over the requested strict ceiling.** The supplied contribution block and designated trims landed together. A+B gave 8,975/7,775; F1 moved its exact 15-word timing-limit sentence from 3.7 to Appendix D's first paragraph. No additional manuscript edit followed. The title is unchanged; PDF is 63 pages.

@@ -9,6 +9,11 @@ import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
+from validate_platform_connection import (
+    PLATFORM_INTEGRATION_BASE,
+    restore_platform_connection,
+)
+
 BASELINE = "9b49efc34a482e5abaab804efcd857b368087c52"
 PACKAGE = "docs/dissertation/examiner_revision_2026-09-11"
 BASELINE_SHA256 = "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086ced"
@@ -306,6 +311,7 @@ def check_option_b(
     root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
 ) -> dict[str, bool]:
     # Each newer, explicitly authorised layer recovers the exact preceding manuscript.
+    revised, platform_checks = restore_platform_connection(root, here, revised)
     revised, contributions_checks = check_contributions(root, here, revised, table_parser)
     revised, editorial_checks = check_editorial_fixes(root, here, revised, table_parser)
     # The owner authorised only the first-line title change after 10ca7f2.
@@ -414,16 +420,21 @@ def check_option_b(
     checks["option_b_overflow_only_after_count_failure"] = (
         not record["overflow_used"] or record["before_overflow_counts"]["words"] > 9000
     )
+    # The integration base already contains the separately approved platform.
+    # Bind only this new document layer to its exact composed predecessor.
     changed = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
-        ["/usr/bin/git", "diff", "--name-only", BASELINE], cwd=root, text=True
+        ["/usr/bin/git", "diff", "--name-only", PLATFORM_INTEGRATION_BASE],
+        cwd=root,
+        text=True,
     ).splitlines()
-    checks["option_b_tracked_changes_within_revision_package"] = all(
+    checks["platform_connection_tracked_changes_within_revision_package"] = all(
         name.startswith(PACKAGE + "/") for name in changed
     )
     checks.update(closing_checks)
     checks.update(title_checks)
     checks.update(editorial_checks)
     checks.update(contributions_checks)
+    checks.update(platform_checks)
     return checks
 
 

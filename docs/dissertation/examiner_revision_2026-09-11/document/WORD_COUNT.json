@@ -1,7 +1,7 @@
 {
-  "words": 8960,
-  "prose_only_words": 7760,
-  "headline_words": 8960,
+  "words": 8984,
+  "prose_only_words": 7784,
+  "headline_words": 8984,
   "headline_method": "package",
   "acceptance_bounds": {
     "prose_only_min": 7600,

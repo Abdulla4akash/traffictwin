@@ -1,0 +1,22 @@
+{
+  "capture_source_commit": "5e187070849c15fe3efd07d9d9356a09e18dcd22",
+  "final_source_commit": "17d6b21c7228910a911d66879a1c6e11ae445eb2",
+  "page_source_unchanged_since_capture": true,
+  "route": "http://127.0.0.1:8517/experimental-results",
+  "screenshot": {
+    "path": "figure7-traffictwin-real-results.png",
+    "sha256": "3d0a0142cbc1dab5de8bf594239b0d18351ebe60f2459f9dfd66e91e0e5af606",
+    "width": 1470,
+    "height": 720,
+    "method": "Native browser screenshot, clip x=0 y=65 width=1470 height=720 after scrolling actual page; no pixel editing"
+  },
+  "checks": [
+    "native bundle importer button opens Experimental Results",
+    "native Runs & blocks selector selects block 3",
+    "Evidence & downloads presents source and import receipt downloads",
+    "displayed seal and canonical ZIP hash match imported bytes",
+    "native file chooser upload of exported ZIP accepted, all32 receipts matched",
+    "native upload of one-byte-altered CSV within ZIP refused with fingerprint mismatch and no stale results"
+  ],
+  "new_scientific_workloads_launched": 0
+}

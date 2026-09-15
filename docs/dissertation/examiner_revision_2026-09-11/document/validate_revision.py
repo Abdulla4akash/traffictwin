@@ -10,6 +10,7 @@ from pathlib import Path
 import fitz
 from markdown_it import MarkdownIt
 from validate_option_b import PROJECT_TITLE, check_option_b
+from validate_platform_connection import restore_platform_connection
 
 HERE = Path(__file__).resolve().parents[1]
 ROOT = HERE.parents[2]
@@ -83,9 +84,10 @@ def main() -> None:
     checks["table_3_only_authorised_disclosure_rows_added"] = after["3"] == (
         before["3"] + disclosure_rows
     )
-    checks["abstract_unchanged"] = (
+    restored, _ = restore_platform_connection(ROOT, HERE, revised)
+    checks["abstract_unchanged_before_authorised_scale_sentence"] = (
         original.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
-        == revised.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
+        == restored.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
     )
     proposition = re.search(r"(?m)^\*\*Proposition 1 .*", original)
     checks["proposition_statement_unchanged"] = (
@@ -114,7 +116,10 @@ def main() -> None:
     )
     counts = json.loads((HERE / "document/WORD_COUNT.json").read_text())
     count = counts["words"]
+    # Retain the earlier owner gate as a disclosed failure; the later authorised
+    # abstract sentence is separately checked against the rubric ceiling.
     checks["word_count_in_range"] = counts["prose_only_words"] >= 7600 and count <= 8950
+    checks["rubric_word_count_in_range"] = 7000 <= count <= 9000
     checks["package_count_is_headline"] = (
         counts["headline_words"] == count and counts["headline_method"] == "package"
     )
@@ -184,6 +189,15 @@ def main() -> None:
         "missing_links": missing,
         "words": count,
         "prose_only_words": counts["prose_only_words"],
+        "word_limit_status": {
+            "earlier_owner_ceiling": 8950,
+            "earlier_owner_ceiling_met": count <= 8950,
+            "excess_over_earlier_ceiling": max(count - 8950, 0),
+            "rubric_range": [7000, 9000],
+            "rubric_range_met": 7000 <= count <= 9000,
+            "interpretation": "Later owner authorised the current 8,984-word version; "
+            "the earlier ceiling remains unmet, not silently waived.",
+        },
         "author_confirmation": {
             "date": "2026-09-15",
             "source": "AUTHOR_ACTIONS.md",
