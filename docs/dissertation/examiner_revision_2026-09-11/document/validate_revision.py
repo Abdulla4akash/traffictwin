@@ -97,11 +97,11 @@ def main() -> None:
         checks[f"preserved_svg_{asset.stem}"] = sha(asset) == sha(HERE / "assets" / asset.name)
     checks["three_research_questions"] = len(re.findall(r"\*\*RQ[123]:", revised)) == 3
     checks["no_rq4"] = "RQ4" not in revised
-    checks["forty_three_references"] = len(newmap["bibkeys"]) == 43
+    checks["forty_four_references"] = len(newmap["bibkeys"]) == 44
     cited_order = list(dict.fromkeys(re.findall(r"\[\[\d+\]\]\(#ref-(\d+)\)", revised)))
     # Stable bibliography identifiers preserve protected Section 1.2; moves alter first appearance.
-    checks["references_have_stable_baseline_and_two_additions"] = newmap["bibkeys"] == [
-        f"ref{n}" for n in range(1, 44)
+    checks["references_have_stable_baseline_and_three_additions"] = newmap["bibkeys"] == [
+        f"ref{n}" for n in range(1, 45)
     ]
     checks["every_reference_cited"] = {f"ref{n}" for n in cited_order} == set(newmap["bibkeys"])
     captions = re.findall(r"(?m)^\*(?:Figure|Table) .*", revised)
@@ -109,11 +109,12 @@ def main() -> None:
     readings = [c.split("Reading:", 1)[1].strip() for c in captions]
     checks["unique_caption_readings"] = len(readings) == len(set(readings))
     checks["no_editorial_ownership_placeholders_in_body"] = all(
-        phrase not in revised for phrase in ["for author review", "still require the candidate's"]
+        phrase not in revised
+        for phrase in ["for author review", "still require the candidate's", "[Owner note:"]
     )
     counts = json.loads((HERE / "document/WORD_COUNT.json").read_text())
     count = counts["words"]
-    checks["word_count_in_range"] = counts["prose_only_words"] >= 7600 and count <= 9000
+    checks["word_count_in_range"] = counts["prose_only_words"] >= 7600 and count <= 8950
     checks["package_count_is_headline"] = (
         counts["headline_words"] == count and counts["headline_method"] == "package"
     )
@@ -151,6 +152,7 @@ def main() -> None:
         re.sub(r"(?<=\w)-\n(?=\w)", "", pdftext).split()
     )
     checks["pdf_has_appendix_f_and_table_d2"] = "Appendix F." in pdftext and "Table D2:" in pdftext
+    checks["pdf_has_relocated_table_a1"] = "Table A1:" in pdftext
     # Reproducible lexical diagnostic only, not a semantic quality score.
     sentences = []
     for block in newmap["blocks"]:

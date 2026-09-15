@@ -1,11 +1,11 @@
 {
-  "words": 9388,
-  "prose_only_words": 8017,
-  "headline_words": 9388,
+  "words": 8914,
+  "prose_only_words": 7714,
+  "headline_words": 8914,
   "headline_method": "package",
   "acceptance_bounds": {
     "prose_only_min": 7600,
-    "package_max": 9000
+    "package_max": 8950
   },
   "prose_only_method": "Same tokenisation and boundaries as package method; additionally excludes table bodies and pseudocode",
   "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded"

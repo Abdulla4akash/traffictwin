@@ -35,3 +35,7 @@ These confirmations record my statement; automated validation does not constitut
 ## New reference checks before submission — 15 September 2026
 
 The 16 added references are listed with their attachment points in [the registration receipt](evidence/reference-registration-2026-09-15.json). I still need to read at least each paper's abstract and cited section by eye and verify the JAX software citation/version before submission. The assistant checked Crossref metadata for the 15 DOI entries and the official JAX citation; these checks do not record my reading or a full-text review. The optional 3GPP standard was omitted because no version was specified. The earlier eight completed defence exercises remain a separate confirmation.
+
+## Ethics decision-tool confirmation — 15 September 2026
+
+I confirmed that I checked the University of Manchester Ethics Decision Tool and that ethics approval is not required for this project. My reply was: “see we dont need i just checked it myself.” This is my confirmation of the screening outcome; the editing assistant did not observe an authenticated result. See [the dated receipt](evidence/ETHICS_DECISION_OWNER_CONFIRMATION_2026-09-15.json) and manuscript reference 44.

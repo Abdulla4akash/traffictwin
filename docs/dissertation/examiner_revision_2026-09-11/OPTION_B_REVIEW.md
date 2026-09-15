@@ -1,5 +1,7 @@
 # Option B review and stop report
 
+Historical stop report for `2c29392`. The [closing revision](OPTION_B_CLOSE_REVIEW.md) supersedes its current count, stakes handling and ethics status; the record below is retained verbatim.
+
 ## Option B — 15 September 2026; input `9b49efc`
 
 **STOPPED AT THE WORD LIMIT: 9,388 package words / 8,017 prose-only words.** The strict count exceeds 9,000 by **388 words** after the overflow valve. No further text was trimmed or moved. The source, generated TeX/PDF and draft PR are provided for review; this candidate is not acceptance-complete. Build and documentation bookkeeping continued after content reduction stopped.

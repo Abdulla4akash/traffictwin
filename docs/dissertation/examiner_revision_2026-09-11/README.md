@@ -1,65 +1,63 @@
-# TrafficTwin — examiner revision, Option B, 15 September 2026
+# TrafficTwin — examiner revision, Option B closed, 15 September 2026
 
-**Draft blocked by word count: 9,388 package words / 8,017 prose-only words.** All permitted moves, including Table 8 → Appendix D/Table D2, are applied. The package count remains **388 over 9,000**; content reduction stopped as instructed. This is a compiled review draft. Read [submission gates](SUBMISSION_GATES.md) before submitting.
+**Closing revision passes: 8,914 strict/package words / 7,714 prose-only words; 62-page PDF.** The count meets ≤8,950 and ≥7,600 respectively. The draft PR remains open for review. Existing [submission gates](SUBMISSION_GATES.md) remain separate.
 
-## Manuscript and review record
+[PDF](TrafficTwin_Dissertation.pdf) · [Markdown source](TrafficTwin_Dissertation.md) · [generated TeX](TrafficTwin_Dissertation.tex) · [closing review and moved-content map](OPTION_B_CLOSE_REVIEW.md) · [revision history](REVISION_REPORT.md) · [validation](document/REVISION_VALIDATION.json)
 
-[PDF](TrafficTwin_Dissertation.pdf) · [Markdown source](TrafficTwin_Dissertation.md) · [generated TeX](TrafficTwin_Dissertation.tex) · [Option B review and stop report](OPTION_B_REVIEW.md) · [revision history](REVISION_REPORT.md) · [validation](document/REVISION_VALIDATION.json)
+## Changes and evidence
 
-The manuscript's research/product source base remains `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`. Option B's text-preservation baseline is `9b49efc34a482e5abaab804efcd857b368087c52` on `docs/dissertation-examiner-revision-2026-09-11`. Markdown remains the single source for body, Declaration and Acknowledgements. No scientific run, actor training, raw-task reanalysis or E3 workload was performed.
+Table 9 is now Appendix A/Table A1. Service-time, checkpoint and V2V paragraphs move verbatim to Appendix F; the constructed fractional-enqueue example and partition invariant move to Appendix B. Five source pointers replace those locations. The four specified duplicate sentences are removed from the prior Option B additions. The stakes paragraph names both verified 3GPP requirement classes and removes the owner placeholder. The ethics paragraph records the author's confirmed, dated decision-tool check, with reference 44.
 
-Added sections 2.9 and 4.2, ethics, objective/RQ tags, proposition remark, Setting/Results labels and verified stakes context. The [evidence map](evidence/OPTION_B_EVIDENCE_MAP.md) records the source of each addition. The [operation ledger](evidence/OPTION_B_OPERATIONS.json) holds every verbatim move, pointer and SHA256. Section 1.2 is byte-identical; the explicit remark and cross-reference exceptions for 3.2–3.6 are listed in the review report. Existing numerical bodies and scientific figures are unchanged.
+The research/product source base remains `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`. Text-preservation baselines are `9b49efc34a482e5abaab804efcd857b368087c52` for Option B and `2c29392cbf04bf060aacb0f03f1fbb900842d54a` for closing. Markdown is the source. No scientific runs, frozen-package edits or main changes.
 
-## Counts and build identity
+## Counts and checks
 
 | Stage | Package count (headline) | Prose-only count |
 |---|---:|---:|
 | Baseline `9b49efc` | 9,180 | 7,877 |
-| A + B.1–B.4 | 9,452 | 7,991 |
-| After B.5 Table 8 → D2 | 9,388 | 8,017 |
-| Acceptance | ≤ 9,000 | ≥ 7,600 |
+| Previous Option B `2c29392` | 9,388 | 8,017 |
+| Final closing revision | **8,914** | **7,714** |
+| Closing acceptance | ≤ 8,950 | ≥ 7,600 |
 
-The contents page prints the package count first. The existing package method includes Abstract, main headings/body, table text, equations and pseudocode; it excludes captions, references, appendices and front matter. Prose-only additionally excludes table bodies and pseudocode. User bounds are now package ≤ 9,000 and prose-only ≥ 7,600.
+The contents page prints strict first. The package method includes Abstract, main headings/body, table text, equations and pseudocode; it excludes captions, references, appendices and front matter. Prose-only additionally excludes table bodies and pseudocode. [WORD_COUNT.json](document/WORD_COUNT.json) records both.
 
-- PDF: **63 pages**; all pages rendered for visual inspection.
-- Validator: **91/92 passed**, with only the word-count gate failing. A nonzero validator exit is the expected outcome for this draft.
-- Zero overfull boxes, missing glyphs, unresolved references or duplicate captions.
-- All 19 baseline table bodies remain identical; the new table is 3a and the former Table 8 is D2.
-- [Seven mutation probes](evidence/OPTION_B_MUTATION_CHECKS.json) detected deliberate preservation violations.
-- [Compact result check](evidence/OPTION_B_COMPACT_CHECKS.json): 32 cells / eight blocks passed.
-- [Frozen archive check](evidence/OPTION_B_ARCHIVE_CHECK.json): 938 files across eight roots passed; no changes outside this revision package.
+- `validate_revision.py`: **137/137 passed**; `validate_option_b.py`: **93/93 preservation guards passed**.
+- Section 1.2 byte-identical to `9b49efc`; Sections 3.2–3.6 byte-identical to `2c29392`.
+- All twenty pre-closing table bodies preserved; Table 9 → A1, earlier Table 8 → D2. All equations, algorithms and the proposition unchanged.
+- [Eleven mutation probes](evidence/OPTION_B_CLOSE_MUTATION_CHECKS.json) detect concrete preservation failures.
+- [Compact arithmetic](evidence/OPTION_B_CLOSE_COMPACT_CHECKS.json): 32 cells / eight blocks passed. [Archive integrity](evidence/OPTION_B_CLOSE_ARCHIVE_CHECK.json): 938 files / eight roots passed.
+- PDF: **62 pages**, all rendered and inspected. Zero overfull boxes, missing glyphs, undefined references or duplicate captions. Ruff lint/format passed for all six document Python files.
 
-- TrafficTwin_Dissertation.md SHA256: `307862fcc37558df585b0e867a0766aa3616cd810ee0595df398dd3ffaf0cf89`.
-- TrafficTwin_Dissertation.tex SHA256: `10a446730304195d815e4e02e598daafbc6c3bccde37a1f7a3240a833967750b`.
-- TrafficTwin_Dissertation.pdf SHA256: `616f27c4d3b54173761419fe0e4cbef5bf8ab8f410f5975888e400b9a70d4505`.
+## Primary sources and ethics
 
-## Primary-source verification
+3GPP TS 22.186 v16.2.0 gives 100 ms for automated-driving information sharing between UE and RSU (clause 5.3, Table 5.3-1, R.5.3-004/005) and 500 ms for platooning reporting including UE–RSU (clause 5.2, Table 5.2-1, R.5.2-008). The manuscript takes B.3's verified-500-ms branch and explicitly names both classes. WHO's 1.19 million road deaths estimate retains **2021**. Primary PDFs, version, pages, hashes and methods are recorded in [closing source registration](evidence/reference-registration-option-b-close-2026-09-15.json). No new DOI.
 
-The bibliography now contains 43 entries. References 1–41 retain their baseline identifiers; the new standard and WHO report are 42–43 so protected Section 1.2 is unchanged. [Primary-document registration](evidence/reference-registration-option-b-2026-09-15.json) records access date, version, pages and download hashes. Existing [Crossref and JAX receipts](evidence/reference-registration-2026-09-15.json) remain historical evidence.
+The owner confirms completing the UoM Ethics Decision Tool and that approval is not required. This is recorded as an author check, **not an independently observed result or formal approval**; see [confirmation](evidence/ETHICS_DECISION_OWNER_CONFIRMATION_2026-09-15.json). References 1–41 keep their text/identifiers, 42 gains the platooning locator, 43 is unchanged and 44 cites the ethics tool. Earlier dated source receipts remain historical.
 
-The primary WHO report verifies **an estimated 1.19 million road traffic deaths in 2021**, printed p. 4 and executive summary p. viii. The estimation year is explicit in the manuscript.
+## SHA256
 
-The primary ETSI PDF of **3GPP TS 22.186 v16.2.0** verifies **100 ms** for automated-driving information sharing between UE and RSU (clause 5.3, Table 5.3-1, requirements R.5.3-004/005, printed p. 10). **No advanced-driving requirement class spanning 100–500 ms was verified.** In that advanced-driving table, 500 is a communication range in metres for R.5.3-006. A 500 ms latency requirement belongs to platooning reporting, R.5.2-008, Table 5.2-1, printed p. 9. The manuscript uses the verified 100 ms context, distinguishes communication requirements from task deadlines, and leaves the requested bracketed owner note. Both primary PDFs were downloaded, their relevant text read and page images inspected by the editing assistant; owner reading is not claimed. The official document title is used. No new DOI was introduced; the two primary-document verifications are appended to reference-registration.json and separately recorded in reference-registration-option-b-2026-09-15.json.
+- TrafficTwin_Dissertation.md: `938213d74d9093008a6493dd992fa1157fe4758f266c59f5f2dfd78e8314b4f3`
+- TrafficTwin_Dissertation.tex: `57e2133857491eed28ba1e83da04c2affaacfb95108d26f184de45271bf35f65`
+- TrafficTwin_Dissertation.pdf: `f42d02333363aad5450210a6df5968dfd7a5a4905ce03fa920fda30aaa7cf429`
 
 ## Build and check
 
-From the repository root, use the document environment with MarkdownIt, NumPy, SciPy, Matplotlib, PyMuPDF, XeLaTeX and latexmk. Existing PDF figures require no conversion during an ordinary rebuild.
+Use the document environment with MarkdownIt, NumPy, SciPy, Matplotlib, PyMuPDF, XeLaTeX and latexmk. Both Git baselines must be available. Existing PDF figures require no conversion during an ordinary rebuild.
 
 ```sh
 pkg_dir=docs/dissertation/examiner_revision_2026-09-11
 python "$pkg_dir/document/convert_source.py"
 latexmk -cd -xelatex -interaction=nonstopmode -halt-on-error "$pkg_dir/TrafficTwin_Dissertation.tex"
-python docs/dissertation/joint_confirmation_2026-09-08/document/verify_results.py --output "$pkg_dir/evidence/OPTION_B_COMPACT_CHECKS.json"
+python docs/dissertation/joint_confirmation_2026-09-08/document/verify_results.py --output "$pkg_dir/evidence/OPTION_B_CLOSE_COMPACT_CHECKS.json"
 python scripts/verify_research_archives.py
+python "$pkg_dir/document/validate_option_b.py"
 python "$pkg_dir/document/validate_revision.py"
 ruff check "$pkg_dir/document"
 ruff format --check "$pkg_dir/document"
 ```
 
-`validate_revision.py` requires the Git baseline commit to be available and currently exits 1 solely for the word-count gate. The [build log](evidence/latexmk-option-b-2026-09-15.log) and [grep table](evidence/OPTION_B_GREP.json) support review. The original `revision_recipe.json` is the historical transfer recipe; ordinary builds use current Markdown.
+[Build log](evidence/latexmk-option-b-close-2026-09-15.log) · [grep table](evidence/OPTION_B_CLOSE_GREP.json) · [closing operation ledger](evidence/OPTION_B_CLOSE_OPERATIONS.json) · [acceptance](evidence/OPTION_B_CLOSE_ACCEPTANCE.json). The original `revision_recipe.json` is historical; ordinary builds use current Markdown.
 
-## Existing evidence and remaining gates
+## Existing boundaries
 
-The actual [product capture](evidence/CAPTURE.json) and [inventory](evidence/ARTEFACT_INVENTORY.json) remain tied to their inspected source. Hosted run [34631121188](https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188) completed Python 3.12 with 8,301 collected, 8,179 passed, 56 failed and 66 skipped; Python 3.11 was cancelled. Only five failures are tier-4 UI text assertions; the complete [failure inventory](evidence/HOSTED_TEST_RESULT_2026-09-11.json) remains disclosed. No fresh global suite or usability result is claimed.
-
-The owner's 15 September authorship and verification confirmations remain in [AUTHOR_ACTIONS.md](AUTHOR_ACTIONS.md). AI-use permission, examiner access, award/student details, signature, prescribed institutional wording, owner reading of sources, assessed video and independently verified off-machine backup remain separate gates. The ethics declaration follows the owner's supplied task statement, rather than an automated institutional determination. [Video materials](video/RECORDING_PLAN.md) do not establish a completed recording. No merge or independent integration approval is implied.
+Hosted run 34631121188's 8,301 collected tests, 8,179 passes, **56 failures**, and 66 skips remain disclosed in the manuscript and [failure inventory](evidence/HOSTED_TEST_RESULT_2026-09-11.json). No fresh global test suite or usability result is claimed. E3 remains unexecuted. Author confirmations are in [AUTHOR_ACTIONS.md](AUTHOR_ACTIONS.md); assessed video, institutional front matter, AI permission and access/backup requirements remain in [SUBMISSION_GATES.md](SUBMISSION_GATES.md). No merge or formal independent integration approval is implied.

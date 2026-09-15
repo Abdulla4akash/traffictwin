@@ -1,0 +1,158 @@
+{
+  "baseline_commit": "2c29392cbf04bf060aacb0f03f1fbb900842d54a",
+  "baseline_markdown_sha256": "307862fcc37558df585b0e867a0766aa3616cd810ee0595df398dd3ffaf0cf89",
+  "before_counts": {
+    "words": 9388,
+    "prose_only_words": 8017
+  },
+  "thresholds": {
+    "package_max": 8950,
+    "prose_only_min": 7600
+  },
+  "stakes_branch": "500 ms verified: clause 5.2, Table 5.2-1, R.5.2-008; 100 ms clause 5.3, Table 5.3-1, R.5.3-004/005",
+  "ethics_status": "Owner confirmed completing the tool and that ethics approval was not required, 15 September 2026; assistant did not observe an authenticated tool outcome.",
+  "moves": [
+    {
+      "source_section": "3.7",
+      "appendix": "A",
+      "table_from": "9",
+      "table_to": "A1",
+      "body": "| Component | Size | Tests / recorded checks | Gate | Role |\n|---|---|---|---|---|\n| Evaluator | 1,204 lines; versioned confirmation copy 1,331 | E0 negative fixture; archived compatibility and 32 cell receipts | Admission, outcomes and service conservation | Computes the experimental task population and outcomes |\n| Per-task selector | 169 lines | Reference/helper and restart checks in S13–S16 | Immediate reservation; one final commitment | Sequential least-workload dispatch |\n| Cyclic comparator | 46 lines | Pointer/restart and unchanged-arm compatibility | Persistent pointer; no retry or full-node skipping | Workload-unaware causal control |\n| Campaign runner | 138 lines | Prelaunch safeguards; 32 completed cells in S16 | Source, seeds, completion and validation bindings | Executes and records the declared campaign |\n| Campaign validators | 160 lines plus compact verifier | 8 block receipts; 32-cell compact recomputation | Reject inconsistent inputs, counts and identities | Separates successful execution from admissible evidence |\n| TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |",
+      "sha256": "a00b2c404f6f457f0ee8c58325be2b5a83a3cf5133b6044440e27a458f007611",
+      "pointer": "Table A1 in Appendix A lists each component's size, recorded checks and refusal gate."
+    },
+    {
+      "source_section": "2.3",
+      "appendix": "F",
+      "body": "For homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1.",
+      "sha256": "82244a7e76f79bc3ec20cfa504086b4dd0e1f4e65cb21ded8ea257bb00002b4a",
+      "pointer": "Service times derive from task cycles, device frequency, parallelism, utilisation and acceleration, giving about 21, 35 and 2.5 ms for the three types before noise (Appendix F)."
+    },
+    {
+      "source_section": "2.3",
+      "appendix": "F",
+      "body": "The same archived one-hot-17 checkpoint is used throughout. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).",
+      "sha256": "d2f3cfb759340462cf8d04402260fe4f1e245dc3619be765d5db096b15c98cb3",
+      "pointer": "One archived MAPPO checkpoint and one device-tier preset are fixed throughout; training was not reproduced (Appendix F)."
+    },
+    {
+      "source_section": "2.2",
+      "appendix": "F",
+      "body": "V2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).",
+      "sha256": "88553fb06c0710bf0dce6ebaa94f73aacf2b655702623b91eeb4cb20a9b74100",
+      "pointer": "V2V helper selection follows the inherited strongest-link convention, held constant across arms (Appendix F)."
+    },
+    {
+      "source_section": "3.1",
+      "appendix": "B",
+      "body": "Consider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.",
+      "sha256": "18810355bfdaa40159f67595799d6be803b067cb5d2967368aa33d3ab87cb724",
+      "pointer": "Appendix B gives a constructed two-task example of the legacy fractional enqueue and states the admission/failure partition invariant."
+    },
+    {
+      "source_section": "3.1",
+      "appendix": "B",
+      "body": "The relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.",
+      "sha256": "df443f1f1ba6d5e569c952d46511c5fe5a5882ffbe523cbc149995a922ce6dc8",
+      "pointer": "Appendix B gives a constructed two-task example of the legacy fractional enqueue and states the admission/failure partition invariant."
+    }
+  ],
+  "operations": [
+    {
+      "kind": "table_to_pointer",
+      "source": "3.7",
+      "old": "*Table 9. Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines; hosted test outcomes are reported separately from collection. Research coverage refers to archived receipts unless explicitly labelled as a new document check [[S17]](#source-s17). Reading: the role and refusal gates explain what each component contributes; size alone proves neither quality nor independent authorship.*\n\n| Component | Size | Tests / recorded checks | Gate | Role |\n|---|---|---|---|---|\n| Evaluator | 1,204 lines; versioned confirmation copy 1,331 | E0 negative fixture; archived compatibility and 32 cell receipts | Admission, outcomes and service conservation | Computes the experimental task population and outcomes |\n| Per-task selector | 169 lines | Reference/helper and restart checks in S13–S16 | Immediate reservation; one final commitment | Sequential least-workload dispatch |\n| Cyclic comparator | 46 lines | Pointer/restart and unchanged-arm compatibility | Persistent pointer; no retry or full-node skipping | Workload-unaware causal control |\n| Campaign runner | 138 lines | Prelaunch safeguards; 32 completed cells in S16 | Source, seeds, completion and validation bindings | Executes and records the declared campaign |\n| Campaign validators | 160 lines plus compact verifier | 8 block receipts; 32-cell compact recomputation | Reject inconsistent inputs, counts and identities | Separates successful execution from admissible evidence |\n| TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |",
+      "new": "Table A1 in Appendix A lists each component's size, recorded checks and refusal gate."
+    },
+    {
+      "kind": "table_appendix_insert",
+      "source": "A",
+      "old": "## Appendix B. Audit coverage and diagnostic boundaries",
+      "new": "*Table A1. Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines; hosted test outcomes are reported separately from collection. Research coverage refers to archived receipts unless explicitly labelled as a new document check [[S17]](#source-s17). Reading: the role and refusal gates explain what each component contributes; size alone proves neither quality nor independent authorship.*\n\n| Component | Size | Tests / recorded checks | Gate | Role |\n|---|---|---|---|---|\n| Evaluator | 1,204 lines; versioned confirmation copy 1,331 | E0 negative fixture; archived compatibility and 32 cell receipts | Admission, outcomes and service conservation | Computes the experimental task population and outcomes |\n| Per-task selector | 169 lines | Reference/helper and restart checks in S13–S16 | Immediate reservation; one final commitment | Sequential least-workload dispatch |\n| Cyclic comparator | 46 lines | Pointer/restart and unchanged-arm compatibility | Persistent pointer; no retry or full-node skipping | Workload-unaware causal control |\n| Campaign runner | 138 lines | Prelaunch safeguards; 32 completed cells in S16 | Source, seeds, completion and validation bindings | Executes and records the declared campaign |\n| Campaign validators | 160 lines plus compact verifier | 8 block receipts; 32-cell compact recomputation | Reject inconsistent inputs, counts and identities | Separates successful execution from admissible evidence |\n| TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |\n\n## Appendix B. Audit coverage and diagnostic boundaries"
+    },
+    {
+      "kind": "move_to_pointer",
+      "source": "2.3",
+      "old": "For homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1.",
+      "new": "Service times derive from task cycles, device frequency, parallelism, utilisation and acceleration, giving about 21, 35 and 2.5 ms for the three types before noise (Appendix F)."
+    },
+    {
+      "kind": "appendix_insert",
+      "source": "F",
+      "old": "T(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.",
+      "new": "For homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1.\n\nT(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption."
+    },
+    {
+      "kind": "move_to_pointer",
+      "source": "2.3",
+      "old": "The same archived one-hot-17 checkpoint is used throughout. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).",
+      "new": "One archived MAPPO checkpoint and one device-tier preset are fixed throughout; training was not reproduced (Appendix F)."
+    },
+    {
+      "kind": "appendix_insert",
+      "source": "F",
+      "old": "For homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1.",
+      "new": "The same archived one-hot-17 checkpoint is used throughout. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).\n\nFor homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1."
+    },
+    {
+      "kind": "move_to_pointer",
+      "source": "2.2",
+      "old": "V2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).",
+      "new": "V2V helper selection follows the inherited strongest-link convention, held constant across arms (Appendix F)."
+    },
+    {
+      "kind": "appendix_insert",
+      "source": "F",
+      "old": "For homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1.",
+      "new": "V2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).\n\nFor homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1."
+    },
+    {
+      "kind": "move_to_pointer",
+      "source": "3.1",
+      "old": "Consider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.\n\nThe relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.",
+      "new": "Appendix B gives a constructed two-task example of the legacy fractional enqueue and states the admission/failure partition invariant."
+    },
+    {
+      "kind": "appendix_insert",
+      "source": "B",
+      "old": "Table B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.",
+      "new": "Consider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.\n\nThe relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.\n\nTable B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision."
+    },
+    {
+      "kind": "trim_option_b_ethics",
+      "source": "1.4",
+      "old": "**Ethical and professional considerations.** This study used simulated SUMO traces, with no human participants or personal data, so no ethics approval was required. I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses AI assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix E. This records the campaign's computational scope, rather than an energy or emissions measurement. The unperformed user evaluation supplies no evidence of usability or operator benefit.",
+      "new": "**Ethical and professional considerations.** This study used simulated SUMO traces, with no human participants or personal data, so no ethics approval was required. I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses AI assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix E."
+    },
+    {
+      "kind": "trim_option_b_method_leadin",
+      "source": "2.9",
+      "old": "Table 3a makes the design trade-offs explicit, using the controls and limitations already described. The alternatives provide a retrospective comparison of methodological choices; they were not all evaluated. Matched conditions support attribution within the evaluator, while replication defines which uncertainty the intervals address. In particular, four and eight paired replicates cannot strongly diagnose the distributional assumptions behind Student-t inference. Prespecifying contrasts controls the comparison family; it does not establish those assumptions or external validity.",
+      "new": "Table 3a makes the design trade-offs explicit, using the controls and limitations already described. The alternatives provide a retrospective comparison of methodological choices; they were not all evaluated. Matched conditions support attribution within the evaluator, while replication defines which uncertainty the intervals address."
+    },
+    {
+      "kind": "rewrite_option_b_stakes",
+      "source": "1.1",
+      "old": "WHO's *Global status report on road safety 2023* estimates 1.19 million road traffic deaths in 2021 [[43]](#ref-43). This motivates the application area without establishing a safety benefit from simulation. 3GPP TS 22.186 v16.2.0, clause 5.3, Table 5.3-1, specifies a 100 ms maximum end-to-end latency for automated-driving information sharing between a vehicle and RSU [[42]](#ref-42). This communication requirement does not validate the study's task deadlines. [Owner note: no advanced-driving requirement class spanning both study deadlines was verified.]",
+      "new": "WHO's *Global status report on road safety 2023* estimates 1.19 million road traffic deaths in 2021 [[43]](#ref-43). 3GPP TS 22.186 v16.2.0 sets maximum end-to-end latencies of 100 ms for automated-driving information sharing between a vehicle and an RSU (clause 5.3, Table 5.3-1) and 500 ms for platooning reporting, including vehicle–RSU communication (clause 5.2, Table 5.2-1) [[42]](#ref-42). The 100 ms and 500 ms task deadlines used in this study correspond to those two requirement classes; the correspondence motivates the deadlines and does not validate the simulation."
+    },
+    {
+      "kind": "standards_reference_locator",
+      "source": "References",
+      "old": "<a id=\"ref-42\"></a>\n[42] 3GPP. *Service requirements for enhanced V2X scenarios.* TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clause 5.3, Table 5.3-1, p. 10. [Primary document](https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf). Accessed 15 September 2026.",
+      "new": "<a id=\"ref-42\"></a>\n[42] 3GPP. *Service requirements for enhanced V2X scenarios.* TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clauses 5.2–5.3, Tables 5.2-1 (R.5.2-008) and 5.3-1 (R.5.3-004/005), pp. 9–10. [Primary document](https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf). Accessed 15 September 2026."
+    },
+    {
+      "kind": "owner_confirmed_ethics_screening",
+      "source": "1.4",
+      "old": "**Ethical and professional considerations.** This study used simulated SUMO traces, with no human participants or personal data, so no ethics approval was required. I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses AI assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix E.",
+      "new": "**Ethical and professional considerations.** This study used simulated SUMO traces, with no human participants or personal data, and my University of Manchester Ethics Decision Tool check on 15 September 2026 indicated that ethics approval was not required [[44]](#ref-44). I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses AI assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix E."
+    },
+    {
+      "kind": "ethics_reference",
+      "source": "References",
+      "old": "## Appendix A. Evidence sources and reproducibility",
+      "new": "<a id=\"ref-44\"></a>\n[44] The University of Manchester. *Ethics Decision Tool.* [University guidance](https://www.manchester.ac.uk/research/environment/governance/ethics/approval/); [decision tool](https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html). Checked by the author on 15 September 2026; outcome: ethics approval not required.\n\n## Appendix A. Evidence sources and reproducibility"
+    }
+  ]
+}

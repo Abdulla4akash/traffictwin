@@ -504,6 +504,7 @@ short_tab = {
     "7": "Eight-block simultaneous contrasts",
     "8": "Scheduler-only engineering trade-offs",
     "9": "Software components and gates",
+    "A1": "Software components and gates",
     "10": "Validity limits",
     "11": "Objective verdicts",
     "3a": "Method selection and alternatives",
@@ -822,7 +823,7 @@ while i < len(tokens):
         i += 1
         continue
     raise ValueError(("unexpected block", i, t.type, t.content))
-assert bibnums == [str(i) for i in range(1, 44)]
+assert bibnums == [str(i) for i in range(1, 45)]
 counted = []
 prose_counted = []
 for block in blocks:
@@ -860,7 +861,7 @@ prose_words = len(re.findall(r"[\w]+(?:[’'-][\w]+)*", " ".join(prose_counted))
             "headline_method": "package",
             "acceptance_bounds": {
                 "prose_only_min": 7600,
-                "package_max": 9000,
+                "package_max": 8950,
             },
             "prose_only_method": (
                 "Same tokenisation and boundaries as package method; "

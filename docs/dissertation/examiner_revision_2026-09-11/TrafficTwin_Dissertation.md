@@ -31,7 +31,7 @@ The findings support a bounded benefit from workload awareness beyond spreading.
 
 Vehicular edge computing concerns where a vehicle's computational tasks should run and whether their results can return before a deadline. A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I) [[1]](#ref-1), [[2]](#ref-2). A roadside unit (RSU) combines a radio access point with a simulated computing server in this study. Offloading therefore couples communication conditions with the work already waiting for computation [[3]](#ref-3).
 
-WHO's *Global status report on road safety 2023* estimates 1.19 million road traffic deaths in 2021 [[43]](#ref-43). This motivates the application area without establishing a safety benefit from simulation. 3GPP TS 22.186 v16.2.0, clause 5.3, Table 5.3-1, specifies a 100 ms maximum end-to-end latency for automated-driving information sharing between a vehicle and RSU [[42]](#ref-42). This communication requirement does not validate the study's task deadlines. [Owner note: no advanced-driving requirement class spanning both study deadlines was verified.]
+WHO's *Global status report on road safety 2023* estimates 1.19 million road traffic deaths in 2021 [[43]](#ref-43). 3GPP TS 22.186 v16.2.0 sets maximum end-to-end latencies of 100 ms for automated-driving information sharing between a vehicle and an RSU (clause 5.3, Table 5.3-1) and 500 ms for platooning reporting, including vehicle–RSU communication (clause 5.2, Table 5.2-1) [[42]](#ref-42). The 100 ms and 500 ms task deadlines used in this study correspond to those two requirement classes; the correspondence motivates the deadlines and does not validate the simulation.
 
 Deadline attainment matters because a computed answer has value only within the time window in which an application can use it [[4]](#ref-4). Offloading gives a vehicle access to additional computing resources, but transmission and waiting can consume that window. The mobile-edge literature frames the problem as joint communication and computation management [[3]](#ref-3). I therefore measure timely results over all offered tasks, so successful transmission or selective admission cannot stand in for useful completion.
 
@@ -121,7 +121,7 @@ I evaluate the trace-driven VEC scheduler. Section 3.7 separately assesses Traff
 
 I did not conduct the planned user evaluation; usability, operator benefit and adoption remain unestablished. E3 Dynamic Resource V2 also remains unexecuted [[S11]](#source-s11). Section 2 specifies the method, Section 3 evaluates completed work, and Section 4 concludes.
 
-**Ethical and professional considerations.** This study used simulated SUMO traces, with no human participants or personal data, so no ethics approval was required. I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses AI assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix E. This records the campaign's computational scope, rather than an energy or emissions measurement. The unperformed user evaluation supplies no evidence of usability or operator benefit.
+**Ethical and professional considerations.** This study used simulated SUMO traces, with no human participants or personal data, and my University of Manchester Ethics Decision Tool check on 15 September 2026 indicated that ethics approval was not required [[44]](#ref-44). I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses AI assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix E.
 
 ## 2. Methodology
 
@@ -137,7 +137,7 @@ Figure 1 separates actor mode choice, environmental radio targeting and infrastr
 
 The 17-dimensional observation includes task descriptors, vehicle queues, state of charge, radio summaries, compute capability, EV status and observed V2V target tier, but excludes RSU workload. One mode per active vehicle-second serves all independently sampled operational tasks in its five slots. Admission can nevertheless affect transmit energy, then SoC and later observations/actions. Frozen weights therefore do not guarantee fixed actions; the old matched-action finding is empirical, and the new protocol allows this feedback.
 
-V2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).
+V2V helper selection follows the inherited strongest-link convention, held constant across arms (Appendix F).
 
 ### 2.3 Scenarios, actor and controlled inputs
 
@@ -156,11 +156,11 @@ Both scenarios are drawn from the Manchester SUMO working-day and incident model
 | Placement-study RSU limit | 6,220 tasks per RSU | 6,220 tasks per RSU |
 | Service / forwarding / scaling | 1× / 0 ms / off | 1× / 0 ms / off |
 
-The same archived one-hot-17 checkpoint is used throughout. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).
+One archived MAPPO checkpoint and one device-tier preset are fixed throughout; training was not reproduced (Appendix F).
 
 Each active vehicle offers min(Poisson(1.5), 5) tasks per second; inactive slots offer none. Operational task types are independently sampled with probabilities (0.20, 0.30, 0.50). Types 1–3 have deadlines (100, 500, 100) ms, mean input sizes (1, 0.0012, 0.001) MB and workloads (1,254, 2,100, 15) million cycles. Input sizes multiply their type mean by an independent uniform 0.8–1.2 factor. The five-slot cap changes offered work as well as scheduling opportunities [[S4]](#source-s4).
 
-For homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1.
+Service times derive from task cycles, device frequency, parallelism, utilisation and acceleration, giving about 21, 35 and 2.5 ms for the three types before noise (Appendix F).
 
 Absolute capacity avoids a confound: the incident ratio 2.5 × 2,488 gives 6,220 tasks per RSU; applying 2.5 to the morning width would give only 538. The morning protocol fixes 6,220 explicitly. Density, duration, layout and vehicle-entry conventions still differ.
 
@@ -293,7 +293,7 @@ Retrospective type aggregation retains all types and draws without subgroup sign
 
 ### 2.9 Method selection and alternatives
 
-Table 3a makes the design trade-offs explicit, using the controls and limitations already described. The alternatives provide a retrospective comparison of methodological choices; they were not all evaluated. Matched conditions support attribution within the evaluator, while replication defines which uncertainty the intervals address. In particular, four and eight paired replicates cannot strongly diagnose the distributional assumptions behind Student-t inference. Prespecifying contrasts controls the comparison family; it does not establish those assumptions or external validity.
+Table 3a makes the design trade-offs explicit, using the controls and limitations already described. The alternatives provide a retrospective comparison of methodological choices; they were not all evaluated. Matched conditions support attribution within the evaluator, while replication defines which uncertainty the intervals address.
 
 *Table 3a. Method selection and alternatives. Reasons refer to the implemented study, with consequences limiting interpretation. Reading: connect each selected method to its alternative, purpose and resulting evidence boundary.*
 
@@ -316,9 +316,7 @@ Addresses O1 and the measurement basis of RQ1.
 
 E0 addressed a concrete mismatch between task scoring and queue admission. In the legacy clamp path, the evaluator scored eligible V2I tasks and multiplied their combined service work by the fraction fitting the task-count ceiling. Surplus tasks were not individually identified in earlier scoring. The 5 August repair introduced per-task admission/rejection and full enqueueing of admitted work. Putra implemented the repair after I identified the mismatch between task scoring and queue admission; E0 qualified recorded accounting in that configuration [[S0]](#source-s0), [[S12]](#source-s12).
 
-Consider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.
-
-The relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.
+Appendix B gives a constructed two-task example of the legacy fractional enqueue and states the admission/failure partition invariant.
 
 Archived E0 receipts report passing their checks, but source inspection identifies a remaining exception in E0/E1 and E2's reused off path: coarse eligibility reaches latency scoring while refined admission governs enqueueing. Recorded capacity rejections establish exposure, not false successes. Raw per-task arrays for E0, E1 and E2 were not retained; their run summaries, validation receipts and manifests are archived and reproduce the reported intervals. The task-level impact of the scoring-mask exception therefore cannot be quantified for those studies; Appendix B distinguishes this gap from later audit coverage [[S13]](#source-s13).
 
@@ -456,16 +454,7 @@ The research path combines a trace-driven JAX evaluator, versioned schedulers, s
 
 Contracts require admission before recorded execution and a passing validation receipt before accepting a scientific cell. The runner binds source, seeds and outputs; interface-ready E3 remains unexecuted.
 
-*Table 9. Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines; hosted test outcomes are reported separately from collection. Research coverage refers to archived receipts unless explicitly labelled as a new document check [[S17]](#source-s17). Reading: the role and refusal gates explain what each component contributes; size alone proves neither quality nor independent authorship.*
-
-| Component | Size | Tests / recorded checks | Gate | Role |
-|---|---|---|---|---|
-| Evaluator | 1,204 lines; versioned confirmation copy 1,331 | E0 negative fixture; archived compatibility and 32 cell receipts | Admission, outcomes and service conservation | Computes the experimental task population and outcomes |
-| Per-task selector | 169 lines | Reference/helper and restart checks in S13–S16 | Immediate reservation; one final commitment | Sequential least-workload dispatch |
-| Cyclic comparator | 46 lines | Pointer/restart and unchanged-arm compatibility | Persistent pointer; no retry or full-node skipping | Workload-unaware causal control |
-| Campaign runner | 138 lines | Prelaunch safeguards; 32 completed cells in S16 | Source, seeds, completion and validation bindings | Executes and records the declared campaign |
-| Campaign validators | 160 lines plus compact verifier | 8 block receipts; 32-cell compact recomputation | Reject inconsistent inputs, counts and identities | Separates successful execution from admissible evidence |
-| TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |
+Table A1 in Appendix A lists each component's size, recorded checks and refusal gate.
 
 The inventory measures project scope, not individually authored new code. Hosted run [34631121188](https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188), 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (including five tier-4 UI text assertions in `tests/unit/ui/test_page_presentation_tier4.py`, plus provenance/ancestry, artifact and other UI checks), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles [[37]](#ref-37), [[38]](#ref-38). Figure 7 shows the actual Streamlit interface.
 
@@ -675,10 +664,13 @@ I controlled AI assistance through specifications, code review, personal modific
 [41] D. Goldberg. “What every computer scientist should know about floating-point arithmetic.” *ACM Computing Surveys*, 23(1), 5–48, 1991. DOI: 10.1145/103162.103163. [Source](https://doi.org/10.1145/103162.103163).
 
 <a id="ref-42"></a>
-[42] 3GPP. *Service requirements for enhanced V2X scenarios.* TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clause 5.3, Table 5.3-1, p. 10. [Primary document](https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf). Accessed 15 September 2026.
+[42] 3GPP. *Service requirements for enhanced V2X scenarios.* TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clauses 5.2–5.3, Tables 5.2-1 (R.5.2-008) and 5.3-1 (R.5.3-004/005), pp. 9–10. [Primary document](https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf). Accessed 15 September 2026.
 
 <a id="ref-43"></a>
 [43] World Health Organization. *Global status report on road safety 2023.* Geneva: WHO, 2023. ISBN 978-92-4-008651-7. Executive summary p. viii and p. 4. [Primary document](https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content). Accessed 15 September 2026.
+
+<a id="ref-44"></a>
+[44] The University of Manchester. *Ethics Decision Tool.* [University guidance](https://www.manchester.ac.uk/research/environment/governance/ethics/approval/); [decision tool](https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html). Checked by the author on 15 September 2026; outcome: ethics approval not required.
 
 ## Appendix A. Evidence sources and reproducibility
 
@@ -743,6 +735,17 @@ The runtime is CPython 3.11.15, JAX/JAXlib 0.4.30 and NumPy 1.26.4, CPU, x64 dis
 <a id="source-s17"></a>
 **S17 — Examiner-revision artefact evidence.** The [source inventory](evidence/ARTEFACT_INVENTORY.json), [compact recomputation](evidence/COMPACT_CHECKS.json), [descriptive split](evidence/DESCRIPTIVE_SPLIT.json), [figure inputs](evidence/RSU_LAYOUT.json) and [revision validation](document/REVISION_VALIDATION.json) are generated from the pinned repository without new research execution. The [revision record](README.md) distinguishes historical receipts, fresh document checks, actual browser capture and author-only completion items. The manuscript's source base is `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`.
 
+*Table A1. Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines; hosted test outcomes are reported separately from collection. Research coverage refers to archived receipts unless explicitly labelled as a new document check [[S17]](#source-s17). Reading: the role and refusal gates explain what each component contributes; size alone proves neither quality nor independent authorship.*
+
+| Component | Size | Tests / recorded checks | Gate | Role |
+|---|---|---|---|---|
+| Evaluator | 1,204 lines; versioned confirmation copy 1,331 | E0 negative fixture; archived compatibility and 32 cell receipts | Admission, outcomes and service conservation | Computes the experimental task population and outcomes |
+| Per-task selector | 169 lines | Reference/helper and restart checks in S13–S16 | Immediate reservation; one final commitment | Sequential least-workload dispatch |
+| Cyclic comparator | 46 lines | Pointer/restart and unchanged-arm compatibility | Persistent pointer; no retry or full-node skipping | Workload-unaware causal control |
+| Campaign runner | 138 lines | Prelaunch safeguards; 32 completed cells in S16 | Source, seeds, completion and validation bindings | Executes and records the declared campaign |
+| Campaign validators | 160 lines plus compact verifier | 8 block receipts; 32-cell compact recomputation | Reject inconsistent inputs, counts and identities | Separates successful execution from admissible evidence |
+| TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |
+
 ## Appendix B. Audit coverage and diagnostic boundaries
 
 The September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.
@@ -750,6 +753,10 @@ The September audit independently identifies offers from active masks, V2I admis
 Task joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.
 
 Retrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).
+
+Consider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.
+
+The relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.
 
 Table B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.
 
@@ -1044,6 +1051,12 @@ The campaign elapsed 6440.25 seconds (107.34 minutes) from first attempt to comp
 The [raw inventory](../joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json) binds the locally retained task/step arrays and supporting files. The [verifier (requires NumPy and SciPy)](../joint_confirmation_2026-09-08/document/verify_results.py) regenerates central tables from compact evidence and accepts an optional explicit raw root for integrity checking. Compact arithmetic is not repeated task-level validation; hashes are not a backup. Approved off-machine storage and examiner access remain unresolved.
 
 ## Appendix F. Latency, scoring and drain details
+
+The same archived one-hot-17 checkpoint is used throughout. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).
+
+V2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).
+
+For homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All placement arms use service multiplier 1.
 
 T(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.
 

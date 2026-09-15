@@ -1,0 +1,120 @@
+{
+  "method": "Read-only string mutations; no manuscript or scientific artifact changed.",
+  "clean_candidate_passed_all_preservation_guards": true,
+  "clean_guard_count": 93,
+  "probes": [
+    {
+      "mutation": "protected_related_work",
+      "detected": true,
+      "failed_guards": [
+        "option_b_section_1_2_byte_identical",
+        "option_b_all_other_source_bytes_preserved",
+        "close_only_authorised_moves_trims_and_ethics_confirmation"
+      ]
+    },
+    {
+      "mutation": "protected_morning_prose",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_section_3.3_only_explicit_exceptions",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_section_3_3_byte_identical_to_2c29392"
+      ]
+    },
+    {
+      "mutation": "prior_moved_latency_paragraph",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "option_b_move_1_baseline_and_appendix_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_prior_moves_still_verbatim_in_current_appendices"
+      ]
+    },
+    {
+      "mutation": "prior_relocated_table_d2",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_8_to_D2_byte_identical",
+        "option_b_move_9_baseline_and_appendix_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_table_D2_to_D2_byte_identical",
+        "close_prior_moves_still_verbatim_in_current_appendices"
+      ]
+    },
+    {
+      "mutation": "new_relocated_table_a1",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_table_9_to_A1_byte_identical",
+        "close_move_1_verbatim_at_destination"
+      ]
+    },
+    {
+      "mutation": "new_moved_service_paragraph",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_move_2_verbatim_at_destination"
+      ]
+    },
+    {
+      "mutation": "new_moved_constructed_example",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_move_5_verbatim_at_destination"
+      ]
+    },
+    {
+      "mutation": "duplicate_source_pointer",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_pointer_1_exactly_once"
+      ]
+    },
+    {
+      "mutation": "unapproved_existing_prose",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "close_only_authorised_moves_trims_and_ethics_confirmation"
+      ]
+    },
+    {
+      "mutation": "removed_objective_tag",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_section_3.3_only_explicit_exceptions",
+        "option_b_all_seven_objective_tags",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_section_3_3_byte_identical_to_2c29392"
+      ]
+    },
+    {
+      "mutation": "altered_ethics_outcome",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_9_to_9_byte_identical",
+        "option_b_additions_present",
+        "close_only_authorised_moves_trims_and_ethics_confirmation",
+        "close_ethics_outcome_attributed_and_cited"
+      ]
+    }
+  ]
+}

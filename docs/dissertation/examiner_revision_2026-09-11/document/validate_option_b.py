@@ -12,6 +12,9 @@ from pathlib import Path
 BASELINE = "9b49efc34a482e5abaab804efcd857b368087c52"
 PACKAGE = "docs/dissertation/examiner_revision_2026-09-11"
 BASELINE_SHA256 = "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086ced"
+CLOSE_BASELINE = "2c29392cbf04bf060aacb0f03f1fbb900842d54a"
+CLOSE_BASELINE_SHA256 = "307862fcc37558df585b0e867a0766aa3616cd810ee0595df398dd3ffaf0cf89"
+CLOSE_LEDGER_SHA256 = "75fda6f1fcac0fe9f38d8df150cfd4b62619a10bedf11c04f6bf46c7a9cfb65d"
 
 
 def section(text: str, number: str) -> str:
@@ -26,9 +29,81 @@ def appendix(text: str, letter: str) -> str:
     return tail.split("\n## Appendix ", 1)[0]
 
 
+def check_closing_moves(
+    root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
+) -> tuple[str, dict[str, bool]]:
+    """Undo only the pinned closing operations before checking the older contract."""
+    baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
+        ["/usr/bin/git", "show", f"{CLOSE_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
+        cwd=root,
+        text=True,
+    )
+    ledger = (here / "evidence/OPTION_B_CLOSE_OPERATIONS.json").read_bytes()
+    record = json.loads(ledger)
+    checks = {
+        "close_baseline_hash": hashlib.sha256(baseline.encode()).hexdigest()
+        == CLOSE_BASELINE_SHA256
+        == record["baseline_markdown_sha256"],
+        "close_authorised_operation_ledger_hash": hashlib.sha256(ledger).hexdigest()
+        == CLOSE_LEDGER_SHA256,
+    }
+    restored = revised
+    reversible = True
+    for op in reversed(record["operations"]):
+        if not op["new"] or restored.count(op["new"]) != 1:
+            reversible = False
+            break
+        restored = restored.replace(op["new"], op["old"], 1)
+    checks["close_only_authorised_moves_trims_and_ethics_confirmation"] = (
+        reversible and restored == baseline
+    )
+    for n in range(2, 7):
+        checks[f"close_section_3_{n}_byte_identical_to_2c29392"] = section(
+            revised, f"3.{n}"
+        ) == section(baseline, f"3.{n}")
+    before, after = table_parser(baseline), table_parser(revised)
+    checks["close_table_identifiers_only_9_to_a1"] = set(after) == ((set(before) - {"9"}) | {"A1"})
+    for number, rows in before.items():
+        target = "A1" if number == "9" else number
+        checks[f"close_table_{number}_to_{target}_byte_identical"] = rows == after.get(target)
+    for i, move in enumerate(record["moves"], 1):
+        body = move["body"]
+        checks[f"close_move_{i}_verbatim_at_destination"] = (
+            body in section(baseline, move["source_section"])
+            and appendix(revised, move["appendix"]).count(body) == 1
+            and body not in section(revised, move["source_section"])
+            and hashlib.sha256(body.encode()).hexdigest() == move["sha256"]
+        )
+    for i, (source, pointer) in enumerate(
+        dict.fromkeys((m["source_section"], m["pointer"]) for m in record["moves"]), 1
+    ):
+        checks[f"close_pointer_{i}_exactly_once"] = section(revised, source).count(pointer) == 1
+    checks["close_no_owner_note_in_manuscript"] = "[Owner note:" not in revised
+    checks["close_stakes_name_both_requirement_classes"] = all(
+        phrase in section(revised, "1.1")
+        for phrase in [
+            "100 ms for automated-driving information sharing",
+            "500 ms for platooning reporting",
+            "clause 5.2, Table 5.2-1",
+            "does not validate the simulation",
+        ]
+    )
+    checks["close_ethics_outcome_attributed_and_cited"] = (
+        "my University of Manchester Ethics Decision Tool check on 15 September 2026"
+        " indicated that ethics approval was not required [[44]](#ref-44)."
+    ) in section(revised, "1.4")
+    # Current copies of all earlier moves must still exist, not only their undo image.
+    prior = json.loads((here / "evidence/OPTION_B_OPERATIONS.json").read_text())
+    checks["close_prior_moves_still_verbatim_in_current_appendices"] = all(
+        appendix(revised, move["appendix"]).count(move["body"]) == 1 for move in prior["moves"]
+    )
+    return restored, checks
+
+
 def check_option_b(
     root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
 ) -> dict[str, bool]:
+    revised, closing_checks = check_closing_moves(root, here, revised, table_parser)
     baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
         ["/usr/bin/git", "show", f"{BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
         cwd=root,
@@ -132,4 +207,19 @@ def check_option_b(
     checks["option_b_tracked_changes_within_revision_package"] = all(
         name.startswith(PACKAGE + "/") for name in changed
     )
+    checks.update(closing_checks)
     return checks
+
+
+if __name__ == "__main__":
+    from validate_revision import tables
+
+    package_dir = Path(__file__).resolve().parents[1]
+    result = check_option_b(
+        package_dir.parents[2],
+        package_dir,
+        (package_dir / "TrafficTwin_Dissertation.md").read_text(),
+        tables,
+    )
+    print(json.dumps({"passed": all(result.values()), "checks": result}, indent=2))
+    raise SystemExit(0 if all(result.values()) else 1)
