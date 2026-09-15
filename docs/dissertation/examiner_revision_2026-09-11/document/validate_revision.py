@@ -9,6 +9,7 @@ from pathlib import Path
 
 import fitz
 from markdown_it import MarkdownIt
+from validate_option_b import check_option_b
 
 HERE = Path(__file__).resolve().parents[1]
 ROOT = HERE.parents[2]
@@ -22,7 +23,7 @@ def sha(path: Path) -> str:
 def tables(text: str) -> dict[str, list[str]]:
     """Preserve exact table rows while allowing captions and numbering to change."""
     output = {}
-    parts = re.split(r"(?m)^\*Table ([A-E]?\d+)\.", text)
+    parts = re.split(r"(?m)^\*Table ([A-F]?\d+[a-z]?)\.", text)
     for index in range(1, len(parts), 2):
         number, following = parts[index : index + 2]
         lines = following.splitlines()
@@ -54,7 +55,7 @@ def main() -> None:
         "7": "7",
         "8": "C2",
         "9": "C3",
-        "10": "8",
+        "10": "D2",
         "B2": "B2",
         "C1": "C1",
         "D1": "D1",
@@ -96,10 +97,11 @@ def main() -> None:
         checks[f"preserved_svg_{asset.stem}"] = sha(asset) == sha(HERE / "assets" / asset.name)
     checks["three_research_questions"] = len(re.findall(r"\*\*RQ[123]:", revised)) == 3
     checks["no_rq4"] = "RQ4" not in revised
-    checks["forty_one_references"] = len(newmap["bibkeys"]) == 41
+    checks["forty_three_references"] = len(newmap["bibkeys"]) == 43
     cited_order = list(dict.fromkeys(re.findall(r"\[\[\d+\]\]\(#ref-(\d+)\)", revised)))
-    checks["references_numbered_by_first_appearance"] = cited_order == [
-        str(n) for n in range(1, 42)
+    # Stable bibliography identifiers preserve protected Section 1.2; moves alter first appearance.
+    checks["references_have_stable_baseline_and_two_additions"] = newmap["bibkeys"] == [
+        f"ref{n}" for n in range(1, 44)
     ]
     checks["every_reference_cited"] = {f"ref{n}" for n in cited_order} == set(newmap["bibkeys"])
     captions = re.findall(r"(?m)^\*(?:Figure|Table) .*", revised)
@@ -111,7 +113,11 @@ def main() -> None:
     )
     counts = json.loads((HERE / "document/WORD_COUNT.json").read_text())
     count = counts["words"]
-    checks["word_count_in_range"] = 7600 <= counts["prose_only_words"] <= 8400 and count <= 9300
+    checks["word_count_in_range"] = counts["prose_only_words"] >= 7600 and count <= 9000
+    checks["package_count_is_headline"] = (
+        counts["headline_words"] == count and counts["headline_method"] == "package"
+    )
+    checks.update(check_option_b(ROOT, HERE, revised, tables))
     parser = MarkdownIt("commonmark").enable("table")
     missing = []
     anchors = set(re.findall(r'<a id="([^"]+)"', revised))
@@ -136,6 +142,15 @@ def main() -> None:
     checks["no_undefined_references"] = "undefined references" not in log.lower()
     checks["pdf_has_disclosure"] = "Assistance and attribution" in pdftext
     checks["pdf_has_expected_figures"] = all(f"Figure {n}:" in pdftext for n in range(1, 9))
+    contents_sentence = (
+        f"Word count: {count:,} (main text including tables, equations and pseudocode; "
+        "excluding captions, references, appendices and front matter); "
+        f"{counts['prose_only_words']:,} excluding tables and pseudocode."
+    )
+    checks["pdf_contents_has_both_counts_package_first"] = contents_sentence in " ".join(
+        re.sub(r"(?<=\w)-\n(?=\w)", "", pdftext).split()
+    )
+    checks["pdf_has_appendix_f_and_table_d2"] = "Appendix F." in pdftext and "Table D2:" in pdftext
     # Reproducible lexical diagnostic only, not a semantic quality score.
     sentences = []
     for block in newmap["blocks"]:

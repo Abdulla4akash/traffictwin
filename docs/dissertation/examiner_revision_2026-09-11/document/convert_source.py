@@ -228,9 +228,9 @@ pattern = re.compile(
     "|".join(re.escape(k) for k in sorted(mathmap, key=len, reverse=True))
     + (
         "|(?:Table|Figure|Algorithm|Proposition) "
-        "(?:[A-E]\\d+|\\d+)|Equation \\(\\d+\\)|Section "
+        "(?:[A-F]?\\d+[a-z]?)|Equation \\(\\d+\\)|Section "
         "\\d(?:\\.\\d+)?|§\\d\\.\\d+|Appendix "
-        "[A-E]|\\[(?:[1-9]|[12][0-9])\\]|\\b[WQKRNDMESHUFVijnrdqscbpt]\\b"
+        "[A-F]|\\[(?:[1-9]|[12][0-9])\\]|\\b[WQKRNDMESHUFVijnrdqscbpt]\\b"
     )
 )
 
@@ -246,6 +246,9 @@ def textext(s: str, refs: bool = True) -> str:
             continue
         if b < len(s) and s[b].isalnum():
             continue
+        # A standards table such as Table 5.3-1 is not this manuscript's Table 5.
+        if x.startswith("Table ") and re.match(r"\.\d", s[b:]):
+            continue
         out.append(esc(s[last:a]))
         last = b
         if x in mathmap:
@@ -255,7 +258,7 @@ def textext(s: str, refs: bool = True) -> str:
         if re.fullmatch(r"\[\d+\]", x):
             out.append(r"\cite{ref" + x[1:-1] + "}")
             continue
-        match = re.fullmatch(r"(Table|Figure|Algorithm|Proposition) ([A-E]?\d+)", x)
+        match = re.fullmatch(r"(Table|Figure|Algorithm|Proposition) ([A-F]?\d+[a-z]?)", x)
         if match and refs:
             label = (
                 {"Table": "tab", "Figure": "fig", "Algorithm": "alg", "Proposition": "prop"}[
@@ -385,6 +388,8 @@ preamble = r"""% Additive source-synchronised revision. Build and inspection rec
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.45em}
 \setlength{\emergencystretch}{2em}
+\widowpenalty=10000
+\clubpenalty=10000
 \newcommand{\appendixsection}[2]{%
   \clearpage\refstepcounter{section}%
   \section*{Appendix \thesection. #2}%
@@ -415,9 +420,9 @@ Student ID: & \rule{95mm}{0.3pt}
 \end{tabular}
 \clearpage
 \tableofcontents
-\vfill\noindent\textbf{Word count: PROSECOUNT} (Abstract and main text, excluding tables,
-pseudocode, captions, references, appendices and front matter); WORDCOUNT including table text
-and pseudocode.\par
+\vfill\noindent\textbf{Word count: WORDCOUNT} (main text including tables, equations
+and pseudocode; excluding captions, references, appendices and front matter);
+PROSECOUNT excluding tables and pseudocode.\par
 \clearpage
 {\small\singlespacing
 \listoffigures
@@ -501,6 +506,8 @@ short_tab = {
     "9": "Software components and gates",
     "10": "Validity limits",
     "11": "Objective verdicts",
+    "3a": "Method selection and alternatives",
+    "D2": "Scheduler-only engineering trade-offs",
     "B1": "Historical audit coverage",
     "B2": "Matched task transitions",
     "C1": "Adverse dispatch illustration",
@@ -576,10 +583,14 @@ while i < len(tokens):
                 emit(
                     "appendix_open",
                     "",
-                    r"\appendix" + "\n" + r"\renewcommand{\thetable}{\Alph{section}\arabic{table}}",
+                    r"\appendix"
+                    + "\n"
+                    + r"\setlength{\parskip}{0.3em}"
+                    + "\n"
+                    + r"\renewcommand{\thetable}{\Alph{section}\arabic{table}}",
                 )
                 appendices = True
-            m = re.fullmatch(r"Appendix ([A-E])\. (.*)", title)
+            m = re.fullmatch(r"Appendix ([A-F])\. (.*)", title)
             assert m
             emit(
                 "heading",
@@ -601,9 +612,9 @@ while i < len(tokens):
             body.append(front_declaration)
         else:
             body.append(r"\FloatBarrier")
-        if title.startswith(("3.5 ", "3.6 ", "4. Conclusion")):
+        if title.startswith(("2.9 ", "3.5 ", "3.6 ", "4. Conclusion")):
             body.append(r"\clearpage")
-        m = re.fullmatch(r"((?:[A-E]|\d+)(?:\.\d+)?)\.? (.+)", title)
+        m = re.fullmatch(r"((?:[A-F]|\d+)(?:\.\d+)?)\.? (.+)", title)
         assert m, title
         emit(
             "heading",
@@ -671,7 +682,7 @@ while i < len(tokens):
             )
             emit("figure", raw + "\n" + cap, code)
             continue
-        m = re.fullmatch(r"\*Table ([A-E]?\d+)\. (.*)\*", raw, re.S)
+        m = re.fullmatch(r"\*Table ([A-F]?\d+[a-z]?)\. (.*)\*", raw, re.S)
         if m:
             pending_table = (m[1], m[2], raw)
             continue
@@ -743,10 +754,13 @@ while i < len(tokens):
         assert all(len(row) == n for row in rows)
         header = " & ".join(rows[0]) + r" \\"
         code = (
-            (r"\Needspace{14\baselineskip}" + "\n" if num == "4" else "")
+            (r"\Needspace{14\baselineskip}" + "\n" if num in ("4", "5") else "")
             + "\\begingroup\n"
             + r"\singlespacing\footnotesize\setlength{\tabcolsep}{3pt}"
             + "\n"
+            + r"\renewcommand{\thetable}{"
+            + num
+            + "}\n"
             + r"\begin{xltabular}{\textwidth}{@{}"
             + "Y" * n
             + "@{}}\n"
@@ -808,7 +822,7 @@ while i < len(tokens):
         i += 1
         continue
     raise ValueError(("unexpected block", i, t.type, t.content))
-assert bibnums == [str(i) for i in range(1, 42)]
+assert bibnums == [str(i) for i in range(1, 44)]
 counted = []
 prose_counted = []
 for block in blocks:
@@ -842,12 +856,11 @@ prose_words = len(re.findall(r"[\w]+(?:[’'-][\w]+)*", " ".join(prose_counted))
         {
             "words": words,
             "prose_only_words": prose_words,
-            "headline_words": prose_words,
-            "headline_method": "prose_only",
+            "headline_words": words,
+            "headline_method": "package",
             "acceptance_bounds": {
                 "prose_only_min": 7600,
-                "prose_only_max": 8400,
-                "package_max": 9300,
+                "package_max": 9000,
             },
             "prose_only_method": (
                 "Same tokenisation and boundaries as package method; "

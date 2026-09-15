@@ -1,0 +1,9 @@
+{
+  "pdf_sha256": "616f27c4d3b54173761419fe0e4cbef5bf8ab8f410f5975888e400b9a70d4505",
+  "pages": 63,
+  "render_method": "Poppler pdftoppm 70 DPI for every page; contact sheets plus larger page inspection for contents, stakes, method table, proposition, new reflection, Table D2 and Appendix F.",
+  "inspector": "editing assistant; not independent integration review",
+  "status": "inspected",
+  "findings": "No clipping, overlapping text, missing glyphs or duplicate captions observed. Small Table 5 and new Table 3a stay together. Appendix spacing avoids a continuation page with only two lines. Existing front-matter blank fields and bracketed standards owner note remain intentionally visible.",
+  "word_count_acceptance": "failed: 9388 > 9000; no further content reduction"
+}

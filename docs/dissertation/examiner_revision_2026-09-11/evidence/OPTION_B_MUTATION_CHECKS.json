@@ -1,0 +1,63 @@
+{
+  "method": "Read-only string mutations; no manuscript or scientific artifact changed.",
+  "clean_candidate_passed_all_preservation_guards": true,
+  "probes": [
+    {
+      "mutation": "protected_related_work",
+      "detected": true,
+      "failed_guards": [
+        "option_b_section_1_2_byte_identical",
+        "option_b_all_other_source_bytes_preserved"
+      ]
+    },
+    {
+      "mutation": "protected_morning_prose",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_section_3.3_only_explicit_exceptions"
+      ]
+    },
+    {
+      "mutation": "moved_latency_paragraph",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_move_1_baseline_and_appendix_identical"
+      ]
+    },
+    {
+      "mutation": "relocated_table_body",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_table_8_to_D2_byte_identical",
+        "option_b_move_9_baseline_and_appendix_identical"
+      ]
+    },
+    {
+      "mutation": "duplicate_source_pointer",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_pointer_1_exactly_once"
+      ]
+    },
+    {
+      "mutation": "unapproved_existing_prose",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved"
+      ]
+    },
+    {
+      "mutation": "removed_objective_tag",
+      "detected": true,
+      "failed_guards": [
+        "option_b_all_other_source_bytes_preserved",
+        "option_b_section_3.3_only_explicit_exceptions",
+        "option_b_all_seven_objective_tags"
+      ]
+    }
+  ]
+}

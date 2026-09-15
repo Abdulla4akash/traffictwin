@@ -1,0 +1,370 @@
+{
+  "baseline_commit": "9b49efc34a482e5abaab804efcd857b368087c52",
+  "baseline_markdown_sha256": "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086ced",
+  "moves": [
+    {
+      "source_section": "2.4",
+      "appendix": "F",
+      "first_words": "T(b,q,c) is",
+      "body": "T(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.",
+      "pointer": "Transfer, service and return-term constants are given in Appendix F.",
+      "sha256": "20699ac896e6facfd3281e30df40632dcee9fe826bcdc155be3bd30f07be596f"
+    },
+    {
+      "source_section": "2.4",
+      "appendix": "F",
+      "first_words": "The gate-enabled paths",
+      "body": "The gate-enabled paths pass final admission into latency scoring. Historical `off` instead passes earlier coarse eligibility while enqueueing uses refined admission: an in-substep capacity rejection need not receive penalty latency. Its historical numerical impact remains unquantified (§3.1). The final mapping is L[i] = 10D[i] when L_raw[i] ≥ 10⁸ ms, and L[i] = L_raw[i] otherwise. Finite late latencies are not generally clipped; success uses L[i] ≤ D[i], inclusively. Finite rejection latency alone is not a false deadline success.",
+      "pointer": "Appendix F states the legacy `off` scoring path and the penalty mapping; success uses L[i] ≤ D[i].",
+      "sha256": "e702446e9565da3b33e93e48408d53b6436359b08a50940584796fca3d225deb"
+    },
+    {
+      "source_section": "2.4",
+      "appendix": "F",
+      "first_words": "This aggregate carry approximation",
+      "body": "This aggregate carry approximation has no individual departure-event model; Equation (5) checks its declared dynamics rather than physical calibration. After the fifth substep, S[r] = min(W_post[r], 1,000) is served and W_next[r] = W_post[r] − S[r]. If this empties the queue, its task count becomes zero. Otherwise the evaluator subtracts floor(Q_post[r] × S[r]/W_post[r]), retaining at least one task while positive work remains.",
+      "pointer": "After the fifth substep each queue drains up to 1,000 ms of work; Appendix F gives the count-update rule.",
+      "sha256": "23dcb380b616ce487e85a60a576e9b9b0e141c7801200b2a9e5e4d325dee547c"
+    },
+    {
+      "source_section": "2.7",
+      "appendix": "B",
+      "first_words": "The September audit independently",
+      "body": "The September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.",
+      "pointer": "A retrospective audit cross-checks admission, categories, latency and assignments; Appendix B records its coverage and the A/B/C diagnostic design.",
+      "sha256": "6d13157deefe4733b6e221cdbbb0a4719d33333403e069d68d1bc72246605c52"
+    },
+    {
+      "source_section": "2.7",
+      "appendix": "B",
+      "first_words": "Task joins require",
+      "body": "Task joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.",
+      "pointer": "A retrospective audit cross-checks admission, categories, latency and assignments; Appendix B records its coverage and the A/B/C diagnostic design.",
+      "sha256": "7ca3d4f63bd83a2d476e77d8a145d18c8d945654202ffb04729393e565955dff"
+    },
+    {
+      "source_section": "2.7",
+      "appendix": "B",
+      "first_words": "Retrospective diagnostics distinguish",
+      "body": "Retrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).",
+      "pointer": "A retrospective audit cross-checks admission, categories, latency and assignments; Appendix B records its coverage and the A/B/C diagnostic design.",
+      "sha256": "5e5b371f0491034fc4509492238053d38f31336b3052a41e488987208bc2d4f8"
+    },
+    {
+      "source_section": "2.8",
+      "appendix": "D",
+      "first_words": "Scheduler timing uses",
+      "body": "Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[35]](#ref-35).",
+      "pointer": "Scheduler-only timing follows the protocol in Appendix D over sixteen configurations.",
+      "sha256": "3b6b79ad8521154446ee2c1fd9078373de287f07d5df9762c74624515cecfad2"
+    },
+    {
+      "source_section": "3.7",
+      "appendix": "D",
+      "first_words": "Compiler buffer reuse",
+      "body": "Compiler buffer reuse and elimination of unused broadcasts or identical passes affect execution, so asymptotic work alone does not predict the measured ordering. Three vectorised replacements materialise N×R arrays: O(KNR) work and O(NR) intermediate space with parallel prefix dependence. Per-task also requires O(KNR) work for R-way minima, but has a K×N sequential dependency chain. Round-robin removes minima, giving O(KN) target/predicate work in an indexed-state model. Both retain R queue entries and emit O(KN) diagnostics.",
+      "pointer": "Measured orderings differ from asymptotic work for compiler reasons set out in Appendix D.",
+      "sha256": "9e2f48920b26d63adad3d1c77c6e4e21847644c03b9e598e7893102a8fd3e0ed"
+    },
+    {
+      "source_section": "3.7",
+      "appendix": "D",
+      "first_words": "Table 8 → Table D2",
+      "body": "| Policy | N=215 median S/B | N=2,488 median S/B | Busy p95, 215/2,488 | Temporary KiB, 215/2,488 |\n|---|---:|---:|---:|---:|\n| Ingress | 1.031/1.019 | 6.096/6.113 | 1.103/6.230 | 24.6/294.9 |\n| Common-target | 0.952/0.962 | 5.797/5.815 | 1.014/5.935 | 23.8/285.2 |\n| Per-task | 0.052/0.055 | 0.501/0.616 | 0.062/0.641 | 11.7/139.1 |\n| Round-robin | 0.025/0.021 | 0.223/0.186 | 0.023/0.201 | 11.7/139.1 |",
+      "pointer": "Per-task ran at about 0.05–0.6 ms per five-substep batch against 1–6 ms for the three-replacement arms (Appendix D, Table D2).",
+      "sha256": "1e5a6f132089297f3fa5023032146bc4f2e6717cad61767d276d39d96aaceadb",
+      "kind": "table_body"
+    }
+  ],
+  "operations": [
+    {
+      "kind": "section_renumber",
+      "source": "",
+      "destination": "",
+      "old": "### 4.4 Reflection on the process",
+      "new": "### 4.5 Reflection on the process"
+    },
+    {
+      "kind": "section_renumber",
+      "source": "",
+      "destination": "",
+      "old": "### 4.3 Prioritised future work",
+      "new": "### 4.4 Prioritised future work"
+    },
+    {
+      "kind": "section_renumber",
+      "source": "",
+      "destination": "",
+      "old": "### 4.2 Research answers and interpretation",
+      "new": "### 4.3 Research answers and interpretation"
+    },
+    {
+      "kind": "cross_reference",
+      "source": "3.2",
+      "destination": "",
+      "old": "the two-choice mode remains the first comparator to add (Section 4.3).",
+      "new": "the two-choice mode remains the first comparator to add (Section 4.4)."
+    },
+    {
+      "kind": "addition_4_2",
+      "source": "4.2",
+      "destination": "",
+      "old": "### 4.3 Research answers and interpretation",
+      "new": "### 4.2 Analysis of the project approach\n\n**Complexity and scope.** I coordinated an investigation across two Manchester scenarios, one frozen actor and three replication stages: incident draws, prospective morning replication and joint-randomness confirmation. The research path combines a frozen JAX evaluator of 1,204 lines, a versioned confirmation copy of 1,331 lines, four infrastructure schedulers with explicit contracts, and a sealed 32-cell campaign with validators and receipts. An exact-model proposition and its numerical boundary complement a separate scheduler benchmark. TrafficTwin supplies the surrounding product: 678 Python files and 8,301 collected tests. These sizes describe the integration scope; the contribution lies in specifying and investigating the comparison, with supplied components acknowledged.\n\n**Execution quality.** I required fail-closed validation and conservation checks before accepting evidence. All 32 cells were valid without retries, and actions matched in all 24 non-reference comparisons. The maximum reconstructed RSU service discrepancy was 0.000121593 ms; vehicle queues have their separately reported bound. Compact recomputation checks the numerical summaries underlying the tables. The hosted product result also includes 56 failures, so campaign validity cannot be presented as an entirely passing software suite.\n\n**Challenges.** I had to recover inherited evaluator semantics from source. The adaptive E2c-to-E2d decision required prospective replication, while the legacy scoring-mask exception remains unquantifiable because early task arrays were not retained. I controlled AI assistance through specification, review and modification, retaining responsibility for the design and interpretation. These difficulties made evidence boundaries and retention part of the method rather than administrative details.\n\n### 4.3 Research answers and interpretation"
+    },
+    {
+      "kind": "addition_stakes",
+      "source": "1.1",
+      "destination": "",
+      "old": "Vehicular edge computing concerns where a vehicle's computational tasks should run and whether their results can return before a deadline. A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I) [[1]](#ref-1), [[2]](#ref-2). A roadside unit (RSU) combines a radio access point with a simulated computing server in this study. Offloading therefore couples communication conditions with the work already waiting for computation [[3]](#ref-3).",
+      "new": "Vehicular edge computing concerns where a vehicle's computational tasks should run and whether their results can return before a deadline. A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I) [[1]](#ref-1), [[2]](#ref-2). A roadside unit (RSU) combines a radio access point with a simulated computing server in this study. Offloading therefore couples communication conditions with the work already waiting for computation [[3]](#ref-3).\n\nWHO's *Global status report on road safety 2023* estimates 1.19 million road traffic deaths in 2021 [[43]](#ref-43). This motivates the application area without establishing a safety benefit from simulation. 3GPP TS 22.186 v16.2.0, clause 5.3, Table 5.3-1, specifies a 100 ms maximum end-to-end latency for automated-driving information sharing between a vehicle and RSU [[42]](#ref-42). This communication requirement does not validate the study's task deadlines. [Owner note: no advanced-driving requirement class spanning both study deadlines was verified.]"
+    },
+    {
+      "kind": "addition_ethics",
+      "source": "1.4",
+      "destination": "",
+      "old": "## 2. Methodology",
+      "new": "**Ethical and professional considerations.** This study used simulated SUMO traces, with no human participants or personal data, so no ethics approval was required. I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses AI assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix E. This records the campaign's computational scope, rather than an energy or emissions measurement. The unperformed user evaluation supplies no evidence of usability or operator benefit.\n\n## 2. Methodology"
+    },
+    {
+      "kind": "addition_2_9",
+      "source": "2.9",
+      "destination": "",
+      "old": "## 3. Evaluation and Reflection",
+      "new": "### 2.9 Method selection and alternatives\n\nTable 3a makes the design trade-offs explicit, using the controls and limitations already described. The alternatives provide a retrospective comparison of methodological choices; they were not all evaluated. Matched conditions support attribution within the evaluator, while replication defines which uncertainty the intervals address. In particular, four and eight paired replicates cannot strongly diagnose the distributional assumptions behind Student-t inference. Prespecifying contrasts controls the comparison family; it does not establish those assumptions or external validity.\n\n*Table 3a. Method selection and alternatives. Reasons refer to the implemented study, with consequences limiting interpretation. Reading: connect each selected method to its alternative, purpose and resulting evidence boundary.*\n\n| Choice | Alternative considered | Reason here | Consequence |\n|---|---|---|---|\n| Frozen actor with matched inputs | Retrain per arm | Isolates infrastructure effect | No claim about co-adapted policies |\n| Offered-task denominator | Admitted-task success | Reject-all scores zero; selective admission cannot hide failures | Rates lower than admitted-only figures |\n| Fleet draws / joint blocks | Task-level tests | Within-run tasks are dependent | Wide intervals; few degrees of freedom |\n| Student-t with Bonferroni | Bootstrap or permutation | Four and eight paired replicates; prespecified three-contrast family | Conservative intervals; parametric assumptions remain |\n| Causal round-robin control | Random or two-choice (`dla_p2c`) spreading | Isolates workload awareness with identical admission kernel; Section 3.2 explains comparator development | Two-choice comparison deferred (Section 4.4) |\n| Fixed forwarding charge on saved records | Network simulation | Admission, queues and actions unchanged; bounded qualification | No congestion or feedback modelled |\n| Absolute capacity 6,220 per RSU | Ratio to fleet width | Avoids confounding capacity with fleet size | Morning limit non-binding |\n| Trace-driven JAX evaluator | Re-running SUMO per arm | Identical mobility across arms; deterministic replay | No traffic response to offloading |\n\n## 3. Evaluation and Reflection"
+    },
+    {
+      "kind": "objective_tag",
+      "source": "3.1",
+      "destination": "",
+      "old": "### 3.1 Validation and scoping: accounting and historical capacity\n\n",
+      "new": "### 3.1 Validation and scoping: accounting and historical capacity\n\nAddresses O1 and the measurement basis of RQ1.\n\n"
+    },
+    {
+      "kind": "objective_tag",
+      "source": "3.2",
+      "destination": "",
+      "old": "### 3.2 From admission decomposition to the incident reversal\n\n",
+      "new": "### 3.2 From admission decomposition to the incident reversal\n\nO2 and O3 address RQ1 here.\n\n"
+    },
+    {
+      "kind": "objective_tag",
+      "source": "3.3",
+      "destination": "",
+      "old": "### 3.3 Morning replication with the inspected pilot excluded\n\n",
+      "new": "### 3.3 Morning replication with the inspected pilot excluded\n\nO3 addresses RQ2 through prospective replication.\n\n"
+    },
+    {
+      "kind": "objective_tag",
+      "source": "3.4",
+      "destination": "",
+      "old": "### 3.4 Confirmation under joint randomness and comparison with cyclic spreading\n\n",
+      "new": "### 3.4 Confirmation under joint randomness and comparison with cyclic spreading\n\nO2 and O3 address RQ2 through confirmation.\n\n"
+    },
+    {
+      "kind": "objective_tag",
+      "source": "3.5",
+      "destination": "",
+      "old": "### 3.5 Why destination semantics matter\n\n",
+      "new": "### 3.5 Why destination semantics matter\n\nO4 addresses the mechanism component of RQ1.\n\n"
+    },
+    {
+      "kind": "objective_tag",
+      "source": "3.6",
+      "destination": "",
+      "old": "### 3.6 Bounded state-information and forwarding sensitivities\n\n",
+      "new": "### 3.6 Bounded state-information and forwarding sensitivities\n\nO4 addresses RQ3 through bounded sensitivities.\n\n"
+    },
+    {
+      "kind": "objective_tag",
+      "source": "3.7",
+      "destination": "",
+      "old": "### 3.7 Computational trade-offs and research implementation\n\n",
+      "new": "### 3.7 Computational trade-offs and research implementation\n\nAddresses O5 and the computational context of RQ2.\n\n"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.2",
+      "destination": "",
+      "old": "E2's exploratory seed-0 comparison",
+      "new": "**Setting.** E2's exploratory seed-0 comparison"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.2",
+      "destination": "",
+      "old": "E2c tested the common-target comparison",
+      "new": "**Results.** E2c tested the common-target comparison"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.3",
+      "destination": "",
+      "old": "The inspected morning pilot offered",
+      "new": "**Setting.** The inspected morning pilot offered"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.3",
+      "destination": "",
+      "old": "The morning protocol declared four new seeds",
+      "new": "**Results.** The morning protocol declared four new seeds"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.4",
+      "destination": "",
+      "old": "All 32 full morning cells",
+      "new": "**Results.** All 32 full morning cells"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.4",
+      "destination": "",
+      "old": "Evaluator seed varies observation descriptors",
+      "new": "**Setting.** Evaluator seed varies observation descriptors"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.6",
+      "destination": "",
+      "old": "In incident seed 1, fresh per-task attainment",
+      "new": "**Setting.** In incident seed 1, fresh per-task attainment"
+    },
+    {
+      "kind": "run_in_label",
+      "source": "3.6",
+      "destination": "",
+      "old": "Every 100 ms report equalled fresh state",
+      "new": "**Results.** Every 100 ms report equalled fresh state"
+    },
+    {
+      "kind": "addition_remark",
+      "source": "3.5",
+      "destination": "",
+      "old": "**Proposition 1 (fixed-target admission in the studied exact model).** Fix candidate order, eligibility, destinations, initial nonnegative workload/count and nonnegative service demands, with strict backlog and exclusive count-capacity tests and no intervening drain. At each nonempty destination, let n be the eligible candidate count and d the number of distinct deadlines. Starting from the eligibility mask, simultaneous replacement reaches the unique causal fixed point within min(n, 2d−1) replacements; destinations decouple.",
+      "new": "**Proposition 1 (fixed-target admission in the studied exact model).** Fix candidate order, eligibility, destinations, initial nonnegative workload/count and nonnegative service demands, with strict backlog and exclusive count-capacity tests and no intervening drain. At each nonempty destination, let n be the eligible candidate count and d the number of distinct deadlines. Starting from the eligibility mask, simultaneous replacement reaches the unique causal fixed point within min(n, 2d−1) replacements; destinations decouple.\n\n**Remark.** With fixed destinations, repeated admission updates eventually agree with admitting candidates in order, under the stated exact-arithmetic assumptions. The guarantee concerns admission at those destinations; it neither chooses better destinations nor guarantees that floating-point execution follows the same decisions."
+    },
+    {
+      "kind": "move_origin",
+      "source": "2.4",
+      "destination": "F",
+      "old": "T(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.",
+      "new": "Transfer, service and return-term constants are given in Appendix F."
+    },
+    {
+      "kind": "move_origin",
+      "source": "2.4",
+      "destination": "F",
+      "old": "The gate-enabled paths pass final admission into latency scoring. Historical `off` instead passes earlier coarse eligibility while enqueueing uses refined admission: an in-substep capacity rejection need not receive penalty latency. Its historical numerical impact remains unquantified (§3.1). The final mapping is L[i] = 10D[i] when L_raw[i] ≥ 10⁸ ms, and L[i] = L_raw[i] otherwise. Finite late latencies are not generally clipped; success uses L[i] ≤ D[i], inclusively. Finite rejection latency alone is not a false deadline success.",
+      "new": "Appendix F states the legacy `off` scoring path and the penalty mapping; success uses L[i] ≤ D[i]."
+    },
+    {
+      "kind": "move_origin",
+      "source": "2.4",
+      "destination": "F",
+      "old": "This aggregate carry approximation has no individual departure-event model; Equation (5) checks its declared dynamics rather than physical calibration. After the fifth substep, S[r] = min(W_post[r], 1,000) is served and W_next[r] = W_post[r] − S[r]. If this empties the queue, its task count becomes zero. Otherwise the evaluator subtracts floor(Q_post[r] × S[r]/W_post[r]), retaining at least one task while positive work remains.",
+      "new": "After the fifth substep each queue drains up to 1,000 ms of work; Appendix F gives the count-update rule."
+    },
+    {
+      "kind": "audit_move_origin",
+      "source": "2.7",
+      "destination": "B",
+      "old": "Execution fields record admitted assignment, not departures [[S13]](#source-s13). Morning checks covered matched inputs/actions and full/probe prefixes, with logit tolerance 0.00001 and workload-balance error up to about 0.00174 ms [[S8]](#source-s8). The September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.",
+      "new": "Execution fields record admitted assignment, not departures [[S13]](#source-s13). Morning checks covered matched inputs/actions and full/probe prefixes, with logit tolerance 0.00001 and workload-balance error up to about 0.00174 ms [[S8]](#source-s8).\n\nA retrospective audit cross-checks admission, categories, latency and assignments; Appendix B records its coverage and the A/B/C diagnostic design."
+    },
+    {
+      "kind": "move_origin_shared_pointer",
+      "source": "2.7",
+      "destination": "B",
+      "old": "Task joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.\n\n",
+      "new": ""
+    },
+    {
+      "kind": "move_origin_shared_pointer",
+      "source": "2.7",
+      "destination": "B",
+      "old": "Retrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).\n\n",
+      "new": ""
+    },
+    {
+      "kind": "move_origin",
+      "source": "2.8",
+      "destination": "D",
+      "old": "Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[35]](#ref-35).",
+      "new": "Scheduler-only timing follows the protocol in Appendix D over sixteen configurations."
+    },
+    {
+      "kind": "move_origin",
+      "source": "3.7",
+      "destination": "D",
+      "old": "Compiler buffer reuse and elimination of unused broadcasts or identical passes affect execution, so asymptotic work alone does not predict the measured ordering. Three vectorised replacements materialise N×R arrays: O(KNR) work and O(NR) intermediate space with parallel prefix dependence. Per-task also requires O(KNR) work for R-way minima, but has a K×N sequential dependency chain. Round-robin removes minima, giving O(KN) target/predicate work in an indexed-state model. Both retain R queue entries and emit O(KN) diagnostics.",
+      "new": "Measured orderings differ from asymptotic work for compiler reasons set out in Appendix D."
+    },
+    {
+      "kind": "move_destination",
+      "source": "",
+      "destination": "",
+      "old": "## Appendix B. Audit coverage and diagnostic boundaries\n\n",
+      "new": "## Appendix B. Audit coverage and diagnostic boundaries\n\nThe September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.\n\nTask joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.\n\nRetrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).\n\n"
+    },
+    {
+      "kind": "move_destination",
+      "source": "",
+      "destination": "",
+      "old": "## Appendix D. Type aggregation and engineering evidence\n\n",
+      "new": "## Appendix D. Type aggregation and engineering evidence\n\nScheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[35]](#ref-35).\n\nCompiler buffer reuse and elimination of unused broadcasts or identical passes affect execution, so asymptotic work alone does not predict the measured ordering. Three vectorised replacements materialise N×R arrays: O(KNR) work and O(NR) intermediate space with parallel prefix dependence. Per-task also requires O(KNR) work for R-way minima, but has a K×N sequential dependency chain. Round-robin removes minima, giving O(KN) target/predicate work in an indexed-state model. Both retain R queue entries and emit O(KN) diagnostics.\n\n"
+    },
+    {
+      "kind": "move_destination_F",
+      "source": "",
+      "destination": "",
+      "old": "ation; hashes are not a backup. Approved off-machine storage and examiner access remain unresolved.\n",
+      "new": "ation; hashes are not a backup. Approved off-machine storage and examiner access remain unresolved.\n\n## Appendix F. Latency, scoring and drain details\n\nT(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.\n\nThe gate-enabled paths pass final admission into latency scoring. Historical `off` instead passes earlier coarse eligibility while enqueueing uses refined admission: an in-substep capacity rejection need not receive penalty latency. Its historical numerical impact remains unquantified (§3.1). The final mapping is L[i] = 10D[i] when L_raw[i] ≥ 10⁸ ms, and L[i] = L_raw[i] otherwise. Finite late latencies are not generally clipped; success uses L[i] ≤ D[i], inclusively. Finite rejection latency alone is not a false deadline success.\n\nThis aggregate carry approximation has no individual departure-event model; Equation (5) checks its declared dynamics rather than physical calibration. After the fifth substep, S[r] = min(W_post[r], 1,000) is served and W_next[r] = W_post[r] − S[r]. If this empties the queue, its task count becomes zero. Otherwise the evaluator subtracts floor(Q_post[r] × S[r]/W_post[r]), retaining at least one task while positive work remains.\n"
+    },
+    {
+      "kind": "new_references",
+      "source": "",
+      "destination": "",
+      "old": "## Appendix A. Evidence sources and reproducibility",
+      "new": "<a id=\"ref-42\"></a>\n[42] 3GPP. *Service requirements for enhanced V2X scenarios.* TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clause 5.3, Table 5.3-1, p. 10. [Primary document](https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf). Accessed 15 September 2026.\n\n<a id=\"ref-43\"></a>\n[43] World Health Organization. *Global status report on road safety 2023.* Geneva: WHO, 2023. ISBN 978-92-4-008651-7. Executive summary p. viii and p. 4. [Primary document](https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content). Accessed 15 September 2026.\n\n## Appendix A. Evidence sources and reproducibility"
+    },
+    {
+      "kind": "overflow_move_origin",
+      "source": "3.7",
+      "destination": "D",
+      "old": "*Table 8. Scheduler-only engineering trade-off on Apple M5 CPU, JAX/JAXlib 0.4.30, float32, default runtime threads. Times are milliseconds per five-substep batch; S/B denote sparse/busy fixtures. Temporary memory is XLA buffer analysis, not peak RSS. Reading: compare scheduler-only cost separately from simulated task latency.*\n\n| Policy | N=215 median S/B | N=2,488 median S/B | Busy p95, 215/2,488 | Temporary KiB, 215/2,488 |\n|---|---:|---:|---:|---:|\n| Ingress | 1.031/1.019 | 6.096/6.113 | 1.103/6.230 | 24.6/294.9 |\n| Common-target | 0.952/0.962 | 5.797/5.815 | 1.014/5.935 | 23.8/285.2 |\n| Per-task | 0.052/0.055 | 0.501/0.616 | 0.062/0.641 | 11.7/139.1 |\n| Round-robin | 0.025/0.021 | 0.223/0.186 | 0.023/0.201 | 11.7/139.1 |",
+      "new": "Per-task ran at about 0.05–0.6 ms per five-substep batch against 1–6 ms for the three-replacement arms (Appendix D, Table D2)."
+    },
+    {
+      "kind": "overflow_move_destination",
+      "source": "3.7",
+      "destination": "D",
+      "old": "## Appendix E. Joint-randomness study controls and execution",
+      "new": "*Table D2. Scheduler-only engineering trade-off on Apple M5 CPU, JAX/JAXlib 0.4.30, float32, default runtime threads. Times are milliseconds per five-substep batch; S/B denote sparse/busy fixtures. Temporary memory is XLA buffer analysis, not peak RSS. Reading: compare scheduler-only cost separately from simulated task latency.*\n\n| Policy | N=215 median S/B | N=2,488 median S/B | Busy p95, 215/2,488 | Temporary KiB, 215/2,488 |\n|---|---:|---:|---:|---:|\n| Ingress | 1.031/1.019 | 6.096/6.113 | 1.103/6.230 | 24.6/294.9 |\n| Common-target | 0.952/0.962 | 5.797/5.815 | 1.014/5.935 | 23.8/285.2 |\n| Per-task | 0.052/0.055 | 0.501/0.616 | 0.062/0.641 | 11.7/139.1 |\n| Round-robin | 0.025/0.021 | 0.223/0.186 | 0.023/0.201 | 11.7/139.1 |\n\n## Appendix E. Joint-randomness study controls and execution"
+    },
+    {
+      "kind": "overflow_cross_reference",
+      "source": "3.4",
+      "old": "separate fixtures in Table 8.",
+      "new": "separate fixtures in Appendix D, Table D2."
+    },
+    {
+      "kind": "overflow_cross_reference",
+      "source": "Appendix E",
+      "old": "These times are not the scheduler-only benchmark in Table 8.",
+      "new": "These times are not the scheduler-only benchmark in Appendix D, Table D2."
+    }
+  ],
+  "overflow_used": true,
+  "notes": [
+    "B.2 quoted wording differs from actual 9b49efc; corresponding September audit sentence moved verbatim.",
+    "General prose protection has explicit A.6 remark and A.1 cross-reference exceptions.",
+    "New references append as 42–43 to preserve Section 1.2 byte-for-byte.",
+    "New method table is 3a to preserve all existing table numbers."
+  ],
+  "before_overflow_counts": {
+    "words": 9452,
+    "prose_only_words": 7991
+  }
+}
