@@ -26,567 +26,612 @@
   },
   {
     "source_block": 10,
-    "ending": "Figure 1 shows the decision boundary studied here: the vehicle selects an offloading mode, while the infrastructure resolves the execution destination and admission .",
+    "ending": "I use offered-task deadline attainment to make that distinction explicit: the question is how much of the requested work receives a timely result.",
     "flagged": false
   },
   {
     "source_block": 11,
-    "ending": "Evaluation must retain rejected tasks in the offered population; measuring success only among admitted work would allow selective rejection to change the population being compared.",
+    "ending": "In this dissertation, those concerns motivate a controlled question about infrastructure decisions under fixed vehicle-policy weights, rather than a claim to reproduce all the timing requirements of an operational transport application.",
     "flagged": false
   },
   {
     "source_block": 12,
-    "ending": "The study compares scheduling implementations supporting an existing actor.",
+    "ending": "An operator must decide whether to retain ingress execution, distribute work or alter admission, accounting for coordination cost and available service.",
     "flagged": false
   },
   {
     "source_block": 13,
-    "ending": "Their operational difference concerns target timing, visible reservations and admission outcomes \u2013.",
+    "ending": "It also makes an unfavourable result informative: a scheduler can spread nominal demand or use a least-workload label without improving the proportion of all offered tasks that finish in time.",
+    "flagged": true
+  },
+  {
+    "source_block": 14,
+    "ending": "Figure 1 separates the vehicle's offloading mode from infrastructure execution and admission .",
     "flagged": false
   },
   {
     "source_block": 15,
-    "ending": "Admission rate and communication overhead matter alongside the latency of accepted work; VEC research therefore evaluates computation and communication together , .",
-    "flagged": false
+    "ending": "I retain rejected tasks in the offered denominator so selective admission cannot conceal failures.",
+    "flagged": true
   },
   {
     "source_block": 16,
-    "ending": "Each comparison preserves its scenario's trace and layout (Table 2).",
+    "ending": "I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's weights; matched inputs and action checks distinguish infrastructure effects from retraining and observation feedback.",
+    "flagged": false
+  },
+  {
+    "source_block": 17,
+    "ending": "The programme progressed from accounting and capacity to opposite ingress rankings for two least-workload implementations, distinguished by target timing, reservations and admission \u2013.",
     "flagged": false
   },
   {
     "source_block": 19,
-    "ending": "With RL supplying the upstream policy, the closest comparison is parallel-server dispatch: what information estimates waiting time, and when an assignment changes it.",
+    "ending": "Communication and computation jointly determine whether an offloaded task returns in time , .",
     "flagged": false
   },
   {
     "source_block": 20,
-    "ending": "TrafficTwin's inherited `jsq` name is misleading if read literally: the implemented selector compares service milliseconds, while a separate task count enforces finite admission capacity.",
-    "flagged": false
-  },
-  {
-    "source_block": 21,
-    "ending": "Its immediate service-work reservation is also different from Sparrow's worker-triggered task binding: TrafficTwin assumes the necessary information and acknowledgement are already available.",
-    "flagged": false
-  },
-  {
-    "source_block": 22,
-    "ending": "TrafficTwin's causal change is therefore an adaptation of established dispatch semantics, evaluated with workload information and deadline admission, rather than a novel batching principle.",
+    "ending": "Each comparison preserves its scenario's trace and layout (Table 2).",
     "flagged": false
   },
   {
     "source_block": 23,
-    "ending": "Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes.",
-    "flagged": true
+    "ending": "With RL supplying the upstream policy, the closest comparison is parallel-server dispatch: what information estimates waiting time, and when an assignment changes it.",
+    "flagged": false
   },
   {
     "source_block": 24,
-    "ending": "That denominator is a deliberate measurement choice, not a newly invented admission algorithm.",
+    "ending": "Neither the label nor balanced allocation establishes optimality.",
     "flagged": true
   },
   {
     "source_block": 25,
-    "ending": "Table 1 instead compares the operational mechanisms relevant to TrafficTwin.",
+    "ending": "TrafficTwin tests the latter and assumes immediate service-work information and acknowledgement, unlike Sparrow's worker-triggered binding.",
+    "flagged": false
+  },
+  {
+    "source_block": 26,
+    "ending": "TrafficTwin's causal change is therefore an adaptation of established dispatch semantics, evaluated with workload information and deadline admission, rather than a novel batching principle.",
     "flagged": false
   },
   {
     "source_block": 27,
-    "ending": "This distinction explains why a source-correct result can be scientifically useful while remaining conditional on simulation semantics.",
+    "ending": "TrafficTwin instead uses service work, deterministic ties, a backlog gate, five ordered slots and one-second draining; LSQ's stability and communication results do not establish its finite-horizon deadline performance.",
     "flagged": true
   },
   {
     "source_block": 28,
-    "ending": "TrafficTwin checks action equality empirically and uses draws or joint-seed blocks, not tasks, as replications.",
+    "ending": "Neither the denominator nor the admission principle is new.",
     "flagged": true
   },
   {
     "source_block": 29,
+    "ending": "Table 1 instead compares the operational mechanisms relevant to TrafficTwin.",
+    "flagged": false
+  },
+  {
+    "source_block": 31,
+    "ending": "SUMO trajectories  do not independently validate the coupled radio/computing model.",
+    "flagged": true
+  },
+  {
+    "source_block": 32,
+    "ending": "TrafficTwin checks action equality empirically and uses draws or joint-seed blocks, not tasks, as replications.",
+    "flagged": true
+  },
+  {
+    "source_block": 33,
     "ending": "These differ from the fixed-actor, multiple-RSU dispatch comparison here, motivating clear control and queue semantics.",
     "flagged": false
   },
   {
-    "source_block": 30,
+    "source_block": 34,
     "ending": "TrafficTwin instead fixes vehicle mode choice to expose infrastructure dispatch.",
     "flagged": false
   },
   {
-    "source_block": 32,
+    "source_block": 36,
     "ending": "The aim is to assess infrastructure admission and placement under a frozen vehicle actor.",
     "flagged": false
   },
   {
-    "source_block": 33,
+    "source_block": 37,
     "ending": "Treat E0/E1 as validation and scoping, retaining historical evidence limits.",
     "flagged": true
   },
   {
-    "source_block": 34,
+    "source_block": 38,
     "ending": "**O2 \u2014 Distinguish dispatch alternatives.** Specify ingress, common-target, causal per-task and cyclic placement, including control boundaries, reservation timing and validation.",
     "flagged": false
   },
   {
-    "source_block": 35,
+    "source_block": 39,
     "ending": "**O3 \u2014 Estimate matched contrasts.** Compare incident and morning draws, then test declared contrasts on separate joint-randomness blocks.",
     "flagged": false
   },
   {
-    "source_block": 36,
+    "source_block": 40,
     "ending": "**O4 \u2014 Explain mechanisms and boundaries.** Connect dispatch to destination concentration, the conditional exact result and completed information-age/forwarding sensitivities.",
     "flagged": true
   },
   {
-    "source_block": 37,
+    "source_block": 41,
     "ending": "**O5 \u2014 Deliver an inspectable artefact.** Document evaluator, campaign, verification and product components with reproducible inventory and evaluation boundaries.",
     "flagged": false
   },
   {
-    "source_block": 38,
+    "source_block": 42,
     "ending": "**RQ3:** What do the completed information-age and fixed-forwarding sensitivities establish about the boundaries of per-task placement?",
     "flagged": false
   },
   {
-    "source_block": 39,
+    "source_block": 43,
     "ending": "Section 4.1 gives an objective-by-objective verdict.",
     "flagged": false
   },
   {
-    "source_block": 41,
-    "ending": "TrafficTwin's Streamlit application, typed service layer, command-line workflows, scenario comparison and evidence-provenance facilities are assessed separately as software artefacts in Section 3.7.",
-    "flagged": false
-  },
-  {
-    "source_block": 42,
-    "ending": "Section 2 specifies the method, Section 3 evaluates the completed studies and artefact, and Section 4 answers the objectives and prioritises evidence needed next.",
-    "flagged": false
-  },
-  {
     "source_block": 45,
-    "ending": "Conclusions concern this evaluator, not retrained or physically validated systems.",
+    "ending": "Section 3.7 separately assesses TrafficTwin's Streamlit interface, typed services, command-line workflows and provenance facilities; their existence does not establish execution of the research campaigns or effects on physical Manchester traffic.",
     "flagged": true
   },
   {
     "source_block": 46,
-    "ending": "Audits and kernel explanations remain retrospective \u2013, .",
-    "flagged": false
-  },
-  {
-    "source_block": 48,
-    "ending": "A target remains a proposal until admission .",
+    "ending": "Section 2 specifies the method, Section 3 evaluates completed work, and Section 4 concludes.",
     "flagged": false
   },
   {
     "source_block": 49,
-    "ending": "Frozen weights therefore do not guarantee fixed actions; the old matched-action finding is empirical, and the new protocol allows this feedback.",
+    "ending": "Conclusions concern this evaluator, not retrained or physically validated systems.",
     "flagged": true
   },
   {
     "source_block": 50,
-    "ending": "Randy confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms .",
+    "ending": "Audits and kernel explanations remain retrospective \u2013, .",
     "flagged": false
   },
   {
     "source_block": 52,
-    "ending": "The incident trace retains its earlier convention without the same entry channel .",
+    "ending": "A target remains a proposal until admission .",
+    "flagged": false
+  },
+  {
+    "source_block": 53,
+    "ending": "Frozen weights therefore do not guarantee fixed actions; the old matched-action finding is empirical, and the new protocol allows this feedback.",
     "flagged": true
   },
   {
     "source_block": 54,
-    "ending": "Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (\u00a73.4).",
-    "flagged": false
-  },
-  {
-    "source_block": 55,
-    "ending": "The five-slot cap changes offered work as well as scheduling opportunities .",
+    "ending": "Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms .",
     "flagged": false
   },
   {
     "source_block": 56,
-    "ending": "All placement arms use service multiplier 1.",
-    "flagged": false
+    "ending": "The incident trace retains its earlier convention without the same entry channel .",
+    "flagged": true
   },
   {
-    "source_block": 57,
-    "ending": "Density, duration, layout and vehicle-entry conventions still differ.",
+    "source_block": 58,
+    "ending": "Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (\u00a73.4).",
     "flagged": false
   },
   {
     "source_block": 59,
-    "ending": "Work accumulates across all five substeps before one service drain .",
+    "ending": "The five-slot cap changes offered work as well as scheduling opportunities .",
     "flagged": false
   },
   {
     "source_block": 60,
-    "ending": "The per-run primary outcome and validation requirements are:",
+    "ending": "All placement arms use service multiplier 1.",
+    "flagged": false
+  },
+  {
+    "source_block": 61,
+    "ending": "Density, duration, layout and vehicle-entry conventions still differ.",
     "flagged": false
   },
   {
     "source_block": 63,
-    "ending": "Offered, admitted and successful-task latency means similarly have different populations.",
+    "ending": "Work accumulates across all five substeps before one service drain .",
     "flagged": false
   },
   {
-    "source_block": 65,
-    "ending": "The inherited gate tests existing effective workload, including the candidate offset O[i], against deadline D[i]:",
+    "source_block": 64,
+    "ending": "The per-run primary outcome and validation requirements are:",
     "flagged": false
   },
   {
     "source_block": 67,
-    "ending": "Consequently, admission can still lead to a transmission-related deadline miss.",
+    "ending": "Offered, admitted and successful-task latency means similarly have different populations.",
     "flagged": false
   },
   {
-    "source_block": 68,
-    "ending": "For viable V2I execution, the modelled response latency is:",
-    "flagged": false
-  },
-  {
-    "source_block": 70,
-    "ending": "The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.",
+    "source_block": 69,
+    "ending": "The inherited gate tests existing effective workload, including the candidate offset O[i], against deadline D[i]:",
     "flagged": false
   },
   {
     "source_block": 71,
-    "ending": "Finite rejection latency alone is not a false deadline success.",
-    "flagged": true
+    "ending": "Consequently, admission can still lead to a transmission-related deadline miss.",
+    "flagged": false
   },
   {
     "source_block": 72,
-    "ending": "For each queue over an interval, work accounting requires:",
+    "ending": "For viable V2I execution, the modelled response latency is:",
     "flagged": false
   },
   {
     "source_block": 74,
-    "ending": "Otherwise the evaluator subtracts floor(Q_post[r] \u00d7 S[r]/W_post[r]), retaining at least one task while positive work remains.",
+    "ending": "The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.",
     "flagged": false
   },
   {
+    "source_block": 75,
+    "ending": "Finite rejection latency alone is not a false deadline success.",
+    "flagged": true
+  },
+  {
     "source_block": 76,
-    "ending": "Table 3 makes their execution destination and gate switch explicit.",
+    "ending": "For each queue over an interval, work accounting requires:",
     "flagged": false
   },
   {
     "source_block": 78,
+    "ending": "Otherwise the evaluator subtracts floor(Q_post[r] \u00d7 S[r]/W_post[r]), retaining at least one task while positive work remains.",
+    "flagged": false
+  },
+  {
+    "source_block": 80,
+    "ending": "Table 3 makes their execution destination and gate switch explicit.",
+    "flagged": false
+  },
+  {
+    "source_block": 82,
     "ending": "Every argmin considers all RSUs and breaks ties by lowest index; a full selected RSU is rejected rather than excluded and retried elsewhere.",
     "flagged": false
   },
   {
-    "source_block": 79,
+    "source_block": 83,
     "ending": "Algorithm 1 performs exactly three simultaneous replacements.",
     "flagged": false
   },
   {
-    "source_block": 81,
+    "source_block": 85,
     "ending": "Gate-off modes omit the workload test.",
     "flagged": false
   },
   {
-    "source_block": 83,
+    "source_block": 87,
     "ending": "The causal gate and capacity see earlier admissions immediately.",
     "flagged": false
   },
   {
-    "source_block": 84,
+    "source_block": 88,
     "ending": "Per-task selects 0, 1, 2, 0, leaves 80, 40, 40 ms and all four meet deadlines under these assumptions.",
     "flagged": false
   },
   {
-    "source_block": 87,
+    "source_block": 91,
     "ending": "After inspecting them, E2d adds per-task placement on those same draws and reuses their controls: an adaptive extension, not new independent observations \u2013.",
     "flagged": true
   },
   {
-    "source_block": 88,
+    "source_block": 92,
     "ending": "The local protocol and manifest preceded the new outcomes, but there was no external preregistration , .",
     "flagged": false
   },
   {
-    "source_block": 89,
+    "source_block": 93,
     "ending": "Four draws cannot strongly diagnose distributional assumptions; these small-sample intervals remain conditional parametric summaries, not task-level significance tests.",
     "flagged": true
   },
   {
-    "source_block": 90,
+    "source_block": 94,
     "ending": "Independent joint blocks and approximately normal paired effects remain assumptions that eight blocks cannot strongly diagnose .",
     "flagged": true
   },
   {
-    "source_block": 92,
+    "source_block": 96,
     "ending": "Startup uses live state and recorded age zero .",
     "flagged": false
   },
   {
-    "source_block": 93,
+    "source_block": 97,
     "ending": "No full positive-cost simulation or network model is implied; penalty-equal ambiguity remains unresolved .",
     "flagged": true
   },
   {
-    "source_block": 94,
-    "ending": "It cross-checks flags, categories, latency/deadlines, assignments and summaries.",
-    "flagged": false
-  },
-  {
-    "source_block": 95,
-    "ending": "Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.",
-    "flagged": false
-  },
-  {
-    "source_block": 96,
-    "ending": "The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results .",
-    "flagged": false
-  },
-  {
     "source_block": 98,
-    "ending": "Qualification checked unchanged-arm compatibility, shared inputs, final-admission accounting and pointer restart; Appendix E records its finite coverage , .",
+    "ending": "The September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.",
     "flagged": false
   },
   {
     "source_block": 99,
-    "ending": "Repetitions measure host variability, not fleet uncertainty .",
-    "flagged": true
+    "ending": "Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.",
+    "flagged": false
   },
   {
     "source_block": 100,
-    "ending": "Categories supply admission, gate rejection and admitted misses; type totals must reproduce all-task summaries and paired net changes.",
+    "ending": "The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results .",
+    "flagged": false
+  },
+  {
+    "source_block": 102,
+    "ending": "Qualification checks compatibility, shared inputs, admission accounting and restart; Appendix E bounds coverage , .",
     "flagged": false
   },
   {
     "source_block": 103,
-    "ending": "Source history credits Randy's implementation and Abdulla's motivating accounting analysis; E0 qualified recorded accounting in that configuration , .",
-    "flagged": false
+    "ending": "Repetitions measure host variability, not fleet uncertainty .",
+    "flagged": true
   },
   {
     "source_block": 104,
+    "ending": "Categories supply admission, gate rejection and admitted misses; type totals must reproduce all-task summaries and paired net changes.",
+    "flagged": false
+  },
+  {
+    "source_block": 107,
+    "ending": "Putra implemented the repair after I identified the mismatch between task scoring and queue admission; E0 qualified recorded accounting in that configuration , .",
+    "flagged": false
+  },
+  {
+    "source_block": 108,
     "ending": "Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.",
     "flagged": false
   },
   {
-    "source_block": 105,
+    "source_block": 109,
     "ending": "Later reconstruction instead checks enqueue, drain and queue endpoints independently.",
     "flagged": false
   },
   {
-    "source_block": 106,
-    "ending": "Their numerical scoring impact is not assessable from surviving summaries and receipts; Appendix B distinguishes this gap from later audit coverage .",
-    "flagged": true
-  },
-  {
-    "source_block": 107,
-    "ending": "Neither equivalence nor statistically supported degradation follows .",
-    "flagged": true
-  },
-  {
-    "source_block": 108,
-    "ending": "More retained work need not mean more useful service.",
-    "flagged": true
-  },
-  {
-    "source_block": 109,
-    "ending": "It supports those outcomes without resolving historical measurement impact.",
+    "source_block": 110,
+    "ending": "The task-level impact of the scoring-mask exception therefore cannot be quantified for those studies; Appendix B distinguishes this gap from later audit coverage .",
     "flagged": true
   },
   {
     "source_block": 111,
-    "ending": "Its improvement could not establish that load balancing itself helped .",
+    "ending": "Neither equivalence nor statistically supported degradation follows .",
     "flagged": true
   },
   {
     "source_block": 112,
+    "ending": "More retained work need not mean more useful service.",
+    "flagged": true
+  },
+  {
+    "source_block": 113,
+    "ending": "It supports those outcomes without resolving historical measurement impact.",
+    "flagged": true
+  },
+  {
+    "source_block": 115,
+    "ending": "Its improvement could not establish that load balancing itself helped .",
+    "flagged": true
+  },
+  {
+    "source_block": 116,
     "ending": "In the exploratory draw, common-target remained 2.083 points below ingress with the gate.",
     "flagged": false
   },
   {
-    "source_block": 113,
+    "source_block": 117,
     "ending": "Table 4 retains all four draw-level results .",
     "flagged": false
   },
   {
-    "source_block": 115,
+    "source_block": 119,
     "ending": "These intervals summarise an adaptive extension on examined draws; the morning protocol supplies prospective replication.",
     "flagged": false
   },
   {
-    "source_block": 116,
+    "source_block": 120,
     "ending": "Against ingress attainment of 70.889%, the +0.527-point difference means about 53 extra successes per 10,000 offered, or a 0.744% relative increase.",
     "flagged": false
   },
   {
-    "source_block": 118,
+    "source_block": 122,
     "ending": "It motivated replication but remains exploratory .",
     "flagged": false
   },
   {
-    "source_block": 119,
+    "source_block": 123,
     "ending": "Mean attainment is 85.655%, 88.887% and 92.785%, respectively; its lower ingress/per-task means than the pilot underline the need for replication .",
     "flagged": false
   },
   {
-    "source_block": 121,
+    "source_block": 125,
     "ending": "Figure 5 displays these primary results.",
     "flagged": false
   },
   {
-    "source_block": 124,
+    "source_block": 128,
     "ending": "The five-draw ingress/per-task mean including the pilot is +3.709 points descriptively, outside Table 6; no common-target pilot result is available.",
     "flagged": false
   },
   {
-    "source_block": 125,
+    "source_block": 129,
     "ending": "The morning gain is about 390 extra successes per 10,000 offered, a 4.386% relative increase over ingress.",
     "flagged": false
   },
   {
-    "source_block": 127,
+    "source_block": 131,
     "ending": "Table 7 reports the declared contrasts; Appendix E retains every block .",
     "flagged": false
   },
   {
-    "source_block": 128,
+    "source_block": 132,
     "ending": "All four arms shared the required exogenous arrays exactly within each block, and actions matched exactly in all 24 non-reference arm/block comparisons.",
     "flagged": false
   },
   {
-    "source_block": 130,
+    "source_block": 134,
     "ending": "Its mean benefit is 63.1 successes per 10,000 offered tasks over round-robin, accompanying higher scheduler-only cost on the separate fixtures in Table 8.",
     "flagged": false
   },
   {
-    "source_block": 131,
+    "source_block": 135,
     "ending": "Their sum is the +4.137-point per-task-minus-ingress difference .",
     "flagged": false
   },
   {
-    "source_block": 132,
+    "source_block": 136,
     "ending": "The closer workload-awareness comparison is per-task versus causal round-robin: cyclic spreading captures most of the ingress gain, with a smaller, consistently positive workload-aware increment.",
     "flagged": false
   },
   {
-    "source_block": 134,
+    "source_block": 138,
     "ending": "It extends the original fleet-conditional finding to new evaluator streams.",
     "flagged": true
   },
   {
-    "source_block": 136,
+    "source_block": 140,
     "ending": "Appendix C retains the reconstructed states and Figure 8 , .",
     "flagged": false
   },
   {
-    "source_block": 138,
+    "source_block": 142,
     "ending": "The proof, numerical boundaries and adverse example are retained together in Appendix C .",
     "flagged": false
   },
   {
-    "source_block": 139,
+    "source_block": 143,
     "ending": "Tables C2 and C3 preserve the full transitions and type breakdown in Appendix C: the mechanism concentrates destinations, while the outcome accounting shows where attainment changes.",
     "flagged": false
   },
   {
-    "source_block": 141,
+    "source_block": 145,
     "ending": "Report ages 100, 500 and 1,000 ms yielded 72.46695%, 72.46856% and 72.45510%; single-draw changes do not establish equivalence or population robustness .",
     "flagged": true
   },
   {
-    "source_block": 142,
+    "source_block": 146,
     "ending": "Equal outcomes do not establish harmless communication delay.",
     "flagged": true
   },
   {
-    "source_block": 143,
+    "source_block": 147,
     "ending": "At 10 ms the advantage remained 0.28251 points, or 36,942 successes over ingress, despite 23,689 extra misses relative to zero overhead .",
     "flagged": false
   },
   {
-    "source_block": 144,
+    "source_block": 148,
     "ending": "RQ3 supports the tested information and fixed-cost models, not an extrapolated break-even threshold or network design.",
     "flagged": true
   },
   {
-    "source_block": 147,
-    "ending": "Section 3.4 separately establishes the attainment benefit over cyclic spreading.",
+    "source_block": 151,
+    "ending": "Section 3.4 separately assesses attainment.",
     "flagged": false
   },
   {
-    "source_block": 148,
+    "source_block": 152,
     "ending": "Both retain R queue entries and emit O(KN) diagnostics.",
     "flagged": false
   },
   {
-    "source_block": 149,
-    "ending": "No roadside response-time guarantee follows .",
-    "flagged": false
-  },
-  {
-    "source_block": 150,
-    "ending": "The UI exposes provenance and evidence standing rather than allowing narrative or generated recommendations to stand in for measurements , .",
-    "flagged": false
-  },
-  {
-    "source_block": 151,
-    "ending": "The campaign runner binds source, seed and output identities before the analysis reads a result.",
-    "flagged": false
-  },
-  {
     "source_block": 153,
-    "ending": "Figure 7 shows the actual Streamlit interface.",
+    "ending": "Transfer, peak memory and full-evaluator costs were unmeasured; host time is not simulated latency or a roadside guarantee .",
+    "flagged": true
+  },
+  {
+    "source_block": 154,
+    "ending": "The product supplies Streamlit, typed services and command-line scenario, import, comparison and evidence workflows, exposing provenance alongside measurements , .",
     "flagged": false
   },
   {
     "source_block": 155,
-    "ending": "The Declaration records substantive automated assistance; source commits and automated checks are not substitutes for individual understanding.",
+    "ending": "The runner binds source, seeds and outputs; interface-ready E3 remains unexecuted.",
+    "flagged": false
+  },
+  {
+    "source_block": 157,
+    "ending": "Figure 7 shows the actual Streamlit interface.",
+    "flagged": false
+  },
+  {
+    "source_block": 159,
+    "ending": "The contribution is the formulation, design and investigation of the comparison, not the inherited software.",
     "flagged": true
   },
   {
-    "source_block": 156,
-    "ending": "Within that model, separate lifecycle fields make proposed placement, admission and deadline success inspectable.",
-    "flagged": false
-  },
-  {
-    "source_block": 158,
-    "ending": "Appendix A records source and access boundaries separately from the scientific findings , .",
-    "flagged": false
-  },
-  {
     "source_block": 160,
-    "ending": "The contribution is a controlled and explainable implementation study of established scheduling ideas.",
+    "ending": "Separate lifecycle fields distinguish placement, admission and success.",
+    "flagged": false
+  },
+  {
+    "source_block": 162,
+    "ending": "Appendix A records access and off-machine preservation boundaries , .",
     "flagged": false
   },
   {
     "source_block": 164,
-    "ending": "Separate morning samples support the reversal beyond the adaptive incident extension.",
+    "ending": "This controlled implementation comparison demonstrates the importance of destination timing and reservation visibility within established scheduling ideas.",
     "flagged": false
   },
   {
-    "source_block": 165,
-    "ending": "Per-task exceeded causal round-robin by +0.631 points, with its simultaneous interval entirely positive.",
-    "flagged": false
-  },
-  {
-    "source_block": 166,
-    "ending": "Treatment-activation checks therefore determine what these sensitivities actually test.",
-    "flagged": false
-  },
-  {
-    "source_block": 167,
-    "ending": "The original four-draw accounting locates most gains in reduced rejection, with recovered admitted misses and smaller losses elsewhere.",
+    "source_block": 168,
+    "ending": "Causal per-task placement reversed common-target's ingress ranking; separate morning samples extend support beyond adaptive incident development.",
     "flagged": false
   },
   {
     "source_block": 169,
-    "ending": "The decisive test would be whether the reversal survives a calibrated timing model, not whether another abstract queue simulation produces more significant digits.",
-    "flagged": true
+    "ending": "Per-task exceeded causal round-robin by +0.631 points, with its simultaneous interval entirely positive.",
+    "flagged": false
   },
   {
     "source_block": 170,
-    "ending": "Separating estimate age, capacity information and acknowledgement delay would expose which protection comes from live admission rather than from placement itself.",
+    "ending": "Treatment-activation checks therefore determine what these sensitivities actually test.",
     "flagged": false
   },
   {
     "source_block": 171,
-    "ending": "User evaluation of the product is a different undertaking requiring its own protocol and evidence, not an extrapolation from scheduler attainment.",
+    "ending": "Four-draw descriptive accounting locates most gains in reduced rejection, alongside recovered admitted misses and smaller losses; it does not identify task-level causal effects.",
     "flagged": true
   },
   {
-    "source_block": 172,
-    "ending": "The established result remains bounded and useful: within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement adds a measured attainment benefit over the tested spreading rule.",
+    "source_block": 173,
+    "ending": "This post-hoc addition would be outside the sealed family.",
+    "flagged": false
+  },
+  {
+    "source_block": 174,
+    "ending": "The decisive test would be whether the reversal survives a calibrated timing model, not whether another abstract queue simulation produces more significant digits.",
+    "flagged": true
+  },
+  {
+    "source_block": 175,
+    "ending": "This tests how live admission protects placement based on older reports.",
+    "flagged": false
+  },
+  {
+    "source_block": 176,
+    "ending": "Action masking and V2V-helper selection need separate studies , ; product user evaluation requires its own protocol.",
+    "flagged": false
+  },
+  {
+    "source_block": 177,
+    "ending": "Within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule.",
+    "flagged": false
+  },
+  {
+    "source_block": 179,
+    "ending": "I excluded the morning pilot from primary inference, and the later sealed joint blocks gave the additional comparator a separate, explicit evidence boundary.",
+    "flagged": false
+  },
+  {
+    "source_block": 180,
+    "ending": "In hindsight, I should have made the evaluator's existing two-choice option more prominent when explaining comparator selection.",
+    "flagged": false
+  },
+  {
+    "source_block": 181,
+    "ending": "The retained September inventory improves traceability, while an independently verified off-machine copy and examiner access still require completion.",
+    "flagged": false
+  },
+  {
+    "source_block": 182,
+    "ending": "This experience reinforced the need to record design decisions, supplied code, automated assistance and personal verification separately throughout the work.",
     "flagged": false
   }
 ]

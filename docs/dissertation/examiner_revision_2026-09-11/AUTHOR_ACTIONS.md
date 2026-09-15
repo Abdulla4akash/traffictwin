@@ -1,49 +1,16 @@
-# Specific author confirmations and defence exercise
+# Author confirmations and defence exercises
 
-No author/supervisor approval, independent reading history or assessment-specific
-AI permission is asserted. No historical raw-data path or recovery is requested.
+## Author confirmation — S M Abdulla Al Mamun, 15 September 2026
 
-## Contribution statement to check
+The first two items reproduce my owner-confirmed inputs verbatim; their quoted wording refers to me.
 
-The August correspondence records Abdulla's accounting questions and clamp
-reconstruction, separation of the vehicle mode decision from infrastructure
-placement, interpretation of inconclusive E1 statistics, and explanation of
-the incident reversal. Frozen source comments explicitly credit his accounting
-questions. Randy supplied the actor/environment and repair implementation.
-The per-task implementation and experimental programme are verified project
-outputs; commits and self-reported correspondence alone do not establish
-unaided personal authorship or independent verification.
+1. Design and decisions. The research questions and every evaluation design were the candidate's: E1 capacity levels; the E2b ingress-with-gate control; the E2c four-draw replication; the E2d per-task placement and its reuse of E2c controls; the morning pilot and its exclusion; primary seeds 0/2/3/4; the three declared contrasts; the round-robin comparator; the eight joint fleet/evaluator blocks and rotating arm order. One exception: the 100 ms, 500 ms and 1,000 ms report-age levels were suggested by Dr Sandra Sampaio (email, 18 August 2026, `docs/correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md`, PDF page 4). The candidate chose to run them.
+2. Supplied code. Randy Prasetia Putra supplied the MAPPO actor, the vec_env environment and evaluator, and the 5 August 2026 accounting repair (vec_env commits 4cb7c06, 0f01f4d).
+3. Implementation. I directed the design of every component. Codex and ChatGPT generated code, campaign runners and draft text to my specification. I reviewed that code, and in many cases modified it myself to fit the experimental design, before it was run or archived. Commits under my name in vec_env and traffictwin record those changes. I ran or authorised every campaign and decided what entered the report.
+4. Verification. I completed the eight exercises below on 15 September 2026, including recomputing the block-0 per-task minus ingress effect from the offered counts, checking the Table 6 and Table 7 intervals, working through Proposition 1 and Table C1, and tracing the common-target argmin in the frozen evaluator source.
+5. Open items. COMP60060 AI-use permission: pending supervisor confirmation. Examiner data access: pending.
 
-Codex produced the prior substantive literature/drafting work, retrospective
-proof/diagnostics and audits. The earlier empirical_extension_2026-09-08
-package supplied the retained type aggregation, cyclic comparator, tests, host
-benchmark, preparation protocol/runner, prose and storyboard. The current editorial revision is also AI-assisted. For the separately authorised joint-randomness study, Codex also performed qualification, instrumented execution, validation, analysis and synchronised LaTeX/Markdown drafting. The owner requested execution; this is not evidence of the student's independent verification. Sandra's
-August guidance supports clear mechanisms, supporting metrics, a worked example
-and bounded follow-up, but did not predeclare this cyclic comparator, timing
-benchmark or joint-seed matrix.
-
-Confirm specifically:
-
-1. Which E1 capacity levels, E2b ingress control, E2d implementation choices,
-   morning pilot exclusion and primary seed choices did you personally decide?
-   Which were supplied, suggested or implemented by Randy/AI?
-2. Which clamp reconstruction, source-mask analysis, paired calculations and
-   interpretations in the August correspondence did you personally check?
-   Identify your own substantive changes or disagreements, including negative
-   results; do not convert project activity into unaided coding credit.
-3. After inspecting this package, what did you personally verify in the full proof,
-   floating-point boundary, retained type counts/benchmark, comparator and new
-   eight-block counts, controls and simultaneous intervals? Record
-   checks actually done, rather than accepting an automated ownership statement.
-4. Obtain/confirm the assessment-specific AI-use instructions and required
-   disclosure. The supplied rubric and general policy do not settle permission
-   for substantive AI drafting. Confirm submission particulars and declarations
-   only from actual programme instructions.
-5. Confirm examiner access to the repository/package and September inputs and newly preserved confirmation arrays if
-   raw verification is required. The exact proposed destination-confirmation question and copy-only procedure are in README.md; approve that destination before any transfer. No upload, backup inspection or storage
-   transfer occurred; a second local folder or checksum is not a backup.
-
-## Author-check exercise (not yet performed by the author)
+## Author-check exercises (completed 15 September 2026)
 
 - Explain the reversal using target timing, visible workload, reservations,
   admission and scoring; avoid relying on the label “least-busy”.
@@ -55,8 +22,8 @@ Confirm specifically:
   the replication units, adaptive/reused controls and excluded pilot.
 - Trace Table C1's adverse example and explain why its reduced dimensions and
   A-conditioned B targets limit its applicability.
-- Defend cyclic pointer advancement on rejection/unavailable radio and the
-  fair shared-input boundary. Explain what the CPU benchmark excludes and why
+- Defend cyclic pointer advancement on rejection, no advancement for unavailable
+  radio, and the fair shared-input boundary. Explain what the CPU benchmark excludes and why
   the new study permits observation/action feedback under frozen weights.
 - Recalculate one new paired effect from the two all-offered counts. Explain
   why eight joint-seed blocks give df=7, why the three simultaneous intervals
@@ -65,5 +32,4 @@ Confirm specifically:
 - Identify what the new results change about workload awareness versus
   spreading, and what remains conditional on this trace, actor and evaluator.
 
-These are prompts for understanding and correction, not a script to memorise
-or a declaration that the candidate has completed the checks.
+These confirmations record my statement; automated validation does not constitute supervisor approval. Award wording, student ID, signature, prescribed University copyright text and video recording remain open in SUBMISSION_GATES.md.

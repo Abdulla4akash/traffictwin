@@ -7,6 +7,14 @@ Supervisor: Dr Sandra Sampaio
 
 
 
+## Declaration
+
+**Assistance and attribution.** I designed this study and every evaluation experiment reported here, and I am responsible for the analysis and its interpretation. The software was developed by me with generative-AI assistance: Codex and ChatGPT produced code, campaign tooling and draft text to my specification, which I reviewed and in many cases rewrote before use. Randy Prasetia Putra supplied the MAPPO actor, the vec_env environment and evaluator, and the accounting repair of 5 August 2026. Dr Sandra Sampaio suggested the report-age levels used in Section 2.7. Automated build and validation receipts identify the checks that were executed; my own verification of the results is recorded in the contribution statement (Section 3.7).
+
+## Acknowledgements
+
+I thank Dr Sandra Sampaio for supervising this project and suggesting the report-age levels. I thank Randy Prasetia Putra for supplying the MAPPO actor, the vec_env environment and evaluator, and the accounting repair. Automated assistance is disclosed in the Declaration.
+
 ## Abstract
 
 A vehicle's strongest radio link can lead to a busy computing server, and admitting its task does not guarantee a result before the deadline. TrafficTwin investigates how infrastructure scheduling changes offered-task deadline attainment under a fixed, pretrained vehicle offloading policy. The comparison separates radio ingress, execution placement, admission and workload reservation.
@@ -23,19 +31,27 @@ The findings support a bounded benefit from workload awareness beyond spreading.
 
 Vehicular edge computing concerns where a vehicle's computational tasks should run and whether their results can return before a deadline. A task may execute locally, use a neighbouring vehicle through vehicle-to-vehicle communication (V2V), or enter roadside infrastructure through vehicle-to-infrastructure communication (V2I). A roadside unit (RSU) combines a radio access point with a simulated computing server in this study. Offloading therefore couples communication conditions with the work already waiting for computation [[1]](#ref-1).
 
-The **ingress RSU** is the roadside unit through which a vehicle reaches the infrastructure. TrafficTwin chooses ingress using the strongest simulated radio link. **Execution placement** is the subsequent choice of server for the task. Keeping execution at ingress avoids logical forwarding, but strong radio quality says nothing about that server's backlog. Assigning the work to another RSU can reduce waiting while introducing a different information and coordination requirement. Figure 1 shows the decision boundary studied here: the vehicle selects an offloading mode, while the infrastructure resolves the execution destination and admission [[S4]](#source-s4).
+Deadline attainment matters because a computed answer has value only within the time window in which the application can use it. Moving computation away from a vehicle can provide access to additional resources, but it also adds transmission and waiting. A scheduling decision must therefore account for the path to an answer, rather than regard successful offloading as the endpoint. The mobile-edge literature frames this as joint communication and computation management [[1]](#ref-1). I use offered-task deadline attainment to make that distinction explicit: the question is how much of the requested work receives a timely result.
 
-Admission is itself distinct from timely completion. A finite waiting room can accept another task even when the queued service would make it late. TrafficTwin's deadline-aware gate supplements a count-only limit by inspecting backlog, but it does not include the candidate's own service or transmission time. An admitted task can consequently miss its deadline. Evaluation must retain rejected tasks in the offered population; measuring success only among admitted work would allow selective rejection to change the population being compared.
+Vehicle mobility makes this question especially relevant. Radio conditions and the vehicles present around an RSU can change while previously admitted work still occupies its server. A good connection at the instant of offloading does not establish that the destination has spare computing service. Research on heterogeneous vehicular edge computing accordingly considers communication and resource allocation together with stringent latency requirements [[18]](#ref-18). In this dissertation, those concerns motivate a controlled question about infrastructure decisions under fixed vehicle-policy weights, rather than a claim to reproduce all the timing requirements of an operational transport application.
 
-The supplied multi-agent proximal policy optimisation (MAPPO) actor fixes the upstream weights. Matched inputs and action checks distinguish infrastructure effects from retraining and possible observation feedback. The study compares scheduling implementations supporting an existing actor.
+The Manchester scenarios give the comparison a concrete traffic setting. I use saved SUMO working-day and incident-model traces to expose the same scheduling rules to different scenario conditions. The traces supply simulated vehicle movement; their role is to define repeatable inputs, not to establish live performance on Manchester roads. An operator must decide whether to retain ingress execution, distribute work or alter admission, accounting for coordination cost and available service.
 
-The research progressed from accounting and capacity to opposite ingress rankings for two least-workload implementations. Their operational difference concerns target timing, visible reservations and admission outcomes [[S0]](#source-s0)–[[S4]](#source-s4).
+The surrounding research also includes RSU-to-RSU cooperation [[24]](#ref-24) and task inference across vehicle, RSU and edge resources [[25]](#ref-25). These identify a wider setting in which execution location matters; I do not transfer their performance claims to TrafficTwin. My narrower comparison makes an infrastructure choice inspectable while leaving the upstream actor fixed. This scope supports a precise distinction between accepting work, distributing it and completing it before its deadline. It also makes an unfavourable result informative: a scheduler can spread nominal demand or use a least-workload label without improving the proportion of all offered tasks that finish in time.
+
+The **ingress RSU** provides the strongest simulated radio link; **execution placement** selects the computing server. Another RSU may offer less waiting at a coordination cost. Figure 1 separates the vehicle's offloading mode from infrastructure execution and admission [[S4]](#source-s4).
+
+Admission does not guarantee timely completion. The backlog gate excludes the arriving task's own service and transmission time. I retain rejected tasks in the offered denominator so selective admission cannot conceal failures.
+
+I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's weights; matched inputs and action checks distinguish infrastructure effects from retraining and observation feedback.
+
+The programme progressed from accounting and capacity to opposite ingress rankings for two least-workload implementations, distinguished by target timing, reservations and admission [[S0]](#source-s0)–[[S4]](#source-s4).
 
 ![Layered decision architecture](assets/architecture.pdf)
 
 *Figure 1. Experimental responsibility boundaries. Only admitted V2I work enters the selected execution queue; logical forwarding applies when ingress and execution differ. Resource scaling is outside the completed comparison [[S11]](#source-s11). Reading: follow the separation between vehicle mode choice, radio ingress and infrastructure execution placement.*
 
-An operator must decide whether another server can complete a vehicle task sooner than its radio-ingress server. Admission rate and communication overhead matter alongside the latency of accepted work; VEC research therefore evaluates computation and communication together [[1]](#ref-1), [[18]](#ref-18).
+Communication and computation jointly determine whether an offloaded task returns in time [[1]](#ref-1), [[18]](#ref-18).
 
 Figure 2 shows the authenticated morning RSU layout in local trace metres, not deployed Manchester equipment. Incident coordinates are absent from the compact evidence and are not invented. Each comparison preserves its scenario's trace and layout (Table 2).
 
@@ -45,17 +61,17 @@ Figure 2 shows the authenticated morning RSU layout in local trace metres, not d
 
 ### 1.2 Related work and the position of this study
 
-This synthesis is retrospective: papers were inspected during manuscript revision, not as recorded motivation for the historical experiments. With RL supplying the upstream policy, the closest comparison is parallel-server dispatch: what information estimates waiting time, and when an assignment changes it.
+With RL supplying the upstream policy, the closest comparison is parallel-server dispatch: what information estimates waiting time, and when an assignment changes it.
 
-**Queue count and remaining work.** Shortest-queue dispatch compares numbers of jobs; shortest-workload dispatch compares their outstanding service requirements. With heterogeneous task sizes, these orderings can disagree. Harchol-Balter, Crovella and Murta explicitly study dynamic least-work-remaining assignment when service demand is known, alongside random, round-robin and size-based assignment. Their model assumes immediate per-arrival assignment, identical hosts, non-preemptive first-come-first-served service and Poisson arrivals. Their analysis shows that preferred assignment policies depend on task-size variability [[2]](#ref-2). Consequently, neither choosing the least workload nor achieving balanced allocation establishes universal optimality. TrafficTwin's inherited `jsq` name is misleading if read literally: the implemented selector compares service milliseconds, while a separate task count enforces finite admission capacity.
+**Queue count and remaining work.** With heterogeneous tasks, shortest queue and shortest workload can select different servers. Harchol-Balter, Crovella and Murta compare least-work-remaining, random, round-robin and size-based assignment under immediate assignment, identical hosts, non-preemptive first-come-first-served service and Poisson arrivals. Preferred policies depend on task-size variability [[2]](#ref-2). TrafficTwin's `jsq` compares service milliseconds; a separate task count limits admission. Neither the label nor balanced allocation establishes optimality.
 
-**Batch decisions and reservations.** Batching does not inherently imply sending a batch to one server. Sparrow pools probes across a parallel job and spreads its tasks over selected workers; late binding queues reservations and assigns tasks when workers become ready. Its discussion identifies both queue-count prediction errors and races between schedulers using apparently idle workers [[9]](#ref-9). This distinguishes two issues that a generic “batch versus per-task” description would conflate: sharing information across candidates can help, whereas committing many assignments against one unchanged destination can concentrate work. TrafficTwin evaluates the latter implementation. Its immediate service-work reservation is also different from Sparrow's worker-triggered task binding: TrafficTwin assumes the necessary information and acknowledgement are already available.
+**Batch decisions and reservations.** Sparrow pools probes, spreads tasks and binds queued reservations when workers become ready. It identifies queue-count prediction errors and competing schedulers' apparently idle workers [[9]](#ref-9). Information sharing across a batch differs from committing assignments to one unchanged destination. TrafficTwin tests the latter and assumes immediate service-work information and acknowledgement, unlike Sparrow's worker-triggered binding.
 
-Ying, Srikant and Kang make the reservation distinction especially explicit: batch-filling samples queue counts, assigns tasks one by one and updates the chosen queue after each assignment. Their analysis assumes identical servers, exponential service, Poisson batch arrivals and random ties [[13]](#ref-13). This is close prior art for sequential within-batch updates. Although the evaluator comments mention their batch-filling work, its common-target reconciliation does not implement that destination rule. TrafficTwin's causal change is therefore an adaptation of established dispatch semantics, evaluated with workload information and deadline admission, rather than a novel batching principle.
+Ying, Srikant and Kang make the reservation distinction especially explicit: batch-filling samples queue counts, assigns tasks one by one and updates the chosen queue after each assignment. Their analysis assumes identical servers, exponential service, Poisson batch arrivals and random ties [[13]](#ref-13). This is close prior art for sequential within-batch updates. The evaluator also implements a power-of-two-choices variant (`dla_p2c`) that was not evaluated here. Although the evaluator comments mention their batch-filling work, its common-target reconciliation does not implement that destination rule. TrafficTwin's causal change is therefore an adaptation of established dispatch semantics, evaluated with workload information and deadline admission, rather than a novel batching principle.
 
-**Local information and common destinations.** Vargaftik, Keslassy and Orda's Local Shortest Queue (LSQ) policies maintain possibly outdated queue-count estimates at multiple dispatchers. Their slotted model can send all jobs arriving at one dispatcher in a slot to one locally shortest queue, with random tie-breaking. Algorithms update local estimates by the jobs sent and refresh selected entries through communication. Their stability result requires stated arrival/service assumptions and bounded expected estimation error [[10]](#ref-10). Common destinations and local updates therefore predate TrafficTwin. Here they use service-work information, deterministic ties, a backlog gate, five ordered slots and one-second aggregate draining. Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes.
+**Local information and common destinations.** Vargaftik, Keslassy and Orda's Local Shortest Queue (LSQ) policies use possibly outdated queue counts. A dispatcher can send a slot's jobs to one locally shortest queue with random ties, update estimates for sent work and refresh entries through communication. Stability requires arrival/service assumptions and bounded expected estimation error [[10]](#ref-10). TrafficTwin instead uses service work, deterministic ties, a backlog gate, five ordered slots and one-second draining; LSQ's stability and communication results do not establish its finite-horizon deadline performance.
 
-**Admission and useful completion.** Niño-Mora jointly studies admission and routing to heterogeneous multiserver queues, charging separately for rejection and admitted deadline misses. The model uses Poisson arrivals, exponential service, soft deadlines and state-dependent index policies; admitted late jobs remain until completion [[11]](#ref-11). This establishes admission as an optimisation decision with consequences beyond the admitted population. TrafficTwin instead preserves a simple inherited backlog filter to make the placement contrast interpretable. The gate does not estimate the complete response time or promise success. Counting successes over all offered tasks makes a reject-all policy score zero and prevents selective admission from concealing failures. That denominator is a deliberate measurement choice, not a newly invented admission algorithm.
+**Admission and useful completion.** Niño-Mora jointly studies admission and routing to heterogeneous multiserver queues, with separate costs for rejection and admitted deadline misses. Poisson arrivals, exponential service, soft deadlines and state-dependent index policies differ from TrafficTwin's inherited backlog filter [[11]](#ref-11). I preserve that filter to isolate placement and count success over all offers: reject-all scores zero. Neither the denominator nor the admission principle is new.
 
 Differences in arrival processes, objectives and resource models prevent treating published performance scores as controlled benchmarks. Table 1 instead compares the operational mechanisms relevant to TrafficTwin.
 
@@ -71,7 +87,7 @@ Differences in arrival processes, objectives and resource models prevent treatin
 | TrafficTwin common-target: one choice per substep | Global service work; vectorised candidate offsets and three reconciliations | Backlog gate plus finite task limit | Frozen vehicle policy; instantaneous logical forwarding |
 | TrafficTwin per-task: ordered candidate scan | Global service work; actual admitted work reserved immediately | Same predicate and limit, causal admission | Tested implementation change; global information is assumed |
 
-**Attribution and simulation validity.** Sargent distinguishes verification of a computer model from operational validation for its intended application [[12]](#ref-12). TrafficTwin's conservation and replay checks primarily establish the former; observed physical RSU service and network measurements would be needed for stronger deployment claims. SUMO supplies a microscopic simulation framework [[8]](#ref-8), but importing its trajectories does not independently validate a coupled radio/computing model. This distinction explains why a source-correct result can be scientifically useful while remaining conditional on simulation semantics.
+**Attribution and simulation validity.** Sargent distinguishes model verification from operational validation [[12]](#ref-12). Conservation and replay checks establish the former; physical RSU/network measurements would be needed for deployment claims. SUMO trajectories [[8]](#ref-8) do not independently validate the coupled radio/computing model.
 
 PPO and MAPPO identify the reused actor's provenance [[3]](#ref-3), [[4]](#ref-4). Henderson et al., Agarwal et al. and Gorsane et al. motivate exposing implementation choices and finite-run uncertainty [[5]](#ref-5), [[6]](#ref-6), [[7]](#ref-7). TrafficTwin checks action equality empirically and uses draws or joint-seed blocks, not tasks, as replications.
 
@@ -81,7 +97,7 @@ Communication remains part of feasibility: Wu et al. model heterogeneous links u
 
 ### 1.3 Aim, objectives and research questions
 
-The five objectives organise the completed programme rather than retrospectively prespecifying its extensions. The aim is to assess infrastructure admission and placement under a frozen vehicle actor.
+Five objectives organise the programme. The aim is to assess infrastructure admission and placement under a frozen vehicle actor.
 
 **O1 — Establish the measurement contract.** Distinguish offers, admissions, failures and deadline success. Treat E0/E1 as validation and scoping, retaining historical evidence limits.
 
@@ -99,9 +115,9 @@ Established work addresses least-workload routing, within-batch updates and vehi
 
 ### 1.4 Scope and report structure
 
-The inferential evaluation concerns the trace-driven VEC evaluator, not changes to physical Manchester traffic. The interface does not establish that the command-line research campaigns executed. TrafficTwin's Streamlit application, typed service layer, command-line workflows, scenario comparison and evidence-provenance facilities are assessed separately as software artefacts in Section 3.7.
+I evaluate the trace-driven VEC scheduler. Section 3.7 separately assesses TrafficTwin's Streamlit interface, typed services, command-line workflows and provenance facilities; their existence does not establish execution of the research campaigns or effects on physical Manchester traffic.
 
-The originally planned user evaluation was not conducted and is excluded from this report's empirical claims. Consequently, usability, operator benefit and adoption are not established. The separate E3 Dynamic Resource V2 campaign also remains unexecuted; product readiness is not a research result [[S11]](#source-s11). Section 2 specifies the method, Section 3 evaluates the completed studies and artefact, and Section 4 answers the objectives and prioritises evidence needed next.
+I did not conduct the planned user evaluation; usability, operator benefit and adoption remain unestablished. E3 Dynamic Resource V2 also remains unexecuted [[S11]](#source-s11). Section 2 specifies the method, Section 3 evaluates completed work, and Section 4 concludes.
 
 ## 2. Methodology
 
@@ -117,11 +133,11 @@ Figure 1 separates actor mode choice, environmental radio targeting and infrastr
 
 The 17-dimensional observation includes task descriptors, vehicle queues, state of charge, radio summaries, compute capability, EV status and observed V2V target tier, but excludes RSU workload. One mode per active vehicle-second serves all independently sampled operational tasks in its five slots. Admission can nevertheless affect transmit energy, then SoC and later observations/actions. Frozen weights therefore do not guarantee fixed actions; the old matched-action finding is empirical, and the new protocol allows this feedback.
 
-V2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).
+V2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).
 
 ### 2.3 Scenarios, actor and controlled inputs
 
-Table 2 identifies the scenarios. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel [[S7]](#source-s7).
+Both scenarios are drawn from the Manchester SUMO working-day and incident models: `manchester_workingday/trace_wd_am_wdrsu.npz` and the 15 March 2024 incident trace (Table 2). Coordinates are local trace metres. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel [[S7]](#source-s7).
 
 *Table 2. Scenario identity and fixed placement controls. Differences between scenarios are retained and documented, not treated as a single-factor intervention. Reading: note the bundled scenario differences before attributing an effect to traffic density.*
 
@@ -182,9 +198,9 @@ This aggregate carry approximation has no individual departure-event model; Equa
 
 ### 2.5 Placement algorithms and their implementation
 
-The inherited identifiers do not define canonical scheduling algorithms: `jsq` selects least service workload rather than shortest task count, and `dla` combines that common-target selector with Equation (3) [[S2]](#source-s2), [[S4]](#source-s4). Table 3 makes their execution destination and gate switch explicit.
+The inherited identifiers do not define canonical scheduling algorithms: `jsq` selects least service workload rather than shortest task count, and `dla` combines that common-target selector with Equation (3) [[S2]](#source-s2), [[S4]](#source-s4). The evaluator's own help text and source comment document that `jsq` and `dla` broadcast one argmin per substep to every V2I candidate, and that a randomised two-choice mode (`p2c`, `dla_p2c`) exists as a per-vehicle spreading alternative. Table 3 makes their execution destination and gate switch explicit.
 
-*Table 3. Infrastructure conditions. All retain strongest-link radio ingress. “Live” eligibility is refreshed at each substep; the historical off mode retains step-entry coarse eligibility. Reading: follow the fixed quantities and changed decision rules for each comparison.*
+*Table 3. Infrastructure conditions. All retain strongest-link radio ingress. “Live” eligibility is refreshed at each substep; the historical off mode retains step-entry coarse eligibility. `p2c` and `dla_p2c` are available; not evaluated. The other listed modes were evaluated. Reading: follow the fixed quantities and changed decision rules for each comparison.*
 
 | Mode | Execution destination | Backlog gate | Coarse eligibility |
 |---|---|---|---|
@@ -194,6 +210,8 @@ The inherited identifiers do not define canonical scheduling algorithms: `jsq` s
 | `dla` | Common least-workload target | On | Live |
 | `per_task_dla` | Causal least-workload target | On | Live |
 | `causal_round_robin` | Persistent cyclic target | On | Live |
+| `p2c` | Per-vehicle two random candidates, least workload | Off | Live |
+| `dla_p2c` | Per-vehicle two random candidates, least workload | On | Live |
 
 Both placement algorithms below operate once per task substep, using its entry state W, Q. Index i follows ascending padded-vehicle order, not arrival-time or deadline priority. Each candidate has actual service s[i,r], deadline D[i] and a fixed actor action and radio ingress. Every argmin considers all RSUs and breaks ties by lowest index; a full selected RSU is rejected rather than excluded and retried elsewhere.
 
@@ -253,11 +271,11 @@ The later confirmation uses eight paired fleet/evaluator-seed blocks, (100,200) 
 
 ### 2.7 Sensitivities, mechanism audit and validation
 
-The state-information pilot uses incident seed 1 and report ages 0, 100, 500 and 1,000 ms, alongside ingress. Admission remains live. For previous post-admission workload B and positive age d, the report is max(B − (1,000 − d), 0), with current-batch reservations added immediately. This assumes continuous service between batches without redistributing arrivals. Startup uses live state and recorded age zero [[S5]](#source-s5).
+The state-information pilot uses incident seed 1 and report ages 0, 100, 500 and 1,000 ms, alongside ingress. The report ages follow Dr Sampaio's suggestion of 100 ms, 500 ms and 1 s. Admission remains live. For previous post-admission workload B and positive age d, the report is max(B − (1,000 − d), 0), with current-batch reservations added immediately. This assumes continuous service between batches without redistributing arrivals. Startup uses live state and recorded age zero [[S5]](#source-s5).
 
 Four ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges leave admission, queues and actions unchanged. No full positive-cost simulation or network model is implied; penalty-equal ambiguity remains unresolved [[S6]](#source-s6).
 
-Execution fields describe admitted assignment, not individual departures [[S13]](#source-s13). Original morning checks covered matched inputs/actions and full/probe prefixes, with logit tolerance 0.00001; recorded workload-balance error reached about 0.00174 ms [[S8]](#source-s8). The completed September audit establishes admission independently of success: active masks define offers, enqueue fields identify V2I admission, and non-V2I rejection predicates identify terminal failures. It cross-checks flags, categories, latency/deadlines, assignments and summaries.
+Execution fields record admitted assignment, not departures [[S13]](#source-s13). Morning checks covered matched inputs/actions and full/probe prefixes, with logit tolerance 0.00001 and workload-balance error up to about 0.00174 ms [[S8]](#source-s8). The September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.
 
 Task joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.
 
@@ -265,7 +283,7 @@ Retrospective diagnostics distinguish simultaneous common-target admission A, ca
 
 ### 2.8 Cyclic comparator and retrospective measurement design
 
-Causal round-robin isolates workload-aware selection from simple spreading. A pointer starts at RSU 0 and persists across candidates, substeps and batches. Each active V2I attempt with positive ingress quality proposes the pointer's RSU and advances it modulo R, even if capacity or the strict gate subsequently rejects it. Unavailable radio and padding do not advance it; there is no retry or full-node skipping. Candidate order, sampled work, gate/capacity rules, precision, accounting, forwarding and drain match causal per-task placement. Repeated passes restart from the same pointer and queues; the final pointer commits once. A versioned evaluator copy preserves the frozen implementations. Qualification checked unchanged-arm compatibility, shared inputs, final-admission accounting and pointer restart; Appendix E records its finite coverage [[S15]](#source-s15), [[S16]](#source-s16).
+Causal round-robin isolates workload awareness from spreading. Its pointer starts at RSU 0, persists across substeps/batches, and advances modulo R for every active positive-radio V2I attempt, including rejections. Unavailable radio and padding do not advance it; there is no retry or full-node skipping. Order, sampled work, gate/capacity, precision, accounting, forwarding and drain match per-task placement. Repeated passes restart identically; the pointer commits once. A versioned evaluator preserves frozen implementations. Qualification checks compatibility, shared inputs, admission accounting and restart; Appendix E bounds coverage [[S15]](#source-s15), [[S16]](#source-s16).
 
 Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precomputed candidate work replaces only the service provider. Sixteen configurations combine four arms, N/R=215/9 or 2,488/10, K=5 and sparse/empty or busy/nonempty fixtures. Arms share arrays with coupled type/deadline/service values. Busy entry queues are imposed stress states, excluded by exact clearing from empty initialisation (§3.5). Following JAX guidance, compilation is separate, inputs are device-resident, five warm-ups precede 100 synchronised calls. Actor, radio, service generation, transfer, scoring and I/O are excluded. Repetitions measure host variability, not fleet uncertainty [[14]](#ref-14).
 
@@ -275,13 +293,13 @@ Retrospective type aggregation retains all types and draws without subgroup sign
 
 ### 3.1 Validation and scoping: accounting and historical capacity
 
-E0 addressed a concrete mismatch between task scoring and queue admission. In the legacy clamp path, the evaluator scored eligible V2I tasks and multiplied their combined service work by the fraction fitting the task-count ceiling. Surplus tasks were not individually identified in earlier scoring. The 5 August repair introduced per-task admission/rejection and full enqueueing of admitted work. Source history credits Randy's implementation and Abdulla's motivating accounting analysis; E0 qualified recorded accounting in that configuration [[S0]](#source-s0), [[S12]](#source-s12).
+E0 addressed a concrete mismatch between task scoring and queue admission. In the legacy clamp path, the evaluator scored eligible V2I tasks and multiplied their combined service work by the fraction fitting the task-count ceiling. Surplus tasks were not individually identified in earlier scoring. The 5 August repair introduced per-task admission/rejection and full enqueueing of admitted work. Putra implemented the repair after I identified the mismatch between task scoring and queue admission; E0 qualified recorded accounting in that configuration [[S0]](#source-s0), [[S12]](#source-s12).
 
 Consider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.
 
 The relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.
 
-Archived E0 receipts report passing their checks, but source inspection identifies a remaining exception in E0/E1 and E2's reused off path: coarse eligibility reaches latency scoring while refined admission governs enqueueing. Recorded capacity rejections establish exposure, not false successes. Original E0/E1/E2 outputs are unavailable following author-reported deletion, with no known backup. Their numerical scoring impact is not assessable from surviving summaries and receipts; Appendix B distinguishes this gap from later audit coverage [[S13]](#source-s13).
+Archived E0 receipts report passing their checks, but source inspection identifies a remaining exception in E0/E1 and E2's reused off path: coarse eligibility reaches latency scoring while refined admission governs enqueueing. Recorded capacity rejections establish exposure, not false successes. Raw per-task arrays for E0, E1 and E2 were not retained; their run summaries, validation receipts and manifests are archived and reproduce the reported intervals. The task-level impact of the scoring-mask exception therefore cannot be quantified for those studies; Appendix B distinguishes this gap from later audit coverage [[S13]](#source-s13).
 
 E1 varied waiting-room capacity across five matched draws. The archived score difference for 99,520 versus 1,866 tasks per RSU was −0.01094 percentage points, with a 95% interval [−0.02465, +0.00276]. Recalculation from surviving run summaries reproduces this interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inconclusive under the historical implementation. Its interpretation as admission-consistent deadline attainment remains qualified by the unquantified scoring-mask exception. The interval describes sampling uncertainty conditional on that implementation, not the additional measurement uncertainty. Neither equivalence nor statistically supported degradation follows [[S1]](#source-s1).
 
@@ -295,7 +313,7 @@ E2's exploratory seed-0 comparison showed offered attainment of approximately 68
 
 E2b added ingress execution with the same deadline gate, reaching approximately 71.577%. The strongest-link contrast was +3.215 points and the common-target contrast +1.926 points, giving an interaction of −1.290 points. However, `off` uses step-entry coarse saturation eligibility while `ingress_dla` refreshes eligibility per substep. Their contrast and interaction bundle the gate with this timing difference and retain the legacy scoring-mask exception (§2.4). The manifest records 138 unavailable V2I attempts among 13,076,234 offered tasks in off; that count does not bound downstream effects. E2b identifies a stronger comparator without assigning its entire gain solely to the gate. Subsequent gate-held placement comparisons use live eligibility and refined scoring masks in all arms. In the exploratory draw, common-target remained 2.083 points below ingress with the gate.
 
-E2c tested the common-target comparison on four new incident fleet draws, excluding discovery seed 0. Its mean difference from ingress was −2.122 points, with an individual 95% interval of [−2.234, −2.011]. All four paired differences were negative. Inspection then established that the inherited scheduler chose one common target per task substep. E2d introduced the causal per-task implementation under the same actor, trace, gate predicate, queue ceiling, service and forwarding controls. Table 4 retains all four draw-level results [[S3]](#source-s3).
+E2c tested the common-target comparison on four new incident fleet draws, excluding discovery seed 0. Its mean difference from ingress was −2.122 points, with an individual 95% interval of [−2.234, −2.011]. All four paired differences were negative. The inherited scheduler selects one least-workload target per task substep and assigns it to every V2I candidate in that substep, a behaviour recorded in the evaluator's documentation. I chose to test a causal per-task implementation rather than the evaluator's randomised two-choice mode, because it isolates target timing and reservation visibility while holding the least-workload criterion fixed; the two-choice mode remains the first comparator to add (Section 4.3). E2d introduced the causal per-task implementation under the same actor, trace, gate predicate, queue ceiling, service and forwarding controls. Table 4 retains all four draw-level results [[S3]](#source-s3).
 
 *Table 4. Incident offered-task deadline attainment, expressed as percentages. E2d reused the exact E2c ingress and common-target controls; these are four paired draws, not separate sets of independent controls. Reading: compare policies within the same incident fleet draw.*
 
@@ -400,17 +418,17 @@ These are saved-record transformations qualified by four short direct probes. Fo
 | Per-task | 0.052/0.055 | 0.501/0.616 | 0.062/0.641 | 11.7/139.1 |
 | Round-robin | 0.025/0.021 | 0.223/0.186 | 0.023/0.201 | 11.7/139.1 |
 
-Fixed configuration order and uncontrolled frequency/thermal state limit the CPU timing comparisons; full durations and IQRs remain available. Sparse padding still traverses N positions. On these fixtures, per-task was faster than three-pass reconciliation, and cyclic selection reduced cost further. Section 3.4 separately establishes the attainment benefit over cyclic spreading.
+Fixed order and uncontrolled frequency/thermal state limit timing comparisons; durations and IQRs remain available. Sparse padding traverses N positions. Per-task outpaced three-pass reconciliation, and cyclic selection cost less. Section 3.4 separately assesses attainment.
 
 Compiler buffer reuse and elimination of unused broadcasts or identical passes affect execution, so asymptotic work alone does not predict the measured ordering. Three vectorised replacements materialise N×R arrays: O(KNR) work and O(NR) intermediate space with parallel prefix dependence. Per-task also requires O(KNR) work for R-way minima, but has a K×N sequential dependency chain. Round-robin removes minima, giving O(KN) target/predicate work in an indexed-state model. Both retain R queue entries and emit O(KN) diagnostics.
 
-Compilation took 0.058–0.267 seconds per configuration, separately from lowering and execution. Transfer and process peak memory were not measured. The benchmark excludes full-evaluator costs, and host time is never added to historical simulated task latency. No roadside response-time guarantee follows [[S15]](#source-s15).
+Compilation took 0.058–0.267 seconds per configuration, separate from lowering and execution. Transfer, peak memory and full-evaluator costs were unmeasured; host time is not simulated latency or a roadside guarantee [[S15]](#source-s15).
 
-The artefact has two connected but distinct parts. The research path is a trace-driven JAX evaluator with versioned infrastructure schedulers, a sealed campaign runner and independent validation/analysis stages. The TrafficTwin product adds a Streamlit interface over typed Python services and command-line workflows for scenario construction, imports, comparison and evidence inspection. The UI exposes provenance and evidence standing rather than allowing narrative or generated recommendations to stand in for measurements [[S11]](#source-s11), [[S17]](#source-s17).
+The research path combines a trace-driven JAX evaluator, versioned schedulers, sealed runner and separate validation/analysis. The product supplies Streamlit, typed services and command-line scenario, import, comparison and evidence workflows, exposing provenance alongside measurements [[S11]](#source-s11), [[S17]](#source-s17).
 
-Reliability is assessed through explicit contracts rather than inferred from codebase size. A proposed destination is not recorded as execution unless the task is admitted; a completed process is not a completed scientific cell unless the validation receipt passes; and an interface-ready E3 workflow is not an executed E3 campaign. The campaign runner binds source, seed and output identities before the analysis reads a result.
+Contracts require admission before recorded execution and a passing validation receipt before accepting a scientific cell. The runner binds source, seeds and outputs; interface-ready E3 remains unexecuted.
 
-*Table 9. Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines; the collected-test total is not a passing-test count. Research coverage refers to archived receipts unless explicitly labelled as a new document check [[S17]](#source-s17). Reading: the role and refusal gates explain what each component contributes; size alone proves neither quality nor independent authorship.*
+*Table 9. Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines; hosted test outcomes are reported separately from collection. Research coverage refers to archived receipts unless explicitly labelled as a new document check [[S17]](#source-s17). Reading: the role and refusal gates explain what each component contributes; size alone proves neither quality nor independent authorship.*
 
 | Component | Size | Tests / recorded checks | Gate | Role |
 |---|---|---|---|---|
@@ -419,17 +437,17 @@ Reliability is assessed through explicit contracts rather than inferred from cod
 | Cyclic comparator | 46 lines | Pointer/restart and unchanged-arm compatibility | Persistent pointer; no retry or full-node skipping | Workload-unaware causal control |
 | Campaign runner | 138 lines | Prelaunch safeguards; 32 completed cells in S16 | Source, seeds, completion and validation bindings | Executes and records the declared campaign |
 | Campaign validators | 160 lines plus compact verifier | 8 block receipts; 32-cell compact recomputation | Reject inconsistent inputs, counts and identities | Separates successful execution from admissible evidence |
-| TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; 8,301 tests collected (not all executed in this revision) | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |
+| TrafficTwin product | 678 Python files; 270,721 lines | 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff, mypy, pytest, archive and fixture gates | Streamlit, CLI, typed services and provenance workflows |
 
-The inventory measures project scope, not individually authored new code. At the pinned source, a fresh check collected 8,301 tests, passed Ruff, and verified 938 frozen files across eight archives. The five-page browser check found no application exceptions or horizontal overflow; collection and browser checks are not a fresh full-suite pass or a usability study. This separation of code size, provenance and verification follows scientific-software and reproducibility practice [[20]](#ref-20), [[21]](#ref-21). Figure 7 shows the actual Streamlit interface.
+The inventory measures project scope, not individually authored new code. Hosted run [34631121188](https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188), 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (including five tier-4 UI text assertions in `tests/unit/ui/test_page_presentation_tier4.py`, plus provenance/ancestry, artifact and other UI checks), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles [[20]](#ref-20), [[21]](#ref-21). Figure 7 shows the actual Streamlit interface.
 
 ![TrafficTwin Streamlit interface at the inspected source](assets/traffictwin_streamlit.png)
 
 *Figure 7. TrafficTwin's actual Streamlit interface captured from the pinned repository in a clean browser session; the capture receipt identifies source, route and environment. It demonstrates the software surface, not execution of the dissertation campaigns or a user-evaluation result [[S17]](#source-s17). Reading: use the interface to inspect and organise evidence; use the bound campaign outputs to support the numerical research claims.*
 
-My documented contribution was to question the relationship between scoring and queue admission, reconstruct the clamp discrepancy, and distinguish vehicle mode choice from infrastructure control. The source comments and August correspondence record these questions and the interpretation of the capacity and placement comparisons [[S12]](#source-s12). Randy supplied the actor/environment and accounting repair code. This distinction matters: the contribution is the formulation and investigation of the comparison, not a claim that all inherited software originated in this project. The Declaration records substantive automated assistance; source commits and automated checks are not substitutes for individual understanding.
+I designed the research questions and every evaluation experiment in this report: the E1 capacity levels, the E2b ingress-with-gate control, the E2c four-draw replication, the E2d per-task implementation and its reuse of the E2c controls, the morning pilot and its exclusion, the primary seeds, the three declared contrasts, the round-robin comparator, and the eight joint fleet/evaluator blocks with rotating arm order. The report-age levels in Section 2.7 follow my supervisor's suggestion. The software was developed with generative-AI assistance: Codex and ChatGPT produced code and tooling to my specification, which I reviewed and in many cases modified before it was run (vec_env commit 2f63706 records the per-task mode under my name). Putra supplied the actor, environment and the accounting repair [[S12]](#source-s12). I ran or authorised every campaign, recomputed the block-0 paired effect from the offered counts, checked the Table 6 and Table 7 intervals, worked through Proposition 1 and Table C1, and traced the common-target selection in the frozen evaluator source. The contribution is the formulation, design and investigation of the comparison, not the inherited software.
 
-Two modelling trade-offs remain: aggregate carry omits individual departures, and global work with immediate reservations omits distributed estimation and coordination. Table 10 defines the resulting claim boundaries. Within that model, separate lifecycle fields make proposed placement, admission and deadline success inspectable.
+Table 10 records the limits of aggregate departures and global work with immediate reservations. Separate lifecycle fields distinguish placement, admission and success.
 
 *Table 10. Validity limits and their consequences for interpretation. Reading: use each row to identify the evidence needed before extending the corresponding claim.*
 
@@ -441,14 +459,15 @@ Two modelling trade-offs remain: aggregate carry omits individual departures, an
 | Bundled scenario changes | Morning gain caused by lower density | Separate scenario analyses; factor-controlled evidence needed |
 | Legacy off scoring masks differ | Admission-consistent E1 attainment and gate-only E2b attribution | Historical score intervals remain; measurement impact is not assessable from available records |
 | Exact arithmetic versus float32; finite fixtures and unobserved intermediate masks | Numerical prevalence and historical causal decomposition | Two-deadline exact bound proved; constructed rounding discrepancy and reduced adverse example do not establish fleet-frequency effects |
+| Two-choice spreading not evaluated | Workload-aware benefit relative to sampled placement | Run `dla_p2c` on the same blocks |
 | Single-draw sensitivities | General staleness/forwarding robustness | Describe tested information and fixed-cost models only |
 | Separately arranged raw-input access | Unrestricted full reproduction | Portable compact checks reproduce central summaries; full replay needs authorised raw inputs and preserved dependencies |
 
-Compact verification regenerates central tables and follows source bindings without the actor or JAX. Raw verification needs separately arranged access; a local copy and checksums are not off-machine preservation. Appendix A records source and access boundaries separately from the scientific findings [[S13]](#source-s13), [[S16]](#source-s16).
+Compact checks need neither actor nor JAX; full raw verification requires separately arranged access. Appendix A records access and off-machine preservation boundaries [[S13]](#source-s13), [[S16]](#source-s16).
 
 ## 4. Conclusion
 
-TrafficTwin shows that the operational meaning of infrastructure scheduling can determine the direction of a deadline-performance comparison under a frozen vehicle policy. Selecting one common least-workload destination per substep and selecting anew after each admitted task are materially different interventions. Common-target placement underperformed execution at radio ingress, while causal per-task placement exceeded it in the incident study, the original morning replication and the separate joint-randomness confirmation. The contribution is a controlled and explainable implementation study of established scheduling ideas.
+Under a frozen vehicle policy, common-target placement underperformed ingress while causal per-task placement exceeded it across incident, morning and joint-randomness studies. This controlled implementation comparison demonstrates the importance of destination timing and reservation visibility within established scheduling ideas.
 
 ### 4.1 Verdict against the objectives
 
@@ -464,23 +483,35 @@ TrafficTwin shows that the operational meaning of infrastructure scheduling can 
 
 ### 4.2 Research answers and interpretation
 
-RQ1 identifies the importance of comparator and implementation. Exploratory decomposition established gate-enabled ingress as the stronger reference, without isolating a gate-only effect. Matched comparisons then reversed the ingress ranking when common-target was replaced by causal per-task placement. Separate morning samples support the reversal beyond the adaptive incident extension.
+RQ1 separates comparator choice from implementation. Exploratory decomposition identified gate-enabled ingress without isolating a gate-only effect. Causal per-task placement reversed common-target's ingress ranking; separate morning samples extend support beyond adaptive incident development.
 
 RQ2 is answered by two distinct morning samples. The original four fleet draws excluded the inspected pilot and met their simultaneous-interval reversal criterion. The new eight joint fleet/evaluator blocks reproduced that result: per-task minus ingress was +4.137 percentage points and common-target minus ingress −3.504. Descriptively, the cyclic spreading step captures 84.8% of the per-task gain over ingress, and the further workload-aware increment 15.2%; these are arm-mean shares, not causal mechanism shares. Per-task exceeded causal round-robin by +0.631 points, with its simultaneous interval entirely positive.
 
 RQ3 is limited to the completed models. The 100 ms reports equalled fresh state; older-report changes were small under live admission and reservations. A single-draw fixed-overhead calculation retained a positive ingress advantage through 10 ms without modelling congestion or feedback. Treatment-activation checks therefore determine what these sensitivities actually test.
 
-The exact-model bound and gate/service/drain assumptions explain recurring common destinations, subject to the numerical limits in Appendix C. Matched transitions do not identify task-level causal effects. The original four-draw accounting locates most gains in reduced rejection, with recovered admitted misses and smaller losses elsewhere.
+The exact-model bound and gate/service/drain assumptions explain recurring destinations, within Appendix C's numerical limits. Four-draw descriptive accounting locates most gains in reduced rejection, alongside recovered admitted misses and smaller losses; it does not identify task-level causal effects.
 
 ### 4.3 Prioritised future work
 
-First, an event-level service and communication model should be checked against measured timing, including transfers and individual departures. Simulation verification and VEC communication/resource models provide the relevant foundation [[12]](#ref-12), [[17]](#ref-17), [[18]](#ref-18). The decisive test would be whether the reversal survives a calibrated timing model, not whether another abstract queue simulation produces more significant digits.
+First, I would evaluate `dla_p2c` on the sealed eight blocks under identical controls, to separate randomised sampling from exact least-workload selection. This post-hoc addition would be outside the sealed family.
 
-Second, workload estimates and acknowledgements should be imperfect, with delayed reservation visibility and a separately specified admission policy. Imperfect-information routing and digital-twin estimation models motivate this extension [[10]](#ref-10), [[16]](#ref-16). Separating estimate age, capacity information and acknowledgement delay would expose which protection comes from live admission rather than from placement itself.
+Second, an event-level service and communication model should be checked against measured timing, including transfers and individual departures. Simulation verification and VEC communication/resource models provide the relevant foundation [[12]](#ref-12), [[17]](#ref-17), [[18]](#ref-18). The decisive test would be whether the reversal survives a calibrated timing model, not whether another abstract queue simulation produces more significant digits.
 
-Third, transfer should be tested across independently selected traces and trained actors, with prospective controls and seed-level reporting rather than treating tasks as replications [[5]](#ref-5), [[6]](#ref-6), [[19]](#ref-19). A separately declared action-masking or V2V-helper study could then address the vehicle decision layer without silently changing this study's frozen-actor estimand [[22]](#ref-22), [[23]](#ref-23). User evaluation of the product is a different undertaking requiring its own protocol and evidence, not an extrapolation from scheduler attainment.
+Third, I would separate imperfect workload estimates, acknowledgement delay and admission policy, following imperfect-information routing and digital-twin estimation models [[10]](#ref-10), [[16]](#ref-16). This tests how live admission protects placement based on older reports.
 
-The established result remains bounded and useful: within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement adds a measured attainment benefit over the tested spreading rule.
+Fourth, I would test independently selected traces and actors under prospective controls and seed-level reporting [[5]](#ref-5), [[6]](#ref-6), [[19]](#ref-19). Action masking and V2V-helper selection need separate studies [[22]](#ref-22), [[23]](#ref-23); product user evaluation requires its own protocol.
+
+Within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule.
+
+### 4.4 Reflection on the process
+
+I learned that an adaptive experiment can identify a useful next question without providing independent confirmation of its answer. E2c made the negative common-target comparison repeatable across fleet draws. I then designed E2d to change target timing and reservation visibility while reusing the E2c controls. That reuse made the comparison efficient and interpretable, but the inspected result had already influenced my choice of intervention. I therefore needed prospective replication with declared inputs and contrasts. I excluded the morning pilot from primary inference, and the later sealed joint blocks gave the additional comparator a separate, explicit evidence boundary.
+
+I also narrowed the project as the work developed. I dropped the planned user evaluation, so product functionality and browser checks cannot establish usability or operator benefit. E3 remained unexecuted; implemented interfaces and campaign preparation did not supply research results. These decisions concentrated the report on a comparison I could support, while leaving different questions to their own protocols. In hindsight, I should have made the evaluator's existing two-choice option more prominent when explaining comparator selection.
+
+Raw-data retention was another practical lesson. Summaries and receipts preserve the reported historical intervals, but they cannot answer every later question about task-level scoring. I should have planned retention around future audit needs as well as immediate analysis. The retained September inventory improves traceability, while an independently verified off-machine copy and examiner access still require completion.
+
+I controlled AI assistance through specifications, code review, personal modification and campaign boundaries. Codex and ChatGPT helped generate implementation and text; I remained responsible for deciding what matched my design and what entered the report. Sealed controls and deterministic receipts made execution inspectable, while my completed author checks addressed my understanding. This experience reinforced the need to record design decisions, supplied code, automated assistance and personal verification separately throughout the work.
 
 ## References
 
@@ -533,7 +564,7 @@ The established result remains bounded and useful: within the studied evaluator 
 [16] Y. Xie, Q. Wu and P. Fan. “Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.” arXiv:2407.11310, 2024. [Source](https://arxiv.org/abs/2407.11310).
 
 <a id="ref-17"></a>
-[17] S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. “Autonomous Task Offloading of Vehicular Edge Computing with Parallel Computation Queues.” *IEEE Transactions on Mobile Computing*, 2025. DOI: 10.1109/TMC.2025.3640244. Author version arXiv:2509.03935v2. [Source](https://arxiv.org/abs/2509.03935v2).
+[17] S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. “Autonomous Task Offloading of Vehicular Edge Computing with Parallel Computation Queues.” *IEEE Transactions on Mobile Computing*, 25(5), 7166–7181, 2026. DOI: 10.1109/TMC.2025.3640244. Author version arXiv:2509.03935v2. [Source](https://arxiv.org/abs/2509.03935v2).
 
 <a id="ref-18"></a>
 [18] Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. “URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.” arXiv:2311.18352, 2023. [Source](https://arxiv.org/abs/2311.18352).
@@ -561,7 +592,7 @@ The established result remains bounded and useful: within the studied evaluator 
 
 ## Appendix A. Evidence sources and reproducibility
 
-The sources below are project evidence, separate from scholarly references. Relative links resolve in the repository checkout. The [historical baseline](https://github.com/Abdulla4akash/traffictwin/tree/04f3b6a95c7bc06c80ed95b54762f12861bba183) and later packages retain their respective source identities. The current [claim-to-source map](../editorial_final_2026-09-09/CLAIM_SOURCE_MAP.md) records support and limits.
+The sources below are project evidence, separate from scholarly references. Relative links resolve in the repository checkout. The [historical baseline](https://github.com/Abdulla4akash/traffictwin/tree/04f3b6a95c7bc06c80ed95b54762f12861bba183) and later packages retain their respective source identities. The current [claim-to-source map](CLAIM_SOURCE_MAP.md) records support and limits.
 
 <a id="source-s0"></a>
 **S0 — Accounting validity.** [E0 report and evidence](../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/README.md). Full evidence commit `29d8945862b7df1bd5d7879ba1d980a388f6be0d`.
@@ -576,7 +607,7 @@ The sources below are project evidence, separate from scholarly references. Rela
 **S3 — Incident replication and reversal.** [E2c report](../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/README.md) and [E2d report](../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/README.md). Frozen E2d evaluator commit `2f63706f46319433a2ba3af1df97afd0e56a95d1`; exact E2c controls reused.
 
 <a id="source-s4"></a>
-**S4 — Experimental architecture and implementation.** [Frozen method](../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/docs/METHODOLOGY.md), [per-task source](../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py), [evaluator source](../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/eval_sumo_stage1_mc.py), [environment source](../empirical_extension_2026-09-08/experimental/vendor/vec_jax.py), and [implementation correspondence](../../correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md), PDF pages 1–2 for Randy's confirmations.
+**S4 — Experimental architecture and implementation.** [Frozen method](../../evaluation/vec_followup_2026-09-07/historical_e0_e2d/docs/METHODOLOGY.md), [per-task source](../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py), [evaluator source](../../evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/eval_sumo_stage1_mc.py), [environment source](../empirical_extension_2026-09-08/experimental/vendor/vec_jax.py), and [implementation correspondence](../../correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md), PDF pages 1–2 for Putra's confirmations.
 
 <a id="source-s5"></a>
 **S5 — State-information sensitivity.** [Timing contract](../../evaluation/vec_followup_2026-09-07/frozen_evaluator/docs/RSU_STATE_DELAY.md), [five-cell comparison](../../evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/comparison.csv) and [report-state audit](../../evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/mechanism_audit.json).
@@ -600,7 +631,7 @@ The sources below are project evidence, separate from scholarly references. Rela
 **S11 — Artifact and preservation.** [Product architecture](../../architecture_current_release.md), [release/execution boundary](../../quality/final_release_status_20260815.md), [evidence archive inventory](../../evaluation/vec_followup_2026-09-07/ARCHIVE_INVENTORY.json) and [compact verification receipt](../../evaluation/vec_followup_2026-09-07/COMPACT_VERIFICATION.json). The separate E3 Dynamic Resource V2 campaign remains unexecuted.
 
 <a id="source-s12"></a>
-**S12 — Contribution and repair history.** Read-only inspection of `vec_env` commits [4cb7c06](https://github.com/Abdulla4akash/vec_env/commit/4cb7c06aab1b455d68f71ea9143172463784dea9), [0f01f4d](https://github.com/Abdulla4akash/vec_env/commit/0f01f4d2082d3e8b735e74a873095ab8eeba37cc) and [2f63706](https://github.com/Abdulla4akash/vec_env/commit/2f63706f46319433a2ba3af1df97afd0e56a95d1), and TrafficTwin [E0 validation tests at 29d894](https://github.com/Abdulla4akash/traffictwin/blob/29d8945862b7df1bd5d7879ba1d980a388f6be0d/tests/test_validate_e0_smoke.py). Source comments explicitly credit Abdulla's questions; commit authorship does not establish independent human authorship.
+**S12 — Contribution and repair history.** Read-only inspection of `vec_env` commits [4cb7c06](https://github.com/Abdulla4akash/vec_env/commit/4cb7c06aab1b455d68f71ea9143172463784dea9), [0f01f4d](https://github.com/Abdulla4akash/vec_env/commit/0f01f4d2082d3e8b735e74a873095ab8eeba37cc) and [2f63706](https://github.com/Abdulla4akash/vec_env/commit/2f63706f46319433a2ba3af1df97afd0e56a95d1), and TrafficTwin [E0 validation tests at 29d894](https://github.com/Abdulla4akash/traffictwin/blob/29d8945862b7df1bd5d7879ba1d980a388f6be0d/tests/test_validate_e0_smoke.py). Source comments explicitly credit my questions; my [15 September confirmation](AUTHOR_ACTIONS.md) records my design, implementation changes and completed verification.
 
 <a id="source-s13"></a>
 **S13 — Retrospective gap closure, 8 September 2026.** The [verification entry point](../gap_closure_2026-09-08/verification/README.md) documents the field contract, source bindings, 87-file authentication, 19-run audit, [23 paired transitions](../gap_closure_2026-09-08/verification/results/OUTCOME_TRANSITIONS.json), [440-case reference](../gap_closure_2026-09-08/verification/results/KERNEL_RESULTS.json) and production comparison. These completed checks and their historical sources remain unchanged.
@@ -626,14 +657,14 @@ The runtime is CPython 3.11.15, JAX/JAXlib 0.4.30 and NumPy 1.26.4, CPU, x64 dis
 
 Table B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.
 
-*Table B1. Historical availability and retained gap-closure audit coverage, 8 September 2026. Historical receipts remain unchanged. Reading: compare entries under the stated denominator, controls and replication unit.*
+*Table B1. Historical availability and retained gap-closure audit coverage, 8 September 2026. Historical receipts remain unchanged. Reading: distinguish archived summaries from raw-array audit coverage and retain unquantifiable historical scoring impact.*
 
 | Records | Available evidence / coverage | Completed gap-closure checks | Consequence |
 |---|---|---|---|
-| E0: two ten-step repeats and full seed 0 | Surviving receipts, manifests, sources; full receipt records 834,120 cap rejections | Not assessable from available records | Original raw outputs unavailable; deletion reported by author; no known backup |
+| E0: two ten-step repeats and full seed 0 | Surviving receipts, manifests, sources; full receipt records 834,120 cap rejections | Not assessable from available records | Raw arrays not retained; summaries and receipts archived |
 | E1: five seeds × three caps | Fifteen run summaries/receipts; seed-0 middle cap reuses E0 | Not assessable from available records | Original interval reproduced from summaries; scoring impact unresolved |
 | E2 off/jsq/dla seed 0 and E2b reused cells | Hash-bound summaries and receipts; E2b reuses E2 exactly | Not assessable from available records | No new cell or historical task join inferred from reuse |
-| E2b new ingress / E2c / E2d originals | Compact sources/records survive; original raw availability not established | Not assessable from available records | No deletion or fresh raw-validation claim extended to these studies |
+| E2b new ingress / E2c / E2d originals | Compact sources/records survive; original raw availability not established | Not assessable from available records | No non-retention or fresh raw-validation claim extended to these studies |
 | September morning primary | Twelve full runs, seeds 0/2/3/4; 1,744,116 offered per cell | Zero discrepancies in each inspected run | Supports these gate-enabled records; excludes pilot from inference |
 | September morning pilot | Two full seed-1 runs, 1,744,116 offered each | Zero discrepancies in each inspected run | Remains exploratory, outside primary inference |
 | September incident sensitivity pilot | Five full seed-1 runs, 13,076,234 offered each | Zero discrepancies in each inspected run | Does not replace historical E2d records |
@@ -643,7 +674,7 @@ The per-run JSON records preserve offered/admitted counts, explicit rejection an
 
 Table B2 details primary morning ingress→per-task task accounting. “Both” columns partition the same offered population; no task-level confidence intervals are constructed.
 
-*Table B2. Descriptive task transitions from ingress to per-task placement; four primary morning draws, pilot excluded. Reading: compare entries under the stated denominator, controls and replication unit.*
+*Table B2. Descriptive task transitions from ingress to per-task placement; four primary morning draws, pilot excluded. Reading: follow gains and losses within each fleet draw; their difference is the net change over the same offered tasks.*
 
 | Fleet seed | Failure → success | Success → failure | Success both | Failure both | Net successes |
 |---|---:|---:|---:|---:|---:|
@@ -798,7 +829,7 @@ Table C3 locates 79,581 net successes in Type 1, 145 in Type 2 and 192,253 in Ty
 
 The retained retrospective type analysis read eight original primary-morning task arrays, authenticated their hashes, and aggregated categories by type; it was not repeated here. The prior 19-run admission validation and 23 task joins are reused, not repeated. All-task totals and paired net changes reconcile. The following table exposes every type/draw/arm; attainment uses the offered column. Other terminal failures are available in the linked CSV and unchanged within each pair.
 
-*Table D1. Type outcomes. I = ingress, P = per-task; offered and category counts are tasks, attainment is percent. Gate rejection and admitted misses are disjoint. Reading: compare entries under the stated denominator, controls and replication unit.*
+*Table D1. Type outcomes. I = ingress, P = per-task; offered and category counts are tasks, attainment is percent. Gate rejection and admitted misses are disjoint. Reading: compare gate rejections, admitted misses and successes by task type under its own offered denominator.*
 
 | Seed / type | Arm | Offered | Success | Attainment | Admitted | Gate rejected | Admitted miss |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -882,7 +913,7 @@ The completed full matrix has 32 valid cells, eight valid block receipts and no 
 | 7/P | 1,744,742 | 1,736,713 | 1,608,728 | 92.204 | 5,656 | 127,985 |
 | 7/R | 1,744,742 | 1,726,431 | 1,596,904 | 91.527 | 15,938 | 129,527 |
 
-*Table E2. All eight paired effects, percentage points. These blocks, not tasks or RSUs, are the new replications. Reading: compare entries under the stated denominator, controls and replication unit.*
+*Table E2. All eight paired effects, percentage points. These blocks, not tasks or RSUs, are the new replications. Reading: compare the three paired arm differences within each joint block; eight blocks define the replication unit.*
 
 | Block | Per-task − ingress | Common-target − ingress | Per-task − round-robin |
 |---|---:|---:|---:|
@@ -901,4 +932,4 @@ All 32 records passed final-admission/score/category/penalty, assignment and que
 
 The campaign elapsed 6440.25 seconds (107.34 minutes) from first attempt to completion. Full evaluator processes took 6375.54 seconds in total; cell validation took 49.59 seconds, block validation 10.83 seconds, and sealed analysis with completion/hash checks 3.44 seconds. Qualification processes separately took 68.09 seconds. [Timing records](../joint_confirmation_2026-09-08/evidence/TIMING.json) and per-cell logs retain the exact boundaries. The first-block estimate used runtime only.
 
-The [raw inventory](../joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json) binds the locally retained task/step arrays and supporting files. The [portable verifier](../joint_confirmation_2026-09-08/document/verify_results.py) regenerates central tables from compact evidence and accepts an optional explicit raw root for integrity checking. Compact arithmetic is not repeated task-level validation; hashes are not a backup. Approved off-machine storage and examiner access remain unresolved.
+The [raw inventory](../joint_confirmation_2026-09-08/evidence/RAW_INVENTORY.json) binds the locally retained task/step arrays and supporting files. The [verifier (requires NumPy and SciPy)](../joint_confirmation_2026-09-08/document/verify_results.py) regenerates central tables from compact evidence and accepts an optional explicit raw root for integrity checking. Compact arithmetic is not repeated task-level validation; hashes are not a backup. Approved off-machine storage and examiner access remain unresolved.

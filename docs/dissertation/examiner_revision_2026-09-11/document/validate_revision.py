@@ -62,6 +62,15 @@ def main() -> None:
         "E2": "E2",
     }
     checks = {f"table_{a}_to_{b}_rows_unchanged": before[a] == after[b] for a, b in mapping.items()}
+    # Owner-authorised Table 3 disclosure adds only these two unevaluated modes.
+    disclosure_rows = [
+        "| `p2c` | Per-vehicle two random candidates, least workload | Off | Live |",
+        "| `dla_p2c` | Per-vehicle two random candidates, least workload | On | Live |",
+    ]
+    checks["table_3_to_3_rows_unchanged"] = after["3"][:-2] == before["3"]
+    checks["table_3_only_authorised_disclosure_rows_added"] = after["3"] == (
+        before["3"] + disclosure_rows
+    )
     checks["abstract_unchanged"] = (
         original.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
         == revised.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
@@ -79,10 +88,13 @@ def main() -> None:
     checks["twenty_five_references"] = len(newmap["bibkeys"]) == 25
     captions = re.findall(r"(?m)^\*(?:Figure|Table) .*", revised)
     checks["every_caption_has_reading"] = all("Reading:" in c for c in captions)
+    readings = [c.split("Reading:", 1)[1].strip() for c in captions]
+    checks["unique_caption_readings"] = len(readings) == len(set(readings))
     checks["no_editorial_ownership_placeholders_in_body"] = all(
         phrase not in revised for phrase in ["for author review", "still require the candidate's"]
     )
-    count = json.loads((HERE / "document/WORD_COUNT.json").read_text())["words"]
+    counts = json.loads((HERE / "document/WORD_COUNT.json").read_text())
+    count = counts["words"]
     checks["word_count_in_range"] = 7000 <= count <= 9000
     parser = MarkdownIt("commonmark").enable("table")
     missing = []
@@ -133,6 +145,12 @@ def main() -> None:
         "passed": all(checks.values()),
         "missing_links": missing,
         "words": count,
+        "prose_only_words": counts["prose_only_words"],
+        "author_confirmation": {
+            "date": "2026-09-15",
+            "source": "AUTHOR_ACTIONS.md",
+            "status": "owner-confirmed; not independently certified by automation",
+        },
         "pages": len(pdf),
         "captions": len(captions),
         "hashes": {
@@ -150,7 +168,6 @@ def main() -> None:
             "flagged_percent": 100 * flag_count / max(len(sentences), 1),
         },
         "not_certified": [
-            "author independent verification",
             "assessment AI permission",
             "signed institutional declarations",
             "incident geographic layout",

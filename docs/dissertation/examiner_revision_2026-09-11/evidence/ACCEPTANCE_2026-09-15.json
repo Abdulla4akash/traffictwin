@@ -1,0 +1,136 @@
+{
+  "date": "2026-09-15",
+  "input_head": "23d99199b6be5cb6d9738f46587d588b56a62908",
+  "base_main": "1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8",
+  "grep_line_counts": {
+    "author_reported": {
+      "md": 0,
+      "tex": 0
+    },
+    "not_yet_performed": {
+      "md": 0,
+      "tex": 0
+    },
+    "abdulla_possessive": {
+      "md": 0,
+      "tex": 0
+    },
+    "retrospective_synthesis": {
+      "md": 0,
+      "tex": 0
+    },
+    "no_known_backup": {
+      "md": 0,
+      "tex": 0
+    },
+    "full_name": {
+      "md": 3,
+      "tex": 3
+    },
+    "dla_p2c": {
+      "md": 6,
+      "tex": 6
+    }
+  },
+  "not_yet_performed_package_matches": 0,
+  "manchester_positive_section_2_3": true,
+  "duplicate_readings": 0,
+  "checks_passed": 38,
+  "words": 8987,
+  "prose_only_words": 7684,
+  "pages": 56,
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "84f8da436f571b68f921a3899f885858ed5dab019d092f737c030ec9c31bcced",
+    "TrafficTwin_Dissertation.tex": "d7954b0e53078183a25ea8a5768bc355d497248147ac18d2e4ff4709b6ab7a02",
+    "TrafficTwin_Dissertation.pdf": "34d703633b631d9b90a01b88c682755be10ce4013809a805b2f62780fdbb9ece"
+  },
+  "frozen_diff_stat": "",
+  "archive": {
+    "status": "passed",
+    "baseline_commit": "477304f7f988f7d5d5ea5ae21d0e49eed1429e5a",
+    "manifest_sha256": "259675e6958f615124235fbade4cf0be306dbf81c8018580dd106cd84ff2cc3a",
+    "archive_roots": 8,
+    "checked_files": 938,
+    "checked_bytes": 29009151,
+    "failures": [],
+    "scope": "File integrity only; no code execution, raw-array analysis or backup"
+  },
+  "section_b_enabled": false,
+  "scientific_runs_launched": 0,
+  "pdf_visual_review": {
+    "pages_rendered": 56,
+    "pages_inspected": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56
+    ],
+    "method": "Poppler PNG render, all-page contact sheets; editing assistant inspection, not independent review",
+    "defects_observed": 0
+  },
+  "local_verifier": {
+    "status": "passed",
+    "exit_code": 0,
+    "cells": 32,
+    "blocks": 8,
+    "raw_checked": false
+  },
+  "environment": {
+    "os": "macOS-26.4.1-arm64-arm-64bit",
+    "python": "3.12.13",
+    "xelatex": "XeTeX 3.141592653-2.6-0.999998 (TeX Live 2026)"
+  },
+  "c10_correction": "Only five of the 56 failures are tier-4 UI text assertions; retain the broader failure scope recorded in HOSTED_TEST_RESULT_2026-09-11.json."
+}

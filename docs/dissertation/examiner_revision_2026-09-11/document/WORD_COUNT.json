@@ -1,4 +1,6 @@
 {
-  "words": 8709,
+  "words": 8987,
+  "prose_only_words": 7684,
+  "prose_only_method": "Same tokenisation and boundaries as package method; additionally excludes table bodies and pseudocode",
   "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded"
 }

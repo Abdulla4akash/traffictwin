@@ -452,15 +452,7 @@ front_declaration = r"""
 \clearpage
 \section*{Declaration}
 \addcontentsline{toc}{section}{Declaration}
-\textbf{Assistance and attribution.} Codex and ChatGPT provided substantive assistance with
-literature discovery, implementation, drafting and revision, proof and numerical diagnostics,
-audits, task-type analysis, comparator and benchmark development, and the confirmation pipeline,
-including recorded execution, validation and analysis. This revision also used ChatGPT for
-document restructuring, compact-result recomputation, source inspection, figure generation and
-typesetting. Randy supplied the actor/environment and accounting repair code; the author's
-documented accounting questions and interpretation are identified in Section~\ref{sec:3.7}.
-Automated receipts identify checks actually executed; they do not certify the candidate's
-independent verification or assessment-specific permission.
+DECLARATION_TEXT
 
 \medskip
 \textbf{Candidate declaration to be signed.} The contribution statement and declared assistance
@@ -484,10 +476,7 @@ authorship of this report.
 \clearpage
 \section*{Acknowledgements}
 \addcontentsline{toc}{section}{Acknowledgements}
-Dr Sandra Sampaio supervised the project. Randy contributed the supplied actor and environment,
-and the accounting repair implementation. The correspondence and source records identify these
-contributions separately from the candidate's documented analysis. Automated assistance is
-disclosed in the Declaration.
+ACKNOWLEDGEMENTS_TEXT
 \clearpage
 """
 short_fig = {
@@ -521,7 +510,16 @@ short_tab = {
     "E1": "All confirmation cells",
     "E2": "Eight paired effects",
 }
-tokens = parser.parse(md)
+# Academic front-matter prose has the same Markdown source as the body.
+front_match = re.search(
+    r"(?ms)^## Declaration\n\n(.*?)^## Acknowledgements\n\n(.*?)^## Abstract", md
+)
+assert front_match, "Markdown Declaration and Acknowledgements are required"
+front_declaration = front_declaration.replace(
+    "DECLARATION_TEXT", inline_md(front_match[1].strip())
+).replace("ACKNOWLEDGEMENTS_TEXT", inline_md(front_match[2].strip()))
+body_md = md[: front_match.start()] + "## Abstract" + md[front_match.end() :]
+tokens = parser.parse(body_md)
 body = []
 blocks = []
 i = 0
@@ -812,6 +810,7 @@ while i < len(tokens):
     raise ValueError(("unexpected block", i, t.type, t.content))
 assert bibnums == [str(i) for i in range(1, 26)]
 counted = []
+prose_counted = []
 for block in blocks:
     if block["kind"] == "heading" and block["source"] == "References":
         break
@@ -832,13 +831,21 @@ for block in blocks:
         for token in parser.parse(text):
             if token.type == "inline":
                 counted.append(visible(token.children))
+                if block["kind"] not in ("table", "algorithm"):
+                    prose_counted.append(visible(token.children))
             elif token.type == "fence":
                 counted.append(token.content)
 words = len(re.findall(r"[\w]+(?:[’'-][\w]+)*", " ".join(counted)))
+prose_words = len(re.findall(r"[\w]+(?:[’'-][\w]+)*", " ".join(prose_counted)))
 (OUT / "document/WORD_COUNT.json").write_text(
     json.dumps(
         {
             "words": words,
+            "prose_only_words": prose_words,
+            "prose_only_method": (
+                "Same tokenisation and boundaries as package method; "
+                "additionally excludes table bodies and pseudocode"
+            ),
             "method": (
                 "Unicode word tokens; Abstract, main headings/body, table text, "
                 "equations and pseudocode included; references, captions, "
