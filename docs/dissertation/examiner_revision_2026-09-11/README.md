@@ -1,5 +1,33 @@
 # Dynamic Resource Management for Intelligent Transport Systems
 
+## Current overlay: experimental results and abstract scale - 15 September 2026
+
+[Current PDF](TrafficTwin_Dissertation.pdf) · [Markdown](TrafficTwin_Dissertation.md) · [current acceptance record](evidence/PLATFORM_CONNECTION_ACCEPTANCE_2026-09-15.json)
+
+Figure 7 (page 37) now shows TrafficTwin inspecting the completed joint-randomness study: 32 cells, eight paired blocks, four policies and the three declared contrasts. The caption calls it a workflow demonstration and distinguishes compact arithmetic/receipt checks from historical task-level validation and original experiment execution. The first abstract paragraph adds the authorised scale sentence: six evaluated policies, more than eighty full runs, and three replication stages culminating in a sealed confirmation.
+
+The report is **8,984 strict / 7,784 prose-only words**, with 63 pages. The rubric's 7,000-9,000 range passes. The earlier 8,950 owner gate remains **failed by 34 words**; it was already failed by ten words before these changes. The user subsequently requested the current version be pushed and merged. No text was trimmed and the earlier gate was not silently waived.
+
+The pinned four-operation ledger recovers `b3b8dbc` byte-for-byte before every earlier contribution/editorial preservation layer runs. All **168/168 preservation checks** pass; combined validation is **215/216**, with only `word_count_in_range` failing. Five negative probes reject an extra abstract claim, a removed validation boundary, a changed result, altered ledger bytes and a modified screenshot. Ruff passes all seven document scripts.
+
+The canonical PDF was rebuilt here with package-relative links: all 99 local links resolve and all 63 pages render pixel-identically to the verified Desktop delivery. Pages 3, 4, 6, 36, 37, 38 and 48 were inspected with no defects. The page break before Table 8 preserves its complete layout. The copied [abstract receipt](evidence/ABSTRACT_SCALE_UPDATE.json) retains the **Desktop PDF hash**; the [canonical receipt](evidence/PLATFORM_CONNECTION_ACCEPTANCE_2026-09-15.json) records this repository PDF's different identity.
+
+The [capture receipt](evidence/PLATFORM_RESULTS_CAPTURE.json) binds the unedited screenshot to source `5e18707`; [browser checks](evidence/BROWSER_CHECK.json) bind the unchanged results page to final product source `17d6b21`. [Import checks](evidence/TRAFFICTWIN_IMPORT_CHECK.json), the [product workflow](../../integration/dissertation_results.md) and the [portable packet](../../../src/traffictwin/resources/research/joint_confirmation_results.zip) are available. The historical inventory and prior receipts retain their original source identities. No scientific workload was launched.
+
+Rebuild with the existing MarkdownIt/XeLaTeX environment and the commands below. `validate_revision.py` deliberately exits nonzero while the disclosed earlier word ceiling is unmet. Independent exact-SHA review and merge are coordinated separately; document-builder checks are not self-approval or submission certification.
+
+```sh
+pkg_dir=docs/dissertation/examiner_revision_2026-09-11
+python "$pkg_dir/document/convert_source.py"
+latexmk -cd -g -xelatex -interaction=nonstopmode -halt-on-error "$pkg_dir/TrafficTwin_Dissertation.tex"
+python "$pkg_dir/document/validate_option_b.py"
+python "$pkg_dir/document/validate_revision.py"
+```
+
+## Earlier contributions revision - preserved historical record
+
+The notes below describe their original candidate and counts. The current overlay above governs the later Figure 7 and abstract changes.
+
 **Contributions revision stopped at the requested word-count gate: 8,960 strict/package words / 7,760 prose-only words.** Strict is **10 above 8,950**; prose meets the 7,600 floor. The **63-page PDF** is a reviewable draft. Further manuscript editing stopped after the prescribed F1 fallback. The title stays unchanged.
 
 [PDF](TrafficTwin_Dissertation.pdf) · [Markdown](TrafficTwin_Dissertation.md) · [generated TeX](TrafficTwin_Dissertation.tex) · [contributions stop report](CONTRIBUTIONS_REVIEW_2026-09-15.md) · [revision history](REVISION_REPORT.md) · [validation](document/REVISION_VALIDATION.json)

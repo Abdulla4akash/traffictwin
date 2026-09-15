@@ -1,0 +1,19 @@
+[
+  {
+    "old": "Figure 7 shows the actual Streamlit interface.",
+    "new": "Figure 7 demonstrates the completed evidence workflow."
+  },
+  {
+    "old": "![TrafficTwin Streamlit interface at the inspected source](assets/traffictwin_streamlit.png)\n\n*Figure 7. TrafficTwin's actual Streamlit interface captured from the pinned repository in a clean browser session; the capture receipt identifies source, route and environment. It demonstrates the software surface, not execution of the dissertation campaigns or a user-evaluation result [[S17]](#source-s17). Reading: use the interface to inspect and organise evidence; use the bound campaign outputs to support the numerical research claims.*",
+    "new": "![TrafficTwin workflow demonstration with completed joint-randomness results](assets/traffictwin_results_workflow.png)\n\n*Figure 7. Workflow demonstration of the completed joint-randomness study in TrafficTwin. The interface imports the archived `CELL_RESULTS.csv`, `PAIRED_EFFECTS.csv` and receipts, displaying 32 cells across eight paired blocks and the three declared contrasts. File hashes, compact arithmetic and receipt bindings are checked; task-level validation remains the historical receipts' record, and raw simulation arrays are not rechecked. The screenshot demonstrates inspection of existing results, not original experimental execution through the platform, independent scientific validation or a user study [[S16]](#source-s16), [[S17]](#source-s17). Reading: follow the completed campaign's outputs into the results view while retaining their original evidence boundaries.*"
+  },
+  {
+    "old": "The [revision record](README.md) distinguishes historical receipts, fresh document checks, actual browser capture and author-only completion items.",
+    "new": "The [revision record](README.md) distinguishes historical receipts, document checks, the [Figure 7 workflow capture](evidence/PLATFORM_RESULTS_CAPTURE.json) and author-only completion items."
+  },
+  {
+    "reason": "Owner requested Claude suggestion 5: one sentence of scale in the first abstract paragraph.",
+    "old": "A vehicle's strongest radio link can lead to a busy computing server, and admitting its task does not guarantee a result before the deadline. TrafficTwin investigates how infrastructure scheduling changes offered-task deadline attainment under a fixed, pretrained vehicle offloading policy. The comparison separates radio ingress, execution placement, admission and workload reservation.",
+    "new": "A vehicle's strongest radio link can lead to a busy computing server, and admitting its task does not guarantee a result before the deadline. TrafficTwin investigates how infrastructure scheduling changes offered-task deadline attainment under a fixed, pretrained vehicle offloading policy. The comparison separates radio ingress, execution placement, admission and workload reservation. The programme evaluated six infrastructure policies over more than eighty full runs, with three replication stages culminating in a confirmation under a sealed protocol."
+  }
+]

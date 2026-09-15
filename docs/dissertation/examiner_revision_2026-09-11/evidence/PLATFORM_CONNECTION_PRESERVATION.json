@@ -1,42 +1,6 @@
 {
-  "base_commit": "1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8",
+  "passed": true,
   "checks": {
-    "table_1_to_1_rows_unchanged": true,
-    "table_2_to_2_rows_unchanged": true,
-    "table_3_to_3_rows_unchanged": true,
-    "table_4_to_4_rows_unchanged": true,
-    "table_5_to_5_rows_unchanged": true,
-    "table_6_to_6_rows_unchanged": true,
-    "table_7_to_7_rows_unchanged": true,
-    "table_8_to_C2_rows_unchanged": true,
-    "table_9_to_C3_rows_unchanged": true,
-    "table_10_to_D2_rows_unchanged": true,
-    "table_B2_to_B2_rows_unchanged": true,
-    "table_C1_to_C1_rows_unchanged": true,
-    "table_D1_to_D1_rows_unchanged": true,
-    "table_E1_to_E1_rows_unchanged": true,
-    "table_E2_to_E2_rows_unchanged": true,
-    "table_3_only_authorised_disclosure_rows_added": true,
-    "abstract_unchanged_before_authorised_scale_sentence": true,
-    "proposition_statement_unchanged": true,
-    "algorithms_unchanged": true,
-    "equations_unchanged": true,
-    "preserved_svg_architecture": true,
-    "preserved_svg_dispatch_example": true,
-    "preserved_svg_primary_replication": true,
-    "preserved_svg_rsu_workload_distribution": true,
-    "preserved_svg_task_accounting": true,
-    "three_research_questions": true,
-    "no_rq4": true,
-    "forty_six_references": true,
-    "references_have_stable_baseline_and_five_additions": true,
-    "every_reference_cited": true,
-    "every_caption_has_reading": true,
-    "unique_caption_readings": true,
-    "no_editorial_ownership_placeholders_in_body": true,
-    "word_count_in_range": false,
-    "rubric_word_count_in_range": true,
-    "package_count_is_headline": true,
     "option_b_baseline_hash": true,
     "option_b_section_1_2_byte_identical": true,
     "option_b_all_other_source_bytes_preserved": true,
@@ -204,62 +168,6 @@
     "platform_connection_pinned_browser_check": true,
     "platform_connection_bundled_packet_matches_capture": true,
     "platform_connection_preserves_historical_validation_boundary": true,
-    "platform_connection_exact_authorised_counts": true,
-    "manuscript_links_resolve": true,
-    "pdf_metadata_has_project_title": true,
-    "pdf_metadata_has_author": true,
-    "pdf_cover_has_requested_project_title": true,
-    "no_overfull_boxes": true,
-    "no_missing_glyphs": true,
-    "no_undefined_references": true,
-    "pdf_has_disclosure": true,
-    "pdf_has_expected_figures": true,
-    "pdf_contents_has_both_counts_package_first": true,
-    "pdf_has_appendix_f_and_table_d2": true,
-    "pdf_has_relocated_table_a1": true
-  },
-  "passed": false,
-  "missing_links": [],
-  "words": 8984,
-  "prose_only_words": 7784,
-  "word_limit_status": {
-    "earlier_owner_ceiling": 8950,
-    "earlier_owner_ceiling_met": false,
-    "excess_over_earlier_ceiling": 34,
-    "rubric_range": [
-      7000,
-      9000
-    ],
-    "rubric_range_met": true,
-    "interpretation": "Later owner authorised the current 8,984-word version; the earlier ceiling remains unmet, not silently waived."
-  },
-  "author_confirmation": {
-    "date": "2026-09-15",
-    "source": "AUTHOR_ACTIONS.md",
-    "status": "owner-confirmed; not independently certified by automation"
-  },
-  "pages": 63,
-  "captions": 28,
-  "hashes": {
-    "TrafficTwin_Dissertation.md": "7851287ff2be9307cf3665e42df09a192f13ecb50d670ed2564a6d043948334b",
-    "TrafficTwin_Dissertation.tex": "850d1a7b603022f1f540e462fb467db213bc27f2de3dff0b9316d21e609f58a3",
-    "TrafficTwin_Dissertation.pdf": "cdc949b06c44300e63e5e6085d89a52eebb690eb45a28435358cf71cb1acf47e"
-  },
-  "ending_audit": {
-    "method": "Lexical screen of final prose sentence; not semantic grading",
-    "paragraphs": 146,
-    "flagged": 35,
-    "flagged_percent": 23.972602739726028
-  },
-  "not_certified": [
-    "assessment AI permission",
-    "signed institutional declarations",
-    "incident geographic layout",
-    "off-machine raw backup",
-    "recorded assessed video",
-    "full-text review of both newly cited Fan papers",
-    "owner reading of the added papers and JAX citation/version verification",
-    "independent exact-SHA review",
-    "full regression-suite pass"
-  ]
+    "platform_connection_exact_authorised_counts": true
+  }
 }

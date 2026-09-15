@@ -491,7 +491,7 @@ short_fig = {
     "4": "Illustrative dispatch comparison",
     "5": "Four-draw morning replication",
     "6": "All eight joint-randomness blocks",
-    "7": "TrafficTwin Streamlit interface",
+    "7": "TrafficTwin results workflow demonstration",
     "8": "Morning RSU work distribution",
 }
 short_tab = {
@@ -753,7 +753,8 @@ while i < len(tokens):
         assert all(len(row) == n for row in rows)
         header = " & ".join(rows[0]) + r" \\"
         code = (
-            (r"\Needspace{14\baselineskip}" + "\n" if num in ("4", "5") else "")
+            (r"\clearpage" + "\n" if num == "8" else "")
+            + (r"\Needspace{14\baselineskip}" + "\n" if num in ("4", "5") else "")
             + "\\begingroup\n"
             + r"\singlespacing\footnotesize\setlength{\tabcolsep}{3pt}"
             + "\n"
