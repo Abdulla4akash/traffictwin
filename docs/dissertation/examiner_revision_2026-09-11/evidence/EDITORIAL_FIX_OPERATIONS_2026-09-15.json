@@ -1,0 +1,108 @@
+{
+  "baseline_commit": "7075b2576292cc9a98854bf5664449df66617b96",
+  "baseline_markdown_sha256": "1458bc73b4533bcfe051bcb4957007e0762613e3c60bfffaa8c107b402c007e8",
+  "operations": [
+    {
+      "kind": "table_number",
+      "source": "10 -> 8",
+      "old": "Table 10 records the limits of aggregate departures and global work with immediate reservations. Separate lifecycle fields distinguish placement, admission and success.",
+      "new": "Table 8 records the limits of aggregate departures and global work with immediate reservations. Separate lifecycle fields distinguish placement, admission and success."
+    },
+    {
+      "kind": "table_number",
+      "source": "10 -> 8",
+      "old": "*Table 10. Validity limits and their consequences for interpretation. Reading: use each row to identify the evidence needed before extending the corresponding claim.*",
+      "new": "*Table 8. Validity limits and their consequences for interpretation. Reading: use each row to identify the evidence needed before extending the corresponding claim.*"
+    },
+    {
+      "kind": "table_number",
+      "source": "11 -> 9",
+      "old": "*Table 11. Objective-by-objective verdict for the completed work. “Met” refers to the stated evaluator/software scope, not real-road deployment or unperformed user testing. Reading: the evidence supports the dispatch findings while leaving historical measurement impact and external validation as distinct open obligations.*",
+      "new": "*Table 9. Objective-by-objective verdict for the completed work. “Met” refers to the stated evaluator/software scope, not real-road deployment or unperformed user testing. Reading: the evidence supports the dispatch findings while leaving historical measurement impact and external validation as distinct open obligations.*"
+    },
+    {
+      "kind": "figure_source_removal",
+      "source": "1.1",
+      "old": "Figure 2 shows the authenticated morning RSU layout in local trace metres, not deployed Manchester equipment. Incident coordinates are absent from the compact evidence and are not invented. Each comparison preserves its scenario's trace and layout (Table 2).\n\n![Authenticated morning RSU positions in local network coordinates](assets/morning_rsu_layout.pdf)\n\n*Figure 2. Morning trace RSU positions copied from the canonical input-validation record, with original zero-based indices. The incident trace contains ten RSUs; its positions are not reconstructed here. Local network coordinates are not latitude/longitude or a verified street-map projection [[S8]](#source-s8). Reading: the nine morning locations are spatial inputs, whereas the dispatch comparisons change task destinations without moving these RSUs.*\n\n### 1.2 Related work and the position of this study",
+      "new": "### 1.2 Related work and the position of this study"
+    },
+    {
+      "kind": "figure_destination_insert",
+      "source": "2.3",
+      "old": "Both scenarios are drawn from the Manchester SUMO working-day and incident models: `manchester_workingday/trace_wd_am_wdrsu.npz` and the 15 March 2024 incident trace (Table 2). Coordinates are local trace metres. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel [[S7]](#source-s7).",
+      "new": "Both scenarios are drawn from the Manchester SUMO working-day and incident models: `manchester_workingday/trace_wd_am_wdrsu.npz` and the 15 March 2024 incident trace (Table 2). Coordinates are local trace metres. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel [[S7]](#source-s7).\n\nFigure 2 shows the authenticated morning RSU layout in local trace metres, not deployed Manchester equipment. Incident coordinates are absent from the compact evidence and are not invented. Each comparison preserves its scenario's trace and layout (Table 2).\n\n![Authenticated morning RSU positions in local network coordinates](assets/morning_rsu_layout.pdf)\n\n*Figure 2. Morning trace RSU positions copied from the canonical input-validation record, with original zero-based indices. The incident trace contains ten RSUs; its positions are not reconstructed here. Local network coordinates are not latitude/longitude or a verified street-map projection [[S8]](#source-s8). Reading: the nine morning locations are spatial inputs, whereas the dispatch comparisons change task destinations without moving these RSUs.*"
+    },
+    {
+      "kind": "merge_transition_paragraphs",
+      "source": "1.1",
+      "old": "I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's upstream weights. Matched inputs and action checks distinguish infrastructure effects from retraining and possible observation feedback. The study compares scheduling implementations supporting an existing actor.\n\nThe programme progressed from accounting and capacity to opposite ingress rankings for two least-workload implementations, distinguished by target timing, reservations and admission [[S0]](#source-s0)–[[S4]](#source-s4).",
+      "new": "I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's upstream weights. Matched inputs and action checks distinguish infrastructure effects from retraining and possible observation feedback. The study compares scheduling implementations supporting an existing actor. The programme progressed from accounting and capacity to opposite ingress rankings for two least-workload implementations, distinguished by target timing, reservations and admission [[S0]](#source-s0)–[[S4]](#source-s4). Communication and computation jointly determine whether an offloaded task returns in time [[3]](#ref-3), [[6]](#ref-6)."
+    },
+    {
+      "kind": "remove_merged_transition_source",
+      "source": "1.1",
+      "old": "Communication and computation jointly determine whether an offloaded task returns in time [[3]](#ref-3), [[6]](#ref-6).\n\n### 1.2 Related work and the position of this study",
+      "new": "### 1.2 Related work and the position of this study"
+    },
+    {
+      "kind": "road_stakes_link",
+      "source": "1.1",
+      "old": "WHO's *Global status report on road safety 2023* estimates 1.19 million road traffic deaths in 2021 [[43]](#ref-43). 3GPP TS 22.186 v16.2.0 sets maximum end-to-end latencies of 100 ms for automated-driving information sharing between a vehicle and an RSU (clause 5.3, Table 5.3-1) and 500 ms for platooning reporting, including vehicle–RSU communication (clause 5.2, Table 5.2-1) [[42]](#ref-42). The 100 ms and 500 ms task deadlines used in this study correspond to those two requirement classes; the correspondence motivates the deadlines and does not validate the simulation.",
+      "new": "WHO's *Global status report on road safety 2023* estimates 1.19 million road traffic deaths in 2021 [[43]](#ref-43), motivating research into timely information sharing. 3GPP TS 22.186 v16.2.0 sets maximum end-to-end latencies of 100 ms for automated-driving information sharing between a vehicle and an RSU (clause 5.3, Table 5.3-1) and 500 ms for platooning reporting, including vehicle–RSU communication (clause 5.2, Table 5.2-1) [[42]](#ref-42). The 100 ms and 500 ms task deadlines used in this study correspond to those two requirement classes; the correspondence motivates the deadlines and does not validate the simulation."
+    },
+    {
+      "kind": "herding_prior_art",
+      "source": "1.2",
+      "old": "**Local information and common destinations.** Vargaftik, Keslassy and Orda's Local Shortest Queue (LSQ) policies maintain possibly outdated queue-count estimates at multiple dispatchers. Their slotted model can send all jobs arriving at one dispatcher in a slot to one locally shortest queue, with random tie-breaking. Algorithms update local estimates by the jobs sent and refresh selected entries through communication. Their stability result requires stated arrival/service assumptions and bounded expected estimation error [[18]](#ref-18). Common destinations and local updates therefore predate TrafficTwin [[19]](#ref-19). Here they use service-work information, deterministic ties, a backlog gate, five ordered slots and one-second aggregate draining. Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes.",
+      "new": "**Local information and common destinations.** Vargaftik, Keslassy and Orda's Local Shortest Queue (LSQ) policies maintain possibly outdated queue-count estimates at multiple dispatchers. Their slotted model can send all jobs arriving at one dispatcher in a slot to one locally shortest queue, with random tie-breaking. Algorithms update local estimates by the jobs sent and refresh selected entries through communication. Their stability result requires stated arrival/service assumptions and bounded expected estimation error [[18]](#ref-18). Common destinations, stale-information herding [[45]](#ref-45) and local updates therefore predate TrafficTwin [[19]](#ref-19). TrafficTwin uses service-work information, deterministic ties, a backlog gate, five ordered slots and one-second aggregate draining. Neither the LSQ stability theorem nor its distributed communication results transfer directly to these finite-horizon deadline outcomes."
+    },
+    {
+      "kind": "federation_comparison",
+      "source": "1.2",
+      "old": "Differences in arrival processes, objectives and resource models prevent treating published performance scores as controlled benchmarks. Table 1 instead compares the operational mechanisms relevant to TrafficTwin.",
+      "new": "Kovalenko et al. report lower deadline-miss rates with heterogeneous federation than no redirection [[46]](#ref-46). Their probabilistic placement and communication model differ from TrafficTwin's frozen-actor comparison; Table 1 compares mechanisms."
+    },
+    {
+      "kind": "mechanism_literature_boundary",
+      "source": "3.5",
+      "old": "Common-target placement assigned morning work only to RSUs 0–4, whereas causal per-task placement used all nine. With K substeps and R RSUs, selecting one destination per substep admits new work to at most min(K, R) destinations in a batch. Empty starts, lowest-index ties, positive admissions and no intervening drain further produce the recurring low-index prefix. Under the exact gate/service model, workload remains below 538.889 ms before the 1,000 ms drain, explaining the recurring empty starts. Appendix C retains the reconstructed states and Figure 8 [[S8]](#source-s8), [[S9]](#source-s9).",
+      "new": "Common-target placement assigned morning work only to RSUs 0–4, whereas causal per-task placement used all nine. With K substeps and R RSUs, selecting one destination per substep admits new work to at most min(K, R) destinations in a batch. Empty starts, lowest-index ties, positive admissions and no intervening drain further produce the recurring low-index prefix. Under the exact gate/service model, workload remains below 538.889 ms before the 1,000 ms drain, explaining the recurring empty starts. Appendix C retains the reconstructed states and Figure 8 [[S8]](#source-s8), [[S9]](#source-s9). The live-state mechanism differs from stale-information herding [[45]](#ref-45); federation benefits remain implementation-specific [[46]](#ref-46)."
+    },
+    {
+      "kind": "closing_source_removal",
+      "source": "4.4",
+      "old": "Within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule.\n\n### 4.5 Reflection on the process",
+      "new": "### 4.5 Reflection on the process"
+    },
+    {
+      "kind": "closing_destination_insert",
+      "source": "4",
+      "old": "## 4. Conclusion\n\n",
+      "new": "## 4. Conclusion\n\nWithin the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule.\n\n"
+    },
+    {
+      "kind": "new_primary_references",
+      "source": "References",
+      "old": "## Appendix A. Evidence sources and reproducibility",
+      "new": "<a id=\"ref-45\"></a>\n[45] M. Mitzenmacher. “How useful is old information?” *IEEE Transactions on Parallel and Distributed Systems*, 11(1), 6–20, 2000. DOI: 10.1109/71.824633. [Source](https://doi.org/10.1109/71.824633). [Author manuscript](https://www.eecs.harvard.edu/~michaelm/NEWWORK/postscripts/oldinfo-jver-submit.pdf).\n\n<a id=\"ref-46\"></a>\n[46] A. Kovalenko, R. F. Hussain, O. Semiari and M. A. Salehi. “Robust Resource Allocation Using Edge Computing for Vehicle to Infrastructure (V2I) Networks.” *2019 IEEE 3rd International Conference on Fog and Edge Computing (ICFEC)*, 1–6, 2019. DOI: 10.1109/CFEC.2019.8733151. [Source](https://doi.org/10.1109/CFEC.2019.8733151). [Author manuscript, arXiv:1905.04458v1](https://arxiv.org/abs/1905.04458v1).\n\n## Appendix A. Evidence sources and reproducibility"
+    }
+  ],
+  "figure_move": {
+    "source": "1.1",
+    "destination": "2.3",
+    "body": "Figure 2 shows the authenticated morning RSU layout in local trace metres, not deployed Manchester equipment. Incident coordinates are absent from the compact evidence and are not invented. Each comparison preserves its scenario's trace and layout (Table 2).\n\n![Authenticated morning RSU positions in local network coordinates](assets/morning_rsu_layout.pdf)\n\n*Figure 2. Morning trace RSU positions copied from the canonical input-validation record, with original zero-based indices. The incident trace contains ten RSUs; its positions are not reconstructed here. Local network coordinates are not latitude/longitude or a verified street-map projection [[S8]](#source-s8). Reading: the nine morning locations are spatial inputs, whereas the dispatch comparisons change task destinations without moving these RSUs.*",
+    "sha256": "b0d34dfcf2ee3958a8a08b07274bbe64581f3a7eca662c329c7031d4a5ab3060"
+  },
+  "closing_move": {
+    "source": "4.4",
+    "destination": "4 opening",
+    "body": "Within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule.",
+    "sha256": "d07521748c63cf1e927aeb85a7b42d4114dae6b8071f635e9f4db4cff4ac48a8"
+  },
+  "table_numbers": {
+    "10": "8",
+    "11": "9"
+  },
+  "authorisation": "User requested validation and repair of six listed defects; this explicitly permits the recorded changes to formerly protected Sections 1.2 and 3.5.",
+  "word_limit": 8950
+}

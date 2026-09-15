@@ -1,0 +1,34 @@
+{
+  "status": "BLOCKED_WORD_COUNT",
+  "baseline_commit": "9b49efc34a482e5abaab804efcd857b368087c52",
+  "before": {
+    "words": 9180,
+    "prose_only_words": 7877
+  },
+  "before_overflow": {
+    "words": 9452,
+    "prose_only_words": 7991
+  },
+  "after": {
+    "words": 9388,
+    "prose_only_words": 8017
+  },
+  "over_limit_words": 388,
+  "content_reduction_stopped": true,
+  "overflow_used": true,
+  "pages": 63,
+  "checks_passed": 91,
+  "checks_total": 92,
+  "failed_checks": [
+    "word_count_in_range"
+  ],
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "307862fcc37558df585b0e867a0766aa3616cd810ee0595df398dd3ffaf0cf89",
+    "TrafficTwin_Dissertation.tex": "10a446730304195d815e4e02e598daafbc6c3bccde37a1f7a3240a833967750b",
+    "TrafficTwin_Dissertation.pdf": "616f27c4d3b54173761419fe0e4cbef5bf8ab8f410f5975888e400b9a70d4505"
+  },
+  "primary_sources": "reference-registration-option-b-2026-09-15.json",
+  "preservation": "OPTION_B_OPERATIONS.json",
+  "grep": "OPTION_B_GREP.json",
+  "note": "No acceptance success is claimed. PDF/bookkeeping complete; draft PR only. No manuscript trimming beyond permitted moves."
+}

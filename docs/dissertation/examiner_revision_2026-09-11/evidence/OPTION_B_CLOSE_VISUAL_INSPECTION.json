@@ -1,0 +1,21 @@
+{
+  "pdf_sha256": "f42d02333363aad5450210a6df5968dfd7a5a4905ce03fa920fda30aaa7cf429",
+  "pages": 62,
+  "method": "Poppler pdftoppm rendered every page at 1000-pixel long edge; editing assistant inspected six contact sheets and full-page details.",
+  "all_pages_inspected": true,
+  "detail_pages": [
+    10,
+    16,
+    25,
+    47,
+    48,
+    62
+  ],
+  "findings": [
+    "No clipped text, overlapping content, missing glyphs or detached captions observed.",
+    "Table 3a fits one page; Table A1 fits one page; Appendix F fits one page.",
+    "Table B1 spans pages 48\u201349 with repeated headings and intact rows.",
+    "Contents page shows strict count first."
+  ],
+  "layout_changes_this_round": "None beyond Table A1 short-title registration and reflow caused by authorised source moves."
+}

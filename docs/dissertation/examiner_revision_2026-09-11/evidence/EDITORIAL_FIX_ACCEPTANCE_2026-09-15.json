@@ -1,0 +1,56 @@
+{
+  "baseline_commit": "7075b2576292cc9a98854bf5664449df66617b96",
+  "passed": true,
+  "before_counts": {
+    "package": 8914,
+    "prose_only": 7714
+  },
+  "after_counts": {
+    "package": 8938,
+    "prose_only": 7738
+  },
+  "pages": 62,
+  "hashes": {
+    "TrafficTwin_Dissertation.md": "f3867b5ff9d2937faab842b14409914e2747452e1cc2c5093961b2860f394537",
+    "TrafficTwin_Dissertation.tex": "ab1cd44adecfa4f8feb82783c1908d12e986c234275a0df4596b7ded1b0fa524",
+    "TrafficTwin_Dissertation.pdf": "33244964119ca80406200004460ab335cd446bae26213356facf6375134f6dcd"
+  },
+  "combined_checks": 178,
+  "preservation_checks": 131,
+  "metadata": {
+    "format": "PDF 1.7",
+    "title": "Dynamic Resource Management for Intelligent Transport Systems",
+    "author": "S M Abdulla Al Mamun",
+    "subject": "",
+    "keywords": "",
+    "creator": "LaTeX with hyperref",
+    "producer": "xdvipdfmx (20260317)",
+    "creationDate": "D:20260915104402+01'00'",
+    "modDate": "",
+    "trapped": "",
+    "encryption": null
+  },
+  "visual_review": {
+    "method": "Rendered every page at 72 dpi; inspected all four contact sheets and full-size pages 4, 13, 17, 33, 38 and 45.",
+    "pages_rendered": 62,
+    "findings": "No clipping, overlap or duplicated captions found; figure relocation, table list, conclusion opening and new bibliography entries inspected.",
+    "render_directory": "/Users/akashx/scratch/editorial-pdf-qa"
+  },
+  "exact_sha_review": "Pending commit and push; independent review will be bound to the pushed SHA in the draft PR.",
+  "unchanged_boundaries": [
+    "Title",
+    "All twenty pre-review table bodies",
+    "Equations, algorithms and proposition",
+    "Frozen packages",
+    "Main",
+    "No new scientific execution"
+  ],
+  "remaining_submission_gates": [
+    "AI-use permission from supervisor/programme",
+    "Award wording, Faculty/School and student ID",
+    "Prescribed copyright and signed declarations",
+    "Examiner access to private repositories and evidence/backup arrangements",
+    "Recorded assessed video",
+    "Owner reading and final review"
+  ]
+}

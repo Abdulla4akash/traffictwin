@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0",
+  "snapshots": [
+    {
+      "page_name": "Home [light/desktop]",
+      "page_title": "TrafficTwin",
+      "expected_h1": "Model a traffic scenario. Run or import it. Compare the evidence.",
+      "url_path": "home",
+      "viewport": "desktop",
+      "viewport_width": 1440,
+      "viewport_height": 1000,
+      "requested_theme": "light",
+      "main_h1_texts": [
+        "Model a traffic scenario. Run or import it. Compare the evidence."
+      ],
+      "main_landmark_count": 1,
+      "streamlit_exception_count": 0,
+      "unnamed_interactive_count": 0,
+      "images_without_alt_count": 0,
+      "duplicate_ids": [],
+      "vendor_grid_duplicate_id_count": 0,
+      "horizontal_overflow": false
+    },
+    {
+      "page_name": "Guided Demo [light/desktop]",
+      "page_title": "TrafficTwin",
+      "expected_h1": "Guided Demo",
+      "url_path": "guided-workflow",
+      "viewport": "desktop",
+      "viewport_width": 1440,
+      "viewport_height": 1000,
+      "requested_theme": "light",
+      "main_h1_texts": [
+        "Guided Demo"
+      ],
+      "main_landmark_count": 1,
+      "streamlit_exception_count": 0,
+      "unnamed_interactive_count": 0,
+      "images_without_alt_count": 0,
+      "duplicate_ids": [],
+      "vendor_grid_duplicate_id_count": 0,
+      "horizontal_overflow": false
+    },
+    {
+      "page_name": "Replay [light/desktop]",
+      "page_title": "TrafficTwin",
+      "expected_h1": "Operations View",
+      "url_path": "replay",
+      "viewport": "desktop",
+      "viewport_width": 1440,
+      "viewport_height": 1000,
+      "requested_theme": "light",
+      "main_h1_texts": [
+        "Operations View"
+      ],
+      "main_landmark_count": 1,
+      "streamlit_exception_count": 0,
+      "unnamed_interactive_count": 0,
+      "images_without_alt_count": 0,
+      "duplicate_ids": [],
+      "vendor_grid_duplicate_id_count": 0,
+      "horizontal_overflow": false
+    },
+    {
+      "page_name": "About [light/desktop]",
+      "page_title": "TrafficTwin",
+      "expected_h1": "About",
+      "url_path": "about",
+      "viewport": "desktop",
+      "viewport_width": 1440,
+      "viewport_height": 1000,
+      "requested_theme": "light",
+      "main_h1_texts": [
+        "About"
+      ],
+      "main_landmark_count": 1,
+      "streamlit_exception_count": 0,
+      "unnamed_interactive_count": 0,
+      "images_without_alt_count": 0,
+      "duplicate_ids": [],
+      "vendor_grid_duplicate_id_count": 12,
+      "horizontal_overflow": false
+    },
+    {
+      "page_name": "Manchester Operations [light/desktop]",
+      "page_title": "TrafficTwin",
+      "expected_h1": "Manchester Operations",
+      "url_path": "manchester",
+      "viewport": "desktop",
+      "viewport_width": 1440,
+      "viewport_height": 1000,
+      "requested_theme": "light",
+      "main_h1_texts": [
+        "Manchester Operations"
+      ],
+      "main_landmark_count": 1,
+      "streamlit_exception_count": 0,
+      "unnamed_interactive_count": 0,
+      "images_without_alt_count": 0,
+      "duplicate_ids": [],
+      "vendor_grid_duplicate_id_count": 0,
+      "horizontal_overflow": false
+    }
+  ],
+  "issues": [],
+  "passed": true,
+  "limitation": "These automated semantic checks are a regression aid, not a WCAG conformance audit or a substitute for keyboard, screen-reader, contrast, and user testing. Duplicate glide-cell-* IDs generated inside Streamlit's dataframe grid are counted separately from application-controlled duplicate IDs."
+}

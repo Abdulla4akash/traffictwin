@@ -1,0 +1,65 @@
+{
+  "status": "passed",
+  "cells": 32,
+  "blocks": 8,
+  "critical_value": 3.1275522742463706,
+  "primary": [
+    {
+      "contrast": "per_task_dla minus ingress_dla",
+      "effects_pp": [
+        4.541538927108078,
+        4.2435538808825015,
+        5.0202226936226,
+        3.8392365213931328,
+        3.594354751749947,
+        3.4376686887348313,
+        3.996050732020933,
+        4.422544995191259
+      ],
+      "mean_pp": 4.13689639883791,
+      "sd_pp": 0.5249056502594575,
+      "family95_low_pp": 3.556478453517487,
+      "family95_high_pp": 4.717314344158334
+    },
+    {
+      "contrast": "dla minus ingress_dla",
+      "effects_pp": [
+        -3.8130723921499765,
+        -3.6313664221669484,
+        -4.280092200556311,
+        -3.1819826203814046,
+        -3.016775605626435,
+        -3.027314538375933,
+        -3.4569871333078908,
+        -3.624146148828885
+      ],
+      "mean_pp": -3.503967132674223,
+      "sd_pp": 0.43078403331153114,
+      "family95_low_pp": -3.9803094684214817,
+      "family95_high_pp": -3.0276247969269643
+    },
+    {
+      "contrast": "per_task_dla minus causal_round_robin",
+      "effects_pp": [
+        0.7062285321599973,
+        0.6629637500933399,
+        0.8262455830135167,
+        0.5415006188987945,
+        0.5158062821339371,
+        0.5192891091401179,
+        0.5944566742915924,
+        0.6776933208462879
+      ],
+      "mean_pp": 0.630522983822198,
+      "sd_pp": 0.10828188514724806,
+      "family95_low_pp": 0.5107895626606577,
+      "family95_high_pp": 0.7502564049837382
+    }
+  ],
+  "raw": {
+    "status": "not_checked",
+    "reason": "Optional private raw-data root not supplied; compact arithmetic does not repeat task-level validation"
+  },
+  "comparison_tolerance_pp": 1e-12,
+  "tolerance_scope": "Independent compact arithmetic only; scientific validation tolerances remain sealed"
+}
