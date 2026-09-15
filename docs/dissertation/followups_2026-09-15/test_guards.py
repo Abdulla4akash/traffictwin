@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+import shutil
 from unittest.mock import patch
 
 import numpy as np
@@ -18,6 +19,24 @@ PILOT = Path('/Users/akashx/Downloads/diss_mat/traffictwin-joint-confirmation-ra
 
 
 class Guards(unittest.TestCase):
+    def test_post_qualification_parent_changes_refused(self):
+        qualified = Path('/Users/akashx/scratch/traffictwin-followups-2026-09-15/docs/dissertation/followups_2026-09-15/evidence')
+        for name, message in [('BASELINE.json', 'Qualified baseline ledger changed'),
+                              ('QUALIFICATION_SEAL.json', 'Qualified qualification seal changed')]:
+            with tempfile.TemporaryDirectory() as temp:
+                evidence = Path(temp)
+                for parent in ['BASELINE.json', 'QUALIFICATION.json', 'QUALIFICATION_SEAL.json']:
+                    shutil.copyfile(qualified / parent, evidence / parent)
+                value = runner.load(evidence / name)
+                if name == 'BASELINE.json':
+                    value['records']['0:per_task_dla']['successes'] += 100
+                else:
+                    value['changed_after_qualification'] = True
+                (evidence / name).write_text(json.dumps(value))
+                with patch.object(runner, 'EVIDENCE', evidence):
+                    with self.assertRaisesRegex(ValueError, message):
+                        runner.seal_execution()
+
     def test_environment_removes_unsealed_modifiers(self):
         with patch.dict(os.environ, {'VEC_JAX_CAP_SCALAR': '1', 'VEC_JAX_RSU_SERVICE_MULT': '.5', 'JAX_ENABLE_X64': 'true', 'XLA_FLAGS': '--bad', 'PYTHONPATH': '/bad'}):
             env = runner.environment(1.)

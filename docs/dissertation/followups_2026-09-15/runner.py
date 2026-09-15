@@ -69,6 +69,7 @@ def environment(service):
 
 def source_bindings():
     paths = list(HERE.glob('*.py')) + [HERE / 'PROTOCOL.md']
+    paths += [HERE / 'GUARD_AMENDMENT.md']
     paths += list((OLD / 'experimental').rglob('*.py'))
     frozen = ROOT / 'docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval'
     paths += [frozen / n for n in ['e2d_per_task_placement.py', 'rsu_state_delay.py']]
@@ -280,7 +281,19 @@ def qualify():
 
 def seal_execution():
     q = load(EVIDENCE / 'QUALIFICATION.json'); need(q['status'] == 'passed', 'Qualification missing')
-    check_bindings(load(EVIDENCE / 'QUALIFICATION_SEAL.json')['sources'])
+    need(sha(EVIDENCE / 'BASELINE.json') == q['baseline_ledger_sha256'], 'Qualified baseline ledger changed')
+    need(sha(EVIDENCE / 'QUALIFICATION_SEAL.json') == q['qualification_seal_sha256'], 'Qualified qualification seal changed')
+    qualified_sources = load(EVIDENCE / 'QUALIFICATION_SEAL.json')['sources']
+    check_bindings(qualified_sources)
+    # Preserve the original qualification checkout. Only runner/test guards
+    # differ in this successor; every scientific source and protocol is exact.
+    original_protocol = next(Path(p) for p in qualified_sources if p.endswith('/followups_2026-09-15/PROTOCOL.md'))
+    original_root = original_protocol.parents[3]
+    permitted = {HERE.relative_to(ROOT) / 'runner.py', HERE.relative_to(ROOT) / 'test_guards.py'}
+    for source, digest in qualified_sources.items():
+        relative = Path(source).relative_to(original_root)
+        if relative not in permitted:
+            need(sha(ROOT / relative) == digest, f'Qualified scientific source changed: {relative}')
     check_bindings(q['attempt_receipts']); check_bindings(q['reference_receipts'])
     review = load(EVIDENCE / 'SOURCE_REVIEW.json')
     head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
