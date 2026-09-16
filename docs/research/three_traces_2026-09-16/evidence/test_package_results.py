@@ -42,6 +42,8 @@ class PackagingTests(unittest.TestCase):
         self.put(self.here / 'RAW_INVENTORY.json', {'status': 'no_new_raw_outputs'})
         self.put(self.here / 'evidence/we/EXECUTION_SEAL.json', {'sources': {}})
         self.put(self.raw / 'RUN_SUPERVISOR.json', dict(worker_exit_codes={'we': 0}, wall_s=123))
+        self.put(self.raw / 'we/FULL_STARTED.json', {'started_at': '2026-09-16T00:00:00+00:00'})
+        self.put(self.raw / 'we/COMPLETE.json', {'finished_at': '2026-09-16T04:00:00+00:00', 'wall_s': 123})
         attempt = self.raw / 'we/we/block_00_ingress_dla/attempt_001'
         self.put(attempt / 'VALIDATED.json', {'memory': {'evaluator_peak_rss_bytes': 100,
                                                        'runner_process_high_water_rss_bytes': 200}})
@@ -95,6 +97,10 @@ class PackagingTests(unittest.TestCase):
 
     def test_complete_packet_excludes_raw_arrays_and_verifies_members(self):
         self.prepare()
+        timing = package.read(self.here / 'evidence/EXECUTION_TIMING.json')['traces']['we']
+        self.assertEqual(timing['clock_elapsed_s'], 14400)
+        self.assertEqual(timing['runner_monotonic_s'], 123)
+        self.assertEqual(timing['clock_minus_monotonic_s'], 14277)
         manifest = package.read(self.here / 'PACKET_MANIFEST.json')
         self.assertFalse(any(name.endswith('.npz') for name in manifest['files']))
         self.assertTrue(self.array.is_file())

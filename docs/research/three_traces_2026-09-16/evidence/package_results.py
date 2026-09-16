@@ -56,6 +56,16 @@ def prepare():
     assert supervisor['worker_exit_codes'] == {t: 0 for t in config['traces']}
     assert not list(raw.rglob('FAILED.json'))
     assert not list((HERE / 'evidence').rglob('STOPPED.json'))
+    timing = {}
+    for trace in config['traces']:
+        start = read(raw / trace / 'FULL_STARTED.json')['started_at']
+        complete = read(raw / trace / 'COMPLETE.json')
+        end = complete['finished_at']
+        elapsed = (datetime.datetime.fromisoformat(end) - datetime.datetime.fromisoformat(start)).total_seconds()
+        assert elapsed > 0 and complete['wall_s'] == analysis['wall_s_per_trace'][trace]
+        timing[trace] = {'started_at': start, 'finished_at': end, 'clock_elapsed_s': elapsed,
+                         'runner_monotonic_s': complete['wall_s'],
+                         'clock_minus_monotonic_s': elapsed - complete['wall_s']}
     inventory = []
     for source in sorted(raw.rglob('*')):
         if not source.is_file():
@@ -105,11 +115,29 @@ def prepare():
             dest.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(source, dest)
     full_receipts = [read(p) for trace in config['traces']
                      for p in (raw / trace / trace).glob('*/attempt_001/VALIDATED.json')]
+    write(HERE / 'evidence/EXECUTION_TIMING.json', {
+        'status': 'complete', 'traces': timing,
+        'clock_elapsed_basis': 'UTC finished_at minus started_at from immutable trace receipts',
+        'runner_timer_basis': 'Unmodified frozen runner time.monotonic() values; excludes host sleep on Darwin',
+        'low_power_sleep_record': 'RUNTIME_INTERRUPTION.json' if (HERE / 'evidence/RUNTIME_INTERRUPTION.json').exists() else None})
+    notes = ['# Execution timing', '',
+             'Clock elapsed time below includes host sleep. The elapsed-hour values in the sealed analysis output and RESULTS.md are the runner monotonic timers; those values are preserved unchanged.', '',
+             '| Trace | Clock elapsed (h) | Runner timer (h) | Difference (h) |',
+             '|---|---:|---:|---:|']
+    for trace, value in timing.items():
+        notes.append(f"| {trace} | {value['clock_elapsed_s']/3600:.6f} | {value['runner_monotonic_s']/3600:.6f} | {value['clock_minus_monotonic_s']/3600:.6f} |")
+    notes += ['', 'See [timestamp-derived timing](evidence/EXECUTION_TIMING.json) and the compact FULL_STARTED.json / COMPLETE.json receipts for exact values.']
+    if (HERE / 'evidence/RUNTIME_INTERRUPTION.json').exists():
+        notes += ['', 'The Mac entered low-power sleep at 03:10:01 UTC and woke on AC power at 05:22:15 UTC on 16 September 2026 (7,934 seconds). The same attempts resumed; none were retried. See the [operational interruption record](evidence/RUNTIME_INTERRUPTION.json).']
+    with (HERE / 'TIMING_NOTES.md').open('x') as stream:
+        stream.write('\n'.join(notes) + '\n')
     write(HERE / 'evidence/FINALIZATION.json', {
         'status': 'complete', 'at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'source_commit': audit['source_commit'], 'full_cells': 120, 'qualification_attempts': 18,
         'blocks': 24, 'contrasts': 15, 'failures': 0, 'retries': 0,
-        'full_supervisor_wall_s': supervisor['wall_s'], 'wall_s_per_trace': analysis['wall_s_per_trace'],
+        'full_supervisor_monotonic_s': supervisor['wall_s'],
+        'wall_s_per_trace': {t: value['clock_elapsed_s'] for t, value in timing.items()},
+        'runner_monotonic_s_per_trace': analysis['wall_s_per_trace'],
         'max_evaluator_peak_rss_bytes': max(x['memory']['evaluator_peak_rss_bytes'] for x in full_receipts),
         'max_runner_high_water_rss_bytes': max(x['memory']['runner_process_high_water_rss_bytes'] for x in full_receipts),
         'concurrency_reduced': (raw / 'REDUCE_CONCURRENCY.json').exists(),
@@ -122,11 +150,13 @@ def prepare():
                  failures=0, retries=0, analysis='complete', independent_arithmetic_audit='passed',
                  current_full_execution_session=None)
     (HERE / 'WORK_STATUS.json').write_text(json.dumps(state, indent=2) + '\n')
-    timings = ', '.join(f"{trace}: {seconds/3600:.3f} h" for trace, seconds in analysis['wall_s_per_trace'].items())
+    timings = ', '.join(f"{trace}: {value['clock_elapsed_s']/3600:.3f} h" for trace, value in timing.items())
     (HERE / 'README.md').write_text(f'''# Three Manchester traces — completed study
 
 All 120 full cells, 24 blocks and 18 qualification attempts passed. There were
-zero failures, retries or seed replacements. Trace elapsed times: {timings}.
+zero failures, retries or seed replacements. Clock elapsed times: {timings}.
+These include host sleep. See [timing notes](TIMING_NOTES.md) for comparison
+with the preserved runner timers used in ANALYSIS.json and RESULTS.md.
 
 The design was proposed by Claude and authorised by the owner. The protocol
 was sealed before full outcomes. Scientific source:
