@@ -1,6 +1,49 @@
 # Dynamic Resource Management for Intelligent Transport Systems
 
-## Current overlay: experimental results and abstract scale - 15 September 2026
+## Current final-pass overlay — 16 September 2026
+
+[PDF](TrafficTwin_Dissertation.pdf) · [Markdown](TrafficTwin_Dissertation.md) · [acceptance receipt](evidence/FINAL_PASS_ACCEPTANCE_2026-09-16.json) · [combined validator](document/REVISION_VALIDATION.json)
+
+The **68-page draft** includes studies 7–12 in Section 3.4 (Tables 7a and 7b), the five-scenario interpretation, reference 47, authentic three-panel Figure 7, the supplied title-page identity and standard declaration. The 58-operation ledger preserves the published manuscript baseline `a8cffe7` and the earlier protection layers. Integration base is current main `fe8c8d9`; the draft changes only this revision package.
+
+**9,555 strict / 8,136 prose-only words.** All G.1–G.9 fallbacks were used. The owner explicitly waived the word-count stop and will trim the manuscript: the 8,950 ceiling is exceeded by 605 and the 9,000 rubric ceiling by 555. Both failed diagnostics remain in the validator; only those two are nonblocking under the recorded waiver. No further content cuts were made.
+
+The Abstract reports **seven policies, 274 distinct full evaluator runs and five Manchester scenarios**. Receipt counts are 82 + 72 + 120; the expected 275 counted the E0 reference reused by E1 twice. Of the historical records, 26 establish full-run identity through accepted campaign receipts/manifests instead of retained per-summary horizons. C5 and the ownership paragraph retain initial-programme scoping. The confirmation and follow-up protocols were sealed before outcomes; the initial incident development remains adaptive. Claude proposed the later conditions; the owner authorised them.
+
+**PR 144 is open/draft and unmerged by owner instruction.** S19 cites the original study source `c95e4f86d6dd83207ed3c810826ca48768af8471` on `research/dissertation-traces-2026-09-16`. The pending integration/archive-registration commit `885cc86` remains on that branch for post-submission work. Main remains `fe8c8d9`. S18 links the already merged studies 7–9 at `fe8c8d9`.
+
+Acceptance is restricted to the owner-requested manuscript checks: **223/223 extended preservation checks**, **70/70 final-pass checks**, **2/2 mutation probes**, and **285/287 combined checks**, with only the two waived word-limit diagnostics false. Clean latexmk succeeds with zero overfull boxes, oversized floats, missing glyphs or undefined references. All 68 pages were rendered; changed pages, new table layouts, source links, title/contents and Figure 7 were visually inspected. The full list and artifact hashes are recorded in the acceptance receipt. Application tests were stopped; incomplete logs are retained in the [stop receipt](evidence/APPLICATION_TEST_STOP_2026-09-16.json). No application-suite pass or new scientific execution is claimed. The push uses `[skip ci]` to honour the instruction not to launch that suite.
+
+Figure 7 includes panel **(c)** from the actual bridge at `17d6b21`, plus real external-package inspection/matrix panels. Capture and adapter receipts preserve the 300/60/6/5/66 inventory and distinguish the external engine's results from dissertation evidence. The source PNG/PDF retain 300 dpi; small interface detail can be inspected at zoom in the standalone asset.
+
+The award, faculty/school/department, student ID and author are filled. Signature/date remain for the owner. The prescribed copyright statement was not found in the specified handbook, so the existing page is kept under F.2's fallback. AI-use permission, copyright wording, backup/examiner access, final reading and the assessed video remain open in [SUBMISSION_GATES](SUBMISSION_GATES.md). This is a draft hand-off, not submission certification; no merge or tag is authorised before the owner's PDF review.
+
+### Rebuild and manuscript-only validation
+
+Use the existing document environment (MarkdownIt, PyMuPDF and XeLaTeX/latexmk), retaining the pinned historical Git objects. The original frozen research code and results are unchanged.
+
+```sh
+pkg_dir=docs/dissertation/examiner_revision_2026-09-11
+python "$pkg_dir/document/convert_source.py"
+latexmk -cd -C "$pkg_dir/TrafficTwin_Dissertation.tex"
+latexmk -cd -xelatex -interaction=nonstopmode -halt-on-error "$pkg_dir/TrafficTwin_Dissertation.tex"
+python "$pkg_dir/document/validate_option_b.py"
+python "$pkg_dir/document/validate_final_pass.py"
+python "$pkg_dir/document/probe_final_pass_mutations.py"
+python "$pkg_dir/document/validate_revision.py"
+```
+
+### Final artifact SHA-256
+
+- Markdown: `517256406a2bd81320b1da75e0b01aabca99285ec2bc2360a5732e1c5a17aedc`
+- TeX: `988f14d42e3c01cb6c23817ce8bed2b2a20503a890c51547a5d021d4531f54db`
+- PDF: `2730a690075f6c29586e9fe16c20f4ed367d1318692d91ae8fe847ebd50de2e8`
+
+## Earlier overlays — historical records
+
+The dates, counts, hashes and completion claims below describe their original candidates. The 16 September overlay above governs the current draft.
+
+## Experimental results and abstract scale - 15 September 2026
 
 [Current PDF](TrafficTwin_Dissertation.pdf) · [Markdown](TrafficTwin_Dissertation.md) · [current acceptance record](evidence/PLATFORM_CONNECTION_ACCEPTANCE_2026-09-15.json)
 

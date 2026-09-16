@@ -1,0 +1,111 @@
+Overview
+
+home
+
+Home
+
+map
+
+Manchester Operations
+
+health_and_safety
+
+Source Health
+
+route
+
+Guided Demo
+
+search
+
+Search
+
+Build & run
+
+science
+
+Experiment Planner
+
+tune
+
+Parameter Sweep
+
+experiment
+
+Scenario Mutations
+
+compare
+
+What-If Studio
+
+edit_road
+
+Scenario Builder
+
+View 69 more
+
+TrafficTwin
+
+Import-first research UI
+
+Experimental Results
+
+Workflow demonstration · completed simulation evidence · 8 September 2026
+
+keyboard_arrow_right
+
+Import study evidence
+
+Joint-randomness confirmation
+
+Morning trace · frozen vehicle actor · four infrastructure scheduling policies · fleet and evaluator seeds vary together across eight paired blocks
+
+Paired blocks
+
+8
+
+Completed runs
+
+32
+
+Policies
+
+4
+
+Cell receipts matched
+
+32
+
+Original study files match their recorded hashes. Compact result arithmetic and receipt bindings checked.
+
+Task-level validation is recorded in the historical receipts; raw simulation arrays are not rechecked by this view.
+
+Paired comparisons
+
+Runs & blocks
+
+Evidence & downloads
+
+Change in deadline attainment
+
+Successes ÷ all offered tasks. Each paired block has equal weight; individual tasks are not statistical replicates.
+
++4.137 pp
+-3.504 pp
++0.631 pp
+−4
+−3
+−2
+−1
+0
+1
+2
+3
+4
+5
+Per-task − Round-robin
+Common-target − Ingress
+Per-task − Ingress
+Difference in percentage points (pp)
+
+Original three-contrast family: Bonferroni simultaneous 95% t intervals, 7 degrees of freedom; approximate normality of block differences assumed. This study is separate from prior experiments; results are not pooled.

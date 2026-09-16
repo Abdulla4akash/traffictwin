@@ -1,0 +1,38 @@
+{
+  "status": "preparation_complete_not_applied",
+  "manuscript_base": "a8cffe753047c4b7498dded39f61aac3e57f87e4",
+  "named_prompt_base": "b3b8dbceb07bd28f6743cf3595edacdfb61facdc",
+  "history_policy": "Preserve published manuscript history; base currentmainfe8. Owner deferred PR144 merge and selected c95 citation fallback.",
+  "owner_authorisation": [
+    "Final manuscript pass A\u2013H at local supplied prompt",
+    "Exact degree, student ID and author name supplied",
+    "Narrow consistency fixes approved in this session",
+    "Word-count stop waived; owner will trim; report actual counts and preserve original ceiling as a diagnostic",
+    "Abstract opening reports full receipt-derived total, seven policies and five scenarios; sealing scope excludes adaptive initial work",
+    "Stopapplicationtests;do notmergePR144today;citec95fallback;acceptanceonlymanuscriptvalidators,extendedpreservation,latexmk,changedpagevisualinspection."
+  ],
+  "evidence_map": {
+    "A.1/Table7a": "fe8c8d9:docs/dissertation/followups_2026-09-15/ANALYSIS.json all_ten_family95",
+    "A.8/Table7b": "c95e4f8:docs/research/three_traces_2026-09-16/ANALYSIS.json all_fifteen_family95",
+    "Abstract baseline estimates": "followup ANALYSIS baseline cell counts and equal-weight paired Student-t family of three",
+    "Abstract full scale": "FINAL_FULL_RUN_COUNT_2026-09-16.json, 274 distinct records with historical horizon caveat",
+    "Timing and trace metadata": "Bound TIMINGS, TIMING_NOTES and TRACE_INVENTORY; outcome numbers from the two analyses",
+    "D.1\u2013D.4": "Supplied camera-ready PDF SHA e350f4e9, \u00a74.4 PDF5 and \u00a75.4 PDF7",
+    "E": "Pinned results bridge17d6b21; actual screenshots, read-only adapter validation; no new scientific runs",
+    "F": "Owner values; prescribed declaration; handbook copyright absent, explicit keep-current fallback",
+    "G": "Nine authorised moves/deletions in order; preserve moved paragraphs and sentence order; no further cuts"
+  },
+  "reversible_operations_checked": 58,
+  "new_scientific_runs": 0,
+  "pending": [
+    "Applyoperations",
+    "BuildandvisualQA",
+    "DraftPRpush"
+  ],
+  "expected_word_counts_after_authorised_moves": {
+    "strict": 9555,
+    "prose": 8136
+  },
+  "word_count_stop_waived": true,
+  "count_note": "Full receipt-derived count274; independentread-onlycheckconfirmed274includinghistoricalhorizoncaveat."
+}

@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "adapter_version": "0.2.0",
+  "status": "accepted_with_warnings",
+  "may_import_summaries": true,
+  "package_fingerprint": "6424ce5375b4acf86debc69d5fb6066eb3150916c83f1a1d5cff03876c20437b",
+  "package_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+  "semantics_source_commit": "e98441196270b8fd4cc0eede892df4a0053b2185",
+  "engine_versions": [
+    "v2_post_nrsus_fix"
+  ],
+  "inventory": {
+    "evaluation_rows": 300,
+    "training_csv_files": 66,
+    "training_summary_files": 65,
+    "perstep_files": 60,
+    "pertask_files": 6,
+    "instrumented_summary_files": 60,
+    "trace_files": 5,
+    "training_record_files": 8
+  },
+  "findings": [
+    {
+      "code": "TOS_INSTRUMENTED_WRITER_UNAVAILABLE",
+      "severity": "warning",
+      "message": "The supplied vec_env source does not contain the writer that produced the per-step and per-task NPZ artifacts; those files remain import-only evidence.",
+      "file": null,
+      "field": null,
+      "row": null,
+      "blocks_import": false,
+      "affected_capabilities": [
+        "instrumented_writer_reproducible",
+        "direct_launch"
+      ]
+    },
+    {
+      "code": "TOS_EXECUTION_CONTRACT_PARTIAL",
+      "severity": "info",
+      "message": "A headless summary evaluator is documented in vec_env, but TrafficTwin direct launch remains disabled until its checkpoint, paths, and runtime are verified.",
+      "file": null,
+      "field": null,
+      "row": null,
+      "blocks_import": false,
+      "affected_capabilities": [
+        "direct_launch",
+        "asynchronous_launch"
+      ]
+    },
+    {
+      "code": "TOS_RSU_SEMANTICS_CONFIRMED",
+      "severity": "info",
+      "message": "vec_env source defines rsu_load as in-flight task count, rsu_busy_ms as remaining compute backlog, and rsu_max_concurrent as the in-flight task limit. Their ratio is concurrency pressure, not CPU utilisation.",
+      "file": null,
+      "field": null,
+      "row": null,
+      "blocks_import": false,
+      "affected_capabilities": [
+        "load_pressure_inspection"
+      ]
+    },
+    {
+      "code": "TOS_TASK_OUTCOME_SEMANTICS",
+      "severity": "info",
+      "message": "Source completion and task_met represent deadline success per arrival; they are not silently converted to TrafficTwin's generic completed-task field.",
+      "file": null,
+      "field": null,
+      "row": null,
+      "blocks_import": false,
+      "affected_capabilities": [
+        "canonical_task_conversion"
+      ]
+    },
+    {
+      "code": "TOS_TRACE_UNITS_CONFIRMED",
+      "severity": "info",
+      "message": "Trace timestamps use simulation seconds, network coordinates use metres, and vehicle speed uses metres per second.",
+      "file": null,
+      "field": null,
+      "row": null,
+      "blocks_import": false,
+      "affected_capabilities": [
+        "instrumented_historical_replay"
+      ]
+    },
+    {
+      "code": "TOS_TRIP_EVIDENCE_UNAVAILABLE",
+      "severity": "info",
+      "message": "The package contains no trip or journey-time records.",
+      "file": null,
+      "field": null,
+      "row": null,
+      "blocks_import": false,
+      "affected_capabilities": [
+        "trip_metrics",
+        "journey_time"
+      ]
+    }
+  ],
+  "capabilities": {
+    "evaluation_summary_import": true,
+    "instrumented_historical_replay": true,
+    "per_task_showcase_inspection": true,
+    "trace_units_confirmed": true,
+    "rsu_state_semantics_confirmed": true,
+    "task_decision_join": true,
+    "load_pressure_inspection": true,
+    "source_evaluation_contract_documented": true,
+    "instrumented_writer_reproducible": false,
+    "direct_launch": false,
+    "asynchronous_launch": false,
+    "standard_bundle_conversion": false,
+    "canonical_task_conversion": false,
+    "infrastructure_metric_mapping": false,
+    "trip_metrics": false
+  },
+  "inspected_at": "2026-09-16T10:17:59.322003Z"
+}

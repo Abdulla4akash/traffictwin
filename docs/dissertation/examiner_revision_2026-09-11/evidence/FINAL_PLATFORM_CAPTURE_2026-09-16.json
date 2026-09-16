@@ -1,0 +1,75 @@
+{
+  "source_branch": "feature/dissertation-results-2026-09-15",
+  "source_commit": "17d6b21c7228910a911d66879a1c6e11ae445eb2",
+  "all_three_panels_captured": true,
+  "viewport_css": [
+    1440,
+    3000
+  ],
+  "device_scale_factor": 2,
+  "embed": true,
+  "crop_bounds_css": {
+    "a": [
+      372,
+      72,
+      1370,
+      604
+    ],
+    "b": [
+      372,
+      420,
+      1370,
+      1383
+    ],
+    "c": [
+      372,
+      72,
+      1370,
+      1195
+    ]
+  },
+  "dpi": 300,
+  "research_workloads_launched": 0,
+  "browser_errors": [],
+  "package_fingerprint": "6424ce5375b4acf86debc69d5fb6066eb3150916c83f1a1d5cff03876c20437b",
+  "composition_note": "Authentic screenshot crops with panel labels and explanatory legend outside screenshots; no UI content synthesised. All panels served from the pinned bridge worktree via explicit PYTHONPATH.",
+  "files": {
+    "evidence/final_capture/capture_final.py": "80bc8f7dd006f15ac958202a41e09f4ad6cebf7593415717417e74dffde8382f",
+    "evidence/final_capture/compose_figure.py": "04f935b9fedf298ec8c47b83f5513d1de32d355f559ccc68f88955f6e623a16c",
+    "assets/traffictwin_platform_real_data.png": "27d0e5603b98a0dce16e89b66c645abfb90e793eb366ab39bc90ed9314787746",
+    "assets/traffictwin_platform_real_data.pdf": "3f66ee181ab2e13ee0937230067730095a72ca64fed9617b019b365bf1eeef3e",
+    "evidence/final_capture/TOS_ADAPTER_VALIDATION.json": "a74eaf1ddef795281c6a50b2c661a0b381629c4d9dbeb5654b770b0e4b0a569f",
+    "evidence/final_capture/shots/a_tall.png": "bbea52d66a8241d8b7eb197fc1494662d9e896379715682de991540061280a14",
+    "evidence/final_capture/shots/b_tall.png": "8a835ff1bbf1e734cb827f4e0cb98a4f868fafa56be8f6db18a61796da18dab6",
+    "evidence/final_capture/shots/c_tall.png": "8e0fed0e1cdc592ba70825763ef78a8fe478629a9458a9b895fc9ecf46c3d908"
+  },
+  "external_engine_history": [
+    {
+      "commit": "9db5096f398c062a5216a09c179d77e7e11ddbe0",
+      "date": "2026-08-03",
+      "change": "Slot-reuse queue carryover fix and standardised wdrsu placement"
+    },
+    {
+      "commit": "df022e6143b8127043b1f542026769288602d5bb",
+      "date": "2026-08-05",
+      "change": "Two-population reporting and per-task lifecycle outcomes"
+    },
+    {
+      "commit": "82d3ecfd9461f67efbc8137402e6be074b144a7e",
+      "date": "2026-08-05",
+      "change": "Work-conservation ledger"
+    }
+  ],
+  "source_worktree_clean": true,
+  "source_package_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+  "source_package_commit_date": "2026-07-23",
+  "source_package_history": {
+    "first_data_commit": "e6529da",
+    "first_data_commit_date": "2026-07-18",
+    "last_trace_provenance_commit": "a75bbdb",
+    "last_trace_provenance_commit_date": "2026-07-23",
+    "verified_from": "local Git history of supplied tos-data-full repository"
+  },
+  "original_receipt_sha256": "db5c3082b35380e1385c42eeb326e00691a0e4547ca7ba29f8bc09e6085316ed",
+  "reproduction_note": "Run compose_figure.py from evidence/final_capture to reproduce local outputs; published PNG/PDF copies are under assets. Capture input hashes above bind the genuine screenshots."
+}

@@ -1,0 +1,3777 @@
+{
+  "status": "passed",
+  "rule": "Distinct completed full-horizon evaluator runs, counting reused controls once. Excludes all short qualification, replay and instrumented probe attempts.",
+  "initial_nominal_records": 83,
+  "initial_distinct_full_run_records": 82,
+  "new_followup_full_runs": 72,
+  "new_three_trace_full_runs": 120,
+  "total_distinct_full_runs": 274,
+  "owner_expected_total": 275,
+  "expected_difference_explanation": "E1 seed0/cap2p5 reuses the E0 full reference; 83 initial nominal records contain one duplicated execution. Count 82+72+120=274 distinct full runs.",
+  "historical_evidence_caveat": "26 E1/E2c/E2d compact records establish completed full-run identity through accepted campaign receipts and full-horizon manifests, rather than a retained per-summary T field. This count does not claim fresh raw replay of those historical runs.",
+  "seven_policies": [
+    "off",
+    "jsq",
+    "dla",
+    "ingress_dla",
+    "per_task_dla",
+    "causal_round_robin",
+    "dla_p2c"
+  ],
+  "five_scenarios": [
+    "incident",
+    "morning",
+    "weekend",
+    "PM peak",
+    "event night"
+  ],
+  "previous_count_receipt_sha256": "5dc0f564f7924750651dec67890ea17dbfdca8978b0bef7b4fd0e03e0b53a54d",
+  "duplicate_reuse": [
+    {
+      "excluded": {
+        "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+        "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+        "json_pointer": "/runs/1/output_evidence/summary.json",
+        "original_summary_sha256": "1ed26e6c8a4411b9a4e27dacf4d9381c8f8430a37c434f93b36f1150d8c661e1",
+        "observed_horizon": null,
+        "label": {
+          "fleet_seed": 0,
+          "cap_label": "2p5",
+          "label": null
+        }
+      },
+      "counted_under": "E0",
+      "reuse_manifest": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_manifest_v1_public_sanitized.json",
+      "reuse_manifest_sha256": "43fafbd73b5e5e0035fe9bf23f4046ff3a50fdd665352a3d6c415f50059fa19d",
+      "reuse_json_pointer": "/reused_seed0_artifacts/2p5"
+    }
+  ],
+  "runs": [
+    {
+      "group": "E0",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E0/evidence/e0_full_reference_validation_v1.json",
+      "receipt_sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+      "json_pointer": "/runs/0/scientific_summary/T",
+      "original_summary_sha256": "1ed26e6c8a4411b9a4e27dacf4d9381c8f8430a37c434f93b36f1150d8c661e1",
+      "observed_horizon": 3600,
+      "label": {
+        "fleet_seed": null,
+        "cap_label": null,
+        "label": "run_1"
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/0/output_evidence/summary.json",
+      "original_summary_sha256": "abde7cffdc21e73a074b6cb3bd10e54a25fb70c3008b6d6cba0e679b12fd8d14",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 0,
+        "cap_label": "0p75",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/2/output_evidence/summary.json",
+      "original_summary_sha256": "c3bd33440f2328a0e40d948896b4b2882673d42946b2e14b19a386288d34af58",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 0,
+        "cap_label": "40x",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/3/output_evidence/summary.json",
+      "original_summary_sha256": "d2be5e57598e4e894b9a1c5fa647656ea6d83cc88a67d5ae89a586941a4b32fc",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 1,
+        "cap_label": "0p75",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/4/output_evidence/summary.json",
+      "original_summary_sha256": "f8ce142cc1492b343f2587887ae8a2374147855852c76a0a66eeda16d64dff7a",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 1,
+        "cap_label": "2p5",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/5/output_evidence/summary.json",
+      "original_summary_sha256": "908054e9ca297ad956a08c58221ff8885e27bbf792af48e0953539d7b36fc86a",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 1,
+        "cap_label": "40x",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/6/output_evidence/summary.json",
+      "original_summary_sha256": "61ca4703bda87492a1021190f06785aeab418ddd7283856eef1ef34639d64188",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 2,
+        "cap_label": "0p75",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/7/output_evidence/summary.json",
+      "original_summary_sha256": "55d81abce1f6cfc48f5de9ff96a20f4e87821dc10ca82a08398ca50794ef0f69",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 2,
+        "cap_label": "2p5",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/8/output_evidence/summary.json",
+      "original_summary_sha256": "21d7328d54aa3692c2ebe1c21c8fbd3e6530fd5ec0fe6af611d77e2aedb21541",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 2,
+        "cap_label": "40x",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/9/output_evidence/summary.json",
+      "original_summary_sha256": "99c42ab26c59b0693214d656bd6108be09f1b48a8f090e750fc08fed1312a908",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 3,
+        "cap_label": "0p75",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/10/output_evidence/summary.json",
+      "original_summary_sha256": "39118dc7bbf567f1d74d8670d06297f2ab22a886ab247cf3413441588c244c26",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 3,
+        "cap_label": "2p5",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/11/output_evidence/summary.json",
+      "original_summary_sha256": "a0c16b087160c946afe916a0136863bb4702584d1b7a8cd3a6c6925c545875af",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 3,
+        "cap_label": "40x",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/12/output_evidence/summary.json",
+      "original_summary_sha256": "403bd11cf7d5a66daa4585fa669cb135314fa6ecdaf464173cb02d24aca32e46",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 4,
+        "cap_label": "0p75",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/13/output_evidence/summary.json",
+      "original_summary_sha256": "d75f014104b01adaa8bdce576a6edfa862ff6767afb59c139c891a1985da3e25",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 4,
+        "cap_label": "2p5",
+        "label": null
+      }
+    },
+    {
+      "group": "E1",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E1/evidence/e1_multidraw_physical_campaign_validation_v1.json",
+      "receipt_sha256": "f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b",
+      "json_pointer": "/runs/14/output_evidence/summary.json",
+      "original_summary_sha256": "fa002b52427e99656e594f6fc1e13ecd52087d118efd1489a934c324a552c1bc",
+      "observed_horizon": null,
+      "label": {
+        "fleet_seed": 4,
+        "cap_label": "40x",
+        "label": null
+      }
+    },
+    {
+      "group": "E2",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "receipt_sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f",
+      "json_pointer": "/full_validation/runs/0/summary/T",
+      "original_summary_sha256": "755329546803d56d87864a66d07244c07c2624d5df5f6e3a95306dc59081b05f",
+      "observed_horizon": 3600,
+      "label": "off"
+    },
+    {
+      "group": "E2",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "receipt_sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f",
+      "json_pointer": "/full_validation/runs/1/summary/T",
+      "original_summary_sha256": "76ccd983738a1a86da8b0be2351cda35ceb44348f9290add544b6a6aff909bd2",
+      "observed_horizon": 3600,
+      "label": "jsq"
+    },
+    {
+      "group": "E2",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2/evidence/e2_native_placement_pilot_validation_v1_public_sanitized.json",
+      "receipt_sha256": "99102cfc72d50f147dc94dd51f26631500a51b952fda7a4e1fcc9b918ea6169f",
+      "json_pointer": "/full_validation/runs/2/summary/T",
+      "original_summary_sha256": "7d64193ff4a2501b7e8a83fc098abe28f4cb1f15143252edce8ff9d1291db172",
+      "observed_horizon": 3600,
+      "label": "dla"
+    },
+    {
+      "group": "E2b",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2b/evidence/e2b_placement_admission_factorial_validation_v1_public_sanitized.json",
+      "receipt_sha256": "c73a23a98342d58ed6a54a26d32b27f702e33705b2489c2ba0ffae9a8eec1389",
+      "json_pointer": "/full_validation/runs/0/summary/T",
+      "original_summary_sha256": "894696e0c76ca9ba78c0cec69b1ecd300007cdf6b0deae65afd9f6f6a7e7120f",
+      "observed_horizon": 3600,
+      "label": "ingress_dla"
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/0",
+      "original_summary_sha256": "c960e2bfd4d374960d1c67d15578c61ad7a27c971aacec6ff069b84192f1ea9d",
+      "observed_horizon": null,
+      "label": {
+        "arm": "ingress_dla",
+        "cell_index": 1,
+        "fleet_seed": 1
+      }
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/1",
+      "original_summary_sha256": "64a384f4ca575a1731e67e1eaa570f7ec9b2c86913337529f01d34e7551c394a",
+      "observed_horizon": null,
+      "label": {
+        "arm": "dla",
+        "cell_index": 2,
+        "fleet_seed": 1
+      }
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/2",
+      "original_summary_sha256": "e925cf2f4a9b912752bb34fd68dbff78c16df5d4749a67b66c872c0ccb7c5e47",
+      "observed_horizon": null,
+      "label": {
+        "arm": "ingress_dla",
+        "cell_index": 3,
+        "fleet_seed": 2
+      }
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/3",
+      "original_summary_sha256": "9fc2a8b7b304c30267cc06f0f4a465232ae854ba63688fedfaf6cd1a22fb543e",
+      "observed_horizon": null,
+      "label": {
+        "arm": "dla",
+        "cell_index": 4,
+        "fleet_seed": 2
+      }
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/4",
+      "original_summary_sha256": "23e6c1726e0a2acadd91c6e0d7c70f6e8301dee3bb94cf111fc7a54da44a6814",
+      "observed_horizon": null,
+      "label": {
+        "arm": "ingress_dla",
+        "cell_index": 5,
+        "fleet_seed": 3
+      }
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/5",
+      "original_summary_sha256": "a8765a72308430a4b242365598baa4074dee7bbc523f426c5946deb62abb8c82",
+      "observed_horizon": null,
+      "label": {
+        "arm": "dla",
+        "cell_index": 6,
+        "fleet_seed": 3
+      }
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/6",
+      "original_summary_sha256": "3601ddb52a2b3aa6bb0795755371c34bd36bb6dddfcca5391687098c1741ccbe",
+      "observed_horizon": null,
+      "label": {
+        "arm": "ingress_dla",
+        "cell_index": 7,
+        "fleet_seed": 4
+      }
+    },
+    {
+      "group": "E2c",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2c/evidence/e2c_gated_placement_multidraw_validation_v1_public_sanitized.json",
+      "receipt_sha256": "ec0f7db4e28c4494973db1e1d228bffa3affb0415cde2532d0d76fcb46f62f0c",
+      "json_pointer": "/cell_evidence/7",
+      "original_summary_sha256": "d63e068080a2d6fc3f13d2b8a83229af8410c011e3cff8634ae08cb8214c22fe",
+      "observed_horizon": null,
+      "label": {
+        "arm": "dla",
+        "cell_index": 8,
+        "fleet_seed": 4
+      }
+    },
+    {
+      "group": "E2d",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+      "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+      "json_pointer": "/cell_evidence/0",
+      "original_summary_sha256": "39eff70e3969aaf374d0f44b8c21a140611f50a4d5ac3aad4ea9aaf9aa3ddbab",
+      "observed_horizon": null,
+      "label": {
+        "arm": "per_task_dla",
+        "cell_index": 1,
+        "fleet_seed": 1
+      }
+    },
+    {
+      "group": "E2d",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+      "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+      "json_pointer": "/cell_evidence/1",
+      "original_summary_sha256": "01d79f0205acdbdc82128e3a9963f6a76ec0dbe2df7b68c1e388369eb1a287d9",
+      "observed_horizon": null,
+      "label": {
+        "arm": "per_task_dla",
+        "cell_index": 2,
+        "fleet_seed": 2
+      }
+    },
+    {
+      "group": "E2d",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+      "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+      "json_pointer": "/cell_evidence/2",
+      "original_summary_sha256": "40bf35717925e3d140dad53751b6013d03ea3a0411800e6fafaa6c3552e6ac3b",
+      "observed_horizon": null,
+      "label": {
+        "arm": "per_task_dla",
+        "cell_index": 3,
+        "fleet_seed": 3
+      }
+    },
+    {
+      "group": "E2d",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/evidence/e2d_per_task_placement_robustness_validation_v1_public_sanitized.json",
+      "receipt_sha256": "34c28b36087c4371136cb03e7aba8d121bb4341548bde84b13b793f84cda481e",
+      "json_pointer": "/cell_evidence/3",
+      "original_summary_sha256": "88045a34d16d1015f405a813df57e493b2edf650480b32b310ac08e0dba054ca",
+      "observed_horizon": null,
+      "label": {
+        "arm": "per_task_dla",
+        "cell_index": 4,
+        "fleet_seed": 4
+      }
+    },
+    {
+      "group": "state-delay pilot",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+      "receipt_sha256": "41691598a3aea615bbee4a7100438b8b997c587703b7ff1bd367feacb2e557f1",
+      "json_pointer": "/T",
+      "original_summary_sha256": "41691598a3aea615bbee4a7100438b8b997c587703b7ff1bd367feacb2e557f1",
+      "observed_horizon": 3600,
+      "label": "01_fresh/attempt_001"
+    },
+    {
+      "group": "state-delay pilot",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/02_delay_100/attempt_001/summary.json",
+      "receipt_sha256": "32c131f35e19943a66da33ed6e0a5bf655f3882fa151d5796eccd0b1cfd5aa07",
+      "json_pointer": "/T",
+      "original_summary_sha256": "32c131f35e19943a66da33ed6e0a5bf655f3882fa151d5796eccd0b1cfd5aa07",
+      "observed_horizon": 3600,
+      "label": "02_delay_100/attempt_001"
+    },
+    {
+      "group": "state-delay pilot",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/03_delay_500/attempt_001/summary.json",
+      "receipt_sha256": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909",
+      "json_pointer": "/T",
+      "original_summary_sha256": "48024fea0f30dc4121fc49f2e0cc78c60186fd610d167b903c5160b85c6fd909",
+      "observed_horizon": 3600,
+      "label": "03_delay_500/attempt_001"
+    },
+    {
+      "group": "state-delay pilot",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/04_delay_1000/attempt_001/summary.json",
+      "receipt_sha256": "7d62afce843b9ad1a369dd8bcfe03e6e4d110e70bc0803f73753f0af2fbf67ff",
+      "json_pointer": "/T",
+      "original_summary_sha256": "7d62afce843b9ad1a369dd8bcfe03e6e4d110e70bc0803f73753f0af2fbf67ff",
+      "observed_horizon": 3600,
+      "label": "04_delay_1000/attempt_001"
+    },
+    {
+      "group": "state-delay pilot",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/state-delay-pilot-2026-09-07/cells/05_ingress/attempt_001/summary.json",
+      "receipt_sha256": "d819cf787f676488e3cdcad7b3e438cfd02a16dc38a5013f75f9f8a2d724da2a",
+      "json_pointer": "/T",
+      "original_summary_sha256": "d819cf787f676488e3cdcad7b3e438cfd02a16dc38a5013f75f9f8a2d724da2a",
+      "observed_horizon": 3600,
+      "label": "05_ingress/attempt_001"
+    },
+    {
+      "group": "morning pilot",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/01_fresh/attempt_001/summary.json",
+      "receipt_sha256": "ff9cf8736d980226a843618c6fa52d665e994e63b706e158853821d98cddb1cf",
+      "json_pointer": "/T",
+      "original_summary_sha256": "ff9cf8736d980226a843618c6fa52d665e994e63b706e158853821d98cddb1cf",
+      "observed_horizon": 10800,
+      "label": "01_fresh/attempt_001"
+    },
+    {
+      "group": "morning pilot",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-pilot-2026-09-07/cells/02_ingress/attempt_001/summary.json",
+      "receipt_sha256": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837",
+      "json_pointer": "/T",
+      "original_summary_sha256": "ce4ccb88a22bb298c58f17c9565012ef77fd47845ae628b1f6560d8bf5058837",
+      "observed_horizon": 10800,
+      "label": "02_ingress/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_common_target/attempt_001/summary.json",
+      "receipt_sha256": "c27fef3949d866eab10c0f564324bd2dc5520d755b24087fc0a09a5764ae13f1",
+      "json_pointer": "/T",
+      "original_summary_sha256": "c27fef3949d866eab10c0f564324bd2dc5520d755b24087fc0a09a5764ae13f1",
+      "observed_horizon": 10800,
+      "label": "seed_0_common_target/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_ingress/attempt_001/summary.json",
+      "receipt_sha256": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209",
+      "json_pointer": "/T",
+      "original_summary_sha256": "541ab9ac59e79dd582e3fdbd8760e0dbdc898adb6bb07ed97647531fb1230209",
+      "observed_horizon": 10800,
+      "label": "seed_0_ingress/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_0_per_task/attempt_001/summary.json",
+      "receipt_sha256": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca",
+      "json_pointer": "/T",
+      "original_summary_sha256": "1acefe1ebce8083c8d34d6460faee18be046f09a15e8d1fae2625e6fb5d70dca",
+      "observed_horizon": 10800,
+      "label": "seed_0_per_task/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_common_target/attempt_001/summary.json",
+      "receipt_sha256": "d7ffa15306e38549b3887290305b925482ae0db23362531e5b1fadfbaaea6bae",
+      "json_pointer": "/T",
+      "original_summary_sha256": "d7ffa15306e38549b3887290305b925482ae0db23362531e5b1fadfbaaea6bae",
+      "observed_horizon": 10800,
+      "label": "seed_2_common_target/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_ingress/attempt_001/summary.json",
+      "receipt_sha256": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56",
+      "json_pointer": "/T",
+      "original_summary_sha256": "f0a51879c2fdca269e7e548de466a34b8f66949d433dd5f0770daaaf55796f56",
+      "observed_horizon": 10800,
+      "label": "seed_2_ingress/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_2_per_task/attempt_001/summary.json",
+      "receipt_sha256": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108",
+      "json_pointer": "/T",
+      "original_summary_sha256": "79031893d993f495ff3c8a2323f4adbbc6a102c0796d36fdd29e22ffb81cf108",
+      "observed_horizon": 10800,
+      "label": "seed_2_per_task/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_common_target/attempt_001/summary.json",
+      "receipt_sha256": "cc51a89625c92bf7d59ef1ac95917a75af19e72c43c7619a7a95d9c3c6e6439e",
+      "json_pointer": "/T",
+      "original_summary_sha256": "cc51a89625c92bf7d59ef1ac95917a75af19e72c43c7619a7a95d9c3c6e6439e",
+      "observed_horizon": 10800,
+      "label": "seed_3_common_target/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_ingress/attempt_001/summary.json",
+      "receipt_sha256": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba",
+      "json_pointer": "/T",
+      "original_summary_sha256": "1b0c6497f94ba6b3b219d2f49526c237d82f8964acf6971c14b19830fe9a0fba",
+      "observed_horizon": 10800,
+      "label": "seed_3_ingress/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_3_per_task/attempt_001/summary.json",
+      "receipt_sha256": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c",
+      "json_pointer": "/T",
+      "original_summary_sha256": "bc0fb5d9f337dedb8d71b58b7509e8b32dad89706366cd30942bd9ce5d3ff04c",
+      "observed_horizon": 10800,
+      "label": "seed_3_per_task/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_common_target/attempt_001/summary.json",
+      "receipt_sha256": "d43eaa7ffc1f84c41e9336e983a6379531b7f21c01a98f515acc4c1b78cec73b",
+      "json_pointer": "/T",
+      "original_summary_sha256": "d43eaa7ffc1f84c41e9336e983a6379531b7f21c01a98f515acc4c1b78cec73b",
+      "observed_horizon": 10800,
+      "label": "seed_4_common_target/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_ingress/attempt_001/summary.json",
+      "receipt_sha256": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda",
+      "json_pointer": "/T",
+      "original_summary_sha256": "7b34f9a07aac29da53060f8fa9d2035cfeabe38dcb9cd8c6eaee4c39374e2fda",
+      "observed_horizon": 10800,
+      "label": "seed_4_ingress/attempt_001"
+    },
+    {
+      "group": "morning replication",
+      "receipt": "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/cells/seed_4_per_task/attempt_001/summary.json",
+      "receipt_sha256": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2",
+      "json_pointer": "/T",
+      "original_summary_sha256": "02cfec45afabf91e916fe2c9eef4cf7db9c64ec768ea35519ec2822130cb90e2",
+      "observed_horizon": 10800,
+      "label": "seed_4_per_task/attempt_001"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_causal_round_robin/summary.json",
+      "receipt_sha256": "9e7ea8681a79b2dfbaec0d087feed5e231fee08cbae2240732a1c83fbd66d133",
+      "json_pointer": "/T",
+      "original_summary_sha256": "9e7ea8681a79b2dfbaec0d087feed5e231fee08cbae2240732a1c83fbd66d133",
+      "observed_horizon": 10800,
+      "label": "block_00_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_dla/summary.json",
+      "receipt_sha256": "734f76660fd50b74b0b84935d9fa8a27e36ef4572d70e5c1c8cdb741e20b953a",
+      "json_pointer": "/T",
+      "original_summary_sha256": "734f76660fd50b74b0b84935d9fa8a27e36ef4572d70e5c1c8cdb741e20b953a",
+      "observed_horizon": 10800,
+      "label": "block_00_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_ingress_dla/summary.json",
+      "receipt_sha256": "b11bedff74285c5c9b03a886400f00b3b08238e0dcce2b7397b57ba670426c2c",
+      "json_pointer": "/T",
+      "original_summary_sha256": "b11bedff74285c5c9b03a886400f00b3b08238e0dcce2b7397b57ba670426c2c",
+      "observed_horizon": 10800,
+      "label": "block_00_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_00_per_task_dla/summary.json",
+      "receipt_sha256": "5178eb41afc97c34227ac3d6035f9f40951ed6516bede422c3124f0a152731a8",
+      "json_pointer": "/T",
+      "original_summary_sha256": "5178eb41afc97c34227ac3d6035f9f40951ed6516bede422c3124f0a152731a8",
+      "observed_horizon": 10800,
+      "label": "block_00_per_task_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_causal_round_robin/summary.json",
+      "receipt_sha256": "c0d75ebc4d07e3f40e59832a4657893b7f203d240230694f6ff330a992d66b62",
+      "json_pointer": "/T",
+      "original_summary_sha256": "c0d75ebc4d07e3f40e59832a4657893b7f203d240230694f6ff330a992d66b62",
+      "observed_horizon": 10800,
+      "label": "block_01_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_dla/summary.json",
+      "receipt_sha256": "dde32ae36127f6956edc8d876d38d9ceca991f31c8b217446c65c98254bf3d97",
+      "json_pointer": "/T",
+      "original_summary_sha256": "dde32ae36127f6956edc8d876d38d9ceca991f31c8b217446c65c98254bf3d97",
+      "observed_horizon": 10800,
+      "label": "block_01_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_ingress_dla/summary.json",
+      "receipt_sha256": "2b4824da113f5b541b616bd21df93c4ea0aaa6b85b84daf5135ff63ae886b1ca",
+      "json_pointer": "/T",
+      "original_summary_sha256": "2b4824da113f5b541b616bd21df93c4ea0aaa6b85b84daf5135ff63ae886b1ca",
+      "observed_horizon": 10800,
+      "label": "block_01_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_01_per_task_dla/summary.json",
+      "receipt_sha256": "f69a8b1973f082fc73d53acc86eb0b6974cbac6422d6ba5d29601fb8dc4cb0c6",
+      "json_pointer": "/T",
+      "original_summary_sha256": "f69a8b1973f082fc73d53acc86eb0b6974cbac6422d6ba5d29601fb8dc4cb0c6",
+      "observed_horizon": 10800,
+      "label": "block_01_per_task_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_causal_round_robin/summary.json",
+      "receipt_sha256": "2e0a2b5da8539324638ca0b17f2018259c576b8b5164c50ec100bb5de9f49b45",
+      "json_pointer": "/T",
+      "original_summary_sha256": "2e0a2b5da8539324638ca0b17f2018259c576b8b5164c50ec100bb5de9f49b45",
+      "observed_horizon": 10800,
+      "label": "block_02_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_dla/summary.json",
+      "receipt_sha256": "8274448cf9bd4e474fcd73c889b5455a922db9a434b57427cc82a855cb442908",
+      "json_pointer": "/T",
+      "original_summary_sha256": "8274448cf9bd4e474fcd73c889b5455a922db9a434b57427cc82a855cb442908",
+      "observed_horizon": 10800,
+      "label": "block_02_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_ingress_dla/summary.json",
+      "receipt_sha256": "8462145db76ae8bcadc3b437dde6634707866e84d8eb03fb9510b0b063500763",
+      "json_pointer": "/T",
+      "original_summary_sha256": "8462145db76ae8bcadc3b437dde6634707866e84d8eb03fb9510b0b063500763",
+      "observed_horizon": 10800,
+      "label": "block_02_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_02_per_task_dla/summary.json",
+      "receipt_sha256": "fe6972cd049481ec64fce09807d045d00d6b7261d2bae2d8c98a54d7206baae1",
+      "json_pointer": "/T",
+      "original_summary_sha256": "fe6972cd049481ec64fce09807d045d00d6b7261d2bae2d8c98a54d7206baae1",
+      "observed_horizon": 10800,
+      "label": "block_02_per_task_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_causal_round_robin/summary.json",
+      "receipt_sha256": "706f4942b4407e8ac3dcc8e55e83f37bb89d41309d766625dfa7bd538dcd6d8e",
+      "json_pointer": "/T",
+      "original_summary_sha256": "706f4942b4407e8ac3dcc8e55e83f37bb89d41309d766625dfa7bd538dcd6d8e",
+      "observed_horizon": 10800,
+      "label": "block_03_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_dla/summary.json",
+      "receipt_sha256": "2505a20dcbecd3c360e58344729bc14ed29181344acb1c1a065f0314caed1c90",
+      "json_pointer": "/T",
+      "original_summary_sha256": "2505a20dcbecd3c360e58344729bc14ed29181344acb1c1a065f0314caed1c90",
+      "observed_horizon": 10800,
+      "label": "block_03_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_ingress_dla/summary.json",
+      "receipt_sha256": "f87226ca663d3a479cfbde748c5a29bee4cef2817e0c0e9539a0b6afb7658c22",
+      "json_pointer": "/T",
+      "original_summary_sha256": "f87226ca663d3a479cfbde748c5a29bee4cef2817e0c0e9539a0b6afb7658c22",
+      "observed_horizon": 10800,
+      "label": "block_03_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_03_per_task_dla/summary.json",
+      "receipt_sha256": "67c73ed3abe7e8194aad27e3d37209699af1b120b9cd474cf335f3033b5bc041",
+      "json_pointer": "/T",
+      "original_summary_sha256": "67c73ed3abe7e8194aad27e3d37209699af1b120b9cd474cf335f3033b5bc041",
+      "observed_horizon": 10800,
+      "label": "block_03_per_task_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_causal_round_robin/summary.json",
+      "receipt_sha256": "71c898d6762eab26c3d3774658ee7b53b6f6e980f47944840d86b94c17e0fbc1",
+      "json_pointer": "/T",
+      "original_summary_sha256": "71c898d6762eab26c3d3774658ee7b53b6f6e980f47944840d86b94c17e0fbc1",
+      "observed_horizon": 10800,
+      "label": "block_04_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_dla/summary.json",
+      "receipt_sha256": "413a78d20068f70bc1b8702dda684e2f8b0561ed52365d54ee36f76edeb2e7ac",
+      "json_pointer": "/T",
+      "original_summary_sha256": "413a78d20068f70bc1b8702dda684e2f8b0561ed52365d54ee36f76edeb2e7ac",
+      "observed_horizon": 10800,
+      "label": "block_04_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_ingress_dla/summary.json",
+      "receipt_sha256": "32f06c1e531b6c1449270b06f1a73810d9d7c2a81ebaa47d301356abfa95fd15",
+      "json_pointer": "/T",
+      "original_summary_sha256": "32f06c1e531b6c1449270b06f1a73810d9d7c2a81ebaa47d301356abfa95fd15",
+      "observed_horizon": 10800,
+      "label": "block_04_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_04_per_task_dla/summary.json",
+      "receipt_sha256": "898f8102bdbe870b7c02736308cdd6eb5d51db0aa0487daac54598f896f8b760",
+      "json_pointer": "/T",
+      "original_summary_sha256": "898f8102bdbe870b7c02736308cdd6eb5d51db0aa0487daac54598f896f8b760",
+      "observed_horizon": 10800,
+      "label": "block_04_per_task_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_causal_round_robin/summary.json",
+      "receipt_sha256": "eba3664eca37a5e3557662abf0b8659447844504c11fcb66b9ab87dc8347c9f1",
+      "json_pointer": "/T",
+      "original_summary_sha256": "eba3664eca37a5e3557662abf0b8659447844504c11fcb66b9ab87dc8347c9f1",
+      "observed_horizon": 10800,
+      "label": "block_05_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_dla/summary.json",
+      "receipt_sha256": "8050f21774abda2b69982fb0890b40aeab409d9ae52e76a1d4d6ed16a2745605",
+      "json_pointer": "/T",
+      "original_summary_sha256": "8050f21774abda2b69982fb0890b40aeab409d9ae52e76a1d4d6ed16a2745605",
+      "observed_horizon": 10800,
+      "label": "block_05_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_ingress_dla/summary.json",
+      "receipt_sha256": "ce7d800383076431369468bc67df37e7c30e8915cd072928188c29a65935ec3f",
+      "json_pointer": "/T",
+      "original_summary_sha256": "ce7d800383076431369468bc67df37e7c30e8915cd072928188c29a65935ec3f",
+      "observed_horizon": 10800,
+      "label": "block_05_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_05_per_task_dla/summary.json",
+      "receipt_sha256": "a36bc71343ac5f4e099f80ee405502575596d5925e476f9d03ba42d9bb952eec",
+      "json_pointer": "/T",
+      "original_summary_sha256": "a36bc71343ac5f4e099f80ee405502575596d5925e476f9d03ba42d9bb952eec",
+      "observed_horizon": 10800,
+      "label": "block_05_per_task_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_causal_round_robin/summary.json",
+      "receipt_sha256": "eb435be26a8803998a06b31dd317a4adb2568e8a937c708dc3e980e2684fdc67",
+      "json_pointer": "/T",
+      "original_summary_sha256": "eb435be26a8803998a06b31dd317a4adb2568e8a937c708dc3e980e2684fdc67",
+      "observed_horizon": 10800,
+      "label": "block_06_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_dla/summary.json",
+      "receipt_sha256": "d202ff1a3bf1aaf699f88e4ad613b9096511f573162061ed2e2a59a323574a3e",
+      "json_pointer": "/T",
+      "original_summary_sha256": "d202ff1a3bf1aaf699f88e4ad613b9096511f573162061ed2e2a59a323574a3e",
+      "observed_horizon": 10800,
+      "label": "block_06_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_ingress_dla/summary.json",
+      "receipt_sha256": "7b2dc2d1650cb29c0e307890d1f91a0921f4ecbce551617374015ddf156eec4e",
+      "json_pointer": "/T",
+      "original_summary_sha256": "7b2dc2d1650cb29c0e307890d1f91a0921f4ecbce551617374015ddf156eec4e",
+      "observed_horizon": 10800,
+      "label": "block_06_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_06_per_task_dla/summary.json",
+      "receipt_sha256": "a2aa26c5d1c1ecb5c6ead9e95538e8b0b03a0c149a70769e1d38d25d4bdc4285",
+      "json_pointer": "/T",
+      "original_summary_sha256": "a2aa26c5d1c1ecb5c6ead9e95538e8b0b03a0c149a70769e1d38d25d4bdc4285",
+      "observed_horizon": 10800,
+      "label": "block_06_per_task_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_causal_round_robin/summary.json",
+      "receipt_sha256": "26ec73bd387f29f4181ff6cff47b1e13f6a3eaaa8a369981c92eb1f65405dfa5",
+      "json_pointer": "/T",
+      "original_summary_sha256": "26ec73bd387f29f4181ff6cff47b1e13f6a3eaaa8a369981c92eb1f65405dfa5",
+      "observed_horizon": 10800,
+      "label": "block_07_causal_round_robin"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_dla/summary.json",
+      "receipt_sha256": "dac4805780fc50abd92b921eed5a8b6a43e9cec9d520afc1b41f49f2767e2294",
+      "json_pointer": "/T",
+      "original_summary_sha256": "dac4805780fc50abd92b921eed5a8b6a43e9cec9d520afc1b41f49f2767e2294",
+      "observed_horizon": 10800,
+      "label": "block_07_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_ingress_dla/summary.json",
+      "receipt_sha256": "4a8f1df0599be7fbae2f0108116d3616d594d1453a9139cd1e3446d2c3d9849b",
+      "json_pointer": "/T",
+      "original_summary_sha256": "4a8f1df0599be7fbae2f0108116d3616d594d1453a9139cd1e3446d2c3d9849b",
+      "observed_horizon": 10800,
+      "label": "block_07_ingress_dla"
+    },
+    {
+      "group": "joint confirmation",
+      "receipt": "docs/dissertation/joint_confirmation_2026-09-08/evidence/cells/block_07_per_task_dla/summary.json",
+      "receipt_sha256": "02cfc8bf43837a09e8a9b4ca41a18221c9f2fb8f21eff6514bda03befedbea91",
+      "json_pointer": "/T",
+      "original_summary_sha256": "02cfc8bf43837a09e8a9b4ca41a18221c9f2fb8f21eff6514bda03befedbea91",
+      "observed_horizon": 10800,
+      "label": "block_07_per_task_dla"
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_00_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "20f18287f232214023fc1c78844239f1b9c02692f6e53581df9336d140e7c024",
+      "original_summary_sha256": "5b4585e1c550c5171b2ec31a84eb622f0e399bc8cf5b5657c737427db0bbc1e4",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_01_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4ed8eb3951fbf388a99d49f07099dc7f040907ed4ad52def2a7b4e5ea58fd053",
+      "original_summary_sha256": "0fabd72d3a604c69e4febbeebb5f40369c921910845d9275045af61a3b489ea3",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_02_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "dd3c85cc0bf9e2308d1c37c8dd174a784a2095dd35940b88752c8f67c1ec2449",
+      "original_summary_sha256": "a3253e76554ceb27be6a3b52995e3e29133efeb5ae2cfd12b0abb7e327c9da2d",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_03_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a8831f52b19692a8b1ac9fd6a4904a7c933eebaed42417f837851861bf2c6085",
+      "original_summary_sha256": "7225527be32356a120b7117dbf7d38e2ee180e92b44804b58ec8fb6f31cd966e",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_04_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1c7dd2eb457218cac158be040f9abd1aaa14459c780eb7818788234c0f601a3c",
+      "original_summary_sha256": "6c84e469ceec73bc84ea461743027102d24c59d0c62024dc5d6a0487fe6fd553",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_05_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3f1f6ba77ad0266f23216de99a627391e2fbf25c53b7b349ce3321dc43fe342b",
+      "original_summary_sha256": "9caed0a7ccadb0c47ec09b4a4716d40d449e9bf542c6db5390fc7f216d6707c3",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_06_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "fc990bc3a937602365b627f046878ece747819535ea2b5d6da37d52e2e62d108",
+      "original_summary_sha256": "9b2da5222a29da2b58d79b25a43692a034fc5c22bfc19ecd83788e46181438b0",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/07_two_choice/block_07_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "58897946b281cb2cdae4e1e6e91f26d4131c57ddb2caba8fc4509c71cc02252e",
+      "original_summary_sha256": "1728d7ac0d33ad67ffcb6543d01722078d66778df23d4b31079ec9ba6c317999",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "07_two_choice",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla_p2c",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_00_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "609c5975079b77099119f85e0356ff35eb272450f5f2faf92acdf656c47ecff0",
+      "original_summary_sha256": "3df99f61697eb67d478c45714a0a266ecc3f4a259255df94bff943062cb2e4bb",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_00_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4f7d22c493112b6021c395998d2814867d74e0175fb3e1a27144d69b84a1e222",
+      "original_summary_sha256": "b7cdd80e91862c156d52fe8f89e03b0e871445d24a6d909fc14556a54ba376a4",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_00_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "9d7a0b5c644be19606f20846cc5667f9d25b5a0b764f46622ce7c0da12917461",
+      "original_summary_sha256": "1ae8bb3b6bde8a72094c6c09228ba27aade85860e1b8b2bc9d98f7b4b862f221",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_00_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "bf8eba6e28831e4008f8954419d247bc6ea6a73a4e7c1be50c3b3aff13a1e6b1",
+      "original_summary_sha256": "3416eaa5604bbac068622b32390febc0c5d290ed56011f931705824426e3f2f9",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_01_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "680df9b47a9fd8b83369391048a1b8f63e136717f39e5b6c904d9cfb4fd8cb0f",
+      "original_summary_sha256": "d29834113dd498c031cf1af7347accd9ad95e4e7518b90b2294e46b85000e714",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_01_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1b44fae7fa746446818ae5ae34829d63b6486f1600f57a1f8bbd041d232ac9cd",
+      "original_summary_sha256": "07be7d0de7c83b86b17e0231f7dd8bd51aa476ccfe0caab7af79ed1bb0366a4b",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_01_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "25fc9e8c91d69d7e7e2c0a64be6e36b4ac666ccce094eb8bede94eac989b5b27",
+      "original_summary_sha256": "5db05f5b99a316dc4198ef63c74a002aff79d02188d17bb53ddcb61a961c9468",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_01_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "adf181d7718ac9fa1a113077205b7aa3baa5bcaabfac177b28d09fc115405805",
+      "original_summary_sha256": "271967e9a17b71d2d0049b748a4b93cccb5baca481e45f1b7459c40d751b2120",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_02_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3e48a8ff2b01855551b9bef2c9336719002376b8c818930a71429e57eb48b18c",
+      "original_summary_sha256": "4f6c5910ae99c1c7749508fb0c4c669b31574bb58c7f8285ebe4e299100bba89",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_02_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "529a9d7514b778e961bebe6af61de4e93d59d3aa3c673858016148a2ebeb7855",
+      "original_summary_sha256": "0acc8ebe5c9d40958dd2dabb39490baeb908cb41116e41be40d3a5bc1478e557",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_02_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "bbfe1117f63a83515227d108882829cbe5b4c1a95fb7d28a590bf22c5786d928",
+      "original_summary_sha256": "c2388c9a6d3642255b5f051ea659e025c2d95342ffbc0e68601e6bdb829ca5d4",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_02_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b0441a567b6dd362aa96924bac5a343fdc4b15f3a603cbf55c611defa484ce04",
+      "original_summary_sha256": "7d5f14b10734409a3246669e11a6c7f2a7c3813dc3aeaa639b28e3917ee3860b",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_03_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e843e65ad6407d77452b3e6010cf97c9bbc5dbc1e76ae0d622e167d3cdd07a09",
+      "original_summary_sha256": "0ba33d72024759b6e7dc9b880a54c9c4297876c81d51f779710fde2634300cb4",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_03_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2d980808fe9e142e8625b8826f4eb5ea29fb8c17c0247eb2a08e5da690bfeee9",
+      "original_summary_sha256": "e5b6616ddaa5b8e2cc39da0446877e7e8d69ce17ce5190092134692c49a1ede0",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "317d344137bf74fc1569f0c201977d4aadf7233c798d2bc8712035f000fd086c",
+      "original_summary_sha256": "9811b85921afec0c14d49488a091eb2f104a30a4edf7ab2e899802dbd877abd0",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_03_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "5f0ada1526f4077f21b614d3b24d54699cfbe8b933a8a6319d29893ecb09eddf",
+      "original_summary_sha256": "8df178471be3f5e6a1c1ddb73a168f96c26a35a8e51216f7233a51fc783fbb5e",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_04_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2df4076d37a56bb1902dd085ecd8b8eba18aa7c8ba811e52129d37e1b9a3aa97",
+      "original_summary_sha256": "3e40a252bbc89d1111a12d4c166001c073deb47f020ff490f9fde9a7ac2be51e",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_04_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "508b42a993a973908aa2ada591b328f9ae479158b0c369805a8610002fb9da8f",
+      "original_summary_sha256": "45576e85f5bd2e9a679bb1459dd88ac1972ced55f610ad0088bcacb00b805b02",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_04_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "c7aba47a9b44eb690fc9ff1e9eb521a30ff6b41721275c080b8d8269b25d0030",
+      "original_summary_sha256": "8c0136aa827077fdaa5c1526a74537054331749949daa4926dd1cb23d13f4737",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_04_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "52bb91cd991118e57777447c9041ab676ef2712cfab05a9ba52a498241e7c56b",
+      "original_summary_sha256": "966aaf617970b7c6cdd15605a92fad9705b943cbb024e0ae3f02b63e8031dfe0",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_05_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "80ff6a84dae7faa9045e1e8dcdccf1491e1262b81983f16f11560b4e55207f3f",
+      "original_summary_sha256": "6ffd62783ac91389a5be3819559ab001c99a5cdd65e8fdbe0f8ecc7687a0e88d",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_05_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b0bf35f3f506d446bd5cae20424f9cf6fe219659fb3773503be78905bed14598",
+      "original_summary_sha256": "9fedbb4ebc271ba9a36ffdbc943158a8cf3e7aa7d9ed5afa23cd4ff0b478ea86",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_05_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "5aeabbdbcccb1851360dc9f204b826687a017f9ba03f8f4cea0c6d9ecbe8ecc2",
+      "original_summary_sha256": "ed843d08069be8fe199fe0b6e3cd0871ab616e50239b5960be1029ae79c5b793",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_05_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f8a352bd320205483ed845c739e65f9e0312cec1d374debf139ec66dbbbd6a4d",
+      "original_summary_sha256": "9e69dc42aee935814c32a5dd478d5c5604505ddf452912e318f905cd084bcb02",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_06_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "00c2441a6f7c4387e66e29746a76c3fdbb3366eecb66d2a11280f4c6fd75ff6e",
+      "original_summary_sha256": "9137f7ffb9d152cb1bd0db0c1eacf0677f572cb65bb6a360ecfc2770247a8b2e",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_06_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "77db0b12a4c2408a8cda5851014c507508bc5ec635b9537c153635063b231cc7",
+      "original_summary_sha256": "2e4b209e563e57857ce5990210ce31ea21f62ab372d54722120e1940c7052ee5",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_06_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d85c579a507e192372035ebb1bb9c7385d8080ce9659c65ad216e6071dff6b66",
+      "original_summary_sha256": "0642179bead7735e2509be0e844ba60cf2a164ebb7f223fddf3ac314385df508",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_06_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "189ad24c8b2a7bb95dc8ec4021867c63be27f075bb2410ae57c8ce23c464eb8d",
+      "original_summary_sha256": "21c8fb40f5e49888cc510b2c5215aa1ad27bd6287b5752da07227ca24c4cbbec",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_07_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b9aa0d46ee8719f90f32840072bb54c8bd0ef6a6f3a0e9937872a29a3aa2fd34",
+      "original_summary_sha256": "2445d886fa976b5d2fe81f98bbbf0732f5e616656a92f91dc83335cb9ab9e823",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_07_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "8e9288de169b52384796725e2c9b40c1b64d9453bb50f70df0309540c917ced3",
+      "original_summary_sha256": "14538d5cae230857ace0aecbf53fcd7c04b61a1416cf37c386970a0ad678c415",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_07_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e5bac935024e35ca4c512e146afb38a343b94f8f3c7468f4b4e039e8211aacbe",
+      "original_summary_sha256": "c77699e3e7091556c7ff5229d31aa470703a0777c5c312b32446fa7cf8aefd49",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/08_half_speed/block_07_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "92a2dd77419be11fadeb48e2798e0c9de26b24b43c80917d8732d9691b31a6f9",
+      "original_summary_sha256": "c74a1339cad7234ac246502a9f425d6116acef5bb9eee233634583fd0cb69ec9",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "08_half_speed",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_00_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "84abd9de23813a80bf832763f68cbf6008f123a51e9f6a5d37b698984aae6f6f",
+      "original_summary_sha256": "b556e68cc72965ca3a1e6986cbab19bc89c7c7030bb14fd2eabb6af0bc6b4500",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_00_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "ff15a09cdae6c3a511478302ee31b8e0174bcd8e2aefeddd8217042c9d9a135e",
+      "original_summary_sha256": "0116e9b1d12c95c56de9b849f978cd811f2c04f8e14726dd7b46732470b10cc6",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_00_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "147637253254bb8badd67814a5b7ea5f2d42923eaa2121f2ef7531d28cf179c2",
+      "original_summary_sha256": "f8a5dbac54475d2d46b7810b422f4c4b245d859cfc782fd905ca815db2c4779f",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_00_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "9cd18a396e0f852c8a30137e2c47240d8812b7f150afe2d87a6fe1a440e31cf4",
+      "original_summary_sha256": "fa8aa7c798f9eee96cd5bc83ad0ddbe5d511ada6dda677d1b6c6d837ac40593b",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_01_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "02fdf1a86a17b989b50be3ac18167b282ffb75bf8feea7fb6a64be1d5ecbbe38",
+      "original_summary_sha256": "06d698aa725eb117a17de9325aaf229263768ff218d5ddf5b4fd79747c10e1a0",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_01_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "ec7cee637778e9abe4eb3ff7837c0fc7fd1bfbb3e2af5c56f766c16aff858656",
+      "original_summary_sha256": "0243dcd611ae7b91d780832f0862cb5e4058f422bf7032b4ab028181987411b6",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_01_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d84252603dc05ca34de3d038e1ee08f9962cd510b250f682a4ad4e04b5c8ef68",
+      "original_summary_sha256": "9f5d9169bc5758fea62d25f102211f66f18fa507ce48acf0e4c803e231177df3",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_01_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "612567e57b355da41b4b589ebbde00a3c19767fe5da4b4b7641176944047329a",
+      "original_summary_sha256": "cbc0fe2ca81ec398d980020aa44a29e71c260d3ca340c192b97db60d1785645d",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_02_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "83619a9c76125ea8e4c8b385444b900970e140850adcd6f1bfcd664bd7843593",
+      "original_summary_sha256": "a9b3b5431077b978f9a46508b600afcbf82ffdbff4fafb8ad83374d8d69520aa",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_02_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "65b5c7eb49ae42848b4b2a0fb172c9d9fcddd8eb32128b6d97e70c8df6047110",
+      "original_summary_sha256": "5397384ce26de58fbe57b51f91e1e5139b68e4e609e9ce9acdf9b04cc46f02c5",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_02_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "ff8a8e9a47d03b8ca70e2341c339215144cef8287dc69b7ea9a807594eb3a202",
+      "original_summary_sha256": "bba76dc8f9662a0f3d44a4df085439e4ba3b3963cdeff195a61ca8c45e6a25ab",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_02_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "95cf241e71c49d5ffc46c727bbdfbf91a04c6ded06e82800ae7a6aab8a6f1076",
+      "original_summary_sha256": "9cfb19d9fab9dbd23f3b8bd3db9c79648a98b9bfed58e9c8aef4aeaaacfbdd66",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_03_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "34b066dfe77721136df48225a52258ce1ae4c2dc5b95bedcfb2a37aa43a0f815",
+      "original_summary_sha256": "bf01eaf3becb7b8fdfe61819f1ba80fca056246c0d9d00b010a2863c4eec70cf",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_03_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4c1d6a309df8fee49525eb69ddcad6e20742ad5dfac49ef6bde5ff7c33375eb2",
+      "original_summary_sha256": "a7abb5824d0a7fe0b1e26c7f1e3ebdd5ee38c54dab93816dba40be016794a784",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "82c7d4eaae14ba5bdd1cfc640883654b98668a46b743969d28ad9129ce6212e4",
+      "original_summary_sha256": "27c0b600e1cf574c96504ac206dd2c9675620c764e6a04014048e6ca1525973d",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_03_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "8cd6fe7affec126b3e229503855d40dd3a9df95e49d13c3866527fb49b1e6d57",
+      "original_summary_sha256": "d5b40c115075776b69e06c994d56d76f14413c05a140b7add1dcbf16b19ee032",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_04_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e001bef9dd689490fee7de0c7cb855efb4c2b382804c9fef0f3a56edf2b4a3d7",
+      "original_summary_sha256": "878a22a0a32c4a3807bf69cc990212d83fac53a3e5df0e84395af2c915805bdb",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_04_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "38f2c4bac51add772d3f16e664f5489c57aeb8b4610d77500ce7441c62d650a6",
+      "original_summary_sha256": "e0ad92fa2f654a32e7d1f511d146ce61a5ab0e699855f199d2ddeb870b06005e",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_04_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "40b4a1bdb1cae47aedae573195ca454792403eb32f5f74a29b4d219dc34c3eac",
+      "original_summary_sha256": "56ec693ce54d7cff302524fb713a0ca2b4e1e682c4adcf0cf0f92179f2ce0469",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_04_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7e52d7f3c1665c01d621abd3e9cd1e6e0bfcfeccea3cf0bf197682a6fe056692",
+      "original_summary_sha256": "fcb179e6f7ecdd5f8a5a39d069cb4eb42df2ef83b1ad1f7b8455ba0bead9a8ea",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_05_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "9f9b407e1d35641345970c34098fa34ae9a8f20884fc1452fdd3f1dddfa18096",
+      "original_summary_sha256": "fec1d579a7be1e71c432f9c6b74f23884c911eed376572a51d668159cd900267",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_05_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4a7ebe50828296f506089e734eb6c008723008bfec514c301a12a429684c90ff",
+      "original_summary_sha256": "6f194a919b88607d65f5a4d3357e694327ebc28ccf46a7bb917727a603ac9faa",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_05_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "437b5a52c0f6a9549fba2def9c9c1da350f6ef02c6706b2a22dfb28f51d02dee",
+      "original_summary_sha256": "0a052c07d6fc99a16a35920de5649d2b18239cb4e6cb4e78e6293abbacdcfb62",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_05_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "82483fc0eb4563d3a795e8343daa6e02a04db412d117432bd9335d6f2b12dbc5",
+      "original_summary_sha256": "799bc358c8d6cbde778869758dba0787e1cd0ed57022cac537a04ae2d31ce29c",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_06_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "434b89ae67cf2e4d8db73888bd337ab96fd06324c44a2250af84851078e3fdd3",
+      "original_summary_sha256": "9320f1e5e96c325615796dbb1f500532680607d14260414a0de9e3e2ca97ab1c",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_06_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "18bb1d864ff7c7d86e0983d706ad19d9af67d13ca0528ddab085a0a5db64a6a8",
+      "original_summary_sha256": "73bb163fe0f65ba1b2a56e94badf40bfe0394a8047874607be0079120267c36d",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_06_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7d3d78e6406169f238b2ce613a3e6442fb27b951050f40b90c9130a34778df4a",
+      "original_summary_sha256": "3d4dc9c414dbcb3c2da752a229a23b4f428bf45a897132559841dca2f6de7c97",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_06_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3a861987b47d6e4f552db822ea6869e48dfbfe30dbd8d971f70bc0ddb084e9f0",
+      "original_summary_sha256": "618ab96222fa2f26ebb2091ed2aac8ab004b34524c7ee8b92e47386a33a137b9",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_07_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f4d34fb98726db20d579e0f2fb5747daf8af12e1e1189fa9f877a0631136ec8e",
+      "original_summary_sha256": "ceae790fff00bbfba73d3a0f98c3fc616f466fce2f7c127528542e8c601c0139",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "causal_round_robin",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_07_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "0b27a5226fb8ae259e7953595507614343a6e77851938c7fe6e0ad3bd44c36da",
+      "original_summary_sha256": "6a854a79d0223b52b462ca7720fe00dd76c12e501d6e8f2725af47d516cea057",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_07_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1ed9e45efb19949041efb81ea30f62c5c03828129fdb2fd1c6a763b28f4ed3b8",
+      "original_summary_sha256": "9ef4779939cdb82c67c514d50e9756a3fcc5153ad021bdde9f7b2756da2d8869",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "ingress_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "followups_7_9",
+      "receipt": "/Users/akashx/AntigravityTest/traffictwin-product/docs/dissertation/followups_2026-09-15/runs/09_second_actor/block_07_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "53b29c0b890c9990c0e777e9603ca07017958a0bd6c41491db72ab333e67c1c4",
+      "original_summary_sha256": "48c56cd317bcf8dbc249ae644feb71263838f66d8e738d5ca903a09098019636",
+      "observed_horizon": 10800,
+      "configuration": {
+        "study": "09_second_actor",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "per_task_dla",
+        "steps": 10800
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_00_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e6313bc55bb104192bfab7b374fdf3f270d411479403fc224143d9f80c297e19",
+      "original_summary_sha256": "a61e70bfed13d3d33cd8d366ffe82d6b5ba1d5e0936bac67ab32612f10dc8053",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_00_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "69ce16fc95cc5de9b94d7c3b6a72b21fba869407cd3fbb0639b8b1d965c0fd02",
+      "original_summary_sha256": "2ac1f8f287f9af8c859d317cb3c7ca515edabd8dcf5a84290e2220a116b24f3c",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_00_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "77d715a45301d0933d1c826175814ec2cf6afd7414018856ea0ebbc9fbc5f2e1",
+      "original_summary_sha256": "fc8efc5b39e6e1b9f02586784e4da8e20a67499a22a4210e13b3b6703fd8579c",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_00_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "0da66f779528abd489b94e2140813db2245cf44c7d0ad7a8ce1bfc291c4193d5",
+      "original_summary_sha256": "f04a4a68632643e7ea7e8ac927b3f19d1f8ccfdf0eff717cddc5d82bcfe44a4c",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_00_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2c976698123ba73d76e52072618acc8dddf14a64ade07e735fb5cbf5acc63012",
+      "original_summary_sha256": "ac2d2b8a9468e59ca55ac434c9328bfeab2ab181e0d9263d440e48813b9eb86f",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_01_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "71452b4c9c305f5e33df946eec64447d45860f15eb525a38be2fb4a59725a8e6",
+      "original_summary_sha256": "01c4a710a401171dd30271522e9d24059cd3566bff1cc3797e8c860583d82dcf",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_01_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f45f328c660b1c2f945be29cbc9ff9280fb0f19ae069f4602eba5512067bc434",
+      "original_summary_sha256": "5013d494bc6da9a7180ce80dcae210179c7f53be3290fc47ecf0f867e7e93417",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_01_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1f568b97fd138894eacb8d2362cc818554dfa4cc8cdeb0f5f9928f60460a779a",
+      "original_summary_sha256": "62ab3a2fbdb1ae70b2107d34fa6015f8806efe9bb2f2292c2b3a10c45c61207a",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_01_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e90d6c21efd4abf41203c83f1d3348348e7f2d7edef22f5b49cbfed9c6505168",
+      "original_summary_sha256": "e88f6ccc18d7d78aa1e18f6d1f3d49a5c5de3984fda779114a621133a60739e0",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_01_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "22c69f34673b0acd350134359f3550c2e2fd5d01936ef66eadc8fd68e423124a",
+      "original_summary_sha256": "7e55c81bc52fc132dd0de18b15ea5b4decacd6778b1f5978636e25ecb15cf6f2",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_02_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "567d6b862c7a61c9d95a024a035305d02dc98fb55957abd74a222e608e52566c",
+      "original_summary_sha256": "55d16a3e9f5b94ee36f5ae26af942070645b5d6e9d88f1cd7813e1dd696f7b33",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_02_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d5c6e1b54b9d37758794340baf03ad4a337beb24230dc19987b87e991547bc0b",
+      "original_summary_sha256": "34c355bbb4fcbf836867854d19a9772110af21fa40d08e4d830a9f128edfb7a6",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_02_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e2ba607cb0aef7e386779305562a05e82dc1024c093fbd6036ea1551ad92cb70",
+      "original_summary_sha256": "7490a032e8dfad896aa84e65c30a7bc6fa11314017354a17cce75fa64588d042",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_02_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "5adf8f868368e572e93cd965fb8cd6ceba3cff4e72f59bdd8d8592e19fa560ef",
+      "original_summary_sha256": "22283fe81f67e39a528dfd88b81b5624e446c28498c4e6deb72e7f5e58cc6581",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_02_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "abfdb46492f52d7a9dda832257be8f0722e3852e53c60861ccc8340cfb09a20e",
+      "original_summary_sha256": "5ae8d5ab910c1bae77375efeec32475a62434ee8e00b3e2953895d01a2aad9be",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_03_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3d64fdbc9a2aef0b9db566e1fd2d4234cb479e4caa6df226f1f3e0a1ffe00603",
+      "original_summary_sha256": "06af15391393eac7ab94d3cc1aa11a31fe5891939972b17c79849dc8c70331fe",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_03_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "680964804bf814cd7e00eb6c2ffb493bdd38f6535798f1819481fca76c146844",
+      "original_summary_sha256": "90e0faf0bc65e046ebd715c3f98ec12efaceff62a3ceaa264dbbfd4d880a4dc4",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_03_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a6c0f302ae07a70c23bfdaa6a95555fe6eedb30e63e7ffbd259f98c87a933850",
+      "original_summary_sha256": "24d3ea32f95f4cc3c84c45c7355598ff5b455a601a460a6f994f1f0778ea177f",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a0f647a3c42985efbf2fd0dabc69f2cc72801099219d54a84e5db2f389de2b76",
+      "original_summary_sha256": "3bdfeca18768869d860cfa49c7a4ec46817b14b89bcf5814d60e1b0595276861",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_03_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2f5b4cee9c94420380edec3f002950c6e9e67c055c83db63ea1f72e4035059a5",
+      "original_summary_sha256": "50af1c7d84dbe7b9e67c283dfcb0f40c0e0d88cb85d0770d2e77f40a0d342e0f",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_04_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "69f6f089e5cf10ca8a189bdacd651e19525f91fb2c51e9b06d7b09d500f3ed07",
+      "original_summary_sha256": "9e2da8c1bcd0ba9a1df9974178aa5b9cd6551e0006b39967551adc23211f2a51",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_04_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "eafbee88c72d24ee779d6c2d61b168dbdaecdee2bd2543011de749df79954339",
+      "original_summary_sha256": "583f325cd4ecedb393cf7ccae2fd46b1f8d479145d3f92f2d313f880e8da9781",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_04_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4c0abc31ba9c598be69465bb211725c637f6953d7e18f4ec2045e566a7fc1b08",
+      "original_summary_sha256": "9440328844eaf46b3dc52f67797962b0b30e972ef5ed02a14f88b397d0339902",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_04_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3661bb1614f537691fb21df35b70ba4bd04ca0b743b23e2b847cb1d7517db569",
+      "original_summary_sha256": "d88c5419ba96a13b6e3af7a99383f441e7ab54db26f516918ece341762bc97d5",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_04_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "55234b69c7aba2cab96c3cf802c7f8573e7215f741518b5feb09148c37ab5413",
+      "original_summary_sha256": "d97f997176028487b474de41b48da043f452805e873beb8949b0a7d7d42e3d58",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_05_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2eb057da13203c6f4548ea9e11ab6e0ff027425df25ea423400fd93b5b7628ac",
+      "original_summary_sha256": "4ff23152e0dd3c541186db06f2f598d833bee8be277aa2e909bb422a708857ab",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_05_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2fef728f6014893e4242511862c149d323354b45a8dd1ff578af31085dcaebb4",
+      "original_summary_sha256": "bb4ec8aacfa292cd2cdf9bd64f58d29abc3aa7896e0d1cdaa30a8d7f39c56ffc",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_05_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2c9d82327cfab4361275a2a06e990885b89b1218def8a77a31db9bd31d12d3aa",
+      "original_summary_sha256": "18abc2468707348a05813a1e94aea0efb2b947ffcb416f33cd4575e25d08969e",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_05_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7bdc3d7946b5a280365b4d633a673c5119f2b53c23c0316eabebcb8e9993e52d",
+      "original_summary_sha256": "c6c073031c056698d1631cfcff37ce01d0580288a403cbb72df4e853d508910d",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_05_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "de3b082283032bfc4ba3e8e09091c8ea590a885275a7317a3d28ad14b1b85afc",
+      "original_summary_sha256": "1fca3669025a07628c9a4c5c67875ae97f58fe405b72b24e6c70382e8724a47c",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_06_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "200fcf641d1ea83b2bfd41cd975eb8fb3d58647151731250954ac4441473d857",
+      "original_summary_sha256": "ca994349d552c8aabdd1ce3fbc1270bd96b82e8a0576319e6e98d05bd8f1e27f",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_06_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7c0b939b1350d230f15d26e1567dde9d81a5ae7118a60ee48e3ba0bf1aa7c4ce",
+      "original_summary_sha256": "c84195b3682462c6ace050bff1afb4d6f494044448b927e491f99d998eccdc30",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_06_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a38c218dd90b8252436cebb5935ccbc63bb70378d4a0e1cddfc5b46dab5fbe05",
+      "original_summary_sha256": "74aa143665c3ac792054b11b0fefd9d767990e196426ec662924c3ea2ce0d3ad",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_06_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a59286f1e1e4545225048493718f805b13298dce7afd12f1aacb0385ddb45671",
+      "original_summary_sha256": "6b05a595a02c19470956151bde7c3b1b68cc4bbe4aba60ca2f03192fc4e3722c",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_06_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "88dac2737e0683f45240ea3ddb835d5ae3ab7bc6a9e5dcbdba7b71beaf63892f",
+      "original_summary_sha256": "448a22dbeaae8f900748f69bda7c8ac292790eb72e094e0f6f62bbe5f804e845",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_07_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f5b61ea2aa418f728504bcaef20a7f387e8c6780dff10291106ea9643981441f",
+      "original_summary_sha256": "70fdaea3eeb14e60b2183063647ead456659b4ed2faf112a03120b8c1f4c9bc0",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "causal_round_robin",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_07_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a76e34e24fdd2abdab996c2e4db2f9f1478314d43b1ea579c515683382571cce",
+      "original_summary_sha256": "4ca70760bc836586d711fd4b37385e6b426fb9cef402a3ecb325d71c79d6e2ae",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_07_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "bc321636967479970150bb5e3c00d258e78e79cc7476dd00ad35437a311c65ca",
+      "original_summary_sha256": "9f1a07f7cd3db92e785b656124d604acab9cdf6a2bd8d7acaa5e947426d848c8",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla_p2c",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_07_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f262605218a9bbe93ceaabf14b38b27b992c09f989a904afa613a323241ef014",
+      "original_summary_sha256": "22582260b3b29306b426d60be220c4b39824fb1761b6405a36e4a0bcad878cca",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "ingress_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/ev/ev/block_07_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3dcc4e464d5c96fd72ff06c0ae1176797150f9678d93403c6256fcf3de90bd7d",
+      "original_summary_sha256": "9b9203222ef7fea472d008c1aed7e7489a9f6baa1c362b00c10d10dcd0bf85a3",
+      "observed_horizon": 23400,
+      "configuration": {
+        "study": "ev",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "per_task_dla",
+        "steps": 23400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_00_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2c4166a5ca6b962185ad25d2fbe31ad2a2cffe6e9d4ab6e75a35bbcfa6cfeb66",
+      "original_summary_sha256": "5e9a6f057e7936054263be11c4549c54eec0969799614eba14ed951a1a2502ab",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_00_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "c80467c76eb1105f058234f4209e7bfa9901049f043bf4297fd8ea0d37b1947a",
+      "original_summary_sha256": "fc7df968129be2790289f22163d4b8525805478aab995d6f1f519a1f297b8d2a",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_00_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "fcc13c472ee9a4d4f13606e0b37431b8fd21acd4ed9c7edc7b78115536468385",
+      "original_summary_sha256": "a5ff1beedb82bdc6fd05061cd09caf1fe42d300f9caf6def1de8a5c7098a15ab",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_00_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "52717f61f5b84ab5e290c23ec3b686376c51f8f3efc0a49249d8dc69ea81ac1b",
+      "original_summary_sha256": "3841f8da0844a2a51507e69dc99768b0121922c0cb9af1ebe38a92f6069f0b42",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_00_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e2ef36c162bfb6aeb3c1e8ad29582b9fc438ae31c416e8d9afd09fe3974ee6fc",
+      "original_summary_sha256": "4e0a2c67846f027a1eea617e2d9545ae6df3f5d4d77c2f5df173fa5b97c6d477",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_01_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2e23ae2008e7caaa913c24a144cf6ea19a62a2fb54abb1ac86c10624c637fb9b",
+      "original_summary_sha256": "14cbc2fc3e876953f1d430b263d5053ebd3b54626217cf103b6b0d673aaa388c",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_01_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d7624916348a36a2d66600eeec4829eb5633214d0d936e383ec95bb61d4121d1",
+      "original_summary_sha256": "14e490998cfda282f9f3e85d9a2129dd64d4b67a98f17e73df451210d47a92c4",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_01_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "bd80591f27a377798eb7ec58821b7c254db63ce88340641c558fc27440aa9869",
+      "original_summary_sha256": "93e4707cde351a49172443221b2ca1874d651b37c3af32e1b6401bbf393548cf",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_01_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "9a4476f05bc38607363097a2193ba11dc51d3fe2425947dae79ceaa6c7e160d3",
+      "original_summary_sha256": "9707d12a363f1c866f3d3f280d0e06d6e0a0dadbe027c5be078461f31e8cfe6b",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_01_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "dfcf6f8a334f281782d78e8caef59605e4c18bc9080f933f7c1fa5272938d5b2",
+      "original_summary_sha256": "57d376f321f07e6de8f658c853ce93fac34d07d942170fb4c2bbe90b5fdb0d61",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_02_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "bd8e72ee744cae7d9f78e0cc28613e564d2c752ce09a905d9a4f5a0452594b70",
+      "original_summary_sha256": "3013021e43ca9d33c4a247d86cc01169b2f3aab21eab7268bf9e819e9536ce33",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_02_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4e69ce1e608ec25a34ae256fbb3a3b6f0c2dc604086dede8264f3caf7eece647",
+      "original_summary_sha256": "0a3b73731dc5a670fdce3c5ac444d0c6b6a19bc0647ca2ac35e32411af2218fa",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_02_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "db1ef45432c02d5219ad7b12d0e1fa2f2d3a86a2ed94c0b4dd05dfd3e8f098d5",
+      "original_summary_sha256": "ec10c97c49678f3d95e773ed4e501130e7b1df119d83318b4adbc45123356dd1",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_02_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d5c692462e5274de5c37dfc112c401f921b0b28970764b02e9b8d9642b424b0f",
+      "original_summary_sha256": "18b7567e790b63c7c1a1e44d516c22141e31c8ee1d154b80977de9e1464b66ea",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_02_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "232eb5225f0ed4b86cae88d43cf35e8272364e3ecd20096880a2c5b9d7be6f87",
+      "original_summary_sha256": "05187b539cdd893c8c9b3e6bf105227c1a6f1435d270bdc784ff23a6350a2da6",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_03_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "0bb96a693d5aed46d5950e50466d2c41181615ba12183e0efa6fc861a97a2bbe",
+      "original_summary_sha256": "4e3542d905cc0f652f788bdf3825d4b9983b4473ee8fd7337fc9b9e797cf2a02",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_03_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "21970989c939161e9fc1f429db76d3c109f937182b007dabae501bca382b6c82",
+      "original_summary_sha256": "264a6857997a79cff5e042fddf3c4b2f47949e8f91b2a6b7ef12b3069ea3d23f",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_03_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f9d43ac26086300128cec014f0cc2e1ab662534a830cf279988a8f25c8e4ff36",
+      "original_summary_sha256": "7ab501cf2db85d79f759e6afa66f11ffd5617107fa2abf7e4785835c8156ae9b",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "10d0f12b1a3c469eff39cf568e4c5c9d7a5a95a721bb39f3e57364c9223401ab",
+      "original_summary_sha256": "d3316b64058fe5fe99b5a1609463404cfe4a2de41d13075bc4dc5d81d27e4155",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_03_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "511260f18716898185844c55cd5d88ce4542a5a2beb26276378fa5cd13651451",
+      "original_summary_sha256": "419201c532e8f133b1ed778d540389ff9bc8014e4b8294474ce455bac65023b6",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_04_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "979c1cf56698e1864ae1b5d0422bc28f96f693c5a090d10bd7ddd9df21a5f3d2",
+      "original_summary_sha256": "bf195f066c67a6f15a5aa2f6de7a2c31fb8f386d289f654c4f2b3c904065847a",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_04_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3aaf09fde63dbe8a7340871c42601b9d681568f3e44a169623fb2970f9ec0d65",
+      "original_summary_sha256": "19133a862aca439507aad25b0e9c01a5c5575c26bc6f53300640e2fa4120b4fe",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_04_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "eed46088f6b7f48d3595ff5ef30cd75703e2d789cf790b4dca75de6596e2ccd1",
+      "original_summary_sha256": "b2dac260a06a5cb3df14f106a837bbda9fdc3e763a94a0925a0111d8e1e6a7af",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_04_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "006c68928598b246ab9daf4d2a8a0049a2419a83a4f46a0c48da3593e86c7436",
+      "original_summary_sha256": "501cde6a7989f97b7708b3b023cb6b96e4bb6e1d058fa934ed21964aad24a0a9",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_04_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "34a88252c5d3e76e43228b70484930d292271b1ad3f91e7fd4f6a4a2a32ab028",
+      "original_summary_sha256": "ac0a725f2e83c08abca4b7569ad973a20974eceb64c2427de9d49040f8eaafd3",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_05_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e65483e2ac164f8a15b9f86b7466e9931b5dab72e78779da5843a585ee5bbe2b",
+      "original_summary_sha256": "d9b8af288caae2ed45d516a89c24b6f6f91af4fca276002a7a58f019aaef040a",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_05_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "6b14fb886d734720b1bd98ef4aed475de31c678364ecc322b2247c7f1c151a02",
+      "original_summary_sha256": "01465375d1af528f81f166ed5a8e83225ea15423f5075a25539d77ad79f242fb",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_05_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "63d65f5d2cbb30f084431a5e5dfe802fe3e88d8d99a62b1f3797cce72a9cd2b0",
+      "original_summary_sha256": "b2d027030d3ec89a4e4e9dc03bcb5c7faec0f3c64a95ea6b2046c3fc0f7097f0",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_05_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b5a2983dba3ec31d021a276aa323eb489c6483b9841657f6adc9c143ff1f3b78",
+      "original_summary_sha256": "e4e654d8223b0d93d5ed6e64d7a077dd078ed842d10c27b37f370cbe9e8071b3",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_05_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b3544cfa5525151b5d97e4c5f4581536d5ac0d8a8db1ec211db6fbe34660d41c",
+      "original_summary_sha256": "994169575431debacbf6f6842d2c281d3a1e1c264aacc4bfb16f206eb0e2f4c9",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_06_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4b53642a9e6d74857bf4d55b695b2f74ad0d8f426bb35dbbd8e02c971fbbea6e",
+      "original_summary_sha256": "c1980b3e6a507198ba1af015f2cb9959391171ba1d44694580c55ef4a64ebe00",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_06_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "77b80c278af02cd4ebb5138a1f1722215eb81f440090bd3ede7a43f0b5f906f4",
+      "original_summary_sha256": "2040bdec1e29e3b0e8ea569692c14afddf08a27448e533f3a7b79a9dfff4474f",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_06_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7d7ad18ac046f2010e820260be06f6b301361c8acb711aa9921905cd2e998eef",
+      "original_summary_sha256": "e974402c3b67c6f44a1ed90e7a39b4c4df9e719f29c06a7b0b711673e639e3a1",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_06_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f9b66d1f5c3cfb93dcc7b7e491378774cf7b3b931aae57605e058d1a102e9a53",
+      "original_summary_sha256": "f0ef67d951d6d6cc63943b8fa32cda7d756565dbeb4ff5b2238c0ed00a22b3bc",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_06_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "fd2c1e57418c05fba79e1e75dec127c5af993690a302a038a8997a4699982abf",
+      "original_summary_sha256": "1ed786ad3dfff0919244933bcd5b3d0b9e4487f68c6ec4e9935c6f1ce9711e1b",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_07_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f0164f53c587f45e2d06f2dd7e70e727a740a2e9e43234f5cca7f73e5779e9f9",
+      "original_summary_sha256": "e65fcc98377a8c96c59681aa0abf105110dd9b265795c97e1860b4fa193d9191",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "causal_round_robin",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_07_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b4a88237db7e41da69c23663280cac8139e6a247cac6743c75a972c8a9f10925",
+      "original_summary_sha256": "daf0f2aa2a4c5b23b23412381c3b71e6e449341c51da39a8916d4972bf6acf94",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_07_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1f98c1f686ccc44aac004c6b975794048bda200f3b623cdd4b9df1329c1d7a53",
+      "original_summary_sha256": "d8717e5cc467ad14ceb36487f33bf98653ec48d6d904f93507cbb1ff3a5c9965",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla_p2c",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_07_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "0f14a76c0367ce658152327695078050e3475b788357f3f04dc45f446f2a069c",
+      "original_summary_sha256": "d66c9e03b64db3b59dcc95f0fc81fc9afa3a9c6047bb38ef205fc559ba9055b7",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "ingress_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/wd_pm/wd_pm/block_07_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d7dbcb5f28fc312867da44929b397659ac65bb457dc22935f801f22181b52146",
+      "original_summary_sha256": "faf4b5e43d811d6deacd205da6b49d3511f6b1cf47b3b4d8ef3785294cee1a25",
+      "observed_horizon": 25200,
+      "configuration": {
+        "study": "wd_pm",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "per_task_dla",
+        "steps": 25200
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_00_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "47d80ebf864cd85b59805a90a79e1d936383f256dd016159713368ac9a4dd5c0",
+      "original_summary_sha256": "e55ecfb1cc79434b46e55d7d457857c38dadc4afa2e45ed25f34a442fe43df50",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_00_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3429d02bc1c2917e5a7d97d04a9807a0e356e4103e3a3b4887b63f17754a38a7",
+      "original_summary_sha256": "92fd656a1d5e9698bbe15ff83c26473203abef46f1420583b12751b81bd6deee",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_00_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "dcec44cd920e8cdc7b27f5df7d07897bb1424636fae4bc73d20eaa8d84f3bc09",
+      "original_summary_sha256": "2c661c52558bbcb5601163912987d96a0acbeaa01713bc51b08a77889a0f6ffd",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_00_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "ff2936e5bc87af4b6a1e386202de77da82b05ced4f6b9466618de173ffe6671b",
+      "original_summary_sha256": "e726b63dc0fcc211b9677ceafcdb7b365aba73acdb363558d5e494ae20dbdbef",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_00_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "c104982dca75825729d268ee5dcabe2aa6c20eb176b51df7d0a2de55ab7baebd",
+      "original_summary_sha256": "464d75feb84497bfd12f7d9ca4046c81cf1dfe6038b42ffa201fbf1dd600c63b",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 0,
+        "fleet_seed": 100,
+        "evaluator_seed": 200,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_01_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b787907055a0917fb387b0186081f5adecab500b732694d14a209250b0d32821",
+      "original_summary_sha256": "444ff146f2a271548088a89824458e71e75d0ee9f632853a097e061a3774a9fd",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_01_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "970cc48dd74227f8f392c019b0bb2200e8061447150be1544bda3424c340f014",
+      "original_summary_sha256": "a6efa305dcf6fa0f875896aa5f792a41f28d9f36b509da8d4c852aedb17f9fb8",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_01_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4b66250bd360f4c5f76870fab9d60608f766330e170fc14335c8336d6d972f43",
+      "original_summary_sha256": "5f3c2dd7e3c6ea81efd3b2a6daead653d672ef3ed881d0de14399a72b19abe8a",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_01_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "8d5f86fea53fc13c23f0ddd167746b5b565b924551e0e308217eb44b533bb952",
+      "original_summary_sha256": "cfd228959be48f4d15a94ed431be87b9395f681a47fee5cc3cfc760980c1c62e",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_01_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "75e88156d20701c4bbbe6d883db55eea7c4dbc481ee59c674901dfaf76c513ba",
+      "original_summary_sha256": "1a10d815d2881a26701a3e3cf0358062c9df5a7902105ff4244a093cfb6f95ef",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 1,
+        "fleet_seed": 101,
+        "evaluator_seed": 201,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_02_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "b0a320538f2cc62a1e598491319b73c542f5ffaf94c2ef5113147e1dc1de94b2",
+      "original_summary_sha256": "a34c743508d23cce23e6f68e830913d3c0aef965db7f5c42ea105986649159f1",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_02_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3922f6885e6db205dd5b089910a95f7899313340dba2e4408e2cc76f8344cccf",
+      "original_summary_sha256": "702c4d5a1defa5b1d3bd2dccbb37d590e5f55397035ef9b895fdc18563fbdd79",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_02_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "992ad4979d22a9997309614007f8f8d065dd240cd53322e5a8ff3156dc175e1b",
+      "original_summary_sha256": "3cd6e06b82c1944f802beaf9f59048a28b8cf4a9cd47a3a9320189f65e7e08cb",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_02_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d5e8b4e67e9f2039941a47d0b991061f667cdd3c135d111fc6913365a66ca6a4",
+      "original_summary_sha256": "5d753a548b68310c211aa3883b5922f944bccb891520cff5e3aaeb649e3a9c1d",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_02_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "46208fdcafb9890fd60af0bddd62e035e03c80cd418bcdca0b300b4705279d52",
+      "original_summary_sha256": "60d79522d86956a4bb28f437be93ca6f0afdaef223da17e483830e007eac04dc",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 2,
+        "fleet_seed": 102,
+        "evaluator_seed": 202,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_03_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "51236c77f2d747b032c24c8b9032c2f1ca7a316dc038c2f3eb51a66da71bdcf5",
+      "original_summary_sha256": "62b553b10e1d59fd8c93ff4303b90324553109c479cb896eceb7fbfc00be52ec",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_03_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "d99490a7c81638fbe054f24162b993c6ac742b2c1f1404c370bf2dd18b9f0f01",
+      "original_summary_sha256": "5a3a75200a45d37814cfe84f1cc052144837874728429628b71cc2b661a6c2cf",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_03_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "06eb82fbd5f1c2821285ae7b2d8570ac0978cb03b548149f3a92728477e6c54e",
+      "original_summary_sha256": "bb0f82f010b83c67e13f60593d19e9a45d4157495981efe2e753a2e53538b864",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "4d7622de75029fcd2e620ae039e744ab6bdc44c6d0d0155ad11290bfd1ab147a",
+      "original_summary_sha256": "8e228b1338f261f43360f63025aeae8b8f9a01665837c396aed2f1973a665f99",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_03_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1a61fee5ddf7f8e994a6e94009b77b02a47a17b1ca33c88883bf6cb66f1deb59",
+      "original_summary_sha256": "0e493de5abb805f69694da63ee6d54c78245370e112b5de2fb5114c32234a0bf",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 3,
+        "fleet_seed": 103,
+        "evaluator_seed": 203,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_04_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f9118291abe8345ba8bf7bd8b0801aa30853a8f99ddc077c49a9ca3f705864d2",
+      "original_summary_sha256": "9800c098dea7d959fa2b51f1281fb4789a0dafaa9775f0a62eb6c24a342f1e2d",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_04_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2b027a003e9ac3899bb53e4eb9be65be5b10797889eea2da031d421be35c2eae",
+      "original_summary_sha256": "350e6729466734a5ccbd4aafe95603ff6ac6d015bfcbb118fcfdbff088a00563",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_04_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a56c12fffddf88406a0ed03412bb4bd9232e6af00b4c445a20136af038fc9880",
+      "original_summary_sha256": "79a5e6d42a1512527372286e4d4e8b0067208413f3ece371f21c935eeaefd9cd",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_04_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "80fca11a85317e721b0c3589c58569302f7690fa5c8d7d8315ea313f1ca1ffb5",
+      "original_summary_sha256": "d404231e95ab79a7caa920c8f73c5e5646b2aca4051bef6e95357a8a3dd3f9fa",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_04_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7ac08439c246f2bebe903a3fa996c6f1c8232db9e4c0dedb40693484152a084f",
+      "original_summary_sha256": "455aea55f2f8e3834f8f58b7681e47fb9f7ce71f44bfe1c78996e6e09841ec70",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 4,
+        "fleet_seed": 104,
+        "evaluator_seed": 204,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_05_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "953c5097421809cbda67c609f60df48e74bcb43f5fabcaaf1049c7c5b64a0c91",
+      "original_summary_sha256": "98966448d7ed89f43637056d8f4bc95de9854f62d4a7d0675a4c72eabcc474e2",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_05_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "e2a9f5750efd6542c07398a0eef707ed19bc7934e397a9c452c5df9155eaef22",
+      "original_summary_sha256": "420f3a79a061fec3e7050dc5a0aac32466e5ed69bf57e03dacafd3b7a3acb08f",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_05_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1c209b119c21ea9b5aaf59e7e6531bcbecdc7ba8dd09224d103772965be33fb8",
+      "original_summary_sha256": "c7d9358dbdb2542909560086fcccf84d47affaa9d164d629b139a17fecb56117",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_05_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3fdd1d6379dbb482f42371c09a3364d55c13de774be0d7f1219497335d2e3686",
+      "original_summary_sha256": "f192b502eb3a057f644cbf391ff172392de526a1d758c8fc1d937b3c241f9b3c",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_05_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "0b95eeff91a8cf6f50a77825e1c0c130d38cbfee3f8706755235d511d30a327a",
+      "original_summary_sha256": "4e3adbf00a10f6d9e7f0e4ffd7ec2c81cc690f23f8906aff8ac267f6d8ca1f0d",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 5,
+        "fleet_seed": 105,
+        "evaluator_seed": 205,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_06_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "15a2cccef1fafe090307e50fe335fe2746f9c658cce92965cef6e7b19a3648a7",
+      "original_summary_sha256": "f6d6a429cd6823544e577ceea96e1e3ec591c48ba0b2148ba260b01602e4a568",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_06_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "3f72f3644a7aa36e54991d9813c1995fe07b9ca5757bc13c957882c89e296f5e",
+      "original_summary_sha256": "e4929e7c4c4a57e8499a0601ae3c0a110d8e227dd544a2840d9f9b71536ed4d3",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_06_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7d08444a1d0ee3479317c9fd052de9c6abececfd7b966c6f673d619f2b44e171",
+      "original_summary_sha256": "1c57d7f180eb69298ca79da361ae4557e47018dcf03a20460e3ea9498b92a0af",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_06_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2d25f2e4ab56ed78691670b1f5683c6e3bd0974ad7daf849f3006dbe249cbffd",
+      "original_summary_sha256": "8bd5951bc24c59869a0c7b858ab3ebb3fb351e155de9916f468f4c04d7a8c466",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_06_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "f584da68f70548ee58fc38b693bdc46c63f061e249c0ea34ca970431a6a21cc0",
+      "original_summary_sha256": "f790e85f55967a2ea5a4111eb1fd01642bff116d385a885dc853ac52b93bd499",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 6,
+        "fleet_seed": 106,
+        "evaluator_seed": 206,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_07_causal_round_robin/attempt_001/VALIDATED.json",
+      "receipt_sha256": "45b6621773a9d8e51719fde78018094ce5e97af113b80e940646643ab576ad31",
+      "original_summary_sha256": "c0505f32f891d09c6161da172cfde85542fea1df0e37463d8d92a856c6b929d6",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "causal_round_robin",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_07_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "7010a1832e57ed3962b365083d771718a9d53a3c9816b05bdeb88fe2a99819f7",
+      "original_summary_sha256": "8a2c104d9308576bbf705d133ee59100be61229264875cf961076dd9130ed8a2",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_07_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "2bf3fff472984476a00001108fc76f3d99d0d82f5d80e7130167d9ff04459c2e",
+      "original_summary_sha256": "d0fc6370fb14b3a8d0551b0351a58a84538cc5da48fe2f0e58271ec3436d71cf",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "dla_p2c",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_07_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "1fa70ff8fba244c37f370601cbb1836d4755154b7b6e5661b8aab1e1dc105851",
+      "original_summary_sha256": "b6c6b2abe27e0c28e4bdd0b5357c0362f2a415aaa6b281fccba553f02333d6a5",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "ingress_dla",
+        "steps": 32400
+      }
+    },
+    {
+      "group": "traces_10_12",
+      "receipt": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/runs/we/we/block_07_per_task_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "8e19d1bb748fe52c735cab06cf530237606a5691c7807f3776d7ddfffbfeb1e9",
+      "original_summary_sha256": "d63eaf3a1cf9dc3b9380a57463db9064f92a0dbfd09270b5236f456d9d63efe0",
+      "observed_horizon": 32400,
+      "configuration": {
+        "study": "we",
+        "block": 7,
+        "fleet_seed": 107,
+        "evaluator_seed": 207,
+        "arm": "per_task_dla",
+        "steps": 32400
+      }
+    }
+  ]
+}

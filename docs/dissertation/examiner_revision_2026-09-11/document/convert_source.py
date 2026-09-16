@@ -336,7 +336,10 @@ def inlines(children: list[Token], refs: bool = True) -> str:
             elif href.startswith("#"):
                 out.append(r"\hyperref[" + href[1:] + "]{" + inlines(inner, False) + "}")
             else:
-                out.append(r"\href{\detokenize{" + href + "}}{" + inlines(inner, False) + "}")
+                label = inlines(inner, False)
+                if len(inner) == 1 and re.fullmatch(r"[\w.-]+\.(?:json|csv|md)", inner[0].content):
+                    label = label.replace(r"\_", r"\_\allowbreak{}")
+                out.append(r"\href{\detokenize{" + href + "}}{" + label + "}")
             i = j
         elif typ == "image":
             raise ValueError("Image must be handled as figure")
@@ -371,7 +374,7 @@ preamble = r"""% Additive source-synchronised revision. Build and inspection rec
 \setmonofont{DejaVu Sans Mono}[Scale=0.85]
 \usepackage[left=30mm,right=25mm,top=25mm,bottom=25mm]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage{graphicx}
+\usepackage{graphicx,pdflscape}
 \usepackage{array,booktabs,longtable,tabularx,xltabular}
 \usepackage{caption}
 \usepackage{algorithm}
@@ -413,11 +416,11 @@ Master's dissertation\par
 Supervisor: Dr Sandra Sampaio\par
 \end{center}
 \vfill
-\begin{tabular}{@{}ll@{}}
-Award wording: & \rule{95mm}{0.3pt}\\[9pt]
-Faculty and School: & \rule{95mm}{0.3pt}\\[9pt]
-Student ID: & \rule{95mm}{0.3pt}
-\end{tabular}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+Award wording: & MSc Artificial Intelligence\\[9pt]
+Faculty and School: & Faculty of Science and Engineering,\newline School of Engineering,\newline Department of Computer Science\\[9pt]
+Student ID: & 14185028
+\end{tabularx}
 \clearpage
 \tableofcontents
 \vfill\noindent\textbf{Word count: WORDCOUNT} (main text including tables, equations
@@ -459,14 +462,6 @@ front_declaration = r"""
 \addcontentsline{toc}{section}{Declaration}
 DECLARATION_TEXT
 
-\medskip
-\textbf{Candidate declaration to be signed.} The contribution statement and declared assistance
-accurately describe the work submitted, and all non-original material is acknowledged.\par
-\medskip
-Prior submission for another qualification (select and complete):\par
-$\square$ None.\qquad $\square$ Portions specified below.\par
-\rule{\textwidth}{0.3pt}\par
-\rule{\textwidth}{0.3pt}\par
 \bigskip
 Signature: \rule{60mm}{0.3pt}\qquad Date: \rule{25mm}{0.3pt}
 \clearpage
@@ -491,7 +486,7 @@ short_fig = {
     "4": "Illustrative dispatch comparison",
     "5": "Four-draw morning replication",
     "6": "All eight joint-randomness blocks",
-    "7": "TrafficTwin results workflow demonstration",
+    "7": "TrafficTwin with real data",
     "8": "Morning RSU work distribution",
 }
 short_tab = {
@@ -502,6 +497,8 @@ short_tab = {
     "5": "Morning primary replication",
     "6": "Morning paired contrasts",
     "7": "Eight-block simultaneous contrasts",
+    "7a": "Declared follow-up contrasts",
+    "7b": "Three-trace simultaneous contrasts",
     "8": "Validity limits",
     "9": "Objective verdicts",
     "A1": "Software components and gates",
@@ -522,7 +519,7 @@ front_match = re.search(
 )
 assert front_match, "Markdown Declaration and Acknowledgements are required"
 front_declaration = front_declaration.replace(
-    "DECLARATION_TEXT", inline_md(front_match[1].strip())
+    "DECLARATION_TEXT", "\n\n".join(inline_md(part) for part in front_match[1].strip().split("\n\n"))
 ).replace("ACKNOWLEDGEMENTS_TEXT", inline_md(front_match[2].strip()))
 body_md = md[: front_match.start()] + "## Abstract" + md[front_match.end() :]
 tokens = parser.parse(body_md)
@@ -666,8 +663,8 @@ while i < len(tokens):
             asset = img.attrGet("src")
             figures.append({"number": num, "asset": asset, "caption": m[2], "alt": img.content})
             code = (
-                "\\begin{figure}[htbp]\n\\centering\n"
-                + r"\includegraphics[width=\linewidth,height=.57\textheight,keepaspectratio]{"
+                ("\\begin{landscape}\n\\begin{figure}[p]\n\\centering\n" if num == "7" else "\\begin{figure}[htbp]\n\\centering\n")
+                + (r"\includegraphics[width=\linewidth,height=.49\linewidth,keepaspectratio]{" if num == "7" else r"\includegraphics[width=\linewidth,height=.57\textheight,keepaspectratio]{")
                 + asset
                 + "}\n"
                 + r"\caption["
@@ -678,6 +675,7 @@ while i < len(tokens):
                 + r"\label{fig:"
                 + num
                 + "}\n\\end{figure}"
+                + ("\n\\end{landscape}" if num == "7" else "")
             )
             emit("figure", raw + "\n" + cap, code)
             continue
@@ -753,7 +751,7 @@ while i < len(tokens):
         assert all(len(row) == n for row in rows)
         header = " & ".join(rows[0]) + r" \\"
         code = (
-            (r"\clearpage" + "\n" if num == "8" else "")
+            (r"\clearpage" + "\n" if num in ("7a", "7b", "8") else "")
             + (r"\Needspace{14\baselineskip}" + "\n" if num in ("4", "5") else "")
             + "\\begingroup\n"
             + r"\singlespacing\footnotesize\setlength{\tabcolsep}{3pt}"
@@ -762,7 +760,13 @@ while i < len(tokens):
             + num
             + "}\n"
             + r"\begin{xltabular}{\textwidth}{@{}"
-            + "Y" * n
+            + (
+                r">{\hsize=.75\hsize\linewidth=\hsize}Y"
+                r">{\hsize=.85\hsize\linewidth=\hsize}Y"
+                r">{\hsize=1.4\hsize\linewidth=\hsize}Y"
+                if num == "9"
+                else "Y" * n
+            )
             + "@{}}\n"
             + r"\caption["
             + inline_md(short_tab[num], False)
@@ -822,7 +826,7 @@ while i < len(tokens):
         i += 1
         continue
     raise ValueError(("unexpected block", i, t.type, t.content))
-assert bibnums == [str(i) for i in range(1, 47)]
+assert bibnums == [str(i) for i in range(1, 48)]
 counted = []
 prose_counted = []
 for block in blocks:
@@ -861,6 +865,8 @@ prose_words = len(re.findall(r"[\w]+(?:[’'-][\w]+)*", " ".join(prose_counted))
             "acceptance_bounds": {
                 "prose_only_min": 7600,
                 "package_max": 8950,
+                "owner_waived_word_count_stop": True,
+                "owner_will_trim": True,
             },
             "prose_only_method": (
                 "Same tokenisation and boundaries as package method; "

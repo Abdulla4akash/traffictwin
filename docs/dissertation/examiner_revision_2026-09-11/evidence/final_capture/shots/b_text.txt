@@ -1,0 +1,119 @@
+Overview
+
+home
+
+Home
+
+map
+
+Manchester Operations
+
+health_and_safety
+
+Source Health
+
+route
+
+Guided Demo
+
+search
+
+Search
+
+Build & run
+
+science
+
+Experiment Planner
+
+tune
+
+Parameter Sweep
+
+experiment
+
+Scenario Mutations
+
+compare
+
+What-If Studio
+
+edit_road
+
+Scenario Builder
+
+View 69 more
+
+TrafficTwin
+
+Import-first research UI
+
+Explore the imported evaluation matrix, paired campaign deltas, and domain labels.
+
+TrafficTwin / TOS Results
+
+TOS Results
+
+IMPORTED SIMULATION READ ONLY PAIRED FLEET SEEDS
+
+The explorer reports source-defined deadline success, latency, energy, and decision shares. It does not establish real-world validation or causal conclusions.
+
+Evaluation fleet
+
+Source measure
+
+Evaluation matrix
+wd_am
+wd_pm
+we
+ev
+inc
+baseline
+capscalar_ippo
+capscalar_mappo
+fcdtrain_manwe_mappo
+fcdtrain_manwe_mappo_s102
+gridlocktrain_ft_ippo
+gridlocktrain_ft_mappo
+gridlocktrain_ippo
+gridlocktrain_mappo
+ukfleettrain_ippo
+ukfleettrain_mappo
+0.5
+0.6
+0.7
+0.8
+0.9
+fraction
+Manchester source scenario cell
+Campaign
+
+Each cell is the arithmetic mean across available fleet seeds. Hover shows n.
+
+keyboard_arrow_right
+
+Measure definition and limitations
+
+Paired campaign comparison
+
+Baseline campaign
+
+Variation campaign
+
+wd_am
+wd_pm
+we
+ev
+inc
+0
+0.01
+0.02
+0.03
+Scenario cell
+Variation - baseline (fraction)
+
+Pairing uses common fleet_seed values within the same cell and fleet. Direction is descriptive; it is not labelled as a causal improvement or degradation.
+
+Training/evaluation domain matrix
+
+UNKNOWN is retained when the package does not explicitly establish whether a cell is in-domain or held out. The label does not assess performance quality.
