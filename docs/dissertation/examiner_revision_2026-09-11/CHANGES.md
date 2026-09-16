@@ -1,3 +1,159 @@
+# Citation-wording pass — 16 September 2026
+
+Baseline: `85238791b47b7a8b37fc993a42d4170c77c98c6d`; branch `docs/dissertation-examiner-revision-2026-09-11`. This record supersedes the summaries below. Repository edits are limited to `TrafficTwin_Dissertation.tex`, three validators under `document/`, and this ledger. The historical Markdown, evidence JSONs, assets and tracked PDF remain unchanged. PR #145 remains draft; no merge.
+
+Mandatory **G.1–G.3, G.7 and G.8 are complete**. G.4–G.6 are **skipped / not-applicable**: all three exact string replacements were tried together in one converged latexmk build; it compiled cleanly but left reference [48] on non-final page 46 at **5.83%** fill. They were reverted without a second optional build. This records the joint trial outcome, not a claim that any particular optional edit caused the bibliography overflow.
+
+Counts: **9,554 → 9,576 strict (+22); 7,860 → 7,880 excluding tables and pseudocode (+20)**. No trimming or word budget was applied. The unchanged `document/count_exemplar_words.py::count` is invoked through `validate_prose_pass.py::word_counts`, preserving the previous live-TeX projection, tokenisation and exclusions. The historical CLI would rewrite `document/WORD_COUNT.json`, so it was not used. Both displayed counts match the tooling and built PDF. Bibliography changes do not enter either count.
+
+The [44] decision-tool URL was fetched once with a Chrome browser User-Agent, following redirects with no retry: **HTTP 500**. Only its second `\href` and preceding semicolon clause were removed. The governance link and “Accessed 15 September 2026; checked by the author; outcome: ethics approval not required.” remain exact. The explicit G.8 conditional edit is the sole exception to G.7's generic [41]–[48] preservation list. The other **43** bibitems are byte-identical to `8523879`; [6], [30], [32], [40] have the supplied published venues and DOIs, retain the arXiv title links, and [6] includes its author-version note.
+
+Built PDF: **65 pages**; zero errors, overfull boxes, undefined references, missing glyphs or oversized floats.
+
+TeX SHA-256: `525af8f5ac49e884e2f9bf89dc6a66bd2cb6785b25783d1bc6be7a74a3c549fb`
+PDF filename: `TrafficTwin_Dissertation_2026-09-16_citation_pass.pdf`
+PDF SHA-256: `06ee5fe43a1adbdd2caf663c4d6e852677c6cee0434810ac84041a2c3a82644f`
+Tracked earlier PDF remains `2730a690075f6c29586e9fe16c20f4ed367d1318692d91ae8fe847ebd50de2e8`. The new PDF is delivered locally and is not committed.
+
+## Layout and preservation
+
+- Figures **7a/7b: pages 37/38**. Conclusion and 4.1: **page 39**, with no intervening figure page.
+- Appendix headings **A–G** occur in order on pages **46, 49, 52, 59, 61, 64, 65**, matching the ToC.
+- Body pages 10–42 have minimum fill **71.73%**. Every non-final page exceeds 30%; minimum **35.74%**. The brief table and lead remain together on page 16.
+- All 65 pages were rendered with Poppler and visually inspected, with enlarged review of the revised introduction, brief table and bibliography. No clipping, overlapping text or broken table layout was found.
+- Two formatting-only repairs were needed: remove extra bibliography item spacing after the publication metadata caused overflow; remove the Figure 1 barrier after mandatory-only reflow left body page 11 at **57.78%**. Figure 1 stays on page 12. No text was shortened to repair layout.
+- All **26** table environments retain every numeric token byte-for-byte; their only wording change is the requested G.1 brief-table phrase. All body numeric tokens are unchanged after excluding citation keys. All **50** source tags remain at paragraph/caption ends, and all **48** bibliography keys are cited in the body.
+- PDF hedge counts remain **23 / 47 / 5 / 17** (negative phrases / “not + word” / “rather than” / remain family), within **30 / 50 / 8 / 18**.
+- No mandatory item is outstanding. Commit, push and PR identities are bound in the delivered handoff receipt.
+
+## Validators and receipts
+
+| Validator | Passing / total | Outcome |
+|---|---:|---|
+| `validate_brief_pass.py` | 22/22 | Pass |
+| `validate_exemplar_alignment.py` | 116/116 | Pass |
+| `validate_final_pass.py` | 189/189 | Pass |
+| `validate_option_b.py` | 223/223 | Pass |
+| `validate_platform_connection.py` | 11/11 | Pass |
+| `validate_prose_pass.py` | 57/57 | Pass |
+| `validate_revision.py` | 404/406 | All blocking checks pass; only the two retained report-only word-limit diagnostics are false. |
+
+All seven existing validators ran. The two helper modules were called through their public checks with the historical inputs restored, as in the preceding pass. All validator processes exited successfully. **16/16 mutation probes** rejected missing modelling qualifications, wrong citations/labels, changed metadata or unrelated references, altered table numbers, moved/lost source tags, uncited keys and mismatched counts. Ruff syntax, undefined-name and import checks pass on all three changed validators. No application-suite execution, new research execution or independent review approval is claimed.
+
+`CITATION_PASS_RECEIPTS/` contains acceptance, all validator outputs and source copies, before/after word counts and page measurements, the exact edit ledger, compiler logs, link-fetch headers/status, mutation probes, pdfinfo, source-audit identities and handoff identities. Historical receipt files are not overwritten.
+
+Build command, run from the scratch package with unchanged assets and the previously delivered build inputs:
+
+```sh
+PATH="$HOME/scratch/traffictwin-tex/TinyTeX/bin/universal-darwin:$PATH" \
+TEXINPUTS="$PWD/build_inputs/texmf/tex//:" \
+latexmk -xelatex -interaction=nonstopmode -halt-on-error TrafficTwin_Dissertation.tex
+```
+
+## Exact edit ledger
+
+The audit sources are `~/scratch/REFERENCE_CHECK_2026-09-16.md` Part 2 and `~/TrafficTwinAudit/reference-claim-audit-2026-09-16/CLAIM_ALIGNMENT_AUDIT.md`, with the exact replacement wording and Crossref metadata supplied by the owner prompt. Line locators below show baseline → final. Skipped optional items show identical before/after text; their attempted replacements and one-build outcome are retained in `operations.json` and the optional-trial receipts.
+
+| Requirement | File and lines (before → after) | Before | After | Audit finding / acceptance requirement |
+|---|---|---|---|---|
+| G.1 | TrafficTwin_Dissertation.tex: 185 → 185 | `The 100 ms and 500 ms task deadlines used in this study correspond to those two requirement classes.` | `The study adopts 100 ms and 500 ms as task-completion deadlines motivated by those two communication requirements; treating them as deadlines for the whole offloaded task is a modelling choice.` | TS 22.186 clause 3.1 defines transmitted-to-received message latency; extending it to whole-task completion is a modelling choice. |
+| G.1 | TrafficTwin_Dissertation.tex: 389 → 388 | `Three 3GPP-derived task classes` | `Three task classes with 3GPP-motivated deadlines` | Use the same modelling qualification in the brief-deliverables table. |
+| G.2 | TrafficTwin_Dissertation.tex: 193 → 193 | `Mobility makes this harder: radio conditions and the vehicles around an RSU can change while previously admitted work still occupies its server \cite{ref5}.` | `Mobility makes this harder. Vehicular radio channels vary quickly \cite{ref5}, and the vehicles around an RSU change while previously admitted work still occupies its server, so RSU loads become uneven \cite{ref7}.` | [5] supports vehicular radio-channel variation; [7] supports vehicle mobility and load differences among RSUs. |
+| G.3 | TrafficTwin_Dissertation.tex: 197 → 197 | `I use saved SUMO working-day and incident-model traces as repeatable inputs` | `I use saved SUMO working-day and gridlock traces as repeatable inputs` | Randy labels inc as a gridlock lockdown hour; it is a simulated reactive-control collapse, not a recorded incident model. |
+| G.3 | TrafficTwin_Dissertation.tex: 445 → 444 | `The initial two scenarios are drawn from the Manchester SUMO working-day and incident models: \path{manchester_workingday/trace_wd_am_wdrsu.npz} and the 15 March 2024 incident trace (Table~\ref{tab:2}).` | `The initial two scenarios are drawn from the Manchester SUMO working-day and gridlock traces: \path{manchester_workingday/trace_wd_am_wdrsu.npz} and the 15 March 2024 gridlock trace (Table~\ref{tab:2}).` | Align trace provenance with the retained reactive-control-collapse qualification; scenario names remain unchanged. |
+| G.4 (skipped) | TrafficTwin_Dissertation.tex: 189 → 189 | `Deadline attainment matters because a computed answer has value only within the time window in which an application can use it \cite{ref4}.` | `Deadline attainment matters because a computed answer has value only within the time window in which an application can use it \cite{ref4}.` | Liu and Layland support completion deadlines, not the general value of late answers. Optional claim check: not-applicable; joint first build failed the non-final-page fill threshold, so the exact replacement was reverted without another optional iteration. |
+| G.5 (skipped) | TrafficTwin_Dissertation.tex: 201 → 201 | `Research on RSU-to-RSU cooperation \cite{ref7} and task inference across vehicle, RSU and edge resources \cite{ref8} supplies a wider context for execution placement, as does deep-reinforcement-learning offloading in vehicular edge networks \cite{ref9}, \cite{ref10}, \cite{ref11}.` | `Research on RSU-to-RSU cooperation \cite{ref7} and task inference across vehicle, RSU and edge resources \cite{ref8} supplies a wider context for execution placement, as does deep-reinforcement-learning offloading in vehicular edge networks \cite{ref9}, \cite{ref10}, \cite{ref11}.` | [9] is an edge-intelligence overview; [10] and [11] carry the DRL-offloading claim. Optional claim check: not-applicable; joint first build failed the non-final-page fill threshold, so the exact replacement was reverted without another optional iteration. |
+| G.6 (skipped) | TrafficTwin_Dissertation.tex: 234 → 233 | `\cite{ref12}, \cite{ref13};` | `\cite{ref12}, \cite{ref13};` | Add the primary paper explicitly stating queue-count versus service-work distinctions alongside the unpinpointed textbook. Optional claim check: not-applicable; joint first build failed the non-final-page fill threshold, so the exact replacement was reverted without another optional iteration. |
+| G.7 | TrafficTwin_Dissertation.tex: 1399 → 1398 | `\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{``URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.''} arXiv:2311.18352, 2023.` | `\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{``URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.''} \emph{IEEE Transactions on Vehicular Technology}, 73(8), 11789--11805, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/TVT.2024.3370196}}{10.1109/TVT.2024.3370196}. Author version arXiv:2311.18352.` | Replace the arXiv-only record with the published venue/pages/DOI supplied from Crossref; retain its arXiv title link. |
+| G.7 | TrafficTwin_Dissertation.tex: 1495 → 1494 | `\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{``Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.''} arXiv:2407.11310, 2024.` | `\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{``Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.''} \emph{2024 7th International Conference on Information Communication and Signal Processing (ICICSP)}, 1137--1141, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/ICICSP62589.2024.10809180}}{10.1109/ICICSP62589.2024.10809180}.` | Replace the arXiv-only record with the published venue/pages/DOI supplied from Crossref; retain its arXiv title link. |
+| G.7 | TrafficTwin_Dissertation.tex: 1503 → 1502 | `\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{``Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.''} arXiv:2010.05693, 2020.` | `\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{``Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.''} \emph{GLOBECOM 2020 -- 2020 IEEE Global Communications Conference}, 1--6, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/GLOBECOM42002.2020.9322247}}{10.1109/GLOBECOM42002.2020.9322247}.` | Replace the arXiv-only record with the published venue/pages/DOI supplied from Crossref; retain its arXiv title link. |
+| G.7 | TrafficTwin_Dissertation.tex: 1535 → 1534 | `\bibitem{ref40} S. Huang and S. Ontañón. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{``A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.''} arXiv:2006.14171, 2020.` | `\bibitem{ref40} S. Huang and S. Ontañón. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{``A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.''} \emph{The International FLAIRS Conference Proceedings}, 35, 2022. DOI: \href{\detokenize{https://doi.org/10.32473/flairs.v35i.130584}}{10.32473/flairs.v35i.130584}.` | Replace the arXiv-only record with the published venue/pages/DOI supplied from Crossref; retain its arXiv title link. |
+| G.8 | TrafficTwin_Dissertation.tex: 1551 → removed | `; \href{\detokenize{https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html}}{decision tool}` | ∅ | Single browser-user-agent fetch returned HTTP 500; remove only the unavailable second link and clause, preserving the governance link and author-attested outcome. |
+| A.layout | TrafficTwin_Dissertation.tex: 1375 → 1374 | `\setlength{\itemsep}{\smallskipamount}` | `\setlength{\itemsep}{0pt}` | Mandatory published venue/DOI entries pushed reference [48] onto a 5.83%-filled non-final page. Remove inter-item extra space to keep the bibliography within four pages; result numbers and entry text are unaffected. |
+| A.word-count | TrafficTwin_Dissertation.tex: 63–65 → 63–65 | `\vfill\noindent\textbf{Word count: 9,554} (main text including tables, equations`<br>`and pseudocode; excluding captions, references, appendices and front matter);`<br>`7,860 excluding tables and pseudocode.\par` | `\vfill\noindent\textbf{Word count: 9,576} (main text including tables, equations`<br>`and pseudocode; excluding captions, references, appendices and front matter);`<br>`7,880 excluding tables and pseudocode.\par` | Report both recomputed counts from unchanged count_exemplar_words.py::count tokenisation and the live-TeX overlay; no trimming. |
+| A.layout | TrafficTwin_Dissertation.tex: 222–225 → 222–224 | `% END SOURCE BLOCK 018`<br>``<br>`\FloatBarrier`<br>`% BEGIN SOURCE BLOCK 019 heading` | `% END SOURCE BLOCK 018`<br>``<br>`% BEGIN SOURCE BLOCK 019 heading` | Mandatory-only reflow leaves body page 11 at 57.78% before the Figure 1 barrier. Allow related-work text to fill the available space while Figure 1 floats to the next page; no prose or numbers change. |
+| A.validators | document/validate_prose_pass.py: 27–28 → 27–30 | `def baseline(name="TrafficTwin_Dissertation.tex"):`<br>`    return subprocess.check_output(["git", "show", f"{BASE}:{PACKAGE}/{name}"], cwd=ROOT).decode()` | `def baseline(name="TrafficTwin_Dissertation.tex", revision=BASE):`<br>`    return subprocess.check_output(`<br>`        ["git", "show", f"{revision}:{PACKAGE}/{name}"], cwd=ROOT`<br>`    ).decode()` | Bind live checks to 8523879: exact G.7/G.8 reference edits, mandatory prose, skipped optional status, numeric/table/tag preservation and displayed counts; retain historical guards. |
+| A.validators | document/validate_prose_pass.py: 224–223 → 226–384 | ∅ | `CITATION_BASE = "85238791b47b7a8b37fc993a42d4170c77c98c6d"`<br>`CITATION_OPTIONAL = {`<br>`    key: {`<br>`        "status": "not-applicable",`<br>`        "reason": "Skipped after one optional build: non-final bibliography page 46 filled 5.83%.",`<br>`        "build_iterations": 1,`<br>`    }`<br>`    for key in ("G.4", "G.5", "G.6")`<br>`}`<br>`PUBLISHED_REFERENCES = {`<br>`    6: (`<br>`        "IEEE Transactions on Vehicular Technology",`<br>`        "73(8), 11789--11805, 2024",`<br>`        "10.1109/TVT.2024.3370196",`<br>`    ),`<br>`    30: (`<br>`        "2024 7th International Conference on Information Communication and Signal Processing (ICICSP)",`<br>`        "1137--1141, 2024",`<br>`        "10.1109/ICICSP62589.2024.10809180",`<br>`    ),`<br>`    32: (`<br>`        "GLOBECOM 2020 -- 2020 IEEE Global Communications Conference",`<br>`        "1--6, 2020",`<br>`        "10.1109/GLOBECOM42002.2020.9322247",`<br>`    ),`<br>`    40: (`<br>`        "The International FLAIRS Conference Proceedings",`<br>`        "35, 2022",`<br>`        "10.32473/flairs.v35i.130584",`<br>`    ),`<br>`}`<br>`DECISION_TOOL_CLAUSE = (`<br>`    r"; \href{\detokenize{https://www.training.itservices.manchester.ac.uk/"`<br>`    r"uom/ERM/ethics_decision_tool/story.html}}{decision tool}"`<br>`)`<br>``<br>``<br>`def citation_reference_checks(tex):`<br>`    """G.7/G.8 permit five exact edits; all other reference bytes stay pinned."""`<br>`    from validate_brief_pass import references`<br>``<br>`    old = references(baseline(revision=CITATION_BASE))`<br>`    actual = references(tex)`<br>`    expected = old.copy()`<br>`    result = {}`<br>`    for number, (venue, details, doi) in PUBLISHED_REFERENCES.items():`<br>`        tail = (`<br>`            r"\emph{"`<br>`            + venue`<br>`            + "}, "`<br>`            + details`<br>`            + r". DOI: \href{\detokenize{https://doi.org/"`<br>`            + doi`<br>`            + "}}{"`<br>`            + doi`<br>`            + "}."`<br>`            + (" Author version arXiv:2311.18352." if number == 6 else "")`<br>`        )`<br>`        expected[number], substitutions = re.subn(`<br>`            r"arXiv:[\d.]+, \d{4}\.$", lambda _: tail, old[number], flags=re.M`<br>`        )`<br>`        result[f"citation_ref{number}_published_version_exact"] = (`<br>`            substitutions == 1`<br>`            and actual.get(number) == expected[number]`<br>`            and doi in actual.get(number, "")`<br>`        )`<br>`    expected[44] = old[44].replace(DECISION_TOOL_CLAUSE, "")`<br>`    result["citation_ref44_only_failed_second_link_removed"] = (`<br>`        old[44].count(DECISION_TOOL_CLAUSE) == 1 and actual.get(44) == expected[44]`<br>`    )`<br>`    result["citation_all_other_bibitems_byte_identical_to_8523879"] = set(actual) == set(`<br>`        old`<br>`    ) and all(`<br>`        actual.get(n) == value for n, value in old.items() if n not in {*PUBLISHED_REFERENCES, 44}`<br>`    )`<br>`    return result`<br>``<br>``<br>`def citation_checks(tex):`<br>`    old = baseline(revision=CITATION_BASE)`<br>`    current, previous = blocks(tex), blocks(old)`<br>`    main = body(tex)`<br>`    result = citation_reference_checks(tex)`<br>`    result["citation_misleading_labels_absent"] = all(`<br>`        phrase not in main`<br>`        for phrase in ("incident-model", "incident models", "3GPP-derived task classes")`<br>`    )`<br>`    result["citation_3gpp_whole_task_modelling_choice"] = (`<br>`        "modelling choice" in current[10][1]`<br>`        and "task-completion deadlines motivated by those two communication requirements"`<br>`        in current[10][1]`<br>`        and "Three task classes with 3GPP-motivated deadlines" in main`<br>`    )`<br>`    result["citation_mobility_radio_and_rsu_split"] = (`<br>`        r"Vehicular radio channels vary quickly \cite{ref5}" in current[12][1]`<br>`        and r"so RSU loads become uneven \cite{ref7}." in current[12][1]`<br>`    )`<br>`    qualifier = (`<br>`        "The incident hour is that study's documented reactive-control collapse on 15 March 2024, "`<br>`        "used here as a simulated dense-traffic stress case rather than a recorded incident."`<br>`    )`<br>`    result["citation_gridlock_provenance_and_collapse_qualification"] = (`<br>`        "I use saved SUMO working-day and gridlock traces as repeatable inputs" in main`<br>`        and "Manchester SUMO working-day and gridlock traces:" in main`<br>`        and "15 March 2024 gridlock trace" in main`<br>`        and qualifier in main`<br>`    )`<br>`    for key, number in {"G.4": 11, "G.5": 14, "G.6": 21}.items():`<br>`        if CITATION_OPTIONAL[key]["status"] == "applied":`<br>`            value = current[number][1]`<br>`            if key == "G.4":`<br>`                passed = "has value only within" not in main`<br>`            elif key == "G.5":`<br>`                passed = (`<br>`                    r"\cite{ref9}" in value`<br>`                    and r"\cite{ref7}" in value`<br>`                    and value.index(r"\cite{ref9}") < value.index(r"\cite{ref7}")`<br>`                )`<br>`            else:`<br>`                passed = r"\cite{ref14}" in value.split(";", 1)[0]`<br>`            result["citation_optional_" + key + "_applied"] = passed`<br>`        else:`<br>`            # The optional claim check is not applicable; guard the unedited baseline instead.`<br>`            result["citation_optional_" + key + "_skipped_text_unchanged"] = (`<br>`                current[number] == previous[number]`<br>`            )`<br>`    old_tables, new_tables = table_environments(old), table_environments(tex)`<br>`    numeric = lambda value: re.findall(r"[-+]?\d+(?:[,.]\d+)*", value)`<br>`    result["citation_every_table_numeric_token_byte_identical_to_8523879"] = len(old_tables) == len(`<br>`        new_tables`<br>`    ) and [(kind, numeric(value)) for kind, value in old_tables] == [`<br>`        (kind, numeric(value)) for kind, value in new_tables`<br>`    ]`<br>`    result["citation_only_authorised_table_wording_changed"] = [`<br>`        (`<br>`            kind,`<br>`            value.replace(`<br>`                "Three 3GPP-derived task classes",`<br>`                "Three task classes with 3GPP-motivated deadlines",`<br>`            ),`<br>`        )`<br>`        for kind, value in old_tables`<br>`    ] == new_tables`<br>`    result["citation_all_fifty_source_tags_preserved_from_8523879"] = (`<br>`        re.findall(TAG, main) == re.findall(TAG, body(old)) and len(re.findall(TAG, main)) == 50`<br>`    )`<br>`    # All manuscript numeric text is fixed; citation-key additions and bibliography metadata are exempt.`<br>`    without_cites = lambda value: re.sub(r"\\cite\{[^}]+\}", "", value)`<br>`    result["citation_all_body_numeric_tokens_unchanged"] = numeric(without_cites(main)) == numeric(`<br>`        without_cites(body(old))`<br>`    )`<br>`    counts = word_counts(tex)["after"]`<br>`    result["citation_displayed_counts_match_count_exemplar_words"] = (`<br>`        rf"\textbf{{Word count: {counts['strict']:,}}}" in tex`<br>`        and f"{counts['prose_only']:,} excluding tables and pseudocode." in tex`<br>`    )`<br>`    return result`<br>``<br>`` | Bind live checks to 8523879: exact G.7/G.8 reference edits, mandatory prose, skipped optional status, numeric/table/tag preservation and displayed counts; retain historical guards. |
+| A.validators | document/validate_prose_pass.py: 368–367 → 529–529 | ∅ | `    result.update(citation_checks(tex))` | Bind live checks to 8523879: exact G.7/G.8 reference edits, mandatory prose, skipped optional status, numeric/table/tag preservation and displayed counts; retain historical guards. |
+| A.validators | document/validate_prose_pass.py: 511–510 → 673–674 | ∅ | `        "citation_baseline_commit": CITATION_BASE,`<br>`        "citation_optional_items": CITATION_OPTIONAL,` | Bind live checks to 8523879: exact G.7/G.8 reference edits, mandatory prose, skipped optional status, numeric/table/tag preservation and displayed counts; retain historical guards. |
+| A.validators | document/validate_brief_pass.py: 103–105 → 103–107 | `    refs, old_refs = references(tex), references(old)`<br>`    result["brief_references_1_through_47_byte_identical"] = all(`<br>`        refs.get(n) == old_refs[n] for n in range(1, 48)` | `    refs = references(tex)`<br>`    from validate_prose_pass import citation_reference_checks`<br>``<br>`    result["brief_references_preserved_except_exact_citation_pass_edits"] = all(`<br>`        citation_reference_checks(tex).values()` | Bind live checks to 8523879: exact G.7/G.8 reference edits, mandatory prose, skipped optional status, numeric/table/tag preservation and displayed counts; retain historical guards. |
+| A.validators | document/validate_final_pass.py: 354–359 → 354–356 | `    # The TeX bibliography may append ref48, while refs 1--47 stay exact.`<br>`    from validate_brief_pass import baseline as brief_baseline`<br>`    from validate_brief_pass import references as tex_references`<br>``<br>`    live_references = tex_references((here / "TrafficTwin_Dissertation.tex").read_text())`<br>`    old_references = tex_references(brief_baseline())` | `    # Preserve the historical Markdown guard and allow only the exact G.7/G.8 TeX edits.`<br>`    from validate_prose_pass import citation_reference_checks`<br>`` | Bind live checks to 8523879: exact G.7/G.8 reference edits, mandatory prose, skipped optional status, numeric/table/tag preservation and displayed counts; retain historical guards. |
+| A.validators | document/validate_final_pass.py: 361–362 → 358–359 | `        live_references.get(n) == old_references[n] for n in range(1, 48)`<br>`    ) and list(live_references) in (list(range(1, 48)), list(range(1, 49)))` | `        citation_reference_checks((here / "TrafficTwin_Dissertation.tex").read_text()).values()`<br>`    )` | Bind live checks to 8523879: exact G.7/G.8 reference edits, mandatory prose, skipped optional status, numeric/table/tag preservation and displayed counts; retain historical guards. |
+
+## Per-page measurements before and after
+
+The unchanged method counts `pdftotext -layout` whitespace tokens after removing the physical page-number footer. Fill is the text/image/vector bounding-box vertical extent clipped to 25 mm margins, excluding the footer, not ink density. Baseline PDF hash is `34d418573249bdbc4a37728f9fe23e2380759783dfa9a08f769d5ce4fe914683`. Reflow means each row compares physical pages, not identical content spans.
+
+| Physical page | Before words | After words | Before fill % | After fill % |
+|---:|---:|---:|---:|---:|
+| 1 | 56 | 56 | 92.66 | 92.66 |
+| 2 | 500 | 500 | 99.69 | 99.69 |
+| 3 | 439 | 439 | 99.59 | 99.59 |
+| 4 | 1381 | 1381 | 95.44 | 95.44 |
+| 5 | 75 | 75 | 39.31 | 39.31 |
+| 6 | 349 | 349 | 98.57 | 98.57 |
+| 7 | 325 | 325 | 82.71 | 82.71 |
+| 8 | 188 | 188 | 48.90 | 48.90 |
+| 9 | 305 | 305 | 88.05 | 88.05 |
+| 10 | 377 | 366 | 95.58 | 94.81 |
+| 11 | 319 | 384 | 91.20 | 98.48 |
+| 12 | 355 | 294 | 95.57 | 92.71 |
+| 13 | 414 | 429 | 94.50 | 99.59 |
+| 14 | 346 | 337 | 98.23 | 98.23 |
+| 15 | 268 | 292 | 80.30 | 85.42 |
+| 16 | 356 | 358 | 90.35 | 90.35 |
+| 17 | 320 | 322 | 86.34 | 86.34 |
+| 18 | 294 | 294 | 97.81 | 97.81 |
+| 19 | 368 | 368 | 99.59 | 99.59 |
+| 20 | 292 | 292 | 99.09 | 99.09 |
+| 21 | 334 | 334 | 99.46 | 99.46 |
+| 22 | 253 | 253 | 71.73 | 71.73 |
+| 23 | 313 | 313 | 95.38 | 95.38 |
+| 24 | 405 | 405 | 98.48 | 98.48 |
+| 25 | 309 | 309 | 95.08 | 95.08 |
+| 26 | 351 | 351 | 99.03 | 99.03 |
+| 27 | 352 | 352 | 86.70 | 86.70 |
+| 28 | 239 | 239 | 73.82 | 73.82 |
+| 29 | 231 | 231 | 73.70 | 73.70 |
+| 30 | 182 | 182 | 81.38 | 81.38 |
+| 31 | 423 | 423 | 100.00 | 100.00 |
+| 32 | 276 | 276 | 99.68 | 99.68 |
+| 33 | 411 | 411 | 98.53 | 98.53 |
+| 34 | 375 | 375 | 99.54 | 99.54 |
+| 35 | 354 | 354 | 96.43 | 96.43 |
+| 36 | 359 | 359 | 94.67 | 94.67 |
+| 37 | 133 | 133 | 98.33 | 98.33 |
+| 38 | 45 | 45 | 78.31 | 78.31 |
+| 39 | 345 | 345 | 100.00 | 100.00 |
+| 40 | 363 | 363 | 94.39 | 94.39 |
+| 41 | 353 | 353 | 98.47 | 98.47 |
+| 42 | 354 | 364 | 98.85 | 97.92 |
+| 43 | 375 | 400 | 99.04 | 98.32 |
+| 44 | 401 | 418 | 96.97 | 98.32 |
+| 45 | 382 | 369 | 93.77 | 83.81 |
+| 46 | 374 | 374 | 99.28 | 99.28 |
+| 47 | 380 | 380 | 99.59 | 99.59 |
+| 48 | 316 | 316 | 79.77 | 79.77 |
+| 49 | 437 | 437 | 96.47 | 96.47 |
+| 50 | 444 | 444 | 99.63 | 99.63 |
+| 51 | 167 | 167 | 35.74 | 35.74 |
+| 52 | 462 | 462 | 90.72 | 90.72 |
+| 53 | 562 | 562 | 99.12 | 99.12 |
+| 54 | 467 | 467 | 98.84 | 98.84 |
+| 55 | 490 | 490 | 93.86 | 93.86 |
+| 56 | 327 | 327 | 99.59 | 99.59 |
+| 57 | 524 | 524 | 98.67 | 98.67 |
+| 58 | 406 | 406 | 96.61 | 96.61 |
+| 59 | 470 | 470 | 99.71 | 99.71 |
+| 60 | 189 | 189 | 53.02 | 53.02 |
+| 61 | 502 | 502 | 98.84 | 98.84 |
+| 62 | 348 | 348 | 96.80 | 96.80 |
+| 63 | 275 | 275 | 48.64 | 48.64 |
+| 64 | 549 | 549 | 94.39 | 94.39 |
+| 65 | 251 | 251 | 78.15 | 78.15 |
+
+---
+
 # Registered-brief and review-fixes pass — 16 September 2026
 
 Baseline: `2f1af28400c827ab671200507d1f2e147c1570b7`; branch `docs/dissertation-examiner-revision-2026-09-11`. This record supersedes the earlier pass summaries below. Repository edits are confined to the TeX, validators, this ledger and the single README heading explicitly authorised by the owner during this pass. Historical evidence JSONs, Markdown, assets and the tracked PDF are unchanged.

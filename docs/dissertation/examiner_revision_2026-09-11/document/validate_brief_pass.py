@@ -100,9 +100,11 @@ def checks(here: Path = HERE, tex_override: str | None = None) -> dict[str, bool
         and r"maps the registered project brief's deliverables to this report \cite{ref48}."
         in brief
     )
-    refs, old_refs = references(tex), references(old)
-    result["brief_references_1_through_47_byte_identical"] = all(
-        refs.get(n) == old_refs[n] for n in range(1, 48)
+    refs = references(tex)
+    from validate_prose_pass import citation_reference_checks
+
+    result["brief_references_preserved_except_exact_citation_pass_edits"] = all(
+        citation_reference_checks(tex).values()
     )
     result["brief_ref48_once_after_ref47"] = (
         list(refs) == list(range(1, 49))

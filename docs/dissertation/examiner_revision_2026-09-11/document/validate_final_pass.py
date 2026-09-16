@@ -351,15 +351,12 @@ def restore_final_pass(root: Path, here: Path, revised: str) -> tuple[str, dict[
         and references.count('<a id="ref-47"></a>') == references.count("[47] R. P. Putra") == 1
         and "DOI pending in the camera-ready copy" in references
     )
-    # The TeX bibliography may append ref48, while refs 1--47 stay exact.
-    from validate_brief_pass import baseline as brief_baseline
-    from validate_brief_pass import references as tex_references
+    # Preserve the historical Markdown guard and allow only the exact G.7/G.8 TeX edits.
+    from validate_prose_pass import citation_reference_checks
 
-    live_references = tex_references((here / "TrafficTwin_Dissertation.tex").read_text())
-    old_references = tex_references(brief_baseline())
     checks["final_references_1_to_46_exact_and_ref47_once"] &= all(
-        live_references.get(n) == old_references[n] for n in range(1, 48)
-    ) and list(live_references) in (list(range(1, 48)), list(range(1, 49)))
+        citation_reference_checks((here / "TrafficTwin_Dissertation.tex").read_text()).values()
+    )
     checks["final_ref47_provenance_in_1_1_and_2_3"] = all(
         "[[47]](#ref-47)" in section(revised, number) for number in ("1.1", "2.3")
     )

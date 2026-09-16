@@ -60,9 +60,9 @@ Supervisor: Dr Sandra Sampaio\par
 \noindent Student ID: 14185028\par
 \clearpage
 \tableofcontents
-\vfill\noindent\textbf{Word count: 9,554} (main text including tables, equations
+\vfill\noindent\textbf{Word count: 9,576} (main text including tables, equations
 and pseudocode; excluding captions, references, appendices and front matter);
-7,860 excluding tables and pseudocode.\par
+7,880 excluding tables and pseudocode.\par
 \clearpage
 {\footnotesize\singlespacing
 \listoffigures
@@ -182,7 +182,7 @@ Vehicular edge computing concerns where a vehicle's computational tasks should r
 % END SOURCE BLOCK 009
 
 % BEGIN SOURCE BLOCK 010 paragraph
-WHO's \emph{Global status report on road safety 2023} estimates 1.19 million road traffic deaths in 2021 \cite{ref43}, motivating research into timely information sharing. 3GPP TS 22.186 v16.2.0 sets maximum end-to-end latencies of 100 ms for automated-driving information sharing between a vehicle and an RSU (clause 5.3, Table 5.3-1) and 500 ms for platooning reporting, including vehicle--RSU communication (clause 5.2, Table 5.2-1) \cite{ref42}. The 100 ms and 500 ms task deadlines used in this study correspond to those two requirement classes.
+WHO's \emph{Global status report on road safety 2023} estimates 1.19 million road traffic deaths in 2021 \cite{ref43}, motivating research into timely information sharing. 3GPP TS 22.186 v16.2.0 sets maximum end-to-end latencies of 100 ms for automated-driving information sharing between a vehicle and an RSU (clause 5.3, Table 5.3-1) and 500 ms for platooning reporting, including vehicle--RSU communication (clause 5.2, Table 5.2-1) \cite{ref42}. The study adopts 100 ms and 500 ms as task-completion deadlines motivated by those two communication requirements; treating them as deadlines for the whole offloaded task is a modelling choice.
 % END SOURCE BLOCK 010
 
 % BEGIN SOURCE BLOCK 011 paragraph
@@ -190,11 +190,11 @@ Deadline attainment matters because a computed answer has value only within the 
 % END SOURCE BLOCK 011
 
 % BEGIN SOURCE BLOCK 012 paragraph
-Mobility makes this harder: radio conditions and the vehicles around an RSU can change while previously admitted work still occupies its server \cite{ref5}. Research on heterogeneous vehicular edge computing accordingly considers communication and resource allocation together with stringent latency requirements \cite{ref6}. This motivates examining infrastructure decisions under fixed vehicle-policy weights.
+Mobility makes this harder. Vehicular radio channels vary quickly \cite{ref5}, and the vehicles around an RSU change while previously admitted work still occupies its server, so RSU loads become uneven \cite{ref7}. Research on heterogeneous vehicular edge computing accordingly considers communication and resource allocation together with stringent latency requirements \cite{ref6}. This motivates examining infrastructure decisions under fixed vehicle-policy weights.
 % END SOURCE BLOCK 012
 
 % BEGIN SOURCE BLOCK 013 paragraph
-The Manchester scenarios, taken from a count-matched, demand-scaled Manchester SUMO network around Etihad and Co-op Live \cite{ref47}, give the comparison a concrete intelligent-transport setting. I use saved SUMO working-day and incident-model traces as repeatable inputs, exposing the same scheduling rules to different scenario conditions. An operator must decide whether to retain ingress execution, distribute work or alter admission, accounting for coordination cost and available service.
+The Manchester scenarios, taken from a count-matched, demand-scaled Manchester SUMO network around Etihad and Co-op Live \cite{ref47}, give the comparison a concrete intelligent-transport setting. I use saved SUMO working-day and gridlock traces as repeatable inputs, exposing the same scheduling rules to different scenario conditions. An operator must decide whether to retain ingress execution, distribute work or alter admission, accounting for coordination cost and available service.
 % END SOURCE BLOCK 013
 
 % BEGIN SOURCE BLOCK 014 paragraph
@@ -221,7 +221,6 @@ I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's up
 \end{figure}
 % END SOURCE BLOCK 018
 
-\FloatBarrier
 % BEGIN SOURCE BLOCK 019 heading
 \subsection{Related work and the position of this study}\label{sec:1.2}
 % END SOURCE BLOCK 019
@@ -386,7 +385,7 @@ The \hyperref[tab:brief]{Brief deliverables} table maps the registered project b
 Deliverable (brief wording) & Where addressed \\
 \midrule
 (A) An investigation into a suitable methodology for fulfilling the project objectives. & Chapter~\ref{sec:2}; sealed protocol, Section~\ref{sec:2.6} \\
-(B) Design and implementation of a few ITS service use cases. & Three 3GPP-derived task classes, Section~\ref{sec:2.3}; five Manchester scenarios, Table~\ref{tab:2} and Section~\ref{sec:3.4}; platform workflows, Section~\ref{sec:3.7} \\
+(B) Design and implementation of a few ITS service use cases. & Three task classes with 3GPP-motivated deadlines, Section~\ref{sec:2.3}; five Manchester scenarios, Table~\ref{tab:2} and Section~\ref{sec:3.4}; platform workflows, Section~\ref{sec:3.7} \\
 (C) An investigation into the run-time profile of data-intensive ITS services. & Scheduler-only cost benchmark, Table~\ref{tab:D2}; campaign run durations, Appendix~\ref{app:E} \\
 (D) An investigation into the suitability of existing (Cloud) resource management strategies for the fulfilment of ITS service requirements. & Ingress, common-target, round-robin and two-choice dispatch evaluated, Sections~\ref{sec:1.2}, \ref{sec:2.5} and 3.2--3.4, Table~\ref{tab:1} \\
 (E) Proposal of strategies for dynamic management of resources using available devices and clouds. & Causal per-task placement with deadline-aware admission, Algorithm~\ref{alg:2}; evidence, Table~\ref{tab:7} \\
@@ -442,7 +441,7 @@ V2V helper selection follows the inherited strongest-link convention, held const
 % END SOURCE BLOCK 060
 
 % BEGIN SOURCE BLOCK 061 paragraph
-The initial two scenarios are drawn from the Manchester SUMO working-day and incident models: \path{manchester_workingday/trace_wd_am_wdrsu.npz} and the 15 March 2024 incident trace (Table~\ref{tab:2}). Both traces use Putra et al.'s count-matched, demand-scaled Manchester SUMO network around Etihad Stadium and Co-op Live \cite{ref47}. The source study builds the network from OpenStreetMap, scales demand uniformly to 70\% of observed sensor counts to avoid simulated gridlock, and reports SUMO 1.27.0 \cite{ref47}. The incident hour is that study's documented reactive-control collapse on 15 March 2024, used here as a simulated dense-traffic stress case rather than a recorded incident. Coordinates are local trace metres. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel \hyperref[source-s7]{[S7]}.
+The initial two scenarios are drawn from the Manchester SUMO working-day and gridlock traces: \path{manchester_workingday/trace_wd_am_wdrsu.npz} and the 15 March 2024 gridlock trace (Table~\ref{tab:2}). Both traces use Putra et al.'s count-matched, demand-scaled Manchester SUMO network around Etihad Stadium and Co-op Live \cite{ref47}. The source study builds the network from OpenStreetMap, scales demand uniformly to 70\% of observed sensor counts to avoid simulated gridlock, and reports SUMO 1.27.0 \cite{ref47}. The incident hour is that study's documented reactive-control collapse on 15 March 2024, used here as a simulated dense-traffic stress case rather than a recorded incident. Coordinates are local trace metres. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel \hyperref[source-s7]{[S7]}.
 % END SOURCE BLOCK 061
 
 % BEGIN SOURCE BLOCK 062 paragraph
@@ -1372,7 +1371,7 @@ I controlled AI assistance through specifications, code review, personal modific
 
 % BEGIN SOURCE BLOCK 206 bibliography_open
 \FloatBarrier\singlespacing\addcontentsline{toc}{section}{References}\begin{thebibliography}{99}
-\setlength{\itemsep}{\smallskipamount}
+\setlength{\itemsep}{0pt}
 % END SOURCE BLOCK 206
 
 % BEGIN SOURCE BLOCK 207 bibliography_item
@@ -1396,7 +1395,7 @@ I controlled AI assistance through specifications, code review, personal modific
 % END SOURCE BLOCK 211
 
 % BEGIN SOURCE BLOCK 212 bibliography_item
-\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{``URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.''} arXiv:2311.18352, 2023.
+\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{``URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.''} \emph{IEEE Transactions on Vehicular Technology}, 73(8), 11789--11805, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/TVT.2024.3370196}}{10.1109/TVT.2024.3370196}. Author version arXiv:2311.18352.
 % END SOURCE BLOCK 212
 
 % BEGIN SOURCE BLOCK 213 bibliography_item
@@ -1492,7 +1491,7 @@ I controlled AI assistance through specifications, code review, personal modific
 % END SOURCE BLOCK 235
 
 % BEGIN SOURCE BLOCK 236 bibliography_item
-\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{``Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.''} arXiv:2407.11310, 2024.
+\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{``Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.''} \emph{2024 7th International Conference on Information Communication and Signal Processing (ICICSP)}, 1137--1141, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/ICICSP62589.2024.10809180}}{10.1109/ICICSP62589.2024.10809180}.
 % END SOURCE BLOCK 236
 
 % BEGIN SOURCE BLOCK 237 bibliography_item
@@ -1500,7 +1499,7 @@ I controlled AI assistance through specifications, code review, personal modific
 % END SOURCE BLOCK 237
 
 % BEGIN SOURCE BLOCK 238 bibliography_item
-\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{``Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.''} arXiv:2010.05693, 2020.
+\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{``Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.''} \emph{GLOBECOM 2020 -- 2020 IEEE Global Communications Conference}, 1--6, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/GLOBECOM42002.2020.9322247}}{10.1109/GLOBECOM42002.2020.9322247}.
 % END SOURCE BLOCK 238
 
 % BEGIN SOURCE BLOCK 239 bibliography_item
@@ -1532,7 +1531,7 @@ I controlled AI assistance through specifications, code review, personal modific
 % END SOURCE BLOCK 245
 
 % BEGIN SOURCE BLOCK 246 bibliography_item
-\bibitem{ref40} S. Huang and S. Ontañón. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{``A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.''} arXiv:2006.14171, 2020.
+\bibitem{ref40} S. Huang and S. Ontañón. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{``A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.''} \emph{The International FLAIRS Conference Proceedings}, 35, 2022. DOI: \href{\detokenize{https://doi.org/10.32473/flairs.v35i.130584}}{10.32473/flairs.v35i.130584}.
 % END SOURCE BLOCK 246
 
 % BEGIN SOURCE BLOCK 247 bibliography_item
@@ -1548,7 +1547,7 @@ I controlled AI assistance through specifications, code review, personal modific
 % END SOURCE BLOCK 249
 
 % BEGIN SOURCE BLOCK 250 bibliography_item
-\bibitem{ref44} The University of Manchester. \emph{Ethics Decision Tool.} \href{\detokenize{https://www.manchester.ac.uk/research/environment/governance/ethics/approval/}}{University guidance}; \href{\detokenize{https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html}}{decision tool}. Accessed 15 September 2026; checked by the author; outcome: ethics approval not required.
+\bibitem{ref44} The University of Manchester. \emph{Ethics Decision Tool.} \href{\detokenize{https://www.manchester.ac.uk/research/environment/governance/ethics/approval/}}{University guidance}. Accessed 15 September 2026; checked by the author; outcome: ethics approval not required.
 % END SOURCE BLOCK 250
 
 % BEGIN SOURCE BLOCK 251 bibliography_item

@@ -24,8 +24,10 @@ BLOCK = r"% BEGIN SOURCE BLOCK (\d+) (\w+)\n(.*?)\n% END SOURCE BLOCK \d+"
 TAG = r"\\hyperref\[source-s(\d+)\]\{\[S\d+\]\}"
 
 
-def baseline(name="TrafficTwin_Dissertation.tex"):
-    return subprocess.check_output(["git", "show", f"{BASE}:{PACKAGE}/{name}"], cwd=ROOT).decode()
+def baseline(name="TrafficTwin_Dissertation.tex", revision=BASE):
+    return subprocess.check_output(
+        ["git", "show", f"{revision}:{PACKAGE}/{name}"], cwd=ROOT
+    ).decode()
 
 
 def blocks(tex):
@@ -221,6 +223,165 @@ def table_environments(tex):
     return re.findall(r"\\begin\{(tabular\*?|tabularx|xltabular)\}(.*?)\\end\{\1\}", tex, re.S)
 
 
+CITATION_BASE = "85238791b47b7a8b37fc993a42d4170c77c98c6d"
+CITATION_OPTIONAL = {
+    key: {
+        "status": "not-applicable",
+        "reason": "Skipped after one optional build: non-final bibliography page 46 filled 5.83%.",
+        "build_iterations": 1,
+    }
+    for key in ("G.4", "G.5", "G.6")
+}
+PUBLISHED_REFERENCES = {
+    6: (
+        "IEEE Transactions on Vehicular Technology",
+        "73(8), 11789--11805, 2024",
+        "10.1109/TVT.2024.3370196",
+    ),
+    30: (
+        "2024 7th International Conference on Information Communication and Signal Processing (ICICSP)",
+        "1137--1141, 2024",
+        "10.1109/ICICSP62589.2024.10809180",
+    ),
+    32: (
+        "GLOBECOM 2020 -- 2020 IEEE Global Communications Conference",
+        "1--6, 2020",
+        "10.1109/GLOBECOM42002.2020.9322247",
+    ),
+    40: (
+        "The International FLAIRS Conference Proceedings",
+        "35, 2022",
+        "10.32473/flairs.v35i.130584",
+    ),
+}
+DECISION_TOOL_CLAUSE = (
+    r"; \href{\detokenize{https://www.training.itservices.manchester.ac.uk/"
+    r"uom/ERM/ethics_decision_tool/story.html}}{decision tool}"
+)
+
+
+def citation_reference_checks(tex):
+    """G.7/G.8 permit five exact edits; all other reference bytes stay pinned."""
+    from validate_brief_pass import references
+
+    old = references(baseline(revision=CITATION_BASE))
+    actual = references(tex)
+    expected = old.copy()
+    result = {}
+    for number, (venue, details, doi) in PUBLISHED_REFERENCES.items():
+        tail = (
+            r"\emph{"
+            + venue
+            + "}, "
+            + details
+            + r". DOI: \href{\detokenize{https://doi.org/"
+            + doi
+            + "}}{"
+            + doi
+            + "}."
+            + (" Author version arXiv:2311.18352." if number == 6 else "")
+        )
+        expected[number], substitutions = re.subn(
+            r"arXiv:[\d.]+, \d{4}\.$", lambda _: tail, old[number], flags=re.M
+        )
+        result[f"citation_ref{number}_published_version_exact"] = (
+            substitutions == 1
+            and actual.get(number) == expected[number]
+            and doi in actual.get(number, "")
+        )
+    expected[44] = old[44].replace(DECISION_TOOL_CLAUSE, "")
+    result["citation_ref44_only_failed_second_link_removed"] = (
+        old[44].count(DECISION_TOOL_CLAUSE) == 1 and actual.get(44) == expected[44]
+    )
+    result["citation_all_other_bibitems_byte_identical_to_8523879"] = set(actual) == set(
+        old
+    ) and all(
+        actual.get(n) == value for n, value in old.items() if n not in {*PUBLISHED_REFERENCES, 44}
+    )
+    return result
+
+
+def citation_checks(tex):
+    old = baseline(revision=CITATION_BASE)
+    current, previous = blocks(tex), blocks(old)
+    main = body(tex)
+    result = citation_reference_checks(tex)
+    result["citation_misleading_labels_absent"] = all(
+        phrase not in main
+        for phrase in ("incident-model", "incident models", "3GPP-derived task classes")
+    )
+    result["citation_3gpp_whole_task_modelling_choice"] = (
+        "modelling choice" in current[10][1]
+        and "task-completion deadlines motivated by those two communication requirements"
+        in current[10][1]
+        and "Three task classes with 3GPP-motivated deadlines" in main
+    )
+    result["citation_mobility_radio_and_rsu_split"] = (
+        r"Vehicular radio channels vary quickly \cite{ref5}" in current[12][1]
+        and r"so RSU loads become uneven \cite{ref7}." in current[12][1]
+    )
+    qualifier = (
+        "The incident hour is that study's documented reactive-control collapse on 15 March 2024, "
+        "used here as a simulated dense-traffic stress case rather than a recorded incident."
+    )
+    result["citation_gridlock_provenance_and_collapse_qualification"] = (
+        "I use saved SUMO working-day and gridlock traces as repeatable inputs" in main
+        and "Manchester SUMO working-day and gridlock traces:" in main
+        and "15 March 2024 gridlock trace" in main
+        and qualifier in main
+    )
+    for key, number in {"G.4": 11, "G.5": 14, "G.6": 21}.items():
+        if CITATION_OPTIONAL[key]["status"] == "applied":
+            value = current[number][1]
+            if key == "G.4":
+                passed = "has value only within" not in main
+            elif key == "G.5":
+                passed = (
+                    r"\cite{ref9}" in value
+                    and r"\cite{ref7}" in value
+                    and value.index(r"\cite{ref9}") < value.index(r"\cite{ref7}")
+                )
+            else:
+                passed = r"\cite{ref14}" in value.split(";", 1)[0]
+            result["citation_optional_" + key + "_applied"] = passed
+        else:
+            # The optional claim check is not applicable; guard the unedited baseline instead.
+            result["citation_optional_" + key + "_skipped_text_unchanged"] = (
+                current[number] == previous[number]
+            )
+    old_tables, new_tables = table_environments(old), table_environments(tex)
+    numeric = lambda value: re.findall(r"[-+]?\d+(?:[,.]\d+)*", value)
+    result["citation_every_table_numeric_token_byte_identical_to_8523879"] = len(old_tables) == len(
+        new_tables
+    ) and [(kind, numeric(value)) for kind, value in old_tables] == [
+        (kind, numeric(value)) for kind, value in new_tables
+    ]
+    result["citation_only_authorised_table_wording_changed"] = [
+        (
+            kind,
+            value.replace(
+                "Three 3GPP-derived task classes",
+                "Three task classes with 3GPP-motivated deadlines",
+            ),
+        )
+        for kind, value in old_tables
+    ] == new_tables
+    result["citation_all_fifty_source_tags_preserved_from_8523879"] = (
+        re.findall(TAG, main) == re.findall(TAG, body(old)) and len(re.findall(TAG, main)) == 50
+    )
+    # All manuscript numeric text is fixed; citation-key additions and bibliography metadata are exempt.
+    without_cites = lambda value: re.sub(r"\\cite\{[^}]+\}", "", value)
+    result["citation_all_body_numeric_tokens_unchanged"] = numeric(without_cites(main)) == numeric(
+        without_cites(body(old))
+    )
+    counts = word_counts(tex)["after"]
+    result["citation_displayed_counts_match_count_exemplar_words"] = (
+        rf"\textbf{{Word count: {counts['strict']:,}}}" in tex
+        and f"{counts['prose_only']:,} excluding tables and pseudocode." in tex
+    )
+    return result
+
+
 def checks(here=HERE, tex_override=None):
     tex = (
         tex_override
@@ -365,6 +526,7 @@ def checks(here=HERE, tex_override=None):
     result["prose_count_projection_matches_historical_tokenisation"] = all(
         x["baseline_projection_difference"] == 0 for x in word_counts(tex)["deltas"]
     )
+    result.update(citation_checks(tex))
     return result
 
 
@@ -508,6 +670,8 @@ def pdf_checks(path, tex=None):
 if __name__ == "__main__":
     record = {
         "baseline_commit": BASE,
+        "citation_baseline_commit": CITATION_BASE,
+        "citation_optional_items": CITATION_OPTIONAL,
         "word_counts": word_counts(),
         "before": prose_metrics(baseline()),
         "after": prose_metrics((HERE / "TrafficTwin_Dissertation.tex").read_text()),
