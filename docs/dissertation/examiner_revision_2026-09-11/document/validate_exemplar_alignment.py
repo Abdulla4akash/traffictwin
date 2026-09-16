@@ -1,12 +1,13 @@
 """Validate the LaTeX-only exemplar overlay while retaining historical Markdown guards."""
 
-from pathlib import Path
 import hashlib
 import json
 import os
 import re
 import subprocess
 from collections import Counter
+from pathlib import Path
+
 from count_exemplar_words import calculate, count
 
 BASE = "ded54bd2a043ec4ff7dbef6eb92e6176bc4963b9"
@@ -42,8 +43,12 @@ def block(text, number):
     return match[1] if match else None
 
 
-def checks(here, tex_override=None):
-    tex = tex_override if tex_override is not None else (here / "TrafficTwin_Dissertation.tex").read_text()
+def historical_exemplar_checks(here, tex_override=None):
+    tex = (
+        tex_override
+        if tex_override is not None
+        else (here / "TrafficTwin_Dissertation.tex").read_text()
+    )
     original = baseline_bytes(here, "TrafficTwin_Dissertation.tex").decode()
     raw = (here / "evidence/EXEMPLAR_OPERATIONS_2026-09-16.json").read_bytes()
     ledger = json.loads(raw)
@@ -85,9 +90,10 @@ def checks(here, tex_override=None):
     results["exemplar_copyright_i_to_iv_verbatim"] = actual == [
         (label, body) for label, body in source["copyright_clauses"]
     ]
-    declaration = lambda text: text.split(r"\section*{Declaration}", 1)[1].split(r"\clearpage", 1)[
-        0
-    ]
+    def declaration(text):
+        return text.split(r"\section*{Declaration}", 1)[1].split(r"\clearpage", 1)[
+            0
+        ]
     results["exemplar_declaration_unchanged"] = declaration(tex) == declaration(original)
     results["exemplar_abstract_only_authorised_provenance_change"] = all(
         block(tex, n) == block(original, n) for n in (3, 4, 5)
@@ -112,7 +118,8 @@ def checks(here, tex_override=None):
         refs,
         re.M,
     )
-    urls = lambda value: Counter(re.findall(r"\\href\{\\detokenize\{([^}]+)\}\}", value))
+    def urls(value):
+        return Counter(re.findall(r"\\href\{\\detokenize\{([^}]+)\}\}", value))
     results["exemplar_bibliography_all_links_preserved"] = urls(refs) == urls(oldrefs)
     results["exemplar_web_access_dates_preserved"] = all(
         re.search(r"\\bibitem\{ref" + str(n) + r"\}[^\n]*Accessed \d+ September 2026", refs)
@@ -143,7 +150,9 @@ def checks(here, tex_override=None):
         for k, v in ledger["count_source_overrides"].items()
         if k in ("6", "13", "61", "64", "152", "180")
     }
-    provenance["180"] = provenance["180"].replace("Appendix H checks", "Portable compact checks")
+    provenance["180"] = re.sub(
+        r"Appendix [A-Z] checks", "Portable compact checks", provenance["180"]
+    )
     results["exemplar_F6_F7_at_most_45_strict_words"] = (
         count(blocks, provenance)["strict"] - before["strict"] <= 45
     )
@@ -183,7 +192,25 @@ def checks(here, tex_override=None):
         ]
     )
     results["exemplar_gate_three_remains_open"] = (
-        "Appendix H" in (here / "SUBMISSION_GATES.md").read_text()
-        and "AUTHOR_ACTION: access mechanism" in (here / "SUBMISSION_GATES.md").read_text()
+        "AUTHOR_ACTION: access mechanism" in (here / "SUBMISSION_GATES.md").read_text()
     )
+    return results
+
+
+def checks(here, tex_override=None):
+    """Keep the historical exemplar receipt and validate the live prose overlay.
+
+    The old whole-source hash belongs to cf8b514; it must not be treated as a
+    live-source check after an authorised LaTeX-only pass. Live checks require
+    the explicitly selected local review PDF and its build source/log.
+    """
+    from validate_prose_pass import baseline, pdf_checks
+    from validate_prose_pass import checks as prose_checks
+
+    results = {
+        "historical_" + key: value
+        for key, value in historical_exemplar_checks(here, tex_override=baseline()).items()
+    }
+    results.update(prose_checks(here, tex_override=tex_override))
+    results.update(pdf_checks(review_pdf_path(here), tex=tex_override))
     return results
