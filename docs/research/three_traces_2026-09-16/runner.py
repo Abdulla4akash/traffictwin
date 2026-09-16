@@ -201,11 +201,13 @@ def memory_receipt(dest):
                'limit_bytes': DESIGN['execution']['peak_rss_limit_bytes'],
                'method': '/usr/bin/time -l evaluator; getrusage runner cumulative high-water'}
     if max(peak, validation_peak) > receipt['limit_bytes']:
-        try:
-            write_once(RAW_PARENT / 'REDUCE_CONCURRENCY.json',
-                       {'created_at': now(), 'trigger_output': str(dest), **receipt})
-        except FileExistsError:
-            pass
+        with (RAW_PARENT / 'SLOT_ALLOCATION.lock').open('a+') as allocation:
+            fcntl.flock(allocation, fcntl.LOCK_EX)
+            try:
+                write_once(RAW_PARENT / 'REDUCE_CONCURRENCY.json',
+                           {'created_at': now(), 'trigger_output': str(dest), **receipt})
+            except FileExistsError:
+                pass
     return receipt
 
 
