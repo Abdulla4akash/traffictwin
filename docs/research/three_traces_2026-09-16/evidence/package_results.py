@@ -11,6 +11,14 @@ import zipfile
 HERE = Path(__file__).resolve().parent.parent
 ROOT = HERE.parents[2]
 OUTPUT = Path('/Users/akashx/Desktop/Dissertation/Experiments 10-12 - 2026-09-16')
+REQUIRED_ARTIFACTS = (
+    'ANALYSIS.json', 'CELL_RESULTS.csv', 'PAIRED_EFFECTS.csv', 'FINAL_ANALYSIS_AUDIT.json',
+    'RESULTS.md', 'FINDINGS.md', 'RESULTS_CHART.png', 'RESULTS_CHART.svg',
+    'DENSITY_PLOT.png', 'DENSITY_PLOT.svg', 'DENSITY_POINTS.json',
+    'PROTOCOL.md', 'CONFIG.json', 'TRACE_INVENTORY.json', 'OWNER_TASK.md', 'OWNER_AMENDMENT.md',
+    'SOURCE_COMPATIBILITY.md', 'SCIENTIFIC_SOURCE_IDENTITY.json',
+    'evidence/SOURCE_REVIEW.json', 'evidence/EXECUTION_SEAL.json',
+)
 
 
 def digest(path):
@@ -36,6 +44,13 @@ def prepare():
     audit = read(HERE / 'FINAL_ANALYSIS_AUDIT.json')
     assert analysis['status'] == 'complete' and analysis['new_full_cells'] == 120
     assert audit['status'] == 'passed' and audit['new_full_cells_checked'] == 120
+    for relative in REQUIRED_ARTIFACTS:
+        assert (HERE / relative).is_file(), f'Required deliverable missing: {relative}'
+    for original, expected in audit['bindings'].items():
+        path = Path(original)
+        assert path.is_file(), f'Audited file missing: {path}'
+        if path.suffix != '.npz':
+            assert digest(path) == expected, f'Audited file changed: {path}'
     config = read(HERE / 'CONFIG.json'); raw = Path(config['execution']['raw_root'])
     supervisor = read(raw / 'RUN_SUPERVISOR.json')
     assert supervisor['worker_exit_codes'] == {t: 0 for t in config['traces']}
