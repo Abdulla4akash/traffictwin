@@ -13,7 +13,7 @@
 \usepackage{fvextra}
 \usepackage{xurl}
 \usepackage{setspace,ragged2e,placeins,needspace}
-\usepackage[hidelinks,unicode,pdftitle={Dynamic Resource Management for Intelligent Transport Systems},pdfauthor={S M Abdulla Al Mamun}]{hyperref}
+\usepackage[hidelinks,unicode,pdftitle={Dynamic Resource Management for Intelligent Transportation System Applications},pdfauthor={S M Abdulla Al Mamun}]{hyperref}
 \newtheorem{proposition}{Proposition}
 \renewcommand{\theHtable}{\thesection.\arabic{table}}
 \newcolumntype{Y}{>{\RaggedRight\arraybackslash\hspace{0pt}}X}
@@ -42,7 +42,7 @@
 \thispagestyle{empty}
 \begin{center}
 \vspace*{12mm}
-\parbox{0.72\textwidth}{\centering\Large\bfseries Dynamic Resource Management for Intelligent Transport Systems\par}\par
+\parbox{0.72\textwidth}{\centering\Large\bfseries Dynamic Resource Management for Intelligent Transportation System Applications\par}\par
 \vspace{18mm}
 {\large S M Abdulla Al Mamun\par}
 \vspace{12mm}
@@ -60,9 +60,9 @@ Supervisor: Dr Sandra Sampaio\par
 \noindent Student ID: 14185028\par
 \clearpage
 \tableofcontents
-\vfill\noindent\textbf{Word count: 9,358} (main text including tables, equations
+\vfill\noindent\textbf{Word count: 9,554} (main text including tables, equations
 and pseudocode; excluding captions, references, appendices and front matter);
-7,804 excluding tables and pseudocode.\par
+7,860 excluding tables and pseudocode.\par
 \clearpage
 {\footnotesize\singlespacing
 \listoffigures
@@ -210,7 +210,7 @@ Admission is itself distinct from timely completion. A finite waiting room can a
 % END SOURCE BLOCK 016
 
 % BEGIN SOURCE BLOCK 017 paragraph
-I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's upstream weights. Matched inputs and action checks distinguish infrastructure effects from retraining and possible observation feedback. The study compares scheduling implementations supporting an existing actor. Communication and computation jointly determine whether an offloaded task returns in time \cite{ref3}, \cite{ref6} \hyperref[source-s0]{[S0]}--\hyperref[source-s4]{[S4]}.
+I froze the supplied multi-agent proximal policy optimisation (MAPPO) actor's upstream weights. Communication and computation jointly determine whether an offloaded task returns in time \cite{ref3}, \cite{ref6}. Matched inputs and action checks distinguish infrastructure effects from retraining and possible observation feedback. The study compares scheduling implementations supporting an existing actor \hyperref[source-s0]{[S0]}--\hyperref[source-s4]{[S4]}.
 % END SOURCE BLOCK 017
 
 % BEGIN SOURCE BLOCK 018 figure
@@ -231,7 +231,7 @@ With RL supplying the upstream policy, the closest comparison is parallel-server
 % END SOURCE BLOCK 020
 
 % BEGIN SOURCE BLOCK 021 paragraph
-\textbf{Queue count and remaining work.} Shortest-queue and shortest-workload rules compare job counts and outstanding service respectively \cite{ref12}, \cite{ref13}; Harchol-Balter, Crovella and Murta study immediate per-arrival assignment with known service demand and identical hosts \cite{ref14}. Their dependence on task-size variability motivates distinguishing TrafficTwin's service-millisecond selector, historically named \path{jsq}, from its separate task-count admission limit.
+\textbf{Queue count and remaining work.} Shortest-queue and shortest-workload rules compare job counts and outstanding service respectively \cite{ref12}, \cite{ref13}; Harchol-Balter, Crovella and Murta study immediate per-arrival assignment with known service demand and identical hosts \cite{ref14}. The dependence of the preferred policy on task-size variability motivates distinguishing TrafficTwin's service-millisecond selector, historically named \path{jsq}, from its separate task-count admission limit.
 % END SOURCE BLOCK 021
 
 % BEGIN SOURCE BLOCK 022 paragraph
@@ -304,7 +304,7 @@ Five objectives organise the programme. The aim is to assess infrastructure admi
 % END SOURCE BLOCK 033
 
 % BEGIN SOURCE BLOCK 034 paragraph
-\textbf{O1 --- Establish the measurement contract.} Distinguish offers, admissions, failures and deadline success. Treat accounting validation (E0) and capacity scoping (E1) as validation and scoping, retaining historical evidence limits.
+\textbf{O1 --- Establish the measurement contract.} Distinguish offers, admissions, failures and deadline success. Qualify the contract through accounting validation (E0) and capacity scoping (E1), retaining historical evidence limits.
 % END SOURCE BLOCK 034
 
 % BEGIN SOURCE BLOCK 035 paragraph
@@ -374,6 +374,29 @@ I evaluate the trace-driven VEC scheduler. Section~\ref{sec:3.7} assesses the Tr
 I did not conduct the planned user evaluation. Dynamic Resource V2 (E3) is also unexecuted. Section~\ref{sec:2} specifies the method, Section~\ref{sec:3} evaluates completed work, and Section~\ref{sec:4} concludes \hyperref[source-s11]{[S11]}.
 % END SOURCE BLOCK 050
 
+% BEGIN BRIEF DELIVERABLES
+\Needspace{12\baselineskip}
+The \hyperref[tab:brief]{Brief deliverables} table maps the registered project brief's deliverables to this report \cite{ref48}.
+
+\begingroup
+\singlespacing\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}>{\hsize=1.05\hsize\linewidth=\hsize}Y>{\hsize=.95\hsize\linewidth=\hsize}Y@{}}
+\multicolumn{2}{@{}l}{\textbf{Brief deliverables and where they are addressed}}\\
+\toprule
+Deliverable (brief wording) & Where addressed \\
+\midrule
+(A) An investigation into a suitable methodology for fulfilling the project objectives. & Chapter~\ref{sec:2}; sealed protocol, Section~\ref{sec:2.6} \\
+(B) Design and implementation of a few ITS service use cases. & Three 3GPP-derived task classes, Section~\ref{sec:2.3}; five Manchester scenarios, Table~\ref{tab:2} and Section~\ref{sec:3.4}; platform workflows, Section~\ref{sec:3.7} \\
+(C) An investigation into the run-time profile of data-intensive ITS services. & Scheduler-only cost benchmark, Table~\ref{tab:D2}; campaign run durations, Appendix~\ref{app:E} \\
+(D) An investigation into the suitability of existing (Cloud) resource management strategies for the fulfilment of ITS service requirements. & Ingress, common-target, round-robin and two-choice dispatch evaluated, Sections~\ref{sec:1.2}, \ref{sec:2.5} and 3.2--3.4, Table~\ref{tab:1} \\
+(E) Proposal of strategies for dynamic management of resources using available devices and clouds. & Causal per-task placement with deadline-aware admission, Algorithm~\ref{alg:2}; evidence, Table~\ref{tab:7} \\
+\bottomrule
+\end{tabularx}
+\phantomsection\label{tab:brief}
+\addcontentsline{lot}{table}{Brief deliverables and where they are addressed}
+\endgroup
+% END BRIEF DELIVERABLES
+
 % BEGIN SOURCE BLOCK 051 paragraph
 \textbf{Ethical and professional considerations.} This study used simulated SUMO traces, with no human participants or personal data, and my University of Manchester Ethics Decision Tool check on 15 September 2026 indicated that ethics approval was not required \cite{ref44}. I acknowledge the supplied evaluator, environment and actor with their provenance; the Declaration discloses assistance. Simulation outcomes support no deployment or road-safety claim. The sealed confirmation comprised 32 cells and took approximately 107 minutes on one CPU, with exact timing boundaries in Appendix~\ref{app:E}.
 % END SOURCE BLOCK 051
@@ -427,7 +450,7 @@ Figure~\ref{fig:2} shows the morning RSU layout in local trace metres. Incident 
 % END SOURCE BLOCK 062
 
 % BEGIN SOURCE BLOCK 063 figure
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth,height=.57\textheight,keepaspectratio]{assets/morning_rsu_layout.pdf}
 \caption[Morning RSU coordinates]{Morning RSU positions in local trace metres, with original zero-based indices. Reading: the nine morning locations are spatial inputs, whereas the dispatch comparisons change task destinations without moving these RSUs \hyperref[source-s8]{[S8]}.}\label{fig:2}
@@ -991,7 +1014,7 @@ Per-task \ensuremath{-} round-robin & +0.631 & [+0.511, +0.750] \\
 % END SOURCE BLOCK 144
 
 % BEGIN SOURCE BLOCK 145 paragraph
-The declared reversal criterion holds, evaluated using both directional requirements within the same simultaneous family. The mean per-task difference corresponds to +413.7 successes per 10,000 offered tasks relative to ingress. On the morning trace, this corresponds to about 24,000 to 24,100 additional tasks per hour meeting their deadline (Table~\ref{tab:E1}). Workload-aware targeting outperformed cyclic spreading in this study. Its mean benefit is 63.1 successes per 10,000 offered tasks over round-robin, accompanying higher scheduler-only cost on the separate fixtures in Appendix~\ref{app:D}, Table~\ref{tab:D2}.
+The declared reversal criterion holds, evaluated using both directional requirements within the same simultaneous family. The mean per-task difference corresponds to +413.7 successes per 10,000 offered tasks relative to ingress. On the morning trace, this mean effect corresponds to about 24,000 additional tasks per hour meeting their deadline (Table~\ref{tab:E1}). Workload-aware targeting outperformed cyclic spreading in this study. Its mean benefit is 63.1 successes per 10,000 offered tasks over round-robin, accompanying higher scheduler-only cost on the separate fixtures in Appendix~\ref{app:D}, Table~\ref{tab:D2}.
 % END SOURCE BLOCK 145
 
 % BEGIN SOURCE BLOCK 146 paragraph
@@ -1173,7 +1196,7 @@ The inventory measures project scope, not individually authored new code. Hosted
 
 
 % BEGIN SOURCE BLOCK 178 paragraph
-I designed the research questions, initial evaluation experiments, per-task and cyclic comparisons, and sealed runner, validation and analysis components (Section~\ref{sec:1.3}, Contributions). I implemented the causal per-task selector and round-robin comparator, and reviewed and modified code and tooling produced with AI assistance to my specification (Declaration) \hyperref[source-s12]{[S12]}.
+I designed the research questions, initial evaluation experiments, per-task and cyclic comparisons, and sealed runner, validation and analysis components (Section~\ref{sec:1.3}, Contributions). I implemented the causal per-task selector and round-robin comparator, and reviewed and modified code and tooling produced with AI assistance to my specification (Declaration). I ran or authorised every campaign, recomputed the block-0 paired effect from the offered counts, checked the Table~\ref{tab:6} and Table~\ref{tab:7} intervals, worked through Proposition~\ref{prop:1} and Table~\ref{tab:C1}, and traced the common-target selection in the frozen evaluator source \hyperref[source-s12]{[S12]}.
 % END SOURCE BLOCK 178
 
 % BEGIN SOURCE BLOCK 179 paragraph
@@ -1349,6 +1372,7 @@ I controlled AI assistance through specifications, code review, personal modific
 
 % BEGIN SOURCE BLOCK 206 bibliography_open
 \FloatBarrier\singlespacing\addcontentsline{toc}{section}{References}\begin{thebibliography}{99}
+\setlength{\itemsep}{\smallskipamount}
 % END SOURCE BLOCK 206
 
 % BEGIN SOURCE BLOCK 207 bibliography_item
@@ -1540,6 +1564,8 @@ I controlled AI assistance through specifications, code review, personal modific
 % END SOURCE BLOCK 253
 
 % BEGIN SOURCE BLOCK 254 bibliography_close
+\bibitem{ref48} S. Sampaio (proposer). \href{\detokenize{https://digital.cs.manchester.ac.uk/taught-project-explorer/student/project-id-237}}{``Dynamic Resource Management for Intelligent Transportation System Applications.''} Taught Project Explorer, project 237, The University of Manchester. Accessed 27 May 2026.
+
 \end{thebibliography}
 % END SOURCE BLOCK 254
 

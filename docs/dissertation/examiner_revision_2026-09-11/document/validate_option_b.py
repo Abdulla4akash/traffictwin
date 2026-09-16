@@ -21,7 +21,7 @@ BASELINE_SHA256 = "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086
 CLOSE_BASELINE = "2c29392cbf04bf060aacb0f03f1fbb900842d54a"
 CLOSE_BASELINE_SHA256 = "307862fcc37558df585b0e867a0766aa3616cd810ee0595df398dd3ffaf0cf89"
 CLOSE_LEDGER_SHA256 = "75fda6f1fcac0fe9f38d8df150cfd4b62619a10bedf11c04f6bf46c7a9cfb65d"
-PROJECT_TITLE = "Dynamic Resource Management for Intelligent Transport Systems"
+PROJECT_TITLE = "Dynamic Resource Management for Intelligent Transportation System Applications"
 PREVIOUS_TITLE = (
     "TrafficTwin: Admission and Dispatch Semantics in Vehicular Edge Computing "
     "under a Frozen MAPPO Policy"
@@ -346,7 +346,13 @@ def check_option_b(
     revised, contributions_checks = check_contributions(root, here, revised, table_parser)
     revised, editorial_checks = check_editorial_fixes(root, here, revised, table_parser)
     # The owner authorised only the first-line title change after 10ca7f2.
-    requested_heading = "# " + PROJECT_TITLE + "\n"
+    # This restoration validates the immutable historical Markdown title decision.
+    # The live LaTeX/PDF title is checked separately against PROJECT_TITLE.
+    requested_heading = (
+        git_bytes(root, FINAL_PASS_BASELINE, PACKAGE + "/TrafficTwin_Dissertation.md")
+        .decode()
+        .splitlines(keepends=True)[0]
+    )
     title_checks = {"title_matches_original_project_name": revised.startswith(requested_heading)}
     if revised.startswith(requested_heading):
         revised = "# " + PREVIOUS_TITLE + "\n" + revised[len(requested_heading) :]

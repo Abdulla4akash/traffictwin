@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 from collections import Counter
 from functools import cache
 from pathlib import Path
 
-from validate_exemplar_alignment import baseline_bytes, checks as exemplar_checks, review_pdf_path
+from validate_exemplar_alignment import baseline_bytes, review_pdf_path
+from validate_exemplar_alignment import checks as exemplar_checks
 
 PACKAGE = "docs/dissertation/examiner_revision_2026-09-11"
 FINAL_PASS_BASELINE = "a8cffe753047c4b7498dded39f61aac3e57f87e4"  # noqa: S105 -- Git identity
@@ -349,6 +351,15 @@ def restore_final_pass(root: Path, here: Path, revised: str) -> tuple[str, dict[
         and references.count('<a id="ref-47"></a>') == references.count("[47] R. P. Putra") == 1
         and "DOI pending in the camera-ready copy" in references
     )
+    # The TeX bibliography may append ref48, while refs 1--47 stay exact.
+    from validate_brief_pass import baseline as brief_baseline
+    from validate_brief_pass import references as tex_references
+
+    live_references = tex_references((here / "TrafficTwin_Dissertation.tex").read_text())
+    old_references = tex_references(brief_baseline())
+    checks["final_references_1_to_46_exact_and_ref47_once"] &= all(
+        live_references.get(n) == old_references[n] for n in range(1, 48)
+    ) and list(live_references) in (list(range(1, 48)), list(range(1, 49)))
     checks["final_ref47_provenance_in_1_1_and_2_3"] = all(
         "[[47]](#ref-47)" in section(revised, number) for number in ("1.1", "2.3")
     )
@@ -453,8 +464,16 @@ def artifact_checks(here: Path, revised: str) -> dict[str, bool]:
     tex = (here / "TrafficTwin_Dissertation.tex").read_text()
     pdf = fitz.open(review_pdf_path(here))
     cover = " ".join(pdf[0].get_text().split())
-    checks["final_title_page_values_in_tex_and_pdf"] = all(
-        value in tex and value in cover for key, value in OWNER.items() if key != "award"
+    from validate_option_b import PROJECT_TITLE
+
+    checks["final_title_page_values_in_tex_and_pdf"] = (
+        all(value in tex and value in cover for key, value in OWNER.items() if key != "award")
+        and PROJECT_TITLE in tex
+        and PROJECT_TITLE in cover
+    )
+    info = subprocess.check_output(["pdfinfo", str(review_pdf_path(here))], text=True)
+    checks["final_pdfinfo_title_matches_project_brief"] = bool(
+        re.search(r"^Title:\s*" + re.escape(PROJECT_TITLE) + r"\s*$", info, re.M)
     )
     checks["exemplar_expanded_award_on_cover"] = (
         "Master of Science in Artificial Intelligence" in cover
@@ -484,7 +503,9 @@ def main() -> None:
         "scope": "Historical Markdown guards plus the hash-bound LaTeX exemplar overlay; review PDF is a local build only.",
         "review_pdf": str(review_pdf_path(here)),
     }
-    (here / "evidence/FINAL_PASS_VALIDATION_2026-09-16.json").write_text(
+    receipt_dir = Path(os.environ.get("TRAFFICTWIN_VALIDATION_OUTPUT", str(here / "evidence")))
+    receipt_dir.mkdir(parents=True, exist_ok=True)
+    (receipt_dir / "FINAL_PASS_VALIDATION_2026-09-16.json").write_text(
         json.dumps(record, indent=2) + "\n"
     )
     print(json.dumps(record, indent=2))

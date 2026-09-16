@@ -133,12 +133,34 @@ def word_counts(tex=None):
         "strict": before["strict"] + sum(x["strict_delta"] for x in deltas) + study_words,
         "prose_only": before["prose_only"] + sum(x["prose_delta"] for x in deltas),
     }
+    brief_counts = {"strict": 0, "prose_only": 0}
+    if "% BEGIN BRIEF DELIVERABLES" in tex:
+        brief = tex.split("% BEGIN BRIEF DELIVERABLES", 1)[1].split("% END BRIEF DELIVERABLES", 1)[
+            0
+        ]
+        lead = brief.split(r"\begingroup", 1)[0].strip()
+        lead = re.sub(r"\\Needspace\{\d+\\baselineskip\}", "", lead)
+        table = brief.split(r"\toprule", 1)[1].split(r"\bottomrule", 1)[0]
+        table = table.replace(r"\midrule", "").replace(r"\\", "\n").replace("&", " ")
+        brief_counts = count(
+            [
+                {"id": "brief-lead", "kind": "paragraph", "source": projection(lead)},
+                # The first line is the excluded title/caption, as in the source-map tables.
+                {
+                    "id": "brief-table",
+                    "kind": "table",
+                    "source": "Brief deliverables\n" + projection(table),
+                },
+            ]
+        )
+        after = {key: value + brief_counts[key] for key, value in after.items()}
     return {
         "before": before,
         "after": after,
         "deltas": deltas,
         "study_map_words": study_words,
-        "method": "Existing count_exemplar_words tokenisation/exclusions; cf8b514 source-block baseline plus checked TeX-projection word deltas, with the new Study map counted only in strict.",
+        "brief_deliverables_words": brief_counts,
+        "method": "Existing count_exemplar_words tokenisation/exclusions; cf8b514 source-block baseline plus checked TeX-projection word deltas. Study map and brief table count only in strict; brief lead counts in both. Table titles, bibliography and front matter are excluded.",
     }
 
 
@@ -216,6 +238,9 @@ def checks(here=HERE, tex_override=None):
     new_without_map = re.sub(
         r"% BEGIN PROSE STUDY MAP.*?% END PROSE STUDY MAP", "", tex, flags=re.S
     )
+    new_without_map = re.sub(
+        r"% BEGIN BRIEF DELIVERABLES.*?% END BRIEF DELIVERABLES", "", new_without_map, flags=re.S
+    )
     old_tables, new_tables = table_environments(old), table_environments(new_without_map)
     result["prose_existing_table_payloads_byte_identical"] = len(old_tables) == len(
         new_tables
@@ -290,9 +315,13 @@ def checks(here=HERE, tex_override=None):
             successes[(block, arm)] = int(cells[3].replace(",", ""))
             if arm == "I":
                 offered.append(int(cells[1].replace(",", "")))
-    low, high = [round(value * 0.04137 / 3 / 100) * 100 for value in (min(offered), max(offered))]
+    rounded = {round(value * 0.04137 / 3 / 1000) * 1000 for value in offered}
     result["prose_hourly_range_matches_table_e1"] = (
-        f"about {low:,} to {high:,} additional tasks per hour" in current[145][1]
+        len(offered) == 8
+        and rounded == {24000}
+        and "this mean effect corresponds to about 24,000 additional tasks per hour"
+        in current[145][1]
+        and "24,000 to 24,100" not in current[145][1]
     )
     result["prose_each_block_workload_increment_positive"] = all(
         successes[(str(n), "P")] > successes[(str(n), "R")] for n in range(8)

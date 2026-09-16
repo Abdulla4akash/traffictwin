@@ -14,7 +14,7 @@ Build with XeLaTeX/latexmk; no bibliography backend or custom class is required.
 
 ---
 
-# Dynamic Resource Management for Intelligent Transport Systems
+# Dynamic Resource Management for Intelligent Transportation System Applications
 
 ## Current final-pass overlay — 16 September 2026
 

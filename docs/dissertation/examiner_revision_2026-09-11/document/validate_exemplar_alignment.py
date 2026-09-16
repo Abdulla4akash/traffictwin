@@ -90,10 +90,10 @@ def historical_exemplar_checks(here, tex_override=None):
     results["exemplar_copyright_i_to_iv_verbatim"] = actual == [
         (label, body) for label, body in source["copyright_clauses"]
     ]
+
     def declaration(text):
-        return text.split(r"\section*{Declaration}", 1)[1].split(r"\clearpage", 1)[
-            0
-        ]
+        return text.split(r"\section*{Declaration}", 1)[1].split(r"\clearpage", 1)[0]
+
     results["exemplar_declaration_unchanged"] = declaration(tex) == declaration(original)
     results["exemplar_abstract_only_authorised_provenance_change"] = all(
         block(tex, n) == block(original, n) for n in (3, 4, 5)
@@ -118,8 +118,10 @@ def historical_exemplar_checks(here, tex_override=None):
         refs,
         re.M,
     )
+
     def urls(value):
         return Counter(re.findall(r"\\href\{\\detokenize\{([^}]+)\}\}", value))
+
     results["exemplar_bibliography_all_links_preserved"] = urls(refs) == urls(oldrefs)
     results["exemplar_web_access_dates_preserved"] = all(
         re.search(r"\\bibitem\{ref" + str(n) + r"\}[^\n]*Accessed \d+ September 2026", refs)
@@ -213,4 +215,9 @@ def checks(here, tex_override=None):
     }
     results.update(prose_checks(here, tex_override=tex_override))
     results.update(pdf_checks(review_pdf_path(here), tex=tex_override))
+    from validate_brief_pass import checks as brief_checks
+    from validate_brief_pass import pdf_checks as brief_pdf_checks
+
+    results.update(brief_checks(here, tex_override=tex_override))
+    results.update(brief_pdf_checks(review_pdf_path(here), tex=tex_override))
     return results
