@@ -1,0 +1,11 @@
+{
+  "action": "qualify",
+  "worker_exit_codes": {
+    "we": 0,
+    "wd_pm": 0,
+    "ev": 0
+  },
+  "wall_s": 66.38796516599541,
+  "finished_at": "2026-09-16T00:05:43.820711+00:00",
+  "retries": 0
+}

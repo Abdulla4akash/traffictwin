@@ -1,0 +1,201 @@
+[
+  {
+    "trace": "inc",
+    "contrast": "per_task_dla_minus_ingress_dla",
+    "mean_active_vehicles_per_second": 2429.9144444444446,
+    "mean_pp": 0.5271433656,
+    "effects_pp": [
+      0.46367325639999996,
+      0.5867285642,
+      0.5071796666,
+      0.5509919752
+    ],
+    "n_blocks": 4,
+    "status": "archived_descriptive",
+    "source_path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/data/e2d_paired_results.csv",
+    "source_sha256": "bffbcb67e04bae6f5fe6e6017e7894ac36e7745c3ea5aa9cc4e6d3f8d65ac4be",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "R": 10,
+    "entry_channel_present": false
+  },
+  {
+    "trace": "wd_am",
+    "contrast": "per_task_dla_minus_ingress_dla",
+    "mean_active_vehicles_per_second": 108.00361111111111,
+    "mean_pp": 4.13689639883791,
+    "effects_pp": [
+      4.541538927108078,
+      4.2435538808825015,
+      5.0202226936226,
+      3.8392365213931328,
+      3.594354751749947,
+      3.4376686887348313,
+      3.996050732020933,
+      4.422544995191259
+    ],
+    "n_blocks": 8,
+    "status": "archived_descriptive",
+    "source_path": "docs/dissertation/joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv",
+    "source_sha256": "44b55e5f18a852f53deefa294982f4100a955945fd47f46bf2e419ab58303017",
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "R": 9,
+    "entry_channel_present": true
+  },
+  {
+    "trace": "wd_am",
+    "contrast": "per_task_dla_minus_causal_round_robin",
+    "mean_active_vehicles_per_second": 108.00361111111111,
+    "mean_pp": 0.630522983822198,
+    "effects_pp": [
+      0.7062285321599973,
+      0.6629637500933399,
+      0.8262455830135167,
+      0.5415006188987945,
+      0.5158062821339371,
+      0.5192891091401179,
+      0.5944566742915924,
+      0.6776933208462879
+    ],
+    "n_blocks": 8,
+    "status": "archived_descriptive",
+    "source_path": "docs/dissertation/joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv",
+    "source_sha256": "44b55e5f18a852f53deefa294982f4100a955945fd47f46bf2e419ab58303017",
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "R": 9,
+    "entry_channel_present": true
+  },
+  {
+    "trace": "inc",
+    "contrast": "per_task_dla_minus_causal_round_robin",
+    "mean_active_vehicles_per_second": 2429.9144444444446,
+    "mean_pp": null,
+    "status": "unavailable",
+    "reason": "E2c/E2d did not include a round-robin arm; no new incident run authorised."
+  },
+  {
+    "trace": "we",
+    "contrast": "per_task_dla_minus_ingress_dla",
+    "mean_active_vehicles_per_second": 85.68774691358024,
+    "mean_pp": 3.728391381968361,
+    "n_blocks": 8,
+    "effects_pp": [
+      5.198139761866756,
+      4.06879302911716,
+      3.189785708520702,
+      3.1261922752015323,
+      3.1450920965882005,
+      2.579424398542571,
+      3.6423541949052662,
+      4.877349591004702
+    ],
+    "status": "new_descriptive",
+    "trace_sha256": "8bb0a05e9e494041943a9d99efbcfc6fce7bc529b348230593a9155580b0d976",
+    "R": 9,
+    "entry_channel_present": true
+  },
+  {
+    "trace": "we",
+    "contrast": "per_task_dla_minus_causal_round_robin",
+    "mean_active_vehicles_per_second": 85.68774691358024,
+    "mean_pp": 0.5129364090153068,
+    "n_blocks": 8,
+    "effects_pp": [
+      0.7672228509923968,
+      0.583954742723364,
+      0.4137419274789238,
+      0.4202111057686011,
+      0.41364006634447037,
+      0.3457427828002295,
+      0.47914176029615874,
+      0.67983603571831
+    ],
+    "status": "new_descriptive",
+    "trace_sha256": "8bb0a05e9e494041943a9d99efbcfc6fce7bc529b348230593a9155580b0d976",
+    "R": 9,
+    "entry_channel_present": true
+  },
+  {
+    "trace": "wd_pm",
+    "contrast": "per_task_dla_minus_ingress_dla",
+    "mean_active_vehicles_per_second": 104.03436507936507,
+    "mean_pp": 4.3588005263707394,
+    "n_blocks": 8,
+    "effects_pp": [
+      7.001951544721933,
+      4.204506570881136,
+      3.4502422194812397,
+      3.471256870403394,
+      4.5737777388906125,
+      4.794158775952525,
+      4.551459927530175,
+      2.8230505631049
+    ],
+    "status": "new_descriptive",
+    "trace_sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+    "R": 10,
+    "entry_channel_present": false
+  },
+  {
+    "trace": "wd_pm",
+    "contrast": "per_task_dla_minus_causal_round_robin",
+    "mean_active_vehicles_per_second": 104.03436507936507,
+    "mean_pp": 0.6056030949681794,
+    "n_blocks": 8,
+    "effects_pp": [
+      1.2759825233886772,
+      0.5274515422554487,
+      0.42005991005831333,
+      0.44257133203269916,
+      0.6081874447887969,
+      0.6262498536710126,
+      0.601004712606084,
+      0.34331744094440353
+    ],
+    "status": "new_descriptive",
+    "trace_sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+    "R": 10,
+    "entry_channel_present": false
+  },
+  {
+    "trace": "ev",
+    "contrast": "per_task_dla_minus_ingress_dla",
+    "mean_active_vehicles_per_second": 81.1294017094017,
+    "mean_pp": 3.7348229009682044,
+    "n_blocks": 8,
+    "effects_pp": [
+      4.588835068196801,
+      3.8891089443867344,
+      4.48433356130586,
+      3.340140742839182,
+      4.9928041625152275,
+      2.7133134410783555,
+      2.972601305512214,
+      2.897445981911261
+    ],
+    "status": "new_descriptive",
+    "trace_sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+    "R": 12,
+    "entry_channel_present": false
+  },
+  {
+    "trace": "ev",
+    "contrast": "per_task_dla_minus_causal_round_robin",
+    "mean_active_vehicles_per_second": 81.1294017094017,
+    "mean_pp": 0.42759369422049787,
+    "n_blocks": 8,
+    "effects_pp": [
+      0.5263567444541337,
+      0.43151630141370845,
+      0.5379281495038839,
+      0.39294115325691337,
+      0.5879714930604791,
+      0.2974328847714389,
+      0.33795824151729903,
+      0.3086445857861264
+    ],
+    "status": "new_descriptive",
+    "trace_sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+    "R": 12,
+    "entry_channel_present": false
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "status": "complete",
+  "trace": "wd_pm",
+  "finished_at": "2026-09-16T09:22:52.201534+00:00",
+  "full_cells": 40,
+  "wall_s": 25319.390076333002,
+  "seal_sha256": "600f0cdfc3cfc1bb0537ca6eb0dcbac5f6c3fd13ae9c9f72029cdda369b92de4"
+}

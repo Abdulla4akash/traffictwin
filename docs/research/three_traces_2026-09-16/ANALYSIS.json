@@ -1,0 +1,1981 @@
+{
+  "status": "complete",
+  "new_full_cells": 120,
+  "new_blocks": 24,
+  "blocks_per_trace": 8,
+  "execution_seal_sha256": {
+    "we": "cef966f145c88dc8cc6fb8f3ea0afb11b5c4a22aa0dc265091243e21876012a3",
+    "wd_pm": "600f0cdfc3cfc1bb0537ca6eb0dcbac5f6c3fd13ae9c9f72029cdda369b92de4",
+    "ev": "b81549dca82d23a7a011ce99760b79ced9639e1ff9362883b3d736ab7aebe382"
+  },
+  "config_sha256": "27d977c44c06be177f38462580e86a53813606f25cd02968b65ea24a274950f2",
+  "cells": [
+    {
+      "trace": "we",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "ingress_dla",
+      "offered": 4147426,
+      "admitted": 3931561,
+      "successes": 3630715,
+      "attainment_pct": 87.541405199273
+    },
+    {
+      "trace": "we",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "dla",
+      "offered": 4147426,
+      "admitted": 3739040,
+      "successes": 3453479,
+      "attainment_pct": 83.26800767512186
+    },
+    {
+      "trace": "we",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "per_task_dla",
+      "offered": 4147426,
+      "admitted": 4141635,
+      "successes": 3846304,
+      "attainment_pct": 92.73954496113976
+    },
+    {
+      "trace": "we",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "causal_round_robin",
+      "offered": 4147426,
+      "admitted": 4118330,
+      "successes": 3814484,
+      "attainment_pct": 91.97232211014736
+    },
+    {
+      "trace": "we",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "dla_p2c",
+      "offered": 4147426,
+      "admitted": 4118096,
+      "successes": 3813112,
+      "attainment_pct": 91.93924135114165
+    },
+    {
+      "trace": "we",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "ingress_dla",
+      "offered": 4145013,
+      "admitted": 3989145,
+      "successes": 3694856,
+      "attainment_pct": 89.13979280643993
+    },
+    {
+      "trace": "we",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "dla",
+      "offered": 4145013,
+      "admitted": 3840755,
+      "successes": 3554994,
+      "attainment_pct": 85.76556937215878
+    },
+    {
+      "trace": "we",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "per_task_dla",
+      "offered": 4145013,
+      "admitted": 4139074,
+      "successes": 3863508,
+      "attainment_pct": 93.20858583555709
+    },
+    {
+      "trace": "we",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "causal_round_robin",
+      "offered": 4145013,
+      "admitted": 4125904,
+      "successes": 3839303,
+      "attainment_pct": 92.62463109283372
+    },
+    {
+      "trace": "we",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "dla_p2c",
+      "offered": 4145013,
+      "admitted": 4125144,
+      "successes": 3836703,
+      "attainment_pct": 92.56190511344596
+    },
+    {
+      "trace": "we",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "ingress_dla",
+      "offered": 4150655,
+      "admitted": 4046228,
+      "successes": 3773392,
+      "attainment_pct": 90.91075986802083
+    },
+    {
+      "trace": "we",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "dla",
+      "offered": 4150655,
+      "admitted": 3944955,
+      "successes": 3673807,
+      "attainment_pct": 88.51149999216992
+    },
+    {
+      "trace": "we",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "per_task_dla",
+      "offered": 4150655,
+      "admitted": 4147440,
+      "successes": 3905789,
+      "attainment_pct": 94.10054557654153
+    },
+    {
+      "trace": "we",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "causal_round_robin",
+      "offered": 4150655,
+      "admitted": 4143541,
+      "successes": 3888616,
+      "attainment_pct": 93.68680364906261
+    },
+    {
+      "trace": "we",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "dla_p2c",
+      "offered": 4150655,
+      "admitted": 4142393,
+      "successes": 3885334,
+      "attainment_pct": 93.60773179172925
+    },
+    {
+      "trace": "we",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "ingress_dla",
+      "offered": 4149105,
+      "admitted": 4046257,
+      "successes": 3774393,
+      "attainment_pct": 90.9688474984364
+    },
+    {
+      "trace": "we",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "dla",
+      "offered": 4149105,
+      "admitted": 3940993,
+      "successes": 3671648,
+      "attainment_pct": 88.49253031677917
+    },
+    {
+      "trace": "we",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "per_task_dla",
+      "offered": 4149105,
+      "admitted": 4146438,
+      "successes": 3904102,
+      "attainment_pct": 94.09503977363794
+    },
+    {
+      "trace": "we",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "causal_round_robin",
+      "offered": 4149105,
+      "admitted": 4142283,
+      "successes": 3886667,
+      "attainment_pct": 93.67482866786933
+    },
+    {
+      "trace": "we",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "dla_p2c",
+      "offered": 4149105,
+      "admitted": 4141123,
+      "successes": 3883484,
+      "attainment_pct": 93.59811332805509
+    },
+    {
+      "trace": "we",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "ingress_dla",
+      "offered": 4146842,
+      "admitted": 4041422,
+      "successes": 3766412,
+      "attainment_pct": 90.82603098936492
+    },
+    {
+      "trace": "we",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "dla",
+      "offered": 4146842,
+      "admitted": 3931547,
+      "successes": 3659225,
+      "attainment_pct": 88.24124478337974
+    },
+    {
+      "trace": "we",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "per_task_dla",
+      "offered": 4146842,
+      "admitted": 4143096,
+      "successes": 3896834,
+      "attainment_pct": 93.97112308595312
+    },
+    {
+      "trace": "we",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "causal_round_robin",
+      "offered": 4146842,
+      "admitted": 4138408,
+      "successes": 3879681,
+      "attainment_pct": 93.55748301960865
+    },
+    {
+      "trace": "we",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "dla_p2c",
+      "offered": 4146842,
+      "admitted": 4137257,
+      "successes": 3876319,
+      "attainment_pct": 93.47640927722831
+    },
+    {
+      "trace": "we",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "ingress_dla",
+      "offered": 4147592,
+      "admitted": 4068541,
+      "successes": 3802077,
+      "attainment_pct": 91.6695036541685
+    },
+    {
+      "trace": "we",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "dla",
+      "offered": 4147592,
+      "admitted": 3986265,
+      "successes": 3717944,
+      "attainment_pct": 89.64102544319692
+    },
+    {
+      "trace": "we",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "per_task_dla",
+      "offered": 4147592,
+      "admitted": 4143873,
+      "successes": 3909061,
+      "attainment_pct": 94.24892805271107
+    },
+    {
+      "trace": "we",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "causal_round_robin",
+      "offered": 4147592,
+      "admitted": 4141769,
+      "successes": 3894721,
+      "attainment_pct": 93.90318526991084
+    },
+    {
+      "trace": "we",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "dla_p2c",
+      "offered": 4147592,
+      "admitted": 4140729,
+      "successes": 3891461,
+      "attainment_pct": 93.8245854462059
+    },
+    {
+      "trace": "we",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "ingress_dla",
+      "offered": 4151381,
+      "admitted": 4023023,
+      "successes": 3739554,
+      "attainment_pct": 90.07975900067953
+    },
+    {
+      "trace": "we",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "dla",
+      "offered": 4151381,
+      "admitted": 3898661,
+      "successes": 3621077,
+      "attainment_pct": 87.22584123211047
+    },
+    {
+      "trace": "we",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "per_task_dla",
+      "offered": 4151381,
+      "admitted": 4148295,
+      "successes": 3890762,
+      "attainment_pct": 93.7221131955848
+    },
+    {
+      "trace": "we",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "causal_round_robin",
+      "offered": 4151381,
+      "admitted": 4141238,
+      "successes": 3870871,
+      "attainment_pct": 93.24297143528864
+    },
+    {
+      "trace": "we",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "dla_p2c",
+      "offered": 4151381,
+      "admitted": 4139937,
+      "successes": 3867701,
+      "attainment_pct": 93.1666113035638
+    },
+    {
+      "trace": "we",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "ingress_dla",
+      "offered": 4151148,
+      "admitted": 3954448,
+      "successes": 3654467,
+      "attainment_pct": 88.03509294296421
+    },
+    {
+      "trace": "we",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "dla",
+      "offered": 4151148,
+      "admitted": 3775947,
+      "successes": 3489319,
+      "attainment_pct": 84.05672358586106
+    },
+    {
+      "trace": "we",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "per_task_dla",
+      "offered": 4151148,
+      "admitted": 4146669,
+      "successes": 3856933,
+      "attainment_pct": 92.91244253396891
+    },
+    {
+      "trace": "we",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "causal_round_robin",
+      "offered": 4151148,
+      "admitted": 4127578,
+      "successes": 3828712,
+      "attainment_pct": 92.2326064982506
+    },
+    {
+      "trace": "we",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "dla_p2c",
+      "offered": 4151148,
+      "admitted": 4127181,
+      "successes": 3826589,
+      "attainment_pct": 92.1814640191099
+    },
+    {
+      "trace": "wd_pm",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "ingress_dla",
+      "offered": 3917922,
+      "admitted": 3555944,
+      "successes": 3257653,
+      "attainment_pct": 83.14746950041373
+    },
+    {
+      "trace": "wd_pm",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "dla",
+      "offered": 3917922,
+      "admitted": 3285608,
+      "successes": 3015588,
+      "attainment_pct": 76.96906676549456
+    },
+    {
+      "trace": "wd_pm",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "per_task_dla",
+      "offered": 3917922,
+      "admitted": 3867795,
+      "successes": 3531984,
+      "attainment_pct": 90.14942104513567
+    },
+    {
+      "trace": "wd_pm",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "causal_round_robin",
+      "offered": 3917922,
+      "admitted": 3810820,
+      "successes": 3481992,
+      "attainment_pct": 88.87343852174699
+    },
+    {
+      "trace": "wd_pm",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "dla_p2c",
+      "offered": 3917922,
+      "admitted": 3816038,
+      "successes": 3486076,
+      "attainment_pct": 88.97767745248629
+    },
+    {
+      "trace": "wd_pm",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "ingress_dla",
+      "offered": 3919033,
+      "admitted": 3770639,
+      "successes": 3516119,
+      "attainment_pct": 89.71904548902752
+    },
+    {
+      "trace": "wd_pm",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "dla",
+      "offered": 3919033,
+      "admitted": 3632121,
+      "successes": 3385548,
+      "attainment_pct": 86.38733075225444
+    },
+    {
+      "trace": "wd_pm",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "per_task_dla",
+      "offered": 3919033,
+      "admitted": 3916120,
+      "successes": 3680895,
+      "attainment_pct": 93.92355205990866
+    },
+    {
+      "trace": "wd_pm",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "causal_round_robin",
+      "offered": 3919033,
+      "admitted": 3907042,
+      "successes": 3660224,
+      "attainment_pct": 93.39610051765321
+    },
+    {
+      "trace": "wd_pm",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "dla_p2c",
+      "offered": 3919033,
+      "admitted": 3906081,
+      "successes": 3657532,
+      "attainment_pct": 93.32741010346174
+    },
+    {
+      "trace": "wd_pm",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "ingress_dla",
+      "offered": 3915870,
+      "admitted": 3803252,
+      "successes": 3560403,
+      "attainment_pct": 90.9224003861211
+    },
+    {
+      "trace": "wd_pm",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "dla",
+      "offered": 3915870,
+      "admitted": 3689712,
+      "successes": 3451152,
+      "attainment_pct": 88.1324456634158
+    },
+    {
+      "trace": "wd_pm",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "per_task_dla",
+      "offered": 3915870,
+      "admitted": 3912077,
+      "successes": 3695510,
+      "attainment_pct": 94.37264260560234
+    },
+    {
+      "trace": "wd_pm",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "causal_round_robin",
+      "offered": 3915870,
+      "admitted": 3907752,
+      "successes": 3679061,
+      "attainment_pct": 93.95258269554402
+    },
+    {
+      "trace": "wd_pm",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "dla_p2c",
+      "offered": 3915870,
+      "admitted": 3906697,
+      "successes": 3676313,
+      "attainment_pct": 93.88240671932418
+    },
+    {
+      "trace": "wd_pm",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "ingress_dla",
+      "offered": 3915527,
+      "admitted": 3799737,
+      "successes": 3546778,
+      "attainment_pct": 90.58239159122131
+    },
+    {
+      "trace": "wd_pm",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "dla",
+      "offered": 3915527,
+      "admitted": 3675340,
+      "successes": 3427414,
+      "attainment_pct": 87.53391305946812
+    },
+    {
+      "trace": "wd_pm",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "per_task_dla",
+      "offered": 3915527,
+      "admitted": 3911256,
+      "successes": 3682696,
+      "attainment_pct": 94.0536484616247
+    },
+    {
+      "trace": "wd_pm",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "causal_round_robin",
+      "offered": 3915527,
+      "admitted": 3905904,
+      "successes": 3665367,
+      "attainment_pct": 93.611077129592
+    },
+    {
+      "trace": "wd_pm",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "dla_p2c",
+      "offered": 3915527,
+      "admitted": 3904913,
+      "successes": 3662514,
+      "attainment_pct": 93.5382133745981
+    },
+    {
+      "trace": "wd_pm",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "ingress_dla",
+      "offered": 3920173,
+      "admitted": 3751817,
+      "successes": 3492944,
+      "attainment_pct": 89.10178198768268
+    },
+    {
+      "trace": "wd_pm",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "dla",
+      "offered": 3920173,
+      "admitted": 3594168,
+      "successes": 3346389,
+      "attainment_pct": 85.3632990176709
+    },
+    {
+      "trace": "wd_pm",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "per_task_dla",
+      "offered": 3920173,
+      "admitted": 3917163,
+      "successes": 3672244,
+      "attainment_pct": 93.6755597265733
+    },
+    {
+      "trace": "wd_pm",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "causal_round_robin",
+      "offered": 3920173,
+      "admitted": 3904032,
+      "successes": 3648402,
+      "attainment_pct": 93.0673722817845
+    },
+    {
+      "trace": "wd_pm",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "dla_p2c",
+      "offered": 3920173,
+      "admitted": 3903359,
+      "successes": 3646155,
+      "attainment_pct": 93.01005338284816
+    },
+    {
+      "trace": "wd_pm",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "ingress_dla",
+      "offered": 3920959,
+      "admitted": 3742216,
+      "successes": 3479222,
+      "attainment_pct": 88.73395513699582
+    },
+    {
+      "trace": "wd_pm",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "dla",
+      "offered": 3920959,
+      "admitted": 3578725,
+      "successes": 3328032,
+      "attainment_pct": 84.8780107111551
+    },
+    {
+      "trace": "wd_pm",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "per_task_dla",
+      "offered": 3920959,
+      "admitted": 3918078,
+      "successes": 3667199,
+      "attainment_pct": 93.52811391294834
+    },
+    {
+      "trace": "wd_pm",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "causal_round_robin",
+      "offered": 3920959,
+      "admitted": 3903961,
+      "successes": 3642644,
+      "attainment_pct": 92.90186405927733
+    },
+    {
+      "trace": "wd_pm",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "dla_p2c",
+      "offered": 3920959,
+      "admitted": 3903089,
+      "successes": 3640804,
+      "attainment_pct": 92.85493676419468
+    },
+    {
+      "trace": "wd_pm",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "ingress_dla",
+      "offered": 3916941,
+      "admitted": 3745182,
+      "successes": 3490524,
+      "attainment_pct": 89.11351996366552
+    },
+    {
+      "trace": "wd_pm",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "dla",
+      "offered": 3916941,
+      "admitted": 3594148,
+      "successes": 3350009,
+      "attainment_pct": 85.5261542106455
+    },
+    {
+      "trace": "wd_pm",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "per_task_dla",
+      "offered": 3916941,
+      "admitted": 3911867,
+      "successes": 3668802,
+      "attainment_pct": 93.6649798911957
+    },
+    {
+      "trace": "wd_pm",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "causal_round_robin",
+      "offered": 3916941,
+      "admitted": 3897876,
+      "successes": 3645261,
+      "attainment_pct": 93.06397517858962
+    },
+    {
+      "trace": "wd_pm",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "dla_p2c",
+      "offered": 3916941,
+      "admitted": 3897193,
+      "successes": 3643563,
+      "attainment_pct": 93.0206250234558
+    },
+    {
+      "trace": "wd_pm",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "ingress_dla",
+      "offered": 3919696,
+      "admitted": 3835722,
+      "successes": 3602479,
+      "attainment_pct": 91.90710197933717
+    },
+    {
+      "trace": "wd_pm",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "dla",
+      "offered": 3919696,
+      "admitted": 3748331,
+      "successes": 3515428,
+      "attainment_pct": 89.68624097378981
+    },
+    {
+      "trace": "wd_pm",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "per_task_dla",
+      "offered": 3919696,
+      "admitted": 3916870,
+      "successes": 3713134,
+      "attainment_pct": 94.73015254244207
+    },
+    {
+      "trace": "wd_pm",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "causal_round_robin",
+      "offered": 3919696,
+      "admitted": 3915222,
+      "successes": 3699677,
+      "attainment_pct": 94.38683510149767
+    },
+    {
+      "trace": "wd_pm",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "dla_p2c",
+      "offered": 3919696,
+      "admitted": 3914211,
+      "successes": 3696920,
+      "attainment_pct": 94.31649801413171
+    },
+    {
+      "trace": "ev",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "ingress_dla",
+      "offered": 2840089,
+      "admitted": 2731434,
+      "successes": 2549902,
+      "attainment_pct": 89.78246808462693
+    },
+    {
+      "trace": "ev",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "dla",
+      "offered": 2840089,
+      "admitted": 2603686,
+      "successes": 2427178,
+      "attainment_pct": 85.46133589475541
+    },
+    {
+      "trace": "ev",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "per_task_dla",
+      "offered": 2840089,
+      "admitted": 2838538,
+      "successes": 2680229,
+      "attainment_pct": 94.37130315282373
+    },
+    {
+      "trace": "ev",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "causal_round_robin",
+      "offered": 2840089,
+      "admitted": 2833293,
+      "successes": 2665280,
+      "attainment_pct": 93.8449464083696
+    },
+    {
+      "trace": "ev",
+      "block": 0,
+      "fleet_seed": 100,
+      "evaluator_seed": 200,
+      "arm": "dla_p2c",
+      "offered": 2840089,
+      "admitted": 2832598,
+      "successes": 2662288,
+      "attainment_pct": 93.73959759711755
+    },
+    {
+      "trace": "ev",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "ingress_dla",
+      "offered": 2837668,
+      "admitted": 2755757,
+      "successes": 2581086,
+      "attainment_pct": 90.95799790532226
+    },
+    {
+      "trace": "ev",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "dla",
+      "offered": 2837668,
+      "admitted": 2652209,
+      "successes": 2479034,
+      "attainment_pct": 87.36166457809723
+    },
+    {
+      "trace": "ev",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "per_task_dla",
+      "offered": 2837668,
+      "admitted": 2836255,
+      "successes": 2691446,
+      "attainment_pct": 94.847106849709
+    },
+    {
+      "trace": "ev",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "causal_round_robin",
+      "offered": 2837668,
+      "admitted": 2834725,
+      "successes": 2679201,
+      "attainment_pct": 94.41559054829528
+    },
+    {
+      "trace": "ev",
+      "block": 1,
+      "fleet_seed": 101,
+      "evaluator_seed": 201,
+      "arm": "dla_p2c",
+      "offered": 2837668,
+      "admitted": 2833903,
+      "successes": 2675781,
+      "attainment_pct": 94.29506904965626
+    },
+    {
+      "trace": "ev",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "ingress_dla",
+      "offered": 2835137,
+      "admitted": 2736351,
+      "successes": 2551384,
+      "attainment_pct": 89.99155949077593
+    },
+    {
+      "trace": "ev",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "dla",
+      "offered": 2835137,
+      "admitted": 2604293,
+      "successes": 2423133,
+      "attainment_pct": 85.46793329563968
+    },
+    {
+      "trace": "ev",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "per_task_dla",
+      "offered": 2835137,
+      "admitted": 2832796,
+      "successes": 2678521,
+      "attainment_pct": 94.47589305208179
+    },
+    {
+      "trace": "ev",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "causal_round_robin",
+      "offered": 2835137,
+      "admitted": 2830406,
+      "successes": 2663270,
+      "attainment_pct": 93.9379649025779
+    },
+    {
+      "trace": "ev",
+      "block": 2,
+      "fleet_seed": 102,
+      "evaluator_seed": 202,
+      "arm": "dla_p2c",
+      "offered": 2835137,
+      "admitted": 2829172,
+      "successes": 2660092,
+      "attainment_pct": 93.8258715540025
+    },
+    {
+      "trace": "ev",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "ingress_dla",
+      "offered": 2838084,
+      "admitted": 2771070,
+      "successes": 2598794,
+      "attainment_pct": 91.56860755354668
+    },
+    {
+      "trace": "ev",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "dla",
+      "offered": 2838084,
+      "admitted": 2675625,
+      "successes": 2502864,
+      "attainment_pct": 88.18851027665143
+    },
+    {
+      "trace": "ev",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "per_task_dla",
+      "offered": 2838084,
+      "admitted": 2836260,
+      "successes": 2693590,
+      "attainment_pct": 94.90874829638587
+    },
+    {
+      "trace": "ev",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "causal_round_robin",
+      "offered": 2838084,
+      "admitted": 2835169,
+      "successes": 2682438,
+      "attainment_pct": 94.51580714312895
+    },
+    {
+      "trace": "ev",
+      "block": 3,
+      "fleet_seed": 103,
+      "evaluator_seed": 203,
+      "arm": "dla_p2c",
+      "offered": 2838084,
+      "admitted": 2834464,
+      "successes": 2679338,
+      "attainment_pct": 94.40657852269348
+    },
+    {
+      "trace": "ev",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "ingress_dla",
+      "offered": 2836362,
+      "admitted": 2720280,
+      "successes": 2531454,
+      "attainment_pct": 89.250032259634
+    },
+    {
+      "trace": "ev",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "dla",
+      "offered": 2836362,
+      "admitted": 2579547,
+      "successes": 2396143,
+      "attainment_pct": 84.47944937916951
+    },
+    {
+      "trace": "ev",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "per_task_dla",
+      "offered": 2836362,
+      "admitted": 2834205,
+      "successes": 2673068,
+      "attainment_pct": 94.24283642214922
+    },
+    {
+      "trace": "ev",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "causal_round_robin",
+      "offered": 2836362,
+      "admitted": 2830334,
+      "successes": 2656391,
+      "attainment_pct": 93.65486492908875
+    },
+    {
+      "trace": "ev",
+      "block": 4,
+      "fleet_seed": 104,
+      "evaluator_seed": 204,
+      "arm": "dla_p2c",
+      "offered": 2836362,
+      "admitted": 2829152,
+      "successes": 2653166,
+      "attainment_pct": 93.54116294041452
+    },
+    {
+      "trace": "ev",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "ingress_dla",
+      "offered": 2839296,
+      "admitted": 2787785,
+      "successes": 2619728,
+      "attainment_pct": 92.26681543593905
+    },
+    {
+      "trace": "ev",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "dla",
+      "offered": 2839296,
+      "admitted": 2714680,
+      "successes": 2545048,
+      "attainment_pct": 89.6365859706068
+    },
+    {
+      "trace": "ev",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "per_task_dla",
+      "offered": 2839296,
+      "admitted": 2837096,
+      "successes": 2696767,
+      "attainment_pct": 94.9801288770174
+    },
+    {
+      "trace": "ev",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "causal_round_robin",
+      "offered": 2839296,
+      "admitted": 2836723,
+      "successes": 2688322,
+      "attainment_pct": 94.68269599224597
+    },
+    {
+      "trace": "ev",
+      "block": 5,
+      "fleet_seed": 105,
+      "evaluator_seed": 205,
+      "arm": "dla_p2c",
+      "offered": 2839296,
+      "admitted": 2836125,
+      "successes": 2685373,
+      "attainment_pct": 94.57883221756379
+    },
+    {
+      "trace": "ev",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "ingress_dla",
+      "offered": 2836741,
+      "admitted": 2777592,
+      "successes": 2608748,
+      "attainment_pct": 91.96285455739526
+    },
+    {
+      "trace": "ev",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "dla",
+      "offered": 2836741,
+      "admitted": 2696801,
+      "successes": 2527057,
+      "attainment_pct": 89.08310628287884
+    },
+    {
+      "trace": "ev",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "per_task_dla",
+      "offered": 2836741,
+      "admitted": 2835038,
+      "successes": 2693073,
+      "attainment_pct": 94.93545586290747
+    },
+    {
+      "trace": "ev",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "causal_round_robin",
+      "offered": 2836741,
+      "admitted": 2834064,
+      "successes": 2683486,
+      "attainment_pct": 94.59749762139018
+    },
+    {
+      "trace": "ev",
+      "block": 6,
+      "fleet_seed": 106,
+      "evaluator_seed": 206,
+      "arm": "dla_p2c",
+      "offered": 2836741,
+      "admitted": 2833447,
+      "successes": 2680818,
+      "attainment_pct": 94.50344603190774
+    },
+    {
+      "trace": "ev",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "ingress_dla",
+      "offered": 2837568,
+      "admitted": 2780425,
+      "successes": 2616555,
+      "attainment_pct": 92.21118225184384
+    },
+    {
+      "trace": "ev",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "dla",
+      "offered": 2837568,
+      "admitted": 2707332,
+      "successes": 2541686,
+      "attainment_pct": 89.57269041658209
+    },
+    {
+      "trace": "ev",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "per_task_dla",
+      "offered": 2837568,
+      "admitted": 2836452,
+      "successes": 2698772,
+      "attainment_pct": 95.1086282337551
+    },
+    {
+      "trace": "ev",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "causal_round_robin",
+      "offered": 2837568,
+      "admitted": 2835750,
+      "successes": 2690014,
+      "attainment_pct": 94.79998364796897
+    },
+    {
+      "trace": "ev",
+      "block": 7,
+      "fleet_seed": 107,
+      "evaluator_seed": 207,
+      "arm": "dla_p2c",
+      "offered": 2837568,
+      "admitted": 2835191,
+      "successes": 2687486,
+      "attainment_pct": 94.71089327198503
+    }
+  ],
+  "contrasts": [
+    {
+      "trace": "we",
+      "contrast": "per_task_dla_minus_ingress_dla",
+      "effects_pp": [
+        5.198139761866756,
+        4.06879302911716,
+        3.189785708520702,
+        3.1261922752015323,
+        3.1450920965882005,
+        2.579424398542571,
+        3.6423541949052662,
+        4.877349591004702
+      ],
+      "individual95": {
+        "mean_pp": 3.728391381968361,
+        "sd_pp": 0.9193665494904347,
+        "low_pp": 2.9597817119478407,
+        "high_pp": 4.497001051988882,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 3.728391381968361,
+        "sd_pp": 0.9193665494904347,
+        "low_pp": 2.590901270967804,
+        "high_pp": 4.865881492968919,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 3.728391381968361,
+        "sd_pp": 0.9193665494904347,
+        "low_pp": 2.3127303136981396,
+        "high_pp": 5.144052450238583,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "we",
+      "contrast": "dla_minus_ingress_dla",
+      "effects_pp": [
+        -4.273397524151136,
+        -3.3742234342811486,
+        -2.399259875850916,
+        -2.4763171816572367,
+        -2.584786205985182,
+        -2.0284782109715707,
+        -2.8539177685690618,
+        -3.9783693571031478
+      ],
+      "individual95": {
+        "mean_pp": -2.996093694821175,
+        "sd_pp": 0.8010170721440644,
+        "low_pp": -3.6657607257161886,
+        "high_pp": -2.3264266639261613,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": -2.996093694821175,
+        "sd_pp": 0.8010170721440644,
+        "low_pp": -3.987155419670207,
+        "high_pp": -2.005031969972143,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": -2.996093694821175,
+        "sd_pp": 0.8010170721440644,
+        "low_pp": -4.229517604667211,
+        "high_pp": -1.7626697849751387,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "we",
+      "contrast": "per_task_dla_minus_causal_round_robin",
+      "effects_pp": [
+        0.7672228509923968,
+        0.583954742723364,
+        0.4137419274789238,
+        0.4202111057686011,
+        0.41364006634447037,
+        0.3457427828002295,
+        0.47914176029615874,
+        0.67983603571831
+      ],
+      "individual95": {
+        "mean_pp": 0.5129364090153068,
+        "sd_pp": 0.1487825648944055,
+        "low_pp": 0.3885510719898536,
+        "high_pp": 0.63732174604076,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 0.5129364090153068,
+        "sd_pp": 0.1487825648944055,
+        "low_pp": 0.32885455792937524,
+        "high_pp": 0.6970182601012384,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 0.5129364090153068,
+        "sd_pp": 0.1487825648944055,
+        "low_pp": 0.2838377052663631,
+        "high_pp": 0.7420351127642505,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "we",
+      "contrast": "per_task_dla_minus_dla_p2c",
+      "effects_pp": [
+        0.8003036099981102,
+        0.6466807221111281,
+        0.49281378481228444,
+        0.4969264455828437,
+        0.49471380872481063,
+        0.42434260650516364,
+        0.5555018920209989,
+        0.730978514859018
+      ],
+      "individual95": {
+        "mean_pp": 0.5802826730767947,
+        "sd_pp": 0.13222256097990512,
+        "low_pp": 0.46974184578613376,
+        "high_pp": 0.6908235003674557,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 0.5802826730767947,
+        "sd_pp": 0.13222256097990512,
+        "low_pp": 0.4166897561393974,
+        "high_pp": 0.743875590014192,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 0.5802826730767947,
+        "sd_pp": 0.13222256097990512,
+        "low_pp": 0.3766834318057434,
+        "high_pp": 0.783881914347846,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "we",
+      "contrast": "dla_p2c_minus_causal_round_robin",
+      "effects_pp": [
+        -0.03308075900571339,
+        -0.06272597938776414,
+        -0.07907185733336064,
+        -0.07671533981424261,
+        -0.08107374238034026,
+        -0.07859982370493412,
+        -0.07636013172484013,
+        -0.05114247914070802
+      ],
+      "individual95": {
+        "mean_pp": -0.06734626406148791,
+        "sd_pp": 0.01723633913271726,
+        "low_pp": -0.08175620418874445,
+        "high_pp": -0.05293632393423137,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": -0.06734626406148791,
+        "sd_pp": 0.01723633913271726,
+        "low_pp": -0.08867199678929344,
+        "high_pp": -0.04602053133368239,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": -0.06734626406148791,
+        "sd_pp": 0.01723633913271726,
+        "low_pp": -0.09388716255645128,
+        "high_pp": -0.040805365566524546,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "wd_pm",
+      "contrast": "per_task_dla_minus_ingress_dla",
+      "effects_pp": [
+        7.001951544721933,
+        4.204506570881136,
+        3.4502422194812397,
+        3.471256870403394,
+        4.5737777388906125,
+        4.794158775952525,
+        4.551459927530175,
+        2.8230505631049
+      ],
+      "individual95": {
+        "mean_pp": 4.3588005263707394,
+        "sd_pp": 1.2679941116743207,
+        "low_pp": 3.298730920507727,
+        "high_pp": 5.418870132233752,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 4.3588005263707394,
+        "sd_pp": 1.2679941116743207,
+        "low_pp": 2.789969505015984,
+        "high_pp": 5.927631547725495,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 4.3588005263707394,
+        "sd_pp": 1.2679941116743207,
+        "low_pp": 2.4063149810916142,
+        "high_pp": 6.311286071649865,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "wd_pm",
+      "contrast": "dla_minus_ingress_dla",
+      "effects_pp": [
+        -6.178402734919175,
+        -3.3317147367730797,
+        -2.7899547227053034,
+        -3.04847853175319,
+        -3.7384829700117876,
+        -3.8559444258407183,
+        -3.5873657530200234,
+        -2.2208610055473628
+      ],
+      "individual95": {
+        "mean_pp": -3.59390061007133,
+        "sd_pp": 1.175163112019942,
+        "low_pp": -4.5763615580474815,
+        "high_pp": -2.6114396620951785,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": -3.59390061007133,
+        "sd_pp": 1.175163112019942,
+        "low_pp": -5.047876088596429,
+        "high_pp": -2.1399251315462307,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": -3.59390061007133,
+        "sd_pp": 1.175163112019942,
+        "low_pp": -5.403442916647514,
+        "high_pp": -1.7843583034951456,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "wd_pm",
+      "contrast": "per_task_dla_minus_causal_round_robin",
+      "effects_pp": [
+        1.2759825233886772,
+        0.5274515422554487,
+        0.42005991005831333,
+        0.44257133203269916,
+        0.6081874447887969,
+        0.6262498536710126,
+        0.601004712606084,
+        0.34331744094440353
+      ],
+      "individual95": {
+        "mean_pp": 0.6056030949681794,
+        "sd_pp": 0.2892773630393768,
+        "low_pp": 0.36376116731338715,
+        "high_pp": 0.8474450226229717,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 0.6056030949681794,
+        "sd_pp": 0.2892773630393768,
+        "low_pp": 0.2476934668922096,
+        "high_pp": 0.9635127230441493,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 0.6056030949681794,
+        "sd_pp": 0.2892773630393768,
+        "low_pp": 0.16016737510900525,
+        "high_pp": 1.0510388148273537,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "wd_pm",
+      "contrast": "per_task_dla_minus_dla_p2c",
+      "effects_pp": [
+        1.1717435926493778,
+        0.5961419564469139,
+        0.49023588627815684,
+        0.5154350870266029,
+        0.6655063437251414,
+        0.6731771487536662,
+        0.6443548677398923,
+        0.4136545283103601
+      ],
+      "individual95": {
+        "mean_pp": 0.6462811763662639,
+        "sd_pp": 0.23154986886372678,
+        "low_pp": 0.45270064159557233,
+        "high_pp": 0.8398617111369555,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 0.6462811763662639,
+        "sd_pp": 0.23154986886372678,
+        "low_pp": 0.35979513205461433,
+        "high_pp": 0.9327672206779135,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 0.6462811763662639,
+        "sd_pp": 0.23154986886372678,
+        "low_pp": 0.2897355364415392,
+        "high_pp": 1.0028268162909886,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "wd_pm",
+      "contrast": "dla_p2c_minus_causal_round_robin",
+      "effects_pp": [
+        0.10423893073929946,
+        -0.06869041419146527,
+        -0.0701759762198435,
+        -0.07286375499390374,
+        -0.05731889893634445,
+        -0.046927295082653586,
+        -0.043350155133808244,
+        -0.07033708736595656
+      ],
+      "individual95": {
+        "mean_pp": -0.04067808139808449,
+        "sd_pp": 0.05963512947458601,
+        "low_pp": -0.09053429730293504,
+        "high_pp": 0.009178134506766064,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": -0.04067808139808449,
+        "sd_pp": 0.05963512947458601,
+        "low_pp": -0.11446189491966313,
+        "high_pp": 0.03310573212349416,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": -0.04067808139808449,
+        "sd_pp": 0.05963512947458601,
+        "low_pp": -0.13250558060959866,
+        "high_pp": 0.0511494178134297,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "ev",
+      "contrast": "per_task_dla_minus_ingress_dla",
+      "effects_pp": [
+        4.588835068196801,
+        3.8891089443867344,
+        4.48433356130586,
+        3.340140742839182,
+        4.9928041625152275,
+        2.7133134410783555,
+        2.972601305512214,
+        2.897445981911261
+      ],
+      "individual95": {
+        "mean_pp": 3.7348229009682044,
+        "sd_pp": 0.8765892911139878,
+        "low_pp": 3.0019759139203535,
+        "high_pp": 4.467669888016055,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 3.7348229009682044,
+        "sd_pp": 0.8765892911139878,
+        "low_pp": 2.6502591319211297,
+        "high_pp": 4.8193866700152785,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 3.7348229009682044,
+        "sd_pp": 0.8765892911139878,
+        "low_pp": 2.385031206914868,
+        "high_pp": 5.084614595021541,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "ev",
+      "contrast": "dla_minus_ingress_dla",
+      "effects_pp": [
+        -4.32113218987152,
+        -3.5963333272250253,
+        -4.523626195136245,
+        -3.380097276895256,
+        -4.770582880464488,
+        -2.630229465332249,
+        -2.879748274516416,
+        -2.638491835261746
+      ],
+      "individual95": {
+        "mean_pp": -3.592530180587868,
+        "sd_pp": 0.8598189941559288,
+        "low_pp": -4.311356848516839,
+        "high_pp": -2.8737035126588975,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": -3.592530180587868,
+        "sd_pp": 0.8598189941559288,
+        "low_pp": -4.656344829538168,
+        "high_pp": -2.5287155316375687,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": -3.592530180587868,
+        "sd_pp": 0.8598189941559288,
+        "low_pp": -4.916498598255944,
+        "high_pp": -2.2685617629197923,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "ev",
+      "contrast": "per_task_dla_minus_causal_round_robin",
+      "effects_pp": [
+        0.5263567444541337,
+        0.43151630141370845,
+        0.5379281495038839,
+        0.39294115325691337,
+        0.5879714930604791,
+        0.2974328847714389,
+        0.33795824151729903,
+        0.3086445857861264
+      ],
+      "individual95": {
+        "mean_pp": 0.42759369422049787,
+        "sd_pp": 0.1121162005703963,
+        "low_pp": 0.3338622048900136,
+        "high_pp": 0.5213251835509821,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 0.42759369422049787,
+        "sd_pp": 0.1121162005703963,
+        "low_pp": 0.28887745584695057,
+        "high_pp": 0.5663099325940452,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 0.42759369422049787,
+        "sd_pp": 0.1121162005703963,
+        "low_pp": 0.25495467406269845,
+        "high_pp": 0.6002327143782973,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "ev",
+      "contrast": "per_task_dla_minus_dla_p2c",
+      "effects_pp": [
+        0.6317055557061764,
+        0.5520378000527302,
+        0.6500214980792833,
+        0.5021697736923869,
+        0.7016734817347015,
+        0.4012966594536209,
+        0.432009830999732,
+        0.3977349617700696
+      ],
+      "individual95": {
+        "mean_pp": 0.5335811951860876,
+        "sd_pp": 0.11894729581738887,
+        "low_pp": 0.4341387673114723,
+        "high_pp": 0.6330236230607029,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": 0.5335811951860876,
+        "sd_pp": 0.11894729581738887,
+        "low_pp": 0.3864131556293629,
+        "high_pp": 0.6807492347428123,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": 0.5335811951860876,
+        "sd_pp": 0.11894729581738887,
+        "low_pp": 0.3504235025791186,
+        "high_pp": 0.7167388877930566,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    },
+    {
+      "trace": "ev",
+      "contrast": "dla_p2c_minus_causal_round_robin",
+      "effects_pp": [
+        -0.10534881125204265,
+        -0.12052149863902173,
+        -0.11209334857539943,
+        -0.10922862043547354,
+        -0.11370198867422232,
+        -0.103863774682182,
+        -0.09405158948243297,
+        -0.0890903759839432
+      ],
+      "individual95": {
+        "mean_pp": -0.10598750096558973,
+        "sd_pp": 0.010360871398035515,
+        "low_pp": -0.1146494062206623,
+        "high_pp": -0.09732559571051716,
+        "family_size": 1,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "trace_family95": {
+        "mean_pp": -0.10598750096558973,
+        "sd_pp": 0.010360871398035515,
+        "low_pp": -0.11880653246412103,
+        "high_pp": -0.09316846946705844,
+        "family_size": 5,
+        "df": 7,
+        "n_blocks": 8
+      },
+      "all_fifteen_family95": {
+        "mean_pp": -0.10598750096558973,
+        "sd_pp": 0.010360871398035515,
+        "low_pp": -0.12194140126757798,
+        "high_pp": -0.09003360066360148,
+        "family_size": 15,
+        "df": 7,
+        "n_blocks": 8
+      }
+    }
+  ],
+  "arm_mean_attainment_pct": {
+    "we": {
+      "ingress_dla": 89.89639899491841,
+      "dla": 86.90030530009724,
+      "per_task_dla": 93.62479037688678,
+      "causal_round_robin": 93.11185396787147,
+      "dla_p2c": 93.04450770380998
+    },
+    "wd_pm": {
+      "ingress_dla": 89.1534582543081,
+      "dla": 85.55955764423678,
+      "per_task_dla": 93.51225878067885,
+      "causal_round_robin": 92.90665568571067,
+      "dla_p2c": 92.86597760431258
+    },
+    "ev": {
+      "ingress_dla": 90.9989396923855,
+      "dla": 87.40640951179762,
+      "per_task_dla": 94.7337625933537,
+      "causal_round_robin": 94.3061688991332,
+      "dla_p2c": 94.20018139816762
+    }
+  },
+  "wall_s_per_trace": {
+    "we": 26403.293401916002,
+    "wd_pm": 25319.390076333002,
+    "ev": 25304.460233291
+  },
+  "failures": 0,
+  "scope": "Conditional trace-specific paired block inference; no pooling or task-level tests."
+}

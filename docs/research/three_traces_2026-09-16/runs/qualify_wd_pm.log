@@ -1,0 +1,13 @@
+START wd_pm block=0 arm=ingress_dla steps=300 2026-09-16T00:04:38.132778+00:00
+VALIDATED wd_pm block=0 arm=ingress_dla simulation_s=11.6
+START wd_pm block=0 arm=dla steps=300 2026-09-16T00:04:49.745898+00:00
+VALIDATED wd_pm block=0 arm=dla simulation_s=10.9
+START wd_pm block=0 arm=per_task_dla steps=300 2026-09-16T00:05:00.733151+00:00
+VALIDATED wd_pm block=0 arm=per_task_dla simulation_s=10.3
+START wd_pm block=0 arm=causal_round_robin steps=300 2026-09-16T00:05:11.073727+00:00
+VALIDATED wd_pm block=0 arm=causal_round_robin simulation_s=10.2
+START wd_pm block=0 arm=dla_p2c steps=300 2026-09-16T00:05:21.340837+00:00
+VALIDATED wd_pm block=0 arm=dla_p2c simulation_s=10.9
+START wd_pm block=0 arm=per_task_dla steps=150 2026-09-16T00:05:35.531108+00:00
+VALIDATED wd_pm block=0 arm=per_task_dla simulation_s=7.2
+QUALIFICATION PASSED wd_pm

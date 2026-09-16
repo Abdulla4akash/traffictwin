@@ -1,42 +1,45 @@
-# Three Manchester traces — authorised study
+# Three Manchester traces — completed study
 
-**Status:** all 18 qualification attempts passed; the 120 authorised full
-cells are running. See [live status](evidence/LIVE_STATUS.json) for the latest
-validated counts. Full execution started at 00:06:39 UTC on 16 September 2026.
-The [execution seal](evidence/EXECUTION_SEAL.json) predates full outcomes.
+All 120 full cells, 24 blocks and 18 qualification attempts passed. There were
+zero failures, retries or seed replacements. Clock elapsed times: we: 9.571 h, wd_pm: 9.270 h, ev: 9.266 h.
+These include host sleep. See [timing notes](TIMING_NOTES.md) for comparison
+with the preserved runner timers used in ANALYSIS.json and RESULTS.md.
 
-- [Owner task](OWNER_TASK.md): original requested design and authority.
-- [Sealed protocol](PROTOCOL.md): selected scenarios, fixed controls,
-  statistical families and approved clarification.
-- [Source compatibility audit](SOURCE_COMPATIBILITY.md): exact blockers to
-  literal unchanged reuse and the approved bounded amendment.
-- [Trace inventory](TRACE_INVENTORY.json): all eight files, per-array/file
-  hashes, remote-main identity, entry conventions and morning differences.
-- [Configuration](CONFIG.json): exact planned traces, arms, blocks and budgets.
-- [Runtime preflight](RUNTIME_PREFLIGHT.json): pinned environment and input/source
-  checks; does not launch an evaluator.
-- [Scientific source identities](SCIENTIFIC_SOURCE_IDENTITY.json): all five
-  requested scientific files are byte-identical to the requested base.
-- [Work status](WORK_STATUS.json): execution state. The raw inventory will be
-  completed after all workers finish and the independent arithmetic audit passes.
-- [Source review](evidence/SOURCE_REVIEW.json): approval of the exact frozen
-  configuration source `2cec1eee4022a64bc5f80b049eed0471ff4a03bf`.
+The design was proposed by Claude and authorised by the owner. The protocol
+was sealed before full outcomes. Scientific source:
+`2cec1eee4022a64bc5f80b049eed0471ff4a03bf`. This study produced evidence for a paper;
+no manuscript was edited.
 
-## Approved owner amendment
+## Results and verification
 
-The supplied prompt conflates cross-arm exogenous matching with same-arm
-compatibility. The current validator also fixes morning dimensions and
-requires an entry channel, while PM/event lack one. The owner approved the
-configuration parameterisation and qualification contract in
-[OWNER_AMENDMENT.md](OWNER_AMENDMENT.md) before evaluator launches. The archived
-incident round-robin point is unavailable; E2c/E2d did not include that arm.
+- [Results](RESULTS.md) and [findings](FINDINGS.md): all 15 declared contrasts,
+  with individual, within-trace and all-15 intervals, including inconclusive results.
+- [Cell results](CELL_RESULTS.csv), [paired effects](PAIRED_EFFECTS.csv) and
+  [analysis](ANALYSIS.json): machine-readable results.
+- [Contrast chart](RESULTS_CHART.png) and [descriptive density plot](DENSITY_PLOT.png).
+- [Independent arithmetic audit](FINAL_ANALYSIS_AUDIT.json): all 120 cells,
+  18 qualification attempts, 24 blocks and 15 contrasts checked.
+- [Finalisation receipt](evidence/FINALIZATION.json), [raw inventory](RAW_INVENTORY.json)
+  and [packet manifest](PACKET_MANIFEST.json): timing, memory, provenance and checksums.
+- [Compact receipts](runs/): every authorised attempt and block; raw NPZ arrays stay local.
 
-## Inventory reproduction
+## Fixed design and qualifications
 
-`inventory.py` reads the local candidate NPZ files and verifies them against
-the previously fetched vec_env `github/main` tree. Run it with the specified
-venv Python in a fresh output directory/check-out; it refuses to overwrite
-`TRACE_INVENTORY.json`. No simulation, input mutation or network call occurs.
+- [Owner task](OWNER_TASK.md), [approved amendment](OWNER_AMENDMENT.md),
+  [sealed protocol](PROTOCOL.md) and [configuration](CONFIG.json).
+- [Trace inventory](TRACE_INVENTORY.json): all eight candidates, entry-channel
+  conventions, remote-main identity and exact morning array differences.
+- [Source compatibility](SOURCE_COMPATIBILITY.md),
+  [protected source identities](SCIENTIFIC_SOURCE_IDENTITY.json),
+  [independent source review](evidence/SOURCE_REVIEW.json) and
+  [execution seal](evidence/EXECUTION_SEAL.json).
 
-The original morning trace has not been rerun. Existing studies, manuscripts,
-raw inputs and all five protected scientific files remain unchanged.
+Qualification matched 14 exogenous inputs across arms and all 59 restart arrays
+against the per-task prefix. The primary denominator includes rejected tasks.
+PM and event use the documented legacy entry convention. The archived incident
+round-robin comparison is unavailable. Density comparisons are descriptive only;
+there is no trace pooling, cross-trace testing or equivalence claim.
+
+The [draft PR](https://github.com/Abdulla4akash/traffictwin/pull/144) remains unmerged.
+The compact delivery ZIP and external checksums are under
+`~/Desktop/Dissertation/Experiments 10-12 - 2026-09-16/`.

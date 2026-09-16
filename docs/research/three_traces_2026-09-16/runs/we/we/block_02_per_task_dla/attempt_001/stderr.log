@@ -1,0 +1,18 @@
+      602.25 real       886.02 user       489.80 sys
+          2090614784  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              395096  page reclaims
+                  39  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                1111  voluntary context switches
+            60928382  involuntary context switches
+      10096879632963  instructions retired
+       3779350166853  cycles elapsed
+          2096630304  peak memory footprint

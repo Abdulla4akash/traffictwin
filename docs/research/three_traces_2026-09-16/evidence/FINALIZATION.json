@@ -1,0 +1,29 @@
+{
+  "status": "complete",
+  "at": "2026-09-16T09:43:29.014780+00:00",
+  "source_commit": "2cec1eee4022a64bc5f80b049eed0471ff4a03bf",
+  "full_cells": 120,
+  "qualification_attempts": 18,
+  "blocks": 24,
+  "contrasts": 15,
+  "failures": 0,
+  "retries": 0,
+  "full_supervisor_monotonic_s": 26404.241618957996,
+  "wall_s_per_trace": {
+    "we": 34456.715485,
+    "wd_pm": 33372.798566,
+    "ev": 33357.868628
+  },
+  "runner_monotonic_s_per_trace": {
+    "we": 26403.293401916002,
+    "wd_pm": 25319.390076333002,
+    "ev": 25304.460233291
+  },
+  "max_evaluator_peak_rss_bytes": 2124382208,
+  "max_runner_high_water_rss_bytes": 3663446016,
+  "concurrency_reduced": false,
+  "raw_total_bytes": 58927603641,
+  "manuscripts_modified": false,
+  "analysis_sha256": "f2d0b5023bedcb73469c663bf6fc410238f05b70a6a37f5ec29b9adafc2fa4ee",
+  "independent_audit_sha256": "ce5159d6f05a454faa93bf55649cbb987d65b3021969f84f5dde738e03538b93"
+}

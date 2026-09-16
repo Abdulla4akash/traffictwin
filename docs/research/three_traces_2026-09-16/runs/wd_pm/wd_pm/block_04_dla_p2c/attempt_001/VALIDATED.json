@@ -1,0 +1,587 @@
+{
+  "status": "passed",
+  "seal_sha256": "600f0cdfc3cfc1bb0537ca6eb0dcbac5f6c3fd13ae9c9f72029cdda369b92de4",
+  "configuration": {
+    "study": "wd_pm",
+    "block": 4,
+    "fleet_seed": 104,
+    "evaluator_seed": 204,
+    "arm": "dla_p2c",
+    "steps": 25200,
+    "service_mult": 1.0,
+    "actor_id": "original",
+    "frozen_reference": false,
+    "command": [
+      "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+      "-u",
+      "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/dissertation/joint_confirmation_2026-09-08/experimental/evaluator_entry.py",
+      "--runtime-root",
+      "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run",
+      "--extension-audit",
+      "--trace",
+      "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_wd_pm_fullrsu.npz",
+      "--actor",
+      "/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "--max-steps",
+      "25200",
+      "--seed",
+      "204",
+      "--fleet",
+      "uk2030",
+      "--fleet-seed",
+      "104",
+      "--rsu-cap-abs",
+      "6220",
+      "--lambda-arrival",
+      "1.5",
+      "--rsu-service-mult",
+      "1.0",
+      "--rsu-lb",
+      "dla_p2c",
+      "--rsu-backhaul-ms",
+      "0",
+      "--k8s-scale",
+      "off",
+      "--substep-queue",
+      "sequential",
+      "--substep-queue-iters",
+      "3",
+      "--rsu-cap-mode",
+      "reject",
+      "--veh-queue",
+      "conserved",
+      "--out-json",
+      "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/wd_pm/block_04_dla_p2c/attempt_001/summary.json",
+      "--per-step-out",
+      "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/wd_pm/block_04_dla_p2c/attempt_001/per_step.npz",
+      "--per-task-out",
+      "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/wd_pm/block_04_dla_p2c/attempt_001/per_task.npz"
+    ],
+    "output": "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/wd_pm/block_04_dla_p2c/attempt_001",
+    "seal_path": "/Users/akashx/scratch/traffictwin-traces-2026-09-16/docs/research/three_traces_2026-09-16/evidence/wd_pm/EXECUTION_SEAL.json",
+    "seal_sha256": "600f0cdfc3cfc1bb0537ca6eb0dcbac5f6c3fd13ae9c9f72029cdda369b92de4",
+    "environment": {
+      "JAX_ENABLE_X64": "false",
+      "JAX_PLATFORMS": "cpu",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_STRESS_LANES": "0",
+      "VEC_JAX_STRESS_SPEED": "0"
+    },
+    "trace_dimensions": {
+      "N": 163,
+      "R": 10,
+      "entry_channel_present": false
+    },
+    "inputs": {
+      "trace": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_wd_pm_fullrsu.npz",
+      "actor": "/Users/akashx/Downloads/diss_mat/tos-data-full/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "trace_sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+      "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+    }
+  },
+  "output_sha256": {
+    "summary.json": "b2dac260a06a5cb3df14f106a837bbda9fdc3e763a94a0925a0111d8e1e6a7af",
+    "per_step.npz": "eb4f7bfae3ce2b9b92076d5704c6168e669addce3aa8e7772d4a4b75f0036a26",
+    "per_task.npz": "29dea4637f72724e4b91924406291f7c86fb28196913a085ab21c286e97ba106"
+  },
+  "shared_input_hashes": {
+    "step/times": "041417263e7da86371a5552e8027a531350ecc03130ca1f341e10df8c6424eba",
+    "step/slot_tier": "f83cfb9b57844f65c82f98a6a8bb85250356cb5713cb7ead74bd1f77a76528a9",
+    "step/slot_is_ev": "185f4e4ac711ee4def4c3818352ed07ed0a65516c4cfeb4a69760bb4b9f7e92b",
+    "step/slot_soc_initial": "bfab73c7faaf0a641752a7b5037936c025e0b5c7c0721812b2bf36dd5523a01e",
+    "step/slot_tx_power_w": "7a22d56542466e60475b08432d54302215065ffbec26583016ba1950852abe08",
+    "step/exogenous_keys": "f649954a2d3c9b0e88059bbcefed9a6bc5cc341c197f3122b17128d08ab12dcf",
+    "step/observation_task_type": "ececada2562177a860fb66046a0f0f2a61d6aa31552ea0478a034ada74ad5372",
+    "step/observation_task_size": "de966a5bfd8abe3af3732d566ab1d7c5243afb80423a15608c21d131f35c2035",
+    "step/veh_k": "91329ca26db21cecfe15e1738c4a9c6325a18cdc1368aed9b1f6a5156fa5f9c7",
+    "task/task_active": "4bb6676ed54cfb1f1552fe1f07879a7f406133aaf4277770ccdcb07aa4498dcb",
+    "task/task_type": "0bbfa9ff37c3f324951b10cf4dc599279443b450ec5025d9593e2d99345fd615",
+    "task/task_sizes_mb": "b90810dd0bec50e3f65bf845c67cd30a8cf66ef7caa540e26a978576c9cfc1ea",
+    "task/task_rsu_service_ms": "654cebd9cddcc57ff7fd8b2a6db54dca924e7acd995a3c378058ce19cf3d614d",
+    "task/task_local_service_ms": "950ef6cbf55f9b99dfa3de3421a153489cdc05ad790e0c9f02a7461a82138f2d"
+  },
+  "offered": 3920173,
+  "admitted": 3903359,
+  "successes": 3646155,
+  "terminal_failures": 16814,
+  "outcome_counts": [
+    0,
+    3646155,
+    257204,
+    14545,
+    0,
+    303,
+    1855,
+    110,
+    1
+  ],
+  "type_counts": [
+    {
+      "type": 1,
+      "offered": 784725,
+      "successes": 616469
+    },
+    {
+      "type": 2,
+      "offered": 1176930,
+      "successes": 1164707
+    },
+    {
+      "type": 3,
+      "offered": 1958518,
+      "successes": 1864979
+    }
+  ],
+  "max_service_conservation_error_ms": 2.3126602172851562e-05,
+  "max_vehicle_service_conservation_error_ms": 0.000152587890625,
+  "pointer": null,
+  "field_contract": {
+    "step": {
+      "times": {
+        "shape": [
+          25200
+        ],
+        "dtype": "float32"
+      },
+      "slot_tier": {
+        "shape": [
+          163
+        ],
+        "dtype": "int8"
+      },
+      "slot_is_ev": {
+        "shape": [
+          163
+        ],
+        "dtype": "bool"
+      },
+      "slot_soc_initial": {
+        "shape": [
+          163
+        ],
+        "dtype": "float32"
+      },
+      "slot_tx_power_w": {
+        "shape": [
+          163
+        ],
+        "dtype": "float32"
+      },
+      "arrivals": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      },
+      "done": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      },
+      "lat_sum": {
+        "shape": [
+          25200
+        ],
+        "dtype": "float32"
+      },
+      "active": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      },
+      "n_local": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      },
+      "n_v2i": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      },
+      "n_v2v": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      },
+      "veh_action": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int8"
+      },
+      "veh_actor_logits": {
+        "shape": [
+          25200,
+          163,
+          3
+        ],
+        "dtype": "float32"
+      },
+      "veh_k": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int8"
+      },
+      "veh_done": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int16"
+      },
+      "veh_queue_ms": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_best_rsu": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int16"
+      },
+      "veh_best_v2v": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int16"
+      },
+      "rsu_busy_ms": {
+        "shape": [
+          25200,
+          10
+        ],
+        "dtype": "float32"
+      },
+      "rsu_load": {
+        "shape": [
+          25200,
+          10
+        ],
+        "dtype": "int32"
+      },
+      "veh_observations": {
+        "shape": [
+          25200,
+          163,
+          17
+        ],
+        "dtype": "float32"
+      },
+      "exogenous_keys": {
+        "shape": [
+          25200,
+          6,
+          2
+        ],
+        "dtype": "uint32"
+      },
+      "observation_task_type": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int32"
+      },
+      "observation_task_size": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "rsu_start_busy_ms": {
+        "shape": [
+          25200,
+          10
+        ],
+        "dtype": "float32"
+      },
+      "rsu_pre_drain_busy_ms": {
+        "shape": [
+          25200,
+          10
+        ],
+        "dtype": "float32"
+      },
+      "rsu_start_load": {
+        "shape": [
+          25200,
+          10
+        ],
+        "dtype": "int32"
+      },
+      "rsu_pre_drain_load": {
+        "shape": [
+          25200,
+          10
+        ],
+        "dtype": "int32"
+      },
+      "veh_soc_before": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_soc_after": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_energy_j": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_v2i_quality": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_v2i_capacity_mbps": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_v2v_radio_viable": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "bool"
+      },
+      "veh_v2v_target": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int32"
+      },
+      "veh_start_busy_ms": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_pre_drain_busy_ms": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "veh_start_load": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int32"
+      },
+      "veh_pre_drain_load": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int32"
+      },
+      "veh_load": {
+        "shape": [
+          25200,
+          163
+        ],
+        "dtype": "int32"
+      },
+      "rr_pointer_before": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      },
+      "rr_pointer_after": {
+        "shape": [
+          25200
+        ],
+        "dtype": "int32"
+      }
+    },
+    "task": {
+      "task_type": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "int8"
+      },
+      "task_sizes_mb": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "task_rsu_service_ms": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "task_final_admitted": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "bool"
+      },
+      "task_local_service_ms": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "task_v2v_service_ms": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "task_lat_ms": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "task_outcome": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "int8"
+      },
+      "task_met": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "bool"
+      },
+      "task_active": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "bool"
+      },
+      "task_ingress_rsu": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "int16"
+      },
+      "task_selected_execution_rsu": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "int16"
+      },
+      "task_execution_rsu": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "int16"
+      },
+      "task_forwarded": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "bool"
+      },
+      "task_forwarding_latency_ms": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "float32"
+      },
+      "task_v2i_admitted": {
+        "shape": [
+          25200,
+          5,
+          163
+        ],
+        "dtype": "bool"
+      }
+    }
+  },
+  "control_interpretation": "frozen weights; endogenous observation/logit/action differences allowed",
+  "two_choice_replay": {
+    "status": "passed",
+    "checked_proposals": 977948,
+    "candidate_sampling": "with replacement; first candidate wins ties",
+    "reconstructed_final_backlog": "exact float32"
+  },
+  "started_at": "2026-09-16T05:44:58.867575+00:00",
+  "finished_at": "2026-09-16T05:55:04.195260+00:00",
+  "simulation_process_s": 594.102087791005,
+  "validation_s": 11.222419499987154,
+  "total_wall_s": 605.3245124580135,
+  "memory": {
+    "evaluator_peak_rss_bytes": 1987346432,
+    "runner_process_high_water_rss_bytes": 3600220160,
+    "limit_bytes": 4500000000,
+    "method": "/usr/bin/time -l evaluator; getrusage runner cumulative high-water"
+  }
+}

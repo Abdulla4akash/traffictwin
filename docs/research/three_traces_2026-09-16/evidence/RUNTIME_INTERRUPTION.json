@@ -17,5 +17,17 @@
     "wd_pm": "block_03_ingress_dla/attempt_001",
     "ev": "block_03_ingress_dla/attempt_001"
   },
-  "timing_caveat": "Frozen runner uses time.monotonic(), which excludes system sleep on this Darwin host. Preserve those timer values and separately report UTC start-to-completion elapsed time, including sleep."
+  "timing_caveat": "Frozen runner uses time.monotonic(), which excludes system sleep on this Darwin host. Preserve those timer values and separately report UTC start-to-completion elapsed time, including sleep.",
+  "additional_sleep_events": [
+    {
+      "sleep_started_at": "2026-09-16T07:17:31+00:00",
+      "wake_at": "2026-09-16T07:19:50+00:00",
+      "reported_sleep_seconds": 139,
+      "reason": "Clamshell Sleep",
+      "power_source_after_wake": "battery",
+      "battery_after_wake_pct": 18,
+      "source": "pmset -g log",
+      "observed_at": "2026-09-16T07:21:42.744319+00:00"
+    }
+  ]
 }

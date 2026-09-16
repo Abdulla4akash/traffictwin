@@ -1,0 +1,17 @@
+{
+  "at": "2026-09-16T09:43:28.530109+00:00",
+  "reviewer": "Codex /root",
+  "independent": false,
+  "visual_inspection": "Both PNGs inspected: all panels, labels, interval values and caveats visible; no clipping or label repair required",
+  "images": {
+    "RESULTS_CHART.png": "829f0344542c7d7bcf34c79ebbd00ef2de2731d749254bf63c2cf54c9b352d98",
+    "DENSITY_PLOT.png": "03c91706eade07e4c1df416ee552c4795eb9354d90dd98f1c2f5df9b6cfe1a67"
+  },
+  "results_timing_note": {
+    "generated_report_sha256": "b97bb394fa44687056346bce8ef1a28de93019f39233a9a59a7beec94cec2279",
+    "clarified_report_sha256": "ba9c8d61ce75c254a9cd0241b9a954ea945f65a2c356bb267d6bf0f582912e5b",
+    "change": "Added operational timing clarification and link; all table rows and numerical values preserved exactly"
+  },
+  "sealed_sources_modified": false,
+  "scientific_results_modified": false
+}

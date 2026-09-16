@@ -1,0 +1,89 @@
+START we block=0 arm=ingress_dla steps=32400 2026-09-16T00:06:39.425632+00:00
+VALIDATED we block=0 arm=ingress_dla simulation_s=550.3
+START we block=0 arm=dla steps=32400 2026-09-16T00:15:53.789089+00:00
+VALIDATED we block=0 arm=dla simulation_s=597.5
+START we block=0 arm=per_task_dla steps=32400 2026-09-16T00:25:56.203933+00:00
+VALIDATED we block=0 arm=per_task_dla simulation_s=592.6
+START we block=0 arm=causal_round_robin steps=32400 2026-09-16T00:35:53.408003+00:00
+VALIDATED we block=0 arm=causal_round_robin simulation_s=578.8
+START we block=0 arm=dla_p2c steps=32400 2026-09-16T00:45:37.260636+00:00
+VALIDATED we block=0 arm=dla_p2c simulation_s=614.5
+BLOCK PASSED we 0
+START we block=1 arm=dla steps=32400 2026-09-16T00:56:08.238022+00:00
+VALIDATED we block=1 arm=dla simulation_s=623.7
+START we block=1 arm=per_task_dla steps=32400 2026-09-16T01:06:36.663494+00:00
+VALIDATED we block=1 arm=per_task_dla simulation_s=589.6
+START we block=1 arm=causal_round_robin steps=32400 2026-09-16T01:16:31.220638+00:00
+VALIDATED we block=1 arm=causal_round_robin simulation_s=582.8
+START we block=1 arm=dla_p2c steps=32400 2026-09-16T01:26:19.132801+00:00
+VALIDATED we block=1 arm=dla_p2c simulation_s=627.1
+START we block=1 arm=ingress_dla steps=32400 2026-09-16T01:36:57.191933+00:00
+VALIDATED we block=1 arm=ingress_dla simulation_s=643.3
+BLOCK PASSED we 1
+START we block=2 arm=per_task_dla steps=32400 2026-09-16T01:47:52.409855+00:00
+VALIDATED we block=2 arm=per_task_dla simulation_s=602.3
+START we block=2 arm=causal_round_robin steps=32400 2026-09-16T01:57:59.188267+00:00
+VALIDATED we block=2 arm=causal_round_robin simulation_s=583.2
+START we block=2 arm=dla_p2c steps=32400 2026-09-16T02:07:47.645010+00:00
+VALIDATED we block=2 arm=dla_p2c simulation_s=635.8
+START we block=2 arm=ingress_dla steps=32400 2026-09-16T02:18:31.512722+00:00
+VALIDATED we block=2 arm=ingress_dla simulation_s=646.1
+START we block=2 arm=dla steps=32400 2026-09-16T02:29:22.524455+00:00
+VALIDATED we block=2 arm=dla simulation_s=914.2
+BLOCK PASSED we 2
+START we block=3 arm=causal_round_robin steps=32400 2026-09-16T02:44:56.010766+00:00
+VALIDATED we block=3 arm=causal_round_robin simulation_s=906.8
+START we block=3 arm=dla_p2c steps=32400 2026-09-16T03:00:12.285268+00:00
+VALIDATED we block=3 arm=dla_p2c simulation_s=1002.0
+START we block=3 arm=ingress_dla steps=32400 2026-09-16T05:29:10.335287+00:00
+VALIDATED we block=3 arm=ingress_dla simulation_s=626.3
+START we block=3 arm=dla steps=32400 2026-09-16T05:39:40.943073+00:00
+VALIDATED we block=3 arm=dla simulation_s=611.7
+START we block=3 arm=per_task_dla steps=32400 2026-09-16T05:49:57.391435+00:00
+VALIDATED we block=3 arm=per_task_dla simulation_s=590.9
+BLOCK PASSED we 3
+START we block=4 arm=dla_p2c steps=32400 2026-09-16T05:59:59.950514+00:00
+VALIDATED we block=4 arm=dla_p2c simulation_s=662.1
+START we block=4 arm=ingress_dla steps=32400 2026-09-16T06:11:13.630002+00:00
+VALIDATED we block=4 arm=ingress_dla simulation_s=677.0
+START we block=4 arm=dla steps=32400 2026-09-16T06:22:35.826387+00:00
+VALIDATED we block=4 arm=dla simulation_s=694.4
+START we block=4 arm=per_task_dla steps=32400 2026-09-16T06:34:13.979242+00:00
+VALIDATED we block=4 arm=per_task_dla simulation_s=627.9
+START we block=4 arm=causal_round_robin steps=32400 2026-09-16T06:44:46.978472+00:00
+VALIDATED we block=4 arm=causal_round_robin simulation_s=624.4
+BLOCK PASSED we 4
+START we block=5 arm=ingress_dla steps=32400 2026-09-16T06:55:23.406839+00:00
+VALIDATED we block=5 arm=ingress_dla simulation_s=652.0
+START we block=5 arm=dla steps=32400 2026-09-16T07:06:20.308063+00:00
+VALIDATED we block=5 arm=dla simulation_s=650.9
+START we block=5 arm=per_task_dla steps=32400 2026-09-16T07:17:16.298533+00:00
+VALIDATED we block=5 arm=per_task_dla simulation_s=578.8
+START we block=5 arm=causal_round_robin steps=32400 2026-09-16T07:29:17.697399+00:00
+VALIDATED we block=5 arm=causal_round_robin simulation_s=633.6
+START we block=5 arm=dla_p2c steps=32400 2026-09-16T07:39:56.725671+00:00
+VALIDATED we block=5 arm=dla_p2c simulation_s=760.3
+BLOCK PASSED we 5
+START we block=6 arm=dla steps=32400 2026-09-16T07:52:59.301982+00:00
+VALIDATED we block=6 arm=dla simulation_s=800.7
+START we block=6 arm=per_task_dla steps=32400 2026-09-16T08:06:26.091185+00:00
+VALIDATED we block=6 arm=per_task_dla simulation_s=697.5
+START we block=6 arm=causal_round_robin steps=32400 2026-09-16T08:18:10.024018+00:00
+VALIDATED we block=6 arm=causal_round_robin simulation_s=711.6
+START we block=6 arm=dla_p2c steps=32400 2026-09-16T08:30:08.579806+00:00
+VALIDATED we block=6 arm=dla_p2c simulation_s=740.9
+START we block=6 arm=ingress_dla steps=32400 2026-09-16T08:42:43.442487+00:00
+VALIDATED we block=6 arm=ingress_dla simulation_s=741.1
+BLOCK PASSED we 6
+START we block=7 arm=per_task_dla steps=32400 2026-09-16T08:55:20.338915+00:00
+VALIDATED we block=7 arm=per_task_dla simulation_s=746.7
+START we block=7 arm=causal_round_robin steps=32400 2026-09-16T09:07:54.723062+00:00
+VALIDATED we block=7 arm=causal_round_robin simulation_s=718.9
+START we block=7 arm=dla_p2c steps=32400 2026-09-16T09:20:00.236081+00:00
+VALIDATED we block=7 arm=dla_p2c simulation_s=460.5
+START we block=7 arm=ingress_dla steps=32400 2026-09-16T09:27:46.982472+00:00
+VALIDATED we block=7 arm=ingress_dla simulation_s=393.7
+START we block=7 arm=dla steps=32400 2026-09-16T09:34:23.563805+00:00
+VALIDATED we block=7 arm=dla simulation_s=376.6
+BLOCK PASSED we 7
+TRACE COMPLETE we

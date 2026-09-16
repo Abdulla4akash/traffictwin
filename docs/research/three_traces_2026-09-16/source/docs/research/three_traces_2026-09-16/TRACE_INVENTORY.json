@@ -1,0 +1,1117 @@
+{
+  "created_at": "2026-09-15T23:39:56.931213+00:00",
+  "status": "inventory_complete_no_evaluator_runs",
+  "candidate_count": 8,
+  "vec_origin_main_cached_head": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+  "vec_github_main_fetched_head": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+  "remote_main_candidates": [
+    {
+      "git_path": "eval/data/manchester_weekend/trace_we_fullrsu.npz",
+      "blob_sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+      "local_path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_weekend/trace_we_fullrsu.npz",
+      "local_file_identical": true
+    },
+    {
+      "git_path": "eval/data/manchester_weekend/trace_we_wdrsu.npz",
+      "blob_sha256": "8bb0a05e9e494041943a9d99efbcfc6fce7bc529b348230593a9155580b0d976",
+      "local_path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_weekend/trace_we_wdrsu.npz",
+      "local_file_identical": true
+    },
+    {
+      "git_path": "eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+      "blob_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+      "local_path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+      "local_file_identical": true
+    }
+  ],
+  "candidates": [
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_weekend/trace_we_fullrsu.npz",
+      "sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+      "bytes": 25976187,
+      "T": 32400,
+      "N": 139,
+      "R": 10,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_we_1200_2100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 43200.0,
+      "last_time": 75599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 2776283,
+      "mean_active_vehicles_per_second": 85.68774691358024,
+      "peak_active_vehicles": 139,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "f1f7c90982a05e4502176771cb2b93412a5de76cc288b2f6e3e6bc5dae13fcfa"
+        },
+        "pos_y": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "df7f2bfbca1b434c0eb870407ead1d0984a0c83e16f3f7be376f1005a3b7541f"
+        },
+        "speed": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "6109b9f0bafbb915f90edb0ddbd38da18c097fb5c5abfa9ffb8503f7a664d08e"
+        },
+        "mask": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "bool",
+          "array_sha256": "b04784a2d7b7142605714283ee8809550ff57252098a52c099819f00a520c9d1"
+        },
+        "rsu_xy": {
+          "shape": [
+            10,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "83616e480f2a1fea44d2ee7644f6b39b3e684df0406155a7574e82b6347b4f7b"
+        },
+        "times": {
+          "shape": [
+            32400
+          ],
+          "dtype": "float32",
+          "array_sha256": "2e5c0e54d73f640a7ce3fd16a52dd80ca9d80535f84daad98b0549120eee5bec"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "dd43171ea25da02791e0f59496008ed4a300decd799163d637428d1f0a0e53bf"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "c9e6f55ebcfe87b2c9f2494c9b0171a9a055c10c0029b8cc1fe97a8f27b0b846"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U20",
+          "array_sha256": "e6d8fc8796124e82c0833f6ed66deb7b46569086146f8509050d2ac79a0fe50c"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "6956739e456d5651d87b8356793f8730471cc2fe7862a4bf52dba0e03432c167"
+        }
+      }
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_weekend/trace_we_wdrsu.npz",
+      "sha256": "8bb0a05e9e494041943a9d99efbcfc6fce7bc529b348230593a9155580b0d976",
+      "bytes": 26040186,
+      "T": 32400,
+      "N": 139,
+      "R": 9,
+      "entry_channel_present": true,
+      "entry_channel": "enter",
+      "entry_events": 13249,
+      "queue_convention": "per-visit entry reset",
+      "embedded_window": "fcd_we_1200_2100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 43200.0,
+      "last_time": 75599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 2776283,
+      "mean_active_vehicles_per_second": 85.68774691358024,
+      "peak_active_vehicles": 139,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "94cf8862145bbddfaf3a5445964f5db2e1510a7f41a88543c7da5d6ddf503eac"
+        },
+        "pos_y": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "1749b90427063db60e6583fab3081b48fdca82767f641abe2b1f6250e761558b"
+        },
+        "speed": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "f0769b54acff31852fb7b8cfb254a083a508b663f4ab01d277f3b96a2c491066"
+        },
+        "mask": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "bool",
+          "array_sha256": "9b053fe7154557f7308ad6ef1792fc93d4d42b4b3d1f8fe3fd2e23524485957c"
+        },
+        "enter": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "bool",
+          "array_sha256": "2a9e396981f0c5125ba1534a0ae55a408a2d76c08c101fad1db481a1f29dd984"
+        },
+        "rsu_xy": {
+          "shape": [
+            9,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "ee67eab573b75e33328ab21852354e031a752e91ea100fbcc3cf11d7bebcbf39"
+        },
+        "times": {
+          "shape": [
+            32400
+          ],
+          "dtype": "float32",
+          "array_sha256": "2e5c0e54d73f640a7ce3fd16a52dd80ca9d80535f84daad98b0549120eee5bec"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "dd43171ea25da02791e0f59496008ed4a300decd799163d637428d1f0a0e53bf"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "c9e6f55ebcfe87b2c9f2494c9b0171a9a055c10c0029b8cc1fe97a8f27b0b846"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U20",
+          "array_sha256": "e6d8fc8796124e82c0833f6ed66deb7b46569086146f8509050d2ac79a0fe50c"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "6956739e456d5651d87b8356793f8730471cc2fe7862a4bf52dba0e03432c167"
+        }
+      }
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+      "sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+      "bytes": 10975378,
+      "T": 10800,
+      "N": 215,
+      "R": 9,
+      "entry_channel_present": true,
+      "entry_channel": "enter",
+      "entry_events": 5381,
+      "queue_convention": "per-visit entry reset",
+      "embedded_window": "fcd_wd_am_0800_1100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 28800.0,
+      "last_time": 39599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 1166439,
+      "mean_active_vehicles_per_second": 108.00361111111111,
+      "peak_active_vehicles": 215,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "float32",
+          "array_sha256": "d0e53515ae584fcdffaa1ff1a29be5f7767e02588c7be52335553bf10eaf9172"
+        },
+        "pos_y": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "float32",
+          "array_sha256": "b1b957c0fcfc23284613ae3d20833773e504390fe5e2ce50f0393d70699c4680"
+        },
+        "speed": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "float32",
+          "array_sha256": "9db8405079f0f1a771522ae0cf89a1333b2c0be4269df31a57a4910efb3bc472"
+        },
+        "mask": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "bool",
+          "array_sha256": "1c6cbaf5fcb4f2b0687dd2916c7fa1dfe5dec8549d39b832ba77f3797cd206c4"
+        },
+        "enter": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "bool",
+          "array_sha256": "298d50a2b633b0fb562efa1a7c02ba46421dae1f6b38cb3f02bd8e0115d3338c"
+        },
+        "rsu_xy": {
+          "shape": [
+            9,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "ee67eab573b75e33328ab21852354e031a752e91ea100fbcc3cf11d7bebcbf39"
+        },
+        "times": {
+          "shape": [
+            10800
+          ],
+          "dtype": "float32",
+          "array_sha256": "ae38c490e8db789946ebcd2013f831add6394fdda82072d41c38a83bd617f429"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "aef03c951472892f468b8b578e152cd8aca84713adf8ce2db7d8c354c95c0d78"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "b38f337815256ffd241220257a26b1332e8a866271380a27f989061565501ca8"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U23",
+          "array_sha256": "01292a8cb6771e33dc10545909977b3a153c3b457d5242d8f8b51363d08a6358"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "6956739e456d5651d87b8356793f8730471cc2fe7862a4bf52dba0e03432c167"
+        }
+      }
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_ev_fullrsu.npz",
+      "sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+      "bytes": 19000923,
+      "T": 23400,
+      "N": 175,
+      "R": 12,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_ev_1730_2400.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 63000.0,
+      "last_time": 86399.0,
+      "dt": 1.0,
+      "vehicle_seconds": 1898428,
+      "mean_active_vehicles_per_second": 81.1294017094017,
+      "peak_active_vehicles": 175,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            23400,
+            175
+          ],
+          "dtype": "float32",
+          "array_sha256": "bbfed18a5dd46a29063878d569d973078302e47292a41586fd3466de438429a2"
+        },
+        "pos_y": {
+          "shape": [
+            23400,
+            175
+          ],
+          "dtype": "float32",
+          "array_sha256": "7650016cb45f09e4797f3b0b039f8f5b96c1bbdc032e6a608003676d7956792c"
+        },
+        "speed": {
+          "shape": [
+            23400,
+            175
+          ],
+          "dtype": "float32",
+          "array_sha256": "466ef6cf5725c1a8cf255a408b1cf928af8cc54bc60c3e87ecc2e70d7ba83963"
+        },
+        "mask": {
+          "shape": [
+            23400,
+            175
+          ],
+          "dtype": "bool",
+          "array_sha256": "82b3e8e6d5ba0a4b171a38c2fdb60630e152a3aa29846e5889811fba44280455"
+        },
+        "rsu_xy": {
+          "shape": [
+            12,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "0da78c84692195e1b831c32f20d137c4554a4b9aaed415c87e1cd29f443d6983"
+        },
+        "times": {
+          "shape": [
+            23400
+          ],
+          "dtype": "float32",
+          "array_sha256": "90f0b2c3546d01adfd21410ff252cb45662d9224c13411db73ff5c21da6ba6f6"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "75cacf41925a7e5874d32854ae32b663d031d7002004151ed5288fc2b760cfc4"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "652fb560c3a2e375a9d1655c0a605c16de875f7f98e942821f22a224e07a26de"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U20",
+          "array_sha256": "17cece9bee15e7f4ec72f79f9e4318a78902f02754934bb4f4febf1bf72ba209"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "6956739e456d5651d87b8356793f8730471cc2fe7862a4bf52dba0e03432c167"
+        }
+      }
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "bytes": 5964044,
+      "T": 3600,
+      "N": 2488,
+      "R": 10,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_incident_2000_2100.xml",
+      "embedded_sumo_seed": 43,
+      "first_time": 72000.0,
+      "last_time": 75599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 8747692,
+      "mean_active_vehicles_per_second": 2429.9144444444446,
+      "peak_active_vehicles": 2488,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            3600,
+            2488
+          ],
+          "dtype": "float32",
+          "array_sha256": "7d9785a83767878ae2e5dd58d1408f094a900c88e4ec37cfe50deb3008238838"
+        },
+        "pos_y": {
+          "shape": [
+            3600,
+            2488
+          ],
+          "dtype": "float32",
+          "array_sha256": "1d336645b05ce15bd1401812d589f2899e19a1bb5d3dcc62a260ce15102702db"
+        },
+        "speed": {
+          "shape": [
+            3600,
+            2488
+          ],
+          "dtype": "float32",
+          "array_sha256": "b77b26a0b636197db9bfd3eb67153d77c08e1b31e3e2956101a4ab9a15e5903e"
+        },
+        "mask": {
+          "shape": [
+            3600,
+            2488
+          ],
+          "dtype": "bool",
+          "array_sha256": "fd82e8eb1051536ef61333f63b12963b428551d4a33ba01d53a66b5ece3fd1ed"
+        },
+        "rsu_xy": {
+          "shape": [
+            10,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "8e13ca7fce724c297d50864d81030e862c1c531e5f50c7b2a51c458ae57307ae"
+        },
+        "times": {
+          "shape": [
+            3600
+          ],
+          "dtype": "float32",
+          "array_sha256": "774761df203fad28848afe63de945f3dea1fcf16ff818697f5f508770f11bbcd"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "ea2a9e4ed37f5ad34724412e00237f4b951077076f87d3d37b4168c3a512ecde"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "5e6a9074374939ba7793e27de7598c4f497c92adf0b840e9fe320bc59c41fa36"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U26",
+          "array_sha256": "74339659b28a5f9c9e519e1d885fdfa99388451f4f5ac7d49345919e1aa62a1f"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "469ae160136fe12e1126c5568ef6b59770ada081453da6540ac981f982e8b686"
+        }
+      }
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_wd_am_fullrsu.npz",
+      "sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+      "bytes": 10965874,
+      "T": 10800,
+      "N": 215,
+      "R": 9,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_wd_am_0800_1100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 28800.0,
+      "last_time": 39599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 1166439,
+      "mean_active_vehicles_per_second": 108.00361111111111,
+      "peak_active_vehicles": 215,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "float32",
+          "array_sha256": "93326dbb3b05d3db9a5b8a49a58d59f422d1eeb49860d7cb6a52bd897d6b491e"
+        },
+        "pos_y": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "float32",
+          "array_sha256": "855a4db983e4256c88cc2217979190abcb1ecedeb0d91d8af4c53e65b58f351a"
+        },
+        "speed": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "float32",
+          "array_sha256": "091dbd8127b40e9e6f31b4f6dc4ecefb0f5828dd744dd9a66a8fb7544067daba"
+        },
+        "mask": {
+          "shape": [
+            10800,
+            215
+          ],
+          "dtype": "bool",
+          "array_sha256": "81f83c6fed65a17f9edd13cf5e759dfc7744646de1d93dd824e952d023687b4e"
+        },
+        "rsu_xy": {
+          "shape": [
+            9,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "ee67eab573b75e33328ab21852354e031a752e91ea100fbcc3cf11d7bebcbf39"
+        },
+        "times": {
+          "shape": [
+            10800
+          ],
+          "dtype": "float32",
+          "array_sha256": "ae38c490e8db789946ebcd2013f831add6394fdda82072d41c38a83bd617f429"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "aef03c951472892f468b8b578e152cd8aca84713adf8ce2db7d8c354c95c0d78"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "b38f337815256ffd241220257a26b1332e8a866271380a27f989061565501ca8"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U23",
+          "array_sha256": "01292a8cb6771e33dc10545909977b3a153c3b457d5242d8f8b51363d08a6358"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "6956739e456d5651d87b8356793f8730471cc2fe7862a4bf52dba0e03432c167"
+        }
+      }
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_wd_pm_fullrsu.npz",
+      "sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+      "bytes": 23900327,
+      "T": 25200,
+      "N": 163,
+      "R": 10,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_wd_pm_1400_2100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 50400.0,
+      "last_time": 75599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 2621666,
+      "mean_active_vehicles_per_second": 104.03436507936507,
+      "peak_active_vehicles": 163,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            25200,
+            163
+          ],
+          "dtype": "float32",
+          "array_sha256": "4f612295fdd4e7832f50748042608d86ecd6ebb852c21cd60b2a4fc85b03fdd8"
+        },
+        "pos_y": {
+          "shape": [
+            25200,
+            163
+          ],
+          "dtype": "float32",
+          "array_sha256": "2eb103b5d91cf95ffd3da775608a34d084348eaef382cc3755a3bb15bb5a11c1"
+        },
+        "speed": {
+          "shape": [
+            25200,
+            163
+          ],
+          "dtype": "float32",
+          "array_sha256": "293df9e31149845272af551d4ff3f351fc152059fcc86a6ec44c26b303ac5693"
+        },
+        "mask": {
+          "shape": [
+            25200,
+            163
+          ],
+          "dtype": "bool",
+          "array_sha256": "4a8b6747906bc69cd45856ec8c1a0e463c8eaec9aa52f6a6a604cef4fa2248d1"
+        },
+        "rsu_xy": {
+          "shape": [
+            10,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "83616e480f2a1fea44d2ee7644f6b39b3e684df0406155a7574e82b6347b4f7b"
+        },
+        "times": {
+          "shape": [
+            25200
+          ],
+          "dtype": "float32",
+          "array_sha256": "041417263e7da86371a5552e8027a531350ecc03130ca1f341e10df8c6424eba"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "389e92568fe18d043935c9067b07d28b09062168d3ee550017fb4938986b1272"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "02283bf176d6ce63bba97a728460664f0fe418954278c3c03738efe0366a7616"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U23",
+          "array_sha256": "5427c0be4a59a955ed51a16bd4c55e069244983316e5c016f927bdb7287a790d"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "6956739e456d5651d87b8356793f8730471cc2fe7862a4bf52dba0e03432c167"
+        }
+      }
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_we_fullrsu.npz",
+      "sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+      "bytes": 25976187,
+      "T": 32400,
+      "N": 139,
+      "R": 10,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_we_1200_2100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 43200.0,
+      "last_time": 75599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 2776283,
+      "mean_active_vehicles_per_second": 85.68774691358024,
+      "peak_active_vehicles": 139,
+      "fields": {
+        "pos_x": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "f1f7c90982a05e4502176771cb2b93412a5de76cc288b2f6e3e6bc5dae13fcfa"
+        },
+        "pos_y": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "df7f2bfbca1b434c0eb870407ead1d0984a0c83e16f3f7be376f1005a3b7541f"
+        },
+        "speed": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "float32",
+          "array_sha256": "6109b9f0bafbb915f90edb0ddbd38da18c097fb5c5abfa9ffb8503f7a664d08e"
+        },
+        "mask": {
+          "shape": [
+            32400,
+            139
+          ],
+          "dtype": "bool",
+          "array_sha256": "b04784a2d7b7142605714283ee8809550ff57252098a52c099819f00a520c9d1"
+        },
+        "rsu_xy": {
+          "shape": [
+            10,
+            2
+          ],
+          "dtype": "float32",
+          "array_sha256": "83616e480f2a1fea44d2ee7644f6b39b3e684df0406155a7574e82b6347b4f7b"
+        },
+        "times": {
+          "shape": [
+            32400
+          ],
+          "dtype": "float32",
+          "array_sha256": "2e5c0e54d73f640a7ce3fd16a52dd80ca9d80535f84daad98b0549120eee5bec"
+        },
+        "dt": {
+          "shape": [],
+          "dtype": "float32",
+          "array_sha256": "a45855eea4921cf5c4a5bd3efc929cccce2d0653eca0165473a5c68e3b212a9c"
+        },
+        "maxN": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "dd43171ea25da02791e0f59496008ed4a300decd799163d637428d1f0a0e53bf"
+        },
+        "T": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "c9e6f55ebcfe87b2c9f2494c9b0171a9a055c10c0029b8cc1fe97a8f27b0b846"
+        },
+        "window": {
+          "shape": [],
+          "dtype": "<U20",
+          "array_sha256": "e6d8fc8796124e82c0833f6ed66deb7b46569086146f8509050d2ac79a0fe50c"
+        },
+        "sumo_seed": {
+          "shape": [],
+          "dtype": "int32",
+          "array_sha256": "6956739e456d5651d87b8356793f8730471cc2fe7862a4bf52dba0e03432c167"
+        }
+      }
+    }
+  ],
+  "selected": {
+    "we": {
+      "path": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_weekend/trace_we_wdrsu.npz",
+      "sha256": "8bb0a05e9e494041943a9d99efbcfc6fce7bc529b348230593a9155580b0d976",
+      "bytes": 26040186,
+      "T": 32400,
+      "N": 139,
+      "R": 9,
+      "entry_channel_present": true,
+      "entry_channel": "enter",
+      "entry_events": 13249,
+      "queue_convention": "per-visit entry reset",
+      "embedded_window": "fcd_we_1200_2100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 43200.0,
+      "last_time": 75599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 2776283,
+      "mean_active_vehicles_per_second": 85.68774691358024,
+      "peak_active_vehicles": 139,
+      "preference_rank": 1,
+      "source_date": "2024-09-15",
+      "local_window": "12:00\u201321:00"
+    },
+    "wd_pm": {
+      "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_wd_pm_fullrsu.npz",
+      "sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+      "bytes": 23900327,
+      "T": 25200,
+      "N": 163,
+      "R": 10,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_wd_pm_1400_2100.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 50400.0,
+      "last_time": 75599.0,
+      "dt": 1.0,
+      "vehicle_seconds": 2621666,
+      "mean_active_vehicles_per_second": 104.03436507936507,
+      "peak_active_vehicles": 163,
+      "preference_rank": 3,
+      "source_date": "2024-10-15",
+      "local_window": "14:00\u201321:00"
+    },
+    "ev": {
+      "path": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_ev_fullrsu.npz",
+      "sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+      "bytes": 19000923,
+      "T": 23400,
+      "N": 175,
+      "R": 12,
+      "entry_channel_present": false,
+      "entry_channel": null,
+      "entry_events": null,
+      "queue_convention": "legacy mask-only reset",
+      "embedded_window": "fcd_ev_1730_2400.xml",
+      "embedded_sumo_seed": 42,
+      "first_time": 63000.0,
+      "last_time": 86399.0,
+      "dt": 1.0,
+      "vehicle_seconds": 1898428,
+      "mean_active_vehicles_per_second": 81.1294017094017,
+      "peak_active_vehicles": 175,
+      "preference_rank": 3,
+      "source_date": "2024-09-18",
+      "local_window": "17:30\u201324:00"
+    }
+  },
+  "morning_identity": {
+    "left": "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/trace_wd_am_fullrsu.npz",
+    "right": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/manchester_workingday/trace_wd_am_wdrsu.npz",
+    "file_sha256_equal": false,
+    "fields": {
+      "T": {
+        "equal": true,
+        "same_shape": true,
+        "same_dtype": true
+      },
+      "dt": {
+        "equal": true,
+        "same_shape": true,
+        "same_dtype": true
+      },
+      "mask": {
+        "equal": false,
+        "same_shape": true,
+        "same_dtype": true,
+        "changed_elements": 734068,
+        "first_differing_indices": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            42
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            38
+          ],
+          [
+            2,
+            42
+          ],
+          [
+            2,
+            54
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            38
+          ],
+          [
+            3,
+            41
+          ],
+          [
+            3,
+            42
+          ]
+        ]
+      },
+      "maxN": {
+        "equal": true,
+        "same_shape": true,
+        "same_dtype": true
+      },
+      "pos_x": {
+        "equal": false,
+        "same_shape": true,
+        "same_dtype": true,
+        "changed_elements": 1475706,
+        "max_absolute_difference": 2154.090087890625,
+        "first_differing_indices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            9
+          ]
+        ]
+      },
+      "pos_y": {
+        "equal": false,
+        "same_shape": true,
+        "same_dtype": true,
+        "changed_elements": 1475697,
+        "max_absolute_difference": 1527.18994140625,
+        "first_differing_indices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            9
+          ]
+        ]
+      },
+      "rsu_xy": {
+        "equal": true,
+        "same_shape": true,
+        "same_dtype": true
+      },
+      "speed": {
+        "equal": false,
+        "same_shape": true,
+        "same_dtype": true,
+        "changed_elements": 1418465,
+        "max_absolute_difference": 28.980000000447035,
+        "first_differing_indices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            9
+          ]
+        ]
+      },
+      "sumo_seed": {
+        "equal": true,
+        "same_shape": true,
+        "same_dtype": true
+      },
+      "times": {
+        "equal": true,
+        "same_shape": true,
+        "same_dtype": true
+      },
+      "window": {
+        "equal": true,
+        "same_shape": true,
+        "same_dtype": true
+      }
+    },
+    "only_left": [],
+    "only_right": [
+      "enter"
+    ],
+    "all_common_arrays_equal": false,
+    "array_level_equal": false
+  },
+  "provenance_documents": {
+    "/Users/akashx/Downloads/diss_mat/vec_env-state-delay-run/eval/data/README.md": "c8bb34f5929cffc460c3a68b36c44dabeeffd77aa58bde6d149ce729d30ea0da",
+    "/Users/akashx/Downloads/diss_mat/tos-data-full/traces/PROVENANCE.md": "013b9a07c47585ee448b0f1dbe9168d9fc6e886933a611ae6531337d57a01140"
+  },
+  "trace_files_modified": false,
+  "morning_rerun": false
+}

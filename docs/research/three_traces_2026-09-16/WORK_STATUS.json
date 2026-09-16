@@ -1,17 +1,20 @@
 {
-  "updated_at": "2026-09-16T00:06:38.599604+00:00",
-  "status": "execution_sealed_full_runs_starting",
+  "updated_at": "2026-09-16T09:43:29.015258+00:00",
+  "status": "complete",
   "inventory": "complete",
   "runtime_preflight": "passed",
   "protocol": "sealed_before_full_outcomes",
   "new_qualification_attempts": 18,
-  "new_full_attempts": 0,
-  "new_validated_full_cells": 0,
+  "new_full_attempts": 120,
+  "new_validated_full_cells": 120,
   "failures": 0,
   "retries": 0,
-  "full_cells_remaining": 120,
+  "full_cells_remaining": 0,
   "scientific_code_changed": false,
   "required_owner_decision": null,
   "qualification": "18_of_18_passed",
-  "source_commit": "2cec1eee4022a64bc5f80b049eed0471ff4a03bf"
+  "source_commit": "2cec1eee4022a64bc5f80b049eed0471ff4a03bf",
+  "current_full_execution_session": null,
+  "analysis": "complete",
+  "independent_arithmetic_audit": "passed"
 }
