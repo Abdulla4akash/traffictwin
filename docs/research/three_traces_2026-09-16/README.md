@@ -1,12 +1,12 @@
 # Three Manchester traces — authorised study
 
-**Status:** inventory complete; qualification and full execution have not
-started. The task has 120 planned full cells and 18 planned short attempts.
-There are zero attempts and zero failures. This is not a completed study or
-an execution seal.
+**Status:** all 18 qualification attempts passed; the 120 authorised full
+cells are running. See [live status](evidence/LIVE_STATUS.json) for the latest
+validated counts. Full execution started at 00:06:39 UTC on 16 September 2026.
+The [execution seal](evidence/EXECUTION_SEAL.json) predates full outcomes.
 
 - [Owner task](OWNER_TASK.md): original requested design and authority.
-- [Draft protocol](PROTOCOL.md): selected scenarios, fixed controls,
+- [Sealed protocol](PROTOCOL.md): selected scenarios, fixed controls,
   statistical families and approved clarification.
 - [Source compatibility audit](SOURCE_COMPATIBILITY.md): exact blockers to
   literal unchanged reuse and the approved bounded amendment.
@@ -17,8 +17,10 @@ an execution seal.
   checks; does not launch an evaluator.
 - [Scientific source identities](SCIENTIFIC_SOURCE_IDENTITY.json): all five
   requested scientific files are byte-identical to the requested base.
-- [Work status](WORK_STATUS.json) and [raw inventory](RAW_INVENTORY.json):
-  machine-readable unstarted state.
+- [Work status](WORK_STATUS.json): execution state. The raw inventory will be
+  completed after all workers finish and the independent arithmetic audit passes.
+- [Source review](evidence/SOURCE_REVIEW.json): approval of the exact frozen
+  configuration source `2cec1eee4022a64bc5f80b049eed0471ff4a03bf`.
 
 ## Approved owner amendment
 
