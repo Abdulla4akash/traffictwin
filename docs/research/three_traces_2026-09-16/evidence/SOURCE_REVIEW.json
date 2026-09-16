@@ -1,0 +1,26 @@
+{
+  "verdict": "APPROVE",
+  "source_commit": "2cec1eee4022a64bc5f80b049eed0471ff4a03bf",
+  "reviewer": "/root/source_review",
+  "reviewer_identity": "independent Codex agent; same review mechanism as follow-up guarded source receipt",
+  "independent": true,
+  "read_only": true,
+  "builder": "/root",
+  "reviewed_at": "2026-09-16T00:04:37.355955+00:00",
+  "no_evaluator_or_sumo_launches": true,
+  "checks": [
+    "all eight configuration tests passed",
+    "independent probes passed all16 slot occupancy/limit combinations",
+    "original failing reduced-concurrency case now waits",
+    "original five protected files unchanged",
+    "N/R/entry-only validator configuration, unchanged equations and tolerances",
+    "P2C replay parameterisation matches evaluator",
+    "14 exogenous hashes and exact43+16 schema",
+    "18short120full budgets, controls, seeds, timeouts and source/input/output guards",
+    "Student-t arithmetic unchanged, families1/5/15",
+    "archived descriptive values and unavailable incident RR"
+  ],
+  "prior_rejected_source": "fcae6b9ace673530f91d5601cafb3f944f63803c",
+  "prior_finding": "Reduced concurrency ignored occupied slot2; fixed before any evaluator attempt",
+  "external_opus_review_claimed": false
+}

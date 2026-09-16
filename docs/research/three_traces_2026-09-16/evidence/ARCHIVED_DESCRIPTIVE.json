@@ -1,0 +1,75 @@
+[
+  {
+    "trace": "inc",
+    "contrast": "per_task_dla_minus_ingress_dla",
+    "mean_active_vehicles_per_second": 2429.9144444444446,
+    "mean_pp": 0.5271433656,
+    "effects_pp": [
+      0.46367325639999996,
+      0.5867285642,
+      0.5071796666,
+      0.5509919752
+    ],
+    "n_blocks": 4,
+    "status": "archived_descriptive",
+    "source_path": "docs/evaluation/vec_followup_2026-09-07/historical_e0_e2d/experiments/E2d/data/e2d_paired_results.csv",
+    "source_sha256": "bffbcb67e04bae6f5fe6e6017e7894ac36e7745c3ea5aa9cc4e6d3f8d65ac4be",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "R": 10,
+    "entry_channel_present": false
+  },
+  {
+    "trace": "wd_am",
+    "contrast": "per_task_dla_minus_ingress_dla",
+    "mean_active_vehicles_per_second": 108.00361111111111,
+    "mean_pp": 4.13689639883791,
+    "effects_pp": [
+      4.541538927108078,
+      4.2435538808825015,
+      5.0202226936226,
+      3.8392365213931328,
+      3.594354751749947,
+      3.4376686887348313,
+      3.996050732020933,
+      4.422544995191259
+    ],
+    "n_blocks": 8,
+    "status": "archived_descriptive",
+    "source_path": "docs/dissertation/joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv",
+    "source_sha256": "44b55e5f18a852f53deefa294982f4100a955945fd47f46bf2e419ab58303017",
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "R": 9,
+    "entry_channel_present": true
+  },
+  {
+    "trace": "wd_am",
+    "contrast": "per_task_dla_minus_causal_round_robin",
+    "mean_active_vehicles_per_second": 108.00361111111111,
+    "mean_pp": 0.630522983822198,
+    "effects_pp": [
+      0.7062285321599973,
+      0.6629637500933399,
+      0.8262455830135167,
+      0.5415006188987945,
+      0.5158062821339371,
+      0.5192891091401179,
+      0.5944566742915924,
+      0.6776933208462879
+    ],
+    "n_blocks": 8,
+    "status": "archived_descriptive",
+    "source_path": "docs/dissertation/joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv",
+    "source_sha256": "44b55e5f18a852f53deefa294982f4100a955945fd47f46bf2e419ab58303017",
+    "trace_sha256": "896aa5ad646d0d6c643de49eaa84373c9442b2d58483ac0e39aab76619c29628",
+    "R": 9,
+    "entry_channel_present": true
+  },
+  {
+    "trace": "inc",
+    "contrast": "per_task_dla_minus_causal_round_robin",
+    "mean_active_vehicles_per_second": 2429.9144444444446,
+    "mean_pp": null,
+    "status": "unavailable",
+    "reason": "E2c/E2d did not include a round-robin arm; no new incident run authorised."
+  }
+]

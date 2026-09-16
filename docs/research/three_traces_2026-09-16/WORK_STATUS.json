@@ -1,15 +1,17 @@
 {
-  "updated_at": "2026-09-15T23:58:56.428240+00:00",
-  "status": "owner_amendment_approved_preparing_qualification_freeze",
+  "updated_at": "2026-09-16T00:06:38.599604+00:00",
+  "status": "execution_sealed_full_runs_starting",
   "inventory": "complete",
   "runtime_preflight": "passed",
-  "protocol": "owner_approved_pre_execution",
-  "new_qualification_attempts": 0,
+  "protocol": "sealed_before_full_outcomes",
+  "new_qualification_attempts": 18,
   "new_full_attempts": 0,
   "new_validated_full_cells": 0,
   "failures": 0,
   "retries": 0,
   "full_cells_remaining": 120,
   "scientific_code_changed": false,
-  "required_owner_decision": null
+  "required_owner_decision": null,
+  "qualification": "18_of_18_passed",
+  "source_commit": "2cec1eee4022a64bc5f80b049eed0471ff4a03bf"
 }
