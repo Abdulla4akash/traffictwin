@@ -1,0 +1,139 @@
+{
+  "status": "passed",
+  "trace": "wd_pm",
+  "block": 5,
+  "fleet_seed": 105,
+  "evaluator_seed": 205,
+  "arm_order": [
+    "ingress_dla",
+    "dla",
+    "per_task_dla",
+    "causal_round_robin",
+    "dla_p2c"
+  ],
+  "seal_sha256": "600f0cdfc3cfc1bb0537ca6eb0dcbac5f6c3fd13ae9c9f72029cdda369b92de4",
+  "within_trace": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 12327,
+          "max_absolute_difference": 3.5762786865234375e-07
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 9508,
+          "max_absolute_difference": 1.4901161193847656e-08
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla_p2c": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    }
+  },
+  "cell_receipts": {
+    "ingress_dla": "b5a2983dba3ec31d021a276aa323eb489c6483b9841657f6adc9c143ff1f3b78",
+    "dla": "6b14fb886d734720b1bd98ef4aed475de31c678364ecc322b2247c7f1c151a02",
+    "per_task_dla": "b3544cfa5525151b5d97e4c5f4581536d5ac0d8a8db1ec211db6fbe34660d41c",
+    "causal_round_robin": "e65483e2ac164f8a15b9f86b7466e9931b5dab72e78779da5843a585ee5bbe2b",
+    "dla_p2c": "63d65f5d2cbb30f084431a5e5dfe802fe3e88d8d99a62b1f3797cce72a9cd2b0"
+  }
+}

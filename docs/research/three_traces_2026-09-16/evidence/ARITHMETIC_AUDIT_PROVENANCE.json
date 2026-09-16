@@ -1,0 +1,15 @@
+{
+  "author": "independent Codex agent /root/preparation_audit",
+  "script_sha256": "37bf032f9a0b345e794b8b6fbd6f1ca15885e5ed31a6cbbd7d54597e85122ecd",
+  "source": "separate scratch directory, integrated byte-for-byte",
+  "validation_reported_by_author": [
+    "complete synthetic120-cell/18-short/24-block/15-contrast fixture passed",
+    "denominator, all15 family, degrees of freedom and duplicate mutations refused",
+    "raw/receipt/qualification/source drift and extra attempts refused",
+    "missing prerequisites and output overwrite refused",
+    "actual checkout returns not_ready without inspecting new outcomes before completion"
+  ],
+  "scientific_workloads_launched": 0,
+  "raw_files_modified": false,
+  "source_approval": false
+}

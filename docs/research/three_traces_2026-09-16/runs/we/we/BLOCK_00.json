@@ -1,0 +1,139 @@
+{
+  "status": "passed",
+  "trace": "we",
+  "block": 0,
+  "fleet_seed": 100,
+  "evaluator_seed": 200,
+  "arm_order": [
+    "ingress_dla",
+    "dla",
+    "per_task_dla",
+    "causal_round_robin",
+    "dla_p2c"
+  ],
+  "seal_sha256": "cef966f145c88dc8cc6fb8f3ea0afb11b5c4a22aa0dc265091243e21876012a3",
+  "within_trace": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 53963,
+          "max_absolute_difference": 3.5762786865234375e-07
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 32230,
+          "max_absolute_difference": 2.9802322387695312e-08
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 53963,
+          "max_absolute_difference": 3.5762786865234375e-07
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 32230,
+          "max_absolute_difference": 2.9802322387695312e-08
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 53963,
+          "max_absolute_difference": 3.5762786865234375e-07
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 32230,
+          "max_absolute_difference": 2.9802322387695312e-08
+        }
+      },
+      "actions_forced": false
+    },
+    "dla_p2c": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": false,
+          "changed_values": 53963,
+          "max_absolute_difference": 3.5762786865234375e-07
+        },
+        "veh_observations": {
+          "identical": false,
+          "changed_values": 32230,
+          "max_absolute_difference": 2.9802322387695312e-08
+        }
+      },
+      "actions_forced": false
+    }
+  },
+  "cell_receipts": {
+    "ingress_dla": "ff2936e5bc87af4b6a1e386202de77da82b05ced4f6b9466618de173ffe6671b",
+    "dla": "3429d02bc1c2917e5a7d97d04a9807a0e356e4103e3a3b4887b63f17754a38a7",
+    "per_task_dla": "c104982dca75825729d268ee5dcabe2aa6c20eb176b51df7d0a2de55ab7baebd",
+    "causal_round_robin": "47d80ebf864cd85b59805a90a79e1d936383f256dd016159713368ac9a4dd5c0",
+    "dla_p2c": "dcec44cd920e8cdc7b27f5df7d07897bb1424636fae4bc73d20eaa8d84f3bc09"
+  }
+}

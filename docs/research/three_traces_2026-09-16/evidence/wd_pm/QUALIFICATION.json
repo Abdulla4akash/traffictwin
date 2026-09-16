@@ -1,0 +1,199 @@
+{
+  "status": "passed",
+  "completed_at": "2026-09-16T00:05:42.819876+00:00",
+  "trace": "wd_pm",
+  "qualification_seal_sha256": "d9de8423abfd46e7fa0ad781a088c4615a1f88242fa0777417b777606cbc1460",
+  "within_trace": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla_p2c": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    }
+  },
+  "shared_input_field_count": 14,
+  "restart": {
+    "per_step.npz": [
+      "active",
+      "arrivals",
+      "done",
+      "exogenous_keys",
+      "lat_sum",
+      "n_local",
+      "n_v2i",
+      "n_v2v",
+      "observation_task_size",
+      "observation_task_type",
+      "rr_pointer_after",
+      "rr_pointer_before",
+      "rsu_busy_ms",
+      "rsu_load",
+      "rsu_pre_drain_busy_ms",
+      "rsu_pre_drain_load",
+      "rsu_start_busy_ms",
+      "rsu_start_load",
+      "slot_is_ev",
+      "slot_soc_initial",
+      "slot_tier",
+      "slot_tx_power_w",
+      "times",
+      "veh_action",
+      "veh_actor_logits",
+      "veh_best_rsu",
+      "veh_best_v2v",
+      "veh_done",
+      "veh_energy_j",
+      "veh_k",
+      "veh_load",
+      "veh_observations",
+      "veh_pre_drain_busy_ms",
+      "veh_pre_drain_load",
+      "veh_queue_ms",
+      "veh_soc_after",
+      "veh_soc_before",
+      "veh_start_busy_ms",
+      "veh_start_load",
+      "veh_v2i_capacity_mbps",
+      "veh_v2i_quality",
+      "veh_v2v_radio_viable",
+      "veh_v2v_target"
+    ],
+    "per_task.npz": [
+      "task_active",
+      "task_execution_rsu",
+      "task_final_admitted",
+      "task_forwarded",
+      "task_forwarding_latency_ms",
+      "task_ingress_rsu",
+      "task_lat_ms",
+      "task_local_service_ms",
+      "task_met",
+      "task_outcome",
+      "task_rsu_service_ms",
+      "task_selected_execution_rsu",
+      "task_sizes_mb",
+      "task_type",
+      "task_v2i_admitted",
+      "task_v2v_service_ms"
+    ]
+  },
+  "restart_array_count": 59,
+  "short_attempts": 6,
+  "attempt_receipts": {
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/qualification/01_ingress_dla/attempt_001/VALIDATED.json": "8cfc04fa0ea3a4c98470daf204354496275657169d4decd99e946400ce36e10b",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/qualification/02_dla/attempt_001/VALIDATED.json": "ac227c8a4ec1e444352d33588d3de66fe8d9abd1eb6a1e1c4ccd4cbcee8d605b",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/qualification/03_per_task_dla/attempt_001/VALIDATED.json": "ff37a7c863d01bac36ae9dfc70047fd567fbd9e95606235eefa0dcbf371bd839",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/qualification/04_causal_round_robin/attempt_001/VALIDATED.json": "287ba3c509747ba86a0a42bcc6c46a57a7ab4ed233291ab6ad16592fc3712b37",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/qualification/05_dla_p2c/attempt_001/VALIDATED.json": "3dcee39282ae07732c9f0e87b2acecca84bd1713ba93a1d200af650e94fcb77f",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/qualification/06_per_task_dla_prefix/attempt_001/VALIDATED.json": "bb484135db2a85d6dd20014ecf2927d2bfb848ce3662ff33a09836a342aed7e3"
+  }
+}

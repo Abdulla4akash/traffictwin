@@ -1,0 +1,21 @@
+{
+  "verdict": "APPROVE",
+  "reviewed_commit": "fa199d1efeef015d82d63f691dbde58537ae7eba",
+  "at": "2026-09-16T00:48:33.856300+00:00",
+  "reviewer": "independent Codex agent /root/source_review",
+  "independent": true,
+  "read_only": true,
+  "opus_review": false,
+  "scope": "Supplemental result packaging and synthetic packaging regressions only",
+  "scientific_source_commit": "2cec1eee4022a64bc5f80b049eed0471ff4a03bf",
+  "scientific_source_unchanged": true,
+  "permanent_regressions_passed": 4,
+  "additional_independent_probes_passed": 22,
+  "resolved_findings": [
+    "Verify audited file existence and all non-NPZ bindings before packaging mutation",
+    "Require all declared deliverables before packaging mutation"
+  ],
+  "terminal_verdict": "VERDICT: APPROVE exact SHA fa199d1efeef015d82d63f691dbde58537ae7eba",
+  "real_outcomes_read": false,
+  "evaluators_launched": 0
+}

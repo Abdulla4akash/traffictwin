@@ -1,0 +1,9 @@
+{
+  "started_at": "2026-09-16T00:04:38.136846+00:00",
+  "runner_pid": 54675,
+  "seal_sha256": "c1fb12565c017847b7838d7898c5592a7caad9d7141af02600be5a21f0b373c0",
+  "measurement_prefix": [
+    "/usr/bin/time",
+    "-l"
+  ]
+}

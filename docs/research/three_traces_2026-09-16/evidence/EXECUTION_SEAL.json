@@ -1,0 +1,17 @@
+{
+  "authorised": true,
+  "sealed_at": "2026-09-16T00:06:38.599244+00:00",
+  "source_commit": "2cec1eee4022a64bc5f80b049eed0471ff4a03bf",
+  "protocol_sha256": "401dc0d3ecf01faf152080805d650e94948e327a5eec66447e338ff84560b47c",
+  "config_sha256": "27d977c44c06be177f38462580e86a53813606f25cd02968b65ea24a274950f2",
+  "trace_seals": {
+    "we": "cef966f145c88dc8cc6fb8f3ea0afb11b5c4a22aa0dc265091243e21876012a3",
+    "wd_pm": "600f0cdfc3cfc1bb0537ca6eb0dcbac5f6c3fd13ae9c9f72029cdda369b92de4",
+    "ev": "b81549dca82d23a7a011ce99760b79ced9639e1ff9362883b3d736ab7aebe382"
+  },
+  "qualified_short_attempts": 18,
+  "planned_full_cells": 120,
+  "planned_blocks": 24,
+  "new_full_outcomes_before_seal": 0,
+  "owner_amendment_sha256": "cbe114b800293bf610eb72791ddd94fd0d0dca5c3e600d59dd7240ab7eed7ba1"
+}

@@ -1,0 +1,13 @@
+START we block=0 arm=ingress_dla steps=300 2026-09-16T00:04:38.124100+00:00
+VALIDATED we block=0 arm=ingress_dla simulation_s=10.6
+START we block=0 arm=dla steps=300 2026-09-16T00:04:48.757709+00:00
+VALIDATED we block=0 arm=dla simulation_s=9.5
+START we block=0 arm=per_task_dla steps=300 2026-09-16T00:04:58.306302+00:00
+VALIDATED we block=0 arm=per_task_dla simulation_s=9.1
+START we block=0 arm=causal_round_robin steps=300 2026-09-16T00:05:07.448381+00:00
+VALIDATED we block=0 arm=causal_round_robin simulation_s=9.1
+START we block=0 arm=dla_p2c steps=300 2026-09-16T00:05:16.618205+00:00
+VALIDATED we block=0 arm=dla_p2c simulation_s=10.0
+START we block=0 arm=per_task_dla steps=150 2026-09-16T00:05:29.990319+00:00
+VALIDATED we block=0 arm=per_task_dla simulation_s=7.4
+QUALIFICATION PASSED we

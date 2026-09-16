@@ -1,0 +1,33 @@
+{
+  "observed_at": "2026-09-16T05:24:07.638207+00:00",
+  "source": "pmset -g log on the study Mac",
+  "sleep_started_at": "2026-09-16T03:10:01+00:00",
+  "wake_at": "2026-09-16T05:22:15+00:00",
+  "reported_sleep_seconds": 7934,
+  "reason": "Low Power Sleep",
+  "battery_at_sleep_pct": 1,
+  "wake_reason": "AC attached / user activity assertion",
+  "power_source_after_wake": "AC",
+  "full_cells_validated_at_wake": 50,
+  "failures_at_wake": 0,
+  "same_attempts_resumed": true,
+  "retries": 0,
+  "affected_attempts": {
+    "we": "block_03_dla_p2c/attempt_001",
+    "wd_pm": "block_03_ingress_dla/attempt_001",
+    "ev": "block_03_ingress_dla/attempt_001"
+  },
+  "timing_caveat": "Frozen runner uses time.monotonic(), which excludes system sleep on this Darwin host. Preserve those timer values and separately report UTC start-to-completion elapsed time, including sleep.",
+  "additional_sleep_events": [
+    {
+      "sleep_started_at": "2026-09-16T07:17:31+00:00",
+      "wake_at": "2026-09-16T07:19:50+00:00",
+      "reported_sleep_seconds": 139,
+      "reason": "Clamshell Sleep",
+      "power_source_after_wake": "battery",
+      "battery_after_wake_pct": 18,
+      "source": "pmset -g log",
+      "observed_at": "2026-09-16T07:21:42.744319+00:00"
+    }
+  ]
+}

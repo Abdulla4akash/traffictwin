@@ -1,0 +1,34 @@
+{
+  "status": "all_interrupted_attempts_validated",
+  "at": "2026-09-16T05:30:27.487948+00:00",
+  "attempts": {
+    "we": {
+      "receipt": "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/we/block_03_dla_p2c/attempt_001/VALIDATED.json",
+      "receipt_sha256": "06eb82fbd5f1c2821285ae7b2d8570ac0978cb03b548149f3a92728477e6c54e",
+      "started_at": "2026-09-16T03:00:12.285268+00:00",
+      "finished_at": "2026-09-16T05:29:10.296123+00:00",
+      "clock_elapsed_including_validation_s": 8938.010855,
+      "runner_monotonic_total_s": 1022.2687447920034,
+      "within_three_clock_hours_including_validation": true
+    },
+    "wd_pm": {
+      "receipt": "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/wd_pm/wd_pm/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "10d0f12b1a3c469eff39cf568e4c5c9d7a5a95a721bb39f3e57364c9223401ab",
+      "started_at": "2026-09-16T02:57:49.680677+00:00",
+      "finished_at": "2026-09-16T05:25:26.050383+00:00",
+      "clock_elapsed_including_validation_s": 8856.369706,
+      "runner_monotonic_total_s": 940.6294210830092,
+      "within_three_clock_hours_including_validation": true
+    },
+    "ev": {
+      "receipt": "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/ev/ev/block_03_ingress_dla/attempt_001/VALIDATED.json",
+      "receipt_sha256": "a0f647a3c42985efbf2fd0dabc69f2cc72801099219d54a84e5db2f389de2b76",
+      "started_at": "2026-09-16T02:57:26.499316+00:00",
+      "finished_at": "2026-09-16T05:25:02.492040+00:00",
+      "clock_elapsed_including_validation_s": 8855.992724,
+      "runner_monotonic_total_s": 940.2524300830119,
+      "within_three_clock_hours_including_validation": true
+    }
+  },
+  "retries": 0
+}

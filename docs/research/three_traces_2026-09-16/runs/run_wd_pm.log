@@ -1,0 +1,89 @@
+START wd_pm block=0 arm=ingress_dla steps=25200 2026-09-16T00:06:39.414066+00:00
+VALIDATED wd_pm block=0 arm=ingress_dla simulation_s=520.9
+START wd_pm block=0 arm=dla steps=25200 2026-09-16T00:15:23.459474+00:00
+VALIDATED wd_pm block=0 arm=dla simulation_s=562.5
+START wd_pm block=0 arm=per_task_dla steps=25200 2026-09-16T00:24:50.289826+00:00
+VALIDATED wd_pm block=0 arm=per_task_dla simulation_s=542.7
+START wd_pm block=0 arm=causal_round_robin steps=25200 2026-09-16T00:33:57.195949+00:00
+VALIDATED wd_pm block=0 arm=causal_round_robin simulation_s=535.4
+START wd_pm block=0 arm=dla_p2c steps=25200 2026-09-16T00:42:57.281951+00:00
+VALIDATED wd_pm block=0 arm=dla_p2c simulation_s=581.4
+BLOCK PASSED wd_pm 0
+START wd_pm block=1 arm=dla steps=25200 2026-09-16T00:52:53.885650+00:00
+VALIDATED wd_pm block=1 arm=dla simulation_s=579.5
+START wd_pm block=1 arm=per_task_dla steps=25200 2026-09-16T01:02:37.727187+00:00
+VALIDATED wd_pm block=1 arm=per_task_dla simulation_s=535.9
+START wd_pm block=1 arm=causal_round_robin steps=25200 2026-09-16T01:11:37.912391+00:00
+VALIDATED wd_pm block=1 arm=causal_round_robin simulation_s=541.4
+START wd_pm block=1 arm=dla_p2c steps=25200 2026-09-16T01:20:43.840275+00:00
+VALIDATED wd_pm block=1 arm=dla_p2c simulation_s=588.5
+START wd_pm block=1 arm=ingress_dla steps=25200 2026-09-16T01:30:42.851525+00:00
+VALIDATED wd_pm block=1 arm=ingress_dla simulation_s=582.0
+BLOCK PASSED wd_pm 1
+START wd_pm block=2 arm=per_task_dla steps=25200 2026-09-16T01:40:34.162774+00:00
+VALIDATED wd_pm block=2 arm=per_task_dla simulation_s=538.7
+START wd_pm block=2 arm=causal_round_robin steps=25200 2026-09-16T01:49:37.144037+00:00
+VALIDATED wd_pm block=2 arm=causal_round_robin simulation_s=544.7
+START wd_pm block=2 arm=dla_p2c steps=25200 2026-09-16T01:58:46.311910+00:00
+VALIDATED wd_pm block=2 arm=dla_p2c simulation_s=597.9
+START wd_pm block=2 arm=ingress_dla steps=25200 2026-09-16T02:08:54.391223+00:00
+VALIDATED wd_pm block=2 arm=ingress_dla simulation_s=591.3
+START wd_pm block=2 arm=dla steps=25200 2026-09-16T02:18:49.934982+00:00
+VALIDATED wd_pm block=2 arm=dla simulation_s=610.1
+BLOCK PASSED wd_pm 2
+START wd_pm block=3 arm=causal_round_robin steps=25200 2026-09-16T02:29:08.557469+00:00
+VALIDATED wd_pm block=3 arm=causal_round_robin simulation_s=768.1
+START wd_pm block=3 arm=dla_p2c steps=25200 2026-09-16T02:42:05.135367+00:00
+VALIDATED wd_pm block=3 arm=dla_p2c simulation_s=925.1
+START wd_pm block=3 arm=ingress_dla steps=25200 2026-09-16T02:57:49.680677+00:00
+VALIDATED wd_pm block=3 arm=ingress_dla simulation_s=930.9
+START wd_pm block=3 arm=dla steps=25200 2026-09-16T05:25:26.096371+00:00
+VALIDATED wd_pm block=3 arm=dla simulation_s=657.2
+START wd_pm block=3 arm=per_task_dla steps=25200 2026-09-16T05:36:26.795370+00:00
+VALIDATED wd_pm block=3 arm=per_task_dla simulation_s=502.8
+BLOCK PASSED wd_pm 3
+START wd_pm block=4 arm=dla_p2c steps=25200 2026-09-16T05:44:58.867575+00:00
+VALIDATED wd_pm block=4 arm=dla_p2c simulation_s=594.1
+START wd_pm block=4 arm=ingress_dla steps=25200 2026-09-16T05:55:04.220687+00:00
+VALIDATED wd_pm block=4 arm=ingress_dla simulation_s=607.1
+START wd_pm block=4 arm=dla steps=25200 2026-09-16T06:05:15.872688+00:00
+VALIDATED wd_pm block=4 arm=dla simulation_s=616.8
+START wd_pm block=4 arm=per_task_dla steps=25200 2026-09-16T06:15:37.364544+00:00
+VALIDATED wd_pm block=4 arm=per_task_dla simulation_s=567.6
+START wd_pm block=4 arm=causal_round_robin steps=25200 2026-09-16T06:25:10.241625+00:00
+VALIDATED wd_pm block=4 arm=causal_round_robin simulation_s=580.2
+BLOCK PASSED wd_pm 4
+START wd_pm block=5 arm=ingress_dla steps=25200 2026-09-16T06:35:01.383228+00:00
+VALIDATED wd_pm block=5 arm=ingress_dla simulation_s=636.2
+START wd_pm block=5 arm=dla steps=25200 2026-09-16T06:45:42.424051+00:00
+VALIDATED wd_pm block=5 arm=dla simulation_s=634.8
+START wd_pm block=5 arm=per_task_dla steps=25200 2026-09-16T06:56:21.671824+00:00
+VALIDATED wd_pm block=5 arm=per_task_dla simulation_s=565.5
+START wd_pm block=5 arm=causal_round_robin steps=25200 2026-09-16T07:05:51.082469+00:00
+VALIDATED wd_pm block=5 arm=causal_round_robin simulation_s=545.5
+START wd_pm block=5 arm=dla_p2c steps=25200 2026-09-16T07:15:01.471890+00:00
+VALIDATED wd_pm block=5 arm=dla_p2c simulation_s=600.1
+BLOCK PASSED wd_pm 5
+START wd_pm block=6 arm=dla steps=25200 2026-09-16T07:27:36.315643+00:00
+VALIDATED wd_pm block=6 arm=dla simulation_s=650.4
+START wd_pm block=6 arm=per_task_dla steps=25200 2026-09-16T07:38:31.633380+00:00
+VALIDATED wd_pm block=6 arm=per_task_dla simulation_s=621.2
+START wd_pm block=6 arm=causal_round_robin steps=25200 2026-09-16T07:48:58.317998+00:00
+VALIDATED wd_pm block=6 arm=causal_round_robin simulation_s=672.6
+START wd_pm block=6 arm=dla_p2c steps=25200 2026-09-16T08:00:16.770680+00:00
+VALIDATED wd_pm block=6 arm=dla_p2c simulation_s=722.9
+START wd_pm block=6 arm=ingress_dla steps=25200 2026-09-16T08:12:32.624547+00:00
+VALIDATED wd_pm block=6 arm=ingress_dla simulation_s=705.2
+BLOCK PASSED wd_pm 6
+START wd_pm block=7 arm=per_task_dla steps=25200 2026-09-16T08:24:31.200672+00:00
+VALIDATED wd_pm block=7 arm=per_task_dla simulation_s=637.2
+START wd_pm block=7 arm=causal_round_robin steps=25200 2026-09-16T08:35:13.485595+00:00
+VALIDATED wd_pm block=7 arm=causal_round_robin simulation_s=619.0
+START wd_pm block=7 arm=dla_p2c steps=25200 2026-09-16T08:45:38.245883+00:00
+VALIDATED wd_pm block=7 arm=dla_p2c simulation_s=694.8
+START wd_pm block=7 arm=ingress_dla steps=25200 2026-09-16T08:57:26.769216+00:00
+VALIDATED wd_pm block=7 arm=ingress_dla simulation_s=770.8
+START wd_pm block=7 arm=dla steps=25200 2026-09-16T09:10:23.999606+00:00
+VALIDATED wd_pm block=7 arm=dla simulation_s=723.7
+BLOCK PASSED wd_pm 7
+TRACE COMPLETE wd_pm
