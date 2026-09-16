@@ -7,6 +7,8 @@ import json
 import re
 from pathlib import Path
 
+from validate_exemplar_alignment import review_pdf_path
+
 import fitz
 from markdown_it import MarkdownIt
 from validate_final_pass import (
@@ -159,19 +161,24 @@ def main() -> None:
             elif not (HERE / target.partition("#")[0]).exists():
                 missing.append(target)
     checks["manuscript_links_resolve"] = not missing
-    pdf = fitz.open(HERE / "TrafficTwin_Dissertation.pdf")
+    pdf = fitz.open(review_pdf_path(HERE))
     checks["pdf_metadata_has_project_title"] = pdf.metadata["title"] == PROJECT_TITLE
     checks["pdf_metadata_has_author"] = pdf.metadata["author"] == "S M Abdulla Al Mamun"
     checks["pdf_cover_has_requested_project_title"] = PROJECT_TITLE in " ".join(
         pdf[0].get_text().split()
     )
     pdftext = "\n".join(page.get_text() for page in pdf)
-    log = (HERE / "TrafficTwin_Dissertation.log").read_text(errors="replace")
+    log_path = HERE / "TrafficTwin_Dissertation.log"
+    if not log_path.exists():
+        log_path = HERE / "evidence/latexmk-exemplar-alignment-2026-09-16.log"
+    log = log_path.read_text(errors="replace")
     checks["no_overfull_boxes"] = "Overfull \\" not in log
     checks["no_missing_glyphs"] = "Missing character:" not in log
     checks["no_undefined_references"] = "undefined references" not in log.lower()
     checks["pdf_has_disclosure"] = "Assistance and attribution" in pdftext
-    checks["pdf_has_expected_figures"] = all(f"Figure {n}:" in pdftext for n in range(1, 9))
+    checks["pdf_has_expected_figures"] = all(
+        f"Figure {n}:" in pdftext for n in (1, 2, 3, 4, 5, 6, "7a", "7b", 8)
+    )
     contents_sentence = (
         f"Word count: {count:,} (main text including tables, equations and pseudocode; "
         "excluding captions, references, appendices and front matter); "
@@ -230,6 +237,9 @@ def main() -> None:
             "status": "owner-confirmed; not independently certified by automation",
         },
         "pages": len(pdf),
+        "review_pdf": str(review_pdf_path(HERE)),
+        "review_pdf_sha256": sha(review_pdf_path(HERE)),
+        "delivery": "LaTeX and build inputs only; tracked dissertation PDF preserved at ded54bd",
         "captions": len(captions),
         "hashes": {
             name: sha(HERE / name)

@@ -1,0 +1,49 @@
+{
+  "method": "In-memory text mutations against final LaTeX; no files or scientific inputs mutated. Each named semantic guard and the operation ledger must reject the change.",
+  "passed": true,
+  "probes": [
+    {
+      "probe": "glossary",
+      "specific_guard": "exemplar_glossary_present",
+      "rejected": true,
+      "ledger_rejected": true
+    },
+    {
+      "probe": "copyright",
+      "specific_guard": "exemplar_copyright_i_to_iv_verbatim",
+      "rejected": true,
+      "ledger_rejected": true
+    },
+    {
+      "probe": "environment",
+      "specific_guard": "exemplar_environment_table_present",
+      "rejected": true,
+      "ledger_rejected": true
+    },
+    {
+      "probe": "access",
+      "specific_guard": "exemplar_access_appendix_present",
+      "rejected": true,
+      "ledger_rejected": true
+    },
+    {
+      "probe": "spaced_path",
+      "specific_guard": "exemplar_no_path_with_spaces",
+      "rejected": true,
+      "ledger_rejected": true
+    },
+    {
+      "probe": "access_tag",
+      "specific_guard": "exemplar_no_bibliography_access_tags",
+      "rejected": true,
+      "ledger_rejected": true
+    },
+    {
+      "probe": "provenance",
+      "specific_guard": "exemplar_no_calibrated_network_or_simulation",
+      "rejected": true,
+      "ledger_rejected": true
+    }
+  ],
+  "research_workloads_launched": 0
+}

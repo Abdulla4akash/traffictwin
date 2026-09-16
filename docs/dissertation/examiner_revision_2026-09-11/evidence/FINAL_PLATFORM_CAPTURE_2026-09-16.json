@@ -32,16 +32,17 @@
   "research_workloads_launched": 0,
   "browser_errors": [],
   "package_fingerprint": "6424ce5375b4acf86debc69d5fb6066eb3150916c83f1a1d5cff03876c20437b",
-  "composition_note": "Authentic screenshot crops with panel labels and explanatory legend outside screenshots; no UI content synthesised. All panels served from the pinned bridge worktree via explicit PYTHONPATH.",
+  "composition_note": "Legend-free full-width (a) composite retained as a build input. Manuscript uses Figure 7a (a,b) and Figure 7b (c); panel a introductory heading/banner cropped only in 7a to retain legible directory, actions, counters and provenance. Original screenshots unchanged; no recapture or synthesised UI.",
   "files": {
     "evidence/final_capture/capture_final.py": "80bc8f7dd006f15ac958202a41e09f4ad6cebf7593415717417e74dffde8382f",
-    "evidence/final_capture/compose_figure.py": "04f935b9fedf298ec8c47b83f5513d1de32d355f559ccc68f88955f6e623a16c",
-    "assets/traffictwin_platform_real_data.png": "27d0e5603b98a0dce16e89b66c645abfb90e793eb366ab39bc90ed9314787746",
-    "assets/traffictwin_platform_real_data.pdf": "3f66ee181ab2e13ee0937230067730095a72ca64fed9617b019b365bf1eeef3e",
+    "evidence/final_capture/compose_figure.py": "babc811e9b7ec782ab8e5f426d63452396175d4a319ef066c10bd5d852405626",
     "evidence/final_capture/TOS_ADAPTER_VALIDATION.json": "a74eaf1ddef795281c6a50b2c661a0b381629c4d9dbeb5654b770b0e4b0a569f",
     "evidence/final_capture/shots/a_tall.png": "bbea52d66a8241d8b7eb197fc1494662d9e896379715682de991540061280a14",
     "evidence/final_capture/shots/b_tall.png": "8a835ff1bbf1e734cb827f4e0cb98a4f868fafa56be8f6db18a61796da18dab6",
-    "evidence/final_capture/shots/c_tall.png": "8e0fed0e1cdc592ba70825763ef78a8fe478629a9458a9b895fc9ecf46c3d908"
+    "evidence/final_capture/shots/c_tall.png": "8e0fed0e1cdc592ba70825763ef78a8fe478629a9458a9b895fc9ecf46c3d908",
+    "assets/traffictwin_platform_real_data.png": "4110c02efe254b495ac7d3df57a8200b77f4dd04cf235ecf73fc39f2966f841a",
+    "assets/traffictwin_platform_7a.png": "a6e52dde6cd10c667b1983d00bf56ee59f71c15a230d3454e92f308bdc15ad98",
+    "assets/traffictwin_platform_7b.png": "5ecc75b0534c7a5157e74f576f774bbff0c601387f601d96fa5e30ba639114d2"
   },
   "external_engine_history": [
     {
@@ -71,5 +72,33 @@
     "verified_from": "local Git history of supplied tos-data-full repository"
   },
   "original_receipt_sha256": "db5c3082b35380e1385c42eeb326e00691a0e4547ca7ba29f8bc09e6085316ed",
-  "reproduction_note": "Run compose_figure.py from evidence/final_capture to reproduce local outputs; published PNG/PDF copies are under assets. Capture input hashes above bind the genuine screenshots."
+  "reproduction_note": "Run compose_figure.py from evidence/final_capture to reproduce local outputs; published PNG/PDF copies are under assets. Capture input hashes above bind the genuine screenshots.",
+  "split_figure_7a_a_crop_css": [
+    372,
+    285,
+    1370,
+    604
+  ],
+  "figure_split": true,
+  "local_only_pdf_assets": [
+    {
+      "filename": "traffictwin_platform_real_data.pdf",
+      "local_path": "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16/traffictwin-exemplar-figure-pdfs/traffictwin_platform_real_data.pdf",
+      "sha256": "a77f029d79df424448743b01c0fbcb254098692bf64a3690515d44c59fb3689e",
+      "delivered_or_committed": false
+    },
+    {
+      "filename": "traffictwin_platform_7a.pdf",
+      "local_path": "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16/traffictwin-exemplar-figure-pdfs/traffictwin_platform_7a.pdf",
+      "sha256": "208fffab2fc459de23f6778cc1b1bbe8e016928f7d33b70ec4a43b6a6bbd0c2f",
+      "delivered_or_committed": false
+    },
+    {
+      "filename": "traffictwin_platform_7b.pdf",
+      "local_path": "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16/traffictwin-exemplar-figure-pdfs/traffictwin_platform_7b.pdf",
+      "sha256": "429c06a9a6fbe0ec07eeb12cc7e371a666e5cfc6e640ababc78db7cfd78e030c",
+      "delivered_or_committed": false
+    }
+  ],
+  "manuscript_uses": "PNG split assets; all regenerated PDFs are local-only. The tracked legacy full-composite PDF is preserved, unused by the current TeX."
 }

@@ -1,3 +1,19 @@
+## LaTeX-only exemplar alignment — 16 September 2026
+
+The edited `TrafficTwin_Dissertation.tex` is the current manuscript source for this pass. **Do not run `convert_source.py`**: the Markdown and its source map are preserved historical inputs, and that converter would overwrite the authorised LaTeX changes. The tracked dissertation PDF remains the ded54bd build; it does not reflect this pass. The delivery contains LaTeX plus build inputs. See [CHANGES.md](CHANGES.md), [operation ledger](evidence/EXEMPLAR_OPERATIONS_2026-09-16.json) and [command receipt](evidence/EXEMPLAR_COMMANDS_2026-09-16.json).
+
+Appendix H uses these read-only inspection commands from an authorised repository copy with dependencies available. The compact helper extends the existing `joint_confirmation_2026-09-08/document/verify_results.py` route to Tables 6, 7, 7a and 7b. The platform and TOS commands are copied from the repository README (launch command and adapter examples); `EXTERNAL_PACKAGE` is an explicitly supplied package path. Launching the platform does not execute a research cell.
+
+```sh
+python docs/dissertation/examiner_revision_2026-09-11/document/verify_compact_tables.py
+streamlit run src/traffictwin/ui/app.py
+traffictwin integration tos validate "$EXTERNAL_PACKAGE"
+```
+
+Build with XeLaTeX/latexmk; no bibliography backend or custom class is required. Keep the Liberation Serif, Liberation Sans and DejaVu Sans Mono fonts available. Run `document/count_exemplar_words.py`, `document/validate_final_pass.py` and `document/validate_revision.py` for this overlay. When preserving the tracked PDF, set `TRAFFICTWIN_REVIEW_PDF` to the separately compiled current PDF for the validators; they must inspect that build, not the historical tracked PDF. The previous manuscript-only word-count waiver remains in force. PR remains draft, unmerged.
+
+---
+
 # Dynamic Resource Management for Intelligent Transport Systems
 
 ## Current final-pass overlay — 16 September 2026

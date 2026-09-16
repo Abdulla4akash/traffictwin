@@ -40,24 +40,23 @@
 \vspace{18mm}
 {\large S M Abdulla Al Mamun\par}
 \vspace{12mm}
-{\large The University of Manchester\par}
+A dissertation submitted to The University of Manchester\par
+for the degree of Master of Science in Artificial Intelligence\par
+in the Faculty of Science and Engineering\par
 \vspace{8mm}
-Master's dissertation\par
-2026\par
-\vspace{12mm}
+Year of submission 2026\par
+\vspace{8mm}
+Department of Computer Science, School of Engineering\par
+\vspace{8mm}
 Supervisor: Dr Sandra Sampaio\par
 \end{center}
 \vfill
-\begin{tabularx}{\textwidth}{@{}lX@{}}
-Award wording: & MSc Artificial Intelligence\\[9pt]
-Faculty and School: & Faculty of Science and Engineering,\newline School of Engineering,\newline Department of Computer Science\\[9pt]
-Student ID: & 14185028
-\end{tabularx}
+\noindent Student ID: 14185028\par
 \clearpage
 \tableofcontents
-\vfill\noindent\textbf{Word count: 9,555} (main text including tables, equations
+\vfill\noindent\textbf{Word count: 9,605} (main text including tables, equations
 and pseudocode; excluding captions, references, appendices and front matter);
-8,136 excluding tables and pseudocode.\par
+8,174 excluding tables and pseudocode.\par
 \clearpage
 {\small\singlespacing
 \listoffigures
@@ -86,9 +85,37 @@ V2I / V2V & Vehicle-to-infrastructure / vehicle-to-vehicle\\
 VEC & Vehicular edge computing\\
 \end{tabularx}
 \clearpage
+\section*{Glossary}
+\addcontentsline{toc}{section}{Glossary}
+{\small\singlespacing
+\begin{description}
+\item[Offered task] A generated task remains in the primary outcome population whether it is admitted or rejected. [Section~\ref{sec:2.4}]
+\item[Admission] Admission accepts an eligible task into a queue and is distinct from meeting its deadline. [Section~\ref{sec:2.4}]
+\item[Backlog gate] The strict gate compares existing effective service workload with the candidate deadline, excluding its own service and transmission time. [Section~\ref{sec:2.4}]
+\item[Task-count capacity] The queue limit constrains the number of tasks and does not increase computing service. [Section~\ref{sec:2.4}]
+\item[Ingress RSU and ingress execution] Ingress is the strongest-link roadside entry point, and ingress execution keeps the task at that server. [Section~\ref{sec:2.2}]
+\item[Common-target placement] One least-workload destination is selected per substep and shared by its V2I candidates. [Section~\ref{sec:2.5}]
+\item[Causal per-task placement] Each candidate selects a destination using workload that immediately includes earlier admitted reservations. [Section~\ref{sec:2.5}]
+\item[Causal round-robin] The cyclic comparator spreads candidates while retaining causal admission and immediate reservation. [Section~\ref{sec:2.8}]
+\item[Two-choice (\texttt{dla\_p2c})] The gate-enabled alternative selects the lower-workload destination from two random candidates per vehicle. [Section~\ref{sec:2.5}]
+\item[Substep] An internal task slot orders admissions within a batch without advancing the simulation clock. [Section~\ref{sec:2.4}]
+\item[Drain] After the final substep, queued service work is reduced by the batch service allowance. [Section~\ref{sec:2.4}]
+\item[Fleet draw and fleet seed] The fleet seed selects the draw of vehicle tier, electric-vehicle status and initial state of charge. [Section~\ref{sec:3.4}]
+\item[Evaluator seed] This seed varies observations, arrivals, task types and sizes, fading and service wobble. [Section~\ref{sec:3.4}]
+\item[Joint block] A paired fleet/evaluator-seed block supplies matched runs across the compared policies. [Section~\ref{sec:2.6}]
+\item[Cell] A cell is a full evaluator run for one policy under its specified seed block. [Section~\ref{sec:3.4}]
+\item[Sealed protocol] Controls and analysis are fixed before the full study outcomes are observed. [Section~\ref{sec:2.6}]
+\item[Receipt] A validation record binds a completed run to its source, seeds and outputs. [Section~\ref{sec:3.7}]
+\item[Percentage point (pp)] Paired differences subtract one policy's attainment percentage from another's on the same draw. [Section~\ref{sec:2.6}]
+\item[Attainment] Offered-task deadline attainment is the share of all offered tasks recorded as meeting their deadlines. [Section~\ref{sec:2.4}]
+\end{description}
+}
+\clearpage
 \onehalfspacing\RaggedRight
 % BEGIN SOURCE BLOCK 002 heading
 \section*{Abstract}\addcontentsline{toc}{section}{Abstract}\phantomsection\label{sec:abstract}
+{\small A dissertation submitted to The University of Manchester for the degree of Master of Science, 2026\par}
+\medskip
 % END SOURCE BLOCK 002
 
 % BEGIN SOURCE BLOCK 003 paragraph
@@ -104,7 +131,7 @@ Retrospective analysis explains recurring common destinations through shared ass
 % END SOURCE BLOCK 005
 
 % BEGIN SOURCE BLOCK 006 paragraph
-The findings support a bounded benefit from workload awareness beyond spreading. Two checkpoints sharing one training seed, one calibrated Manchester network for all five scenarios, global service-work information and aggregate timing restrict generalisation and physical interpretation. Historical capacity findings separately retain inconclusive statistics and unresolved scoring uncertainty; the later gate-enabled results do not resolve that gap.
+The findings support a bounded benefit from workload awareness beyond spreading. Two checkpoints sharing one training seed, one demand-scaled Manchester network for all five scenarios, global service-work information and aggregate timing restrict generalisation and physical interpretation. Historical capacity findings separately retain inconclusive statistics and unresolved scoring uncertainty; the later gate-enabled results do not resolve that gap.
 % END SOURCE BLOCK 006
 
 
@@ -118,14 +145,18 @@ No portion of the work referred to in the dissertation has been submitted in sup
 \bigskip
 Signature: \rule{60mm}{0.3pt}\qquad Date: \rule{25mm}{0.3pt}
 \clearpage
-\section*{Copyright and intellectual property}
-\addcontentsline{toc}{section}{Copyright and intellectual property}
-Original text, third-party material, source code and research inputs retain their respective
-rights and applicable University arrangements. Access to a private repository or research
-dataset does not grant unrestricted redistribution rights. Reuse must respect the relevant
-licences, permissions and contributor acknowledgements. The software, actor, traffic inputs and
-evidence records are separately identified so that their ownership is not conflated with
-authorship of this report.
+\section*{Copyright statement}
+\addcontentsline{toc}{section}{Copyright statement}
+\begin{enumerate}
+\item[(i)] The author of this thesis (including any appendices and/or schedules to this thesis) owns certain copyright or related rights in it (the "Copyright") and s/he has given The University of Manchester certain rights to use such Copyright, including for administrative purposes.
+
+\item[(ii)] Copies of this thesis, either in full or in extracts and whether in hard or electronic copy, may be made only in accordance with the Copyright, Designs and Patents Act 1988 (as amended) and regulations issued under it or, where appropriate, in accordance with licensing agreements which the University has from time to time. This page must form part of any such copies made.
+
+\item[(iii)] The ownership of certain Copyright, patents, designs, trade marks and other intellectual property (the "Intellectual Property") and any reproductions of copyright works in the thesis, for example graphs and tables ("Reproductions"), which may be described in this thesis, may not be owned by the author and may be owned by third parties. Such Intellectual Property and Reproductions cannot and must not be made available for use without the prior written permission of the owner(s) of the relevant Intellectual Property and/or Reproductions.
+
+\item[(iv)] Further information on the conditions under which disclosure, publication and commercialisation of this thesis, the Copyright and any Intellectual Property and/or Reproductions described in it may take place is available in the University IP Policy (see \url{http://documents.manchester.ac.uk/DocuInfo.aspx?DocID=24420}), in any relevant Thesis restriction declarations deposited in the University Library, The University Library's regulations (see \url{http://www.library.manchester.ac.uk/about/regulations/}) and in The University's policy on Presentation of Theses.
+
+\end{enumerate}
 \clearpage
 \section*{Acknowledgements}
 \addcontentsline{toc}{section}{Acknowledgements}
@@ -158,7 +189,7 @@ Mobility makes this harder: radio conditions and the vehicles around an RSU can 
 % END SOURCE BLOCK 012
 
 % BEGIN SOURCE BLOCK 013 paragraph
-The Manchester scenarios, taken from a calibrated simulation of the Etihad and Co-op Live area \cite{ref47}, give the comparison a concrete intelligent-transport setting. I use saved SUMO working-day and incident-model traces as repeatable inputs, exposing the same scheduling rules to different scenario conditions. These simulated movements do not establish live performance on Manchester roads. An operator must decide whether to retain ingress execution, distribute work or alter admission, accounting for coordination cost and available service.
+The Manchester scenarios, taken from a count-matched, demand-scaled Manchester SUMO network around Etihad and Co-op Live \cite{ref47}, give the comparison a concrete intelligent-transport setting. I use saved SUMO working-day and incident-model traces as repeatable inputs, exposing the same scheduling rules to different scenario conditions. These simulated movements do not establish live performance on Manchester roads. An operator must decide whether to retain ingress execution, distribute work or alter admission, accounting for coordination cost and available service.
 % END SOURCE BLOCK 013
 
 % BEGIN SOURCE BLOCK 014 paragraph
@@ -381,7 +412,7 @@ V2V helper selection follows the inherited strongest-link convention, held const
 % END SOURCE BLOCK 060
 
 % BEGIN SOURCE BLOCK 061 paragraph
-The initial two scenarios are drawn from the Manchester SUMO working-day and incident models: \path{manchester_workingday/trace_wd_am_wdrsu.npz} and the 15 March 2024 incident trace (Table~\ref{tab:2}). Both traces are exported from the calibrated Manchester SUMO network of Putra et al., built from OpenStreetMap around the Etihad Stadium and Co-op Live with demand generated from Transport for Greater Manchester sensor counts; the incident hour is that study's documented reactive-control collapse on 15 March 2024, used here as a simulated dense-traffic stress case rather than a recorded incident \cite{ref47}. Coordinates are local trace metres. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel \hyperref[source-s7]{[S7]}.
+The initial two scenarios are drawn from the Manchester SUMO working-day and incident models: \path{manchester_workingday/trace_wd_am_wdrsu.npz} and the 15 March 2024 incident trace (Table~\ref{tab:2}). Both traces use Putra et al.'s count-matched, demand-scaled Manchester SUMO network around Etihad Stadium and Co-op Live \cite{ref47}. The source study builds the network from OpenStreetMap, scales demand uniformly to 70\% of observed sensor counts to avoid simulated gridlock, and reports SUMO 1.27.0 \cite{ref47}. The incident hour is that study's documented reactive-control collapse on 15 March 2024, used here as a simulated dense-traffic stress case rather than a recorded incident. Coordinates are local trace metres. Evaluations import saved positions without rerunning SUMO. Morning input checks reconstruct canonical arrays and verify entry markers because padded slots need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident trace retains its earlier convention without the same entry channel \hyperref[source-s7]{[S7]}.
 % END SOURCE BLOCK 061
 
 % BEGIN SOURCE BLOCK 062 paragraph
@@ -413,6 +444,7 @@ Date and local window & 15 March 2024, 20:00--21:00 & 15 October 2024, 08:00--11
 One-second steps & 3,600 & 10,800 \\
 Padded vehicle slots & 2,488 & 215 \\
 RSUs & 10 & 9 \\
+SUMO version (source study) & 1.27.0 \cite{ref47} & 1.27.0 \cite{ref47} \\
 SUMO seed & 43 & 42 \\
 Vehicle queue convention & Conserved, legacy trace convention & Conserved, canonical per-visit reset \\
 Placement-study RSU limit & 6,220 tasks per RSU & 6,220 tasks per RSU \\
@@ -689,7 +721,6 @@ Retrospective type aggregation retains all types and draws without subgroup sign
 % END SOURCE BLOCK 110
 
 \FloatBarrier
-\clearpage
 % BEGIN SOURCE BLOCK 111 heading
 \subsection{Method selection and alternatives}\label{sec:2.9}
 % END SOURCE BLOCK 111
@@ -897,11 +928,11 @@ O2 and O3 address RQ2 through confirmation.
 % END SOURCE BLOCK 141
 
 % BEGIN SOURCE BLOCK 142 paragraph
-\textbf{Results.} All 32 full morning cells and eight block-control receipts passed after bounded qualification, with no failed attempts, retries or exclusions. Table~\ref{tab:7} reports the declared contrasts; Appendix~\ref{app:E} retains every block \hyperref[source-s16]{[S16]}.
+\textbf{Setting.} Evaluator seed varies observation descriptors, arrivals, operational types/sizes, fading and service wobble; fleet seed varies tier, EV status and initial SoC. The estimand remains the total scheduling intervention under frozen weights, without forcing replay or guaranteeing future action equality. Small observation and logit differences occurred in block 1; they did not change actions. All four arms shared the required exogenous arrays exactly within each block, and actions matched exactly in all 24 non-reference arm/block comparisons.
 % END SOURCE BLOCK 142
 
 % BEGIN SOURCE BLOCK 143 paragraph
-\textbf{Setting.} Evaluator seed varies observation descriptors, arrivals, operational types/sizes, fading and service wobble; fleet seed varies tier, EV status and initial SoC. The estimand remains the total scheduling intervention under frozen weights, without forcing replay or guaranteeing future action equality. Small observation and logit differences occurred in block 1; they did not change actions. All four arms shared the required exogenous arrays exactly within each block, and actions matched exactly in all 24 non-reference arm/block comparisons.
+\textbf{Results.} All 32 full morning cells and eight block-control receipts passed after bounded qualification, with no failed attempts, retries or exclusions. Table~\ref{tab:7} reports the declared contrasts; Appendix~\ref{app:E} retains every block \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 143
 
 % BEGIN SOURCE BLOCK 144 table
@@ -953,7 +984,6 @@ The critical value is 3.127552 with seven degrees of freedom; full controls are 
 % END SOURCE BLOCK 150
 
 % BEGIN SOURCE BLOCK 151 table
-\clearpage
 \begingroup
 \singlespacing\footnotesize\setlength{\tabcolsep}{3pt}
 \renewcommand{\thetable}{7a}
@@ -978,11 +1008,10 @@ Study & Contrast & Mean difference (pp) & All-ten simultaneous 95\% interval \\
 % END SOURCE BLOCK 151
 
 % BEGIN SOURCE BLOCK 152 paragraph
-\textbf{Recurrence on three further Manchester traces.} A further declared study ran the same five arms on eight seed blocks for each of three traces not previously used in this dissertation, from the same calibrated network: weekend (Sunday 15 September 2024, 12:00--21:00), weekday evening peak (Tuesday 15 October 2024, 14:00--21:00) and event night (Wednesday 18 September 2024, 17:30--24:00), 120 cells with no failures, protocol sealed before outcomes (Table~\ref{tab:7b}). The ranking common-target < ingress < round-robin < per-task recurred on every trace: common-target lost 3.0 to 3.6 points to ingress, per-task gained 3.7 to 4.4, and per-task exceeded round-robin by +0.43 to +0.61 and two-choice by +0.53 to +0.65, with all fifteen intervals adjusted as one family. In trace means, two-choice never exceeded round-robin and trailed it on the weekend and event traces. Descriptively, ordered by mean active vehicles per second, the workload-aware increment rose monotonically across event night, weekend, evening peak and morning (0.43, 0.51, 0.61, 0.63), consistent with the half-speed result; event night also has twelve RSUs against nine or ten. The weekend trace carries the entry-channel fix; the evening-peak and event traces retain the legacy slot-reuse convention noted for the incident trace \hyperref[source-s19]{[S19]}.
+\textbf{Recurrence on three further Manchester traces.} A further declared study ran the same five arms on eight seed blocks for each of three traces not previously used in this dissertation, from the same demand-scaled network: weekend (Sunday 15 September 2024, 12:00--21:00), weekday evening peak (Tuesday 15 October 2024, 14:00--21:00) and event night (Wednesday 18 September 2024, 17:30--24:00), 120 cells with no failures, protocol sealed before outcomes (Table~\ref{tab:7b}). The ranking common-target < ingress < round-robin < per-task recurred on every trace: common-target lost 3.0 to 3.6 points to ingress, per-task gained 3.7 to 4.4, and per-task exceeded round-robin by +0.43 to +0.61 and two-choice by +0.53 to +0.65, with all fifteen intervals adjusted as one family. In trace means, two-choice never exceeded round-robin and trailed it on the weekend and event traces. Descriptively, ordered by mean active vehicles per second, the workload-aware increment rose monotonically across event night, weekend, evening peak and morning (0.43, 0.51, 0.61, 0.63), consistent with the half-speed result; event night also has twelve RSUs against nine or ten. The weekend trace carries the entry-channel fix; the evening-peak and event traces retain the legacy slot-reuse convention noted for the incident trace \hyperref[source-s19]{[S19]}.
 % END SOURCE BLOCK 152
 
 % BEGIN SOURCE BLOCK 153 table
-\clearpage
 \begingroup
 \singlespacing\footnotesize\setlength{\tabcolsep}{3pt}
 \renewcommand{\thetable}{7b}
@@ -1012,7 +1041,6 @@ Event night & Per-task \ensuremath{-} two-choice & +0.534 & [+0.350, +0.717] \\
 % END SOURCE BLOCK 153
 
 \FloatBarrier
-\clearpage
 % BEGIN SOURCE BLOCK 154 heading
 \subsection{Why destination semantics matter}\label{sec:3.5}
 % END SOURCE BLOCK 154
@@ -1043,7 +1071,6 @@ Matched outcome accounting in the original four-draw morning sample records 284,
 % END SOURCE BLOCK 160
 
 \FloatBarrier
-\clearpage
 % BEGIN SOURCE BLOCK 161 heading
 \subsection{Bounded state-information and forwarding sensitivities}\label{sec:3.6}
 % END SOURCE BLOCK 161
@@ -1106,18 +1133,9 @@ Table~\ref{tab:A1} in Appendix~\ref{app:A} lists each component's size, recorded
 % END SOURCE BLOCK 175
 
 % BEGIN SOURCE BLOCK 176 paragraph
-The inventory measures project scope, not individually authored new code. Hosted run \href{\detokenize{https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188}}{34631121188}, 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles \cite{ref37}, \cite{ref38}. Figure~\ref{fig:7} shows the platform after validating an external 300-run evaluation package and loading this dissertation's own results; it demonstrates provenance and comparison workflows, not results.
+The inventory measures project scope, not individually authored new code. Hosted run \href{\detokenize{https://github.com/Abdulla4akash/traffictwin/actions/runs/34631121188}}{34631121188}, 11 September 2026, collected 8,301 tests: 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), and 66 skipped; Ruff passed and 938 frozen files were verified. These are the completed Python 3.12 job's outcomes; Python 3.11 was cancelled. The separate five-page browser check found no application exceptions or horizontal overflow; it is not a usability study. Code size, provenance and verification have distinct evidential roles \cite{ref37}, \cite{ref38}. Figures~\ref{fig:7} and~\ref{fig:7b} show the platform after validating an external 300-run evaluation package and loading this dissertation's own results; it demonstrates provenance and comparison workflows, not results.
 % END SOURCE BLOCK 176
 
-% BEGIN SOURCE BLOCK 177 figure
-\begin{landscape}
-\begin{figure}[p]
-\centering
-\includegraphics[width=\linewidth,height=.49\linewidth,keepaspectratio]{assets/traffictwin_platform_real_data.pdf}
-\caption[TrafficTwin with real data]{TrafficTwin with real data. (a) An external evaluation package (R. P. Putra, Paper 2B data, tos-data commit a75bbdb, 18--23 July 2026; engine \path{v2_post_nrsus_fix}) validated read-only, with its provenance line. ($b$) That package's 300 evaluation runs across five Manchester traces as a deadline-success matrix with the paired campaign comparison beneath; these are external numbers from an engine since revised (vec\_env 9db5096, 3 Aug 2026; df022e6/82d3ecf, 5 Aug 2026), shown to demonstrate provenance and comparison workflows, not as results of this dissertation. ($c$) This dissertation's sealed eight-block contrasts read from the bundled results packet. Reading: the platform demonstrates validation, comparison and provenance on genuine inputs; the numerical claims of this report rest on the bound campaign outputs, not on the interface.}\label{fig:7}
-\end{figure}
-\end{landscape}
-% END SOURCE BLOCK 177
 
 % BEGIN SOURCE BLOCK 178 paragraph
 I designed the research questions and the initial evaluation experiments in this report: the E1 capacity levels, the E2b ingress-with-gate control, the E2c four-draw replication, the E2d per-task implementation and its reuse of the E2c controls, the morning pilot and its exclusion, the primary seeds, the three declared contrasts, the round-robin comparator, and the eight joint fleet/evaluator blocks with rotating arm order. The software was developed with generative-AI assistance: Codex and ChatGPT produced code and tooling to my specification, which I reviewed and in many cases modified before it was run (vec\_env commit 2f63706 records the per-task mode under my name). Putra supplied the actor, environment and the accounting repair \hyperref[source-s12]{[S12]}. I ran or authorised every campaign, recomputed the block-0 paired effect from the offered counts, checked the Table~\ref{tab:6} and Table~\ref{tab:7} intervals, worked through Proposition~\ref{prop:1} and Table~\ref{tab:C1}, and traced the common-target selection in the frozen evaluator source. The follow-up conditions were proposed as described in the Declaration; I authorised and reviewed them.
@@ -1127,8 +1145,26 @@ I designed the research questions and the initial evaluation experiments in this
 Table~\ref{tab:8} records the limits of aggregate departures and global work with immediate reservations. Separate lifecycle fields distinguish placement, admission and success.
 % END SOURCE BLOCK 179
 
+% BEGIN SOURCE BLOCK 177 figure
+\begingroup
+\captionsetup{font={footnotesize,stretch=1}}
+\renewcommand{\thefigure}{7a}
+\begin{figure}[p]
+\centering
+\includegraphics[width=\linewidth,height=.80\textheight,keepaspectratio]{assets/traffictwin_platform_7a.png}
+\caption[TrafficTwin with real data: external package]{TrafficTwin with real data. (a) An external evaluation package (R. P. Putra, Paper 2B data, tos-data commit a75bbdb, 18--23 July 2026; engine \path{v2_post_nrsus_fix}) validated read-only, with its provenance line. (b) That package's 300 evaluation runs across five Manchester traces as a deadline-success matrix with the paired campaign comparison beneath; these are external numbers from an engine since revised (vec\_env 9db5096, 3 Aug 2026; df022e6/82d3ecf, 5 Aug 2026), shown to demonstrate provenance and comparison workflows, not as results of this dissertation. Reading: inspect source identity before comparing imported results. Panel (b)'s compatibility column records a declared observation-encoding difference (onehot17 versus capscalar13) flagged by the adapter, not an error. External package: Paper 2B / R. P. Putra; panels (a)--(b): imported simulation evidence; panel (c): sealed dissertation confirmation; original interface captures, no simulated UI.}\label{fig:7}
+\end{figure}
+\renewcommand{\thefigure}{7b}
+\begin{figure}[p]
+\centering
+\includegraphics[width=\linewidth,height=.80\textheight,keepaspectratio]{assets/traffictwin_platform_7b.png}
+\caption[TrafficTwin with real data: dissertation confirmation]{TrafficTwin with real data. (c) This dissertation's sealed eight-block contrasts read from the bundled results packet. Reading: the platform demonstrates validation, comparison and provenance on genuine inputs; the numerical claims of this report rest on the bound campaign outputs, not on the interface.}\label{fig:7b}
+\end{figure}
+\endgroup
+\setcounter{figure}{7}
+% END SOURCE BLOCK 177
+
 % BEGIN SOURCE BLOCK 180 table
-\clearpage
 \begingroup
 \singlespacing\footnotesize\setlength{\tabcolsep}{3pt}
 \renewcommand{\thetable}{8}
@@ -1143,12 +1179,12 @@ Limitation & Claim restricted & Consequence / evidence needed \\
 \bottomrule\endfoot
 Batched arrivals, aggregate departures, backlog-only gate & Physical deadline feasibility & Interpret as evaluator outcomes; validate an event/transfer model against measurements \\
 Global actual service work; immediate reservations & Distributed deployability & Measure estimation error and coordination delay before implementation claims \\
-Original four fleet draws; new eight joint blocks; five scenarios of one calibrated Manchester network; two checkpoints sharing a training seed; follow-ups reuse the seed pairs & Population uncertainty and generalisation & Independent network, independent training seed and combined conditions remain open \\
+Original four fleet draws; new eight joint blocks; five scenarios of one demand-scaled Manchester network; two checkpoints sharing a training seed; follow-ups reuse the seed pairs & Population uncertainty and generalisation & Independent network, independent training seed and combined conditions remain open \\
 Bundled scenario changes & Morning gain caused by lower density & Separate scenario analyses; factor-controlled evidence needed \\
 Legacy off scoring masks differ & Admission-consistent E1 attainment and gate-only E2b attribution & Historical score intervals remain; measurement impact is not assessable from available records \\
 Exact arithmetic versus float32; finite fixtures and unobserved intermediate masks & Numerical prevalence and historical causal decomposition & Two-deadline exact bound proved; constructed rounding discrepancy and reduced adverse example do not establish fleet-frequency effects \\
 Single-draw sensitivities & General staleness/forwarding robustness & Describe tested information and fixed-cost models only \\
-Separately arranged raw-input access & Unrestricted full reproduction & Portable compact checks reproduce central summaries; full replay needs authorised raw inputs and preserved dependencies \\
+Separately arranged raw-input access & Unrestricted full reproduction & Appendix~\ref{app:H} checks reproduce central summaries; full replay needs authorised raw inputs and preserved dependencies \\
 \end{xltabular}
 \endgroup
 % END SOURCE BLOCK 180
@@ -1157,18 +1193,16 @@ Separately arranged raw-input access & Unrestricted full reproduction & Portable
 Compact checks need neither actor nor JAX; full raw verification requires separately arranged access. Appendix~\ref{app:A} records access and off-machine preservation boundaries \hyperref[source-s13]{[S13]}, \hyperref[source-s16]{[S16]}.
 % END SOURCE BLOCK 181
 
-\FloatBarrier
-\clearpage
 % BEGIN SOURCE BLOCK 182 heading
 \section{Conclusion}\label{sec:4}
 % END SOURCE BLOCK 182
 
 % BEGIN SOURCE BLOCK 183 paragraph
-Within the studied evaluator and matched populations, implementation semantics reverse the ingress comparison, and workload-aware causal placement improves attainment over the tested spreading rule.
+This project set out to test how infrastructure scheduling affects whether vehicle tasks meet their deadlines. This matters because useful results must arrive in time. I built and checked a frozen-actor evaluator comparison and infrastructure policies, and ran 274 full evaluator runs. In the sealed confirmation, choosing a server for each task improved deadline attainment by +4.137 percentage points over execution at the entry server and by +0.631 over cyclic spreading (Table~\ref{tab:7}). These findings remain bounded to one evaluator and one network.
 % END SOURCE BLOCK 183
 
 % BEGIN SOURCE BLOCK 184 paragraph
-Under a frozen vehicle policy, common-target placement underperformed ingress while causal per-task placement exceeded it across incident, morning and joint-randomness studies. This controlled implementation comparison demonstrates the importance of destination timing and reservation visibility within established scheduling ideas.
+
 % END SOURCE BLOCK 184
 
 \FloatBarrier
@@ -1229,7 +1263,7 @@ RQ2 is answered initially by two distinct morning samples. The original four fle
 % END SOURCE BLOCK 193
 
 % BEGIN SOURCE BLOCK 194 paragraph
-RQ3 is limited to the completed models. The 100 ms reports equalled fresh state; older-report changes were small under live admission and reservations. A single-draw fixed-overhead calculation retained a positive ingress advantage through 10 ms without modelling congestion or feedback. Treatment-activation checks therefore determine what these sensitivities actually test.
+RQ3 is limited to the completed models. The 100 ms reports equalled fresh state; older-report changes were small under live admission and reservations. A single-draw fixed-overhead calculation retained per-task's advantage over ingress through 10 ms without modelling congestion or feedback. Treatment-activation checks therefore determine what these sensitivities actually test.
 % END SOURCE BLOCK 194
 
 % BEGIN SOURCE BLOCK 195 paragraph
@@ -1242,7 +1276,7 @@ The exact-model bound and gate/service/drain assumptions explain recurring desti
 % END SOURCE BLOCK 196
 
 % BEGIN SOURCE BLOCK 197 paragraph
-First, an independently trained checkpoint, a second calibrated network and a service-rate curve beyond the single half-speed point would test whether the workload-aware increment scales as the mechanism predicts.
+First, an independently trained checkpoint, a second traffic network and a service-rate curve beyond the single half-speed point would test whether the workload-aware increment scales as the mechanism predicts.
 % END SOURCE BLOCK 197
 
 % BEGIN SOURCE BLOCK 198 paragraph
@@ -1279,191 +1313,191 @@ I controlled AI assistance through specifications, code review, personal modific
 % END SOURCE BLOCK 205
 
 % BEGIN SOURCE BLOCK 206 bibliography_open
-\clearpage\singlespacing\addcontentsline{toc}{section}{References}\begin{thebibliography}{99}
+\FloatBarrier\singlespacing\addcontentsline{toc}{section}{References}\begin{thebibliography}{99}
 % END SOURCE BLOCK 206
 
 % BEGIN SOURCE BLOCK 207 bibliography_item
-\bibitem{ref1} L. Liu, C. Chen, Q. Pei, S. Maharjan and Y. Zhang. ``Vehicular Edge Computing and Networking: A Survey.'' \emph{Mobile Networks and Applications}, 26(3), 1145--1168, 2021. DOI: 10.1007/s11036-020-01624-1. \href{\detokenize{https://doi.org/10.1007/s11036-020-01624-1}}{Source}.
+\bibitem{ref1} L. Liu, C. Chen, Q. Pei, S. Maharjan and Y. Zhang. ``Vehicular Edge Computing and Networking: A Survey.'' \emph{Mobile Networks and Applications}, 26(3), 1145--1168, 2021. DOI: \href{\detokenize{https://doi.org/10.1007/s11036-020-01624-1}}{10.1007/s11036-020-01624-1}.
 % END SOURCE BLOCK 207
 
 % BEGIN SOURCE BLOCK 208 bibliography_item
-\bibitem{ref2} S. Raza, S. Wang, M. Ahmed and M. R. Anwar. ``A Survey on Vehicular Edge Computing: Architecture, Applications, Technical Issues, and Future Directions.'' \emph{Wireless Communications and Mobile Computing}, 2019, 1--19, 2019. DOI: 10.1155/2019/3159762. \href{\detokenize{https://doi.org/10.1155/2019/3159762}}{Source}.
+\bibitem{ref2} S. Raza, S. Wang, M. Ahmed and M. R. Anwar. ``A Survey on Vehicular Edge Computing: Architecture, Applications, Technical Issues, and Future Directions.'' \emph{Wireless Communications and Mobile Computing}, 2019, 1--19, 2019. DOI: \href{\detokenize{https://doi.org/10.1155/2019/3159762}}{10.1155/2019/3159762}.
 % END SOURCE BLOCK 208
 
 % BEGIN SOURCE BLOCK 209 bibliography_item
-\bibitem{ref3} Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. ``A Survey on Mobile Edge Computing: The Communication Perspective.'' \emph{IEEE Communications Surveys \& Tutorials}, 19(4), 2322--2358, 2017. DOI: 10.1109/COMST.2017.2745201. \href{\detokenize{https://arxiv.org/abs/1701.01090}}{Author manuscript}.
+\bibitem{ref3} Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. ``A Survey on Mobile Edge Computing: The Communication Perspective.'' \emph{IEEE Communications Surveys \& Tutorials}, 19(4), 2322--2358, 2017. DOI: \href{\detokenize{https://arxiv.org/abs/1701.01090}}{10.1109/COMST.2017.2745201}.
 % END SOURCE BLOCK 209
 
 % BEGIN SOURCE BLOCK 210 bibliography_item
-\bibitem{ref4} C. L. Liu and J. W. Layland. ``Scheduling Algorithms for Multiprogramming in a Hard-Real-Time Environment.'' \emph{Journal of the ACM}, 20(1), 46--61, 1973. DOI: 10.1145/321738.321743. \href{\detokenize{https://doi.org/10.1145/321738.321743}}{Source}.
+\bibitem{ref4} C. L. Liu and J. W. Layland. ``Scheduling Algorithms for Multiprogramming in a Hard-Real-Time Environment.'' \emph{Journal of the ACM}, 20(1), 46--61, 1973. DOI: \href{\detokenize{https://doi.org/10.1145/321738.321743}}{10.1145/321738.321743}.
 % END SOURCE BLOCK 210
 
 % BEGIN SOURCE BLOCK 211 bibliography_item
-\bibitem{ref5} A. Molisch, F. Tufvesson, J. Karedal and C. Mecklenbrauker. ``A survey on vehicle-to-vehicle propagation channels.'' \emph{IEEE Wireless Communications}, 16(6), 12--22, 2009. DOI: 10.1109/MWC.2009.5361174. \href{\detokenize{https://doi.org/10.1109/MWC.2009.5361174}}{Source}.
+\bibitem{ref5} A. Molisch, F. Tufvesson, J. Karedal and C. Mecklenbrauker. ``A survey on vehicle-to-vehicle propagation channels.'' \emph{IEEE Wireless Communications}, 16(6), 12--22, 2009. DOI: \href{\detokenize{https://doi.org/10.1109/MWC.2009.5361174}}{10.1109/MWC.2009.5361174}.
 % END SOURCE BLOCK 211
 
 % BEGIN SOURCE BLOCK 212 bibliography_item
-\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. ``URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.'' arXiv:2311.18352, 2023. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{Source}.
+\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{``URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.''} arXiv:2311.18352, 2023.
 % END SOURCE BLOCK 212
 
 % BEGIN SOURCE BLOCK 213 bibliography_item
-\bibitem{ref7} W. Fan, Y. Zhang, G. Zhou and Y. Liu. ``Deep Reinforcement Learning-Based Task Offloading for Vehicular Edge Computing With Flexible RSU-RSU Cooperation.'' \emph{IEEE Transactions on Intelligent Transportation Systems}, 25(7), 7712--7725, 2024. DOI: 10.1109/TITS.2024.3349546. \href{\detokenize{https://doi.org/10.1109/TITS.2024.3349546}}{Source}.
+\bibitem{ref7} W. Fan, Y. Zhang, G. Zhou and Y. Liu. ``Deep Reinforcement Learning-Based Task Offloading for Vehicular Edge Computing With Flexible RSU-RSU Cooperation.'' \emph{IEEE Transactions on Intelligent Transportation Systems}, 25(7), 7712--7725, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/TITS.2024.3349546}}{10.1109/TITS.2024.3349546}.
 % END SOURCE BLOCK 213
 
 % BEGIN SOURCE BLOCK 214 bibliography_item
-\bibitem{ref8} W. Fan, Y. Yu, C. Bao and Y. Liu. ``Vehicular Edge Intelligence: DRL-Based Resource Orchestration for Task Inference in Vehicle-RSU-Edge Collaborative Networks.'' \emph{IEEE Transactions on Mobile Computing}, 24(10), 10927--10944, 2025. DOI: 10.1109/TMC.2025.3572296. \href{\detokenize{https://doi.org/10.1109/TMC.2025.3572296}}{Source}.
+\bibitem{ref8} W. Fan, Y. Yu, C. Bao and Y. Liu. ``Vehicular Edge Intelligence: DRL-Based Resource Orchestration for Task Inference in Vehicle-RSU-Edge Collaborative Networks.'' \emph{IEEE Transactions on Mobile Computing}, 24(10), 10927--10944, 2025. DOI: \href{\detokenize{https://doi.org/10.1109/TMC.2025.3572296}}{10.1109/TMC.2025.3572296}.
 % END SOURCE BLOCK 214
 
 % BEGIN SOURCE BLOCK 215 bibliography_item
-\bibitem{ref9} J. Zhang and K. B. Letaief. ``Mobile Edge Intelligence and Computing for the Internet of Vehicles.'' \emph{Proceedings of the IEEE}, 108(2), 246--261, 2020. DOI: 10.1109/JPROC.2019.2947490. \href{\detokenize{https://doi.org/10.1109/JPROC.2019.2947490}}{Source}.
+\bibitem{ref9} J. Zhang and K. B. Letaief. ``Mobile Edge Intelligence and Computing for the Internet of Vehicles.'' \emph{Proceedings of the IEEE}, 108(2), 246--261, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/JPROC.2019.2947490}}{10.1109/JPROC.2019.2947490}.
 % END SOURCE BLOCK 215
 
 % BEGIN SOURCE BLOCK 216 bibliography_item
-\bibitem{ref10} Y. Liu, H. Yu, S. Xie and Y. Zhang. ``Deep Reinforcement Learning for Offloading and Resource Allocation in Vehicle Edge Computing and Networks.'' \emph{IEEE Transactions on Vehicular Technology}, 68(11), 11158--11168, 2019. DOI: 10.1109/TVT.2019.2935450. \href{\detokenize{https://doi.org/10.1109/TVT.2019.2935450}}{Source}.
+\bibitem{ref10} Y. Liu, H. Yu, S. Xie and Y. Zhang. ``Deep Reinforcement Learning for Offloading and Resource Allocation in Vehicle Edge Computing and Networks.'' \emph{IEEE Transactions on Vehicular Technology}, 68(11), 11158--11168, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/TVT.2019.2935450}}{10.1109/TVT.2019.2935450}.
 % END SOURCE BLOCK 216
 
 % BEGIN SOURCE BLOCK 217 bibliography_item
-\bibitem{ref11} Z. Ning, P. Dong, X. Wang, J. J. P. C. Rodrigues and F. Xia. ``Deep Reinforcement Learning for Vehicular Edge Computing: An Intelligent Offloading System.'' \emph{ACM Transactions on Intelligent Systems and Technology}, 10(6), 1--24, 2019. DOI: 10.1145/3317572. \href{\detokenize{https://doi.org/10.1145/3317572}}{Source}.
+\bibitem{ref11} Z. Ning, P. Dong, X. Wang, J. J. P. C. Rodrigues and F. Xia. ``Deep Reinforcement Learning for Vehicular Edge Computing: An Intelligent Offloading System.'' \emph{ACM Transactions on Intelligent Systems and Technology}, 10(6), 1--24, 2019. DOI: \href{\detokenize{https://doi.org/10.1145/3317572}}{10.1145/3317572}.
 % END SOURCE BLOCK 217
 
 % BEGIN SOURCE BLOCK 218 bibliography_item
-\bibitem{ref12} R. R. Weber. ``On the optimal assignment of customers to parallel servers.'' \emph{Journal of Applied Probability}, 15(2), 406--413, 1978. DOI: 10.2307/3213411. \href{\detokenize{https://doi.org/10.2307/3213411}}{Source}.
+\bibitem{ref12} R. R. Weber. ``On the optimal assignment of customers to parallel servers.'' \emph{Journal of Applied Probability}, 15(2), 406--413, 1978. DOI: \href{\detokenize{https://doi.org/10.2307/3213411}}{10.2307/3213411}.
 % END SOURCE BLOCK 218
 
 % BEGIN SOURCE BLOCK 219 bibliography_item
-\bibitem{ref13} M. Harchol-Balter. ``Performance Modeling and Design of Computer Systems: Queueing Theory in Action.'' \emph{Cambridge University Press}, 2013. DOI: 10.1017/CBO9781139226424. \href{\detokenize{https://doi.org/10.1017/CBO9781139226424}}{Source}.
+\bibitem{ref13} M. Harchol-Balter. ``Performance Modeling and Design of Computer Systems: Queueing Theory in Action.'' \emph{Cambridge University Press}, 2013. DOI: \href{\detokenize{https://doi.org/10.1017/CBO9781139226424}}{10.1017/CBO9781139226424}.
 % END SOURCE BLOCK 219
 
 % BEGIN SOURCE BLOCK 220 bibliography_item
-\bibitem{ref14} M. Harchol-Balter, M. E. Crovella and C. D. Murta. ``On Choosing a Task Assignment Policy for a Distributed Server System.'' \emph{Computer Performance Evaluation (TOOLS 1998)}, LNCS 1469, 231--242, 1998. DOI: 10.1007/3-540-68061-6\_19. \href{\detokenize{https://www.cs.cmu.edu/~harchol/Papers/tools.pdf}}{Author manuscript}.
+\bibitem{ref14} M. Harchol-Balter, M. E. Crovella and C. D. Murta. ``On Choosing a Task Assignment Policy for a Distributed Server System.'' \emph{Computer Performance Evaluation (TOOLS 1998)}, LNCS 1469, 231--242, 1998. DOI: \href{\detokenize{https://www.cs.cmu.edu/~harchol/Papers/tools.pdf}}{10.1007/3-540-68061-6\_19}.
 % END SOURCE BLOCK 220
 
 % BEGIN SOURCE BLOCK 221 bibliography_item
-\bibitem{ref15} K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. ``Sparrow: Distributed, Low Latency Scheduling.'' \emph{24th ACM Symposium on Operating Systems Principles}, 69--84, 2013. DOI: 10.1145/2517349.2522716. \href{\detokenize{https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf}}{Proceedings paper}.
+\bibitem{ref15} K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. ``Sparrow: Distributed, Low Latency Scheduling.'' \emph{24th ACM Symposium on Operating Systems Principles}, 69--84, 2013. DOI: \href{\detokenize{https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf}}{10.1145/2517349.2522716}.
 % END SOURCE BLOCK 221
 
 % BEGIN SOURCE BLOCK 222 bibliography_item
-\bibitem{ref16} L. Ying, R. Srikant and X. Kang. ``The Power of Slightly More than One Sample in Randomized Load Balancing.'' \emph{IEEE INFOCOM}, 1131--1139, 2015. \href{\detokenize{https://doi.org/10.1109/INFOCOM.2015.7218487}}{doi:10.1109/INFOCOM.2015.7218487}. \href{\detokenize{https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf}}{Author technical manuscript}.
+\bibitem{ref16} L. Ying, R. Srikant and X. Kang. \href{\detokenize{https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf}}{``The Power of Slightly More than One Sample in Randomized Load Balancing.''} \emph{IEEE INFOCOM}, 1131--1139, 2015. \href{\detokenize{https://doi.org/10.1109/INFOCOM.2015.7218487}}{doi:10.1109/INFOCOM.2015.7218487}.
 % END SOURCE BLOCK 222
 
 % BEGIN SOURCE BLOCK 223 bibliography_item
-\bibitem{ref17} M. Mitzenmacher. ``The power of two choices in randomized load balancing.'' \emph{IEEE Transactions on Parallel and Distributed Systems}, 12(10), 1094--1104, 2001. DOI: 10.1109/71.963420. \href{\detokenize{https://doi.org/10.1109/71.963420}}{Source}.
+\bibitem{ref17} M. Mitzenmacher. ``The power of two choices in randomized load balancing.'' \emph{IEEE Transactions on Parallel and Distributed Systems}, 12(10), 1094--1104, 2001. DOI: \href{\detokenize{https://doi.org/10.1109/71.963420}}{10.1109/71.963420}.
 % END SOURCE BLOCK 223
 
 % BEGIN SOURCE BLOCK 224 bibliography_item
-\bibitem{ref18} S. Vargaftik, I. Keslassy and A. Orda. ``LSQ: Load Balancing in Large-Scale Heterogeneous Systems With Multiple Dispatchers.'' \emph{IEEE/ACM Transactions on Networking}, 28(3), 1186--1198, 2020. DOI: 10.1109/TNET.2020.2980061. \href{\detokenize{https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf}}{Author manuscript}.
+\bibitem{ref18} S. Vargaftik, I. Keslassy and A. Orda. ``LSQ: Load Balancing in Large-Scale Heterogeneous Systems With Multiple Dispatchers.'' \emph{IEEE/ACM Transactions on Networking}, 28(3), 1186--1198, 2020. DOI: \href{\detokenize{https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf}}{10.1109/TNET.2020.2980061}.
 % END SOURCE BLOCK 224
 
 % BEGIN SOURCE BLOCK 225 bibliography_item
-\bibitem{ref19} M. van der Boor, S. C. Borst, J. S. H. van Leeuwaarden and D. Mukherjee. ``Scalable Load Balancing in Networked Systems: A Survey of Recent Advances.'' \emph{SIAM Review}, 64(3), 554--622, 2022. DOI: 10.1137/20M1323746. \href{\detokenize{https://doi.org/10.1137/20M1323746}}{Source}.
+\bibitem{ref19} M. van der Boor, S. C. Borst, J. S. H. van Leeuwaarden and D. Mukherjee. ``Scalable Load Balancing in Networked Systems: A Survey of Recent Advances.'' \emph{SIAM Review}, 64(3), 554--622, 2022. DOI: \href{\detokenize{https://doi.org/10.1137/20M1323746}}{10.1137/20M1323746}.
 % END SOURCE BLOCK 225
 
 % BEGIN SOURCE BLOCK 226 bibliography_item
-\bibitem{ref20} J. Niño-Mora. ``Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.'' \emph{Computers \& Operations Research}, 39, 3431--3444, 2012. DOI: 10.1016/j.cor.2012.05.004. \href{\detokenize{https://arxiv.org/abs/2207.12815}}{Author manuscript, deposited 2022}.
+\bibitem{ref20} J. Niño-Mora. ``Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.'' \emph{Computers \& Operations Research}, 39, 3431--3444, 2012. DOI: \href{\detokenize{https://arxiv.org/abs/2207.12815}}{10.1016/j.cor.2012.05.004}.
 % END SOURCE BLOCK 226
 
 % BEGIN SOURCE BLOCK 227 bibliography_item
-\bibitem{ref21} R. G. Sargent. ``Verification and Validation of Simulation Models.'' \emph{Proceedings of the 2011 Winter Simulation Conference}, 183--198, 2011. \href{\detokenize{https://www.informs-sim.org/wsc11papers/016.pdf}}{Proceedings paper}.
+\bibitem{ref21} R. G. Sargent. \href{\detokenize{https://www.informs-sim.org/wsc11papers/016.pdf}}{``Verification and Validation of Simulation Models.''} \emph{Proceedings of the 2011 Winter Simulation Conference}, 183--198, 2011.
 % END SOURCE BLOCK 227
 
 % BEGIN SOURCE BLOCK 228 bibliography_item
-\bibitem{ref22} P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. ``Microscopic Traffic Simulation using SUMO.'' \emph{21st International Conference on Intelligent Transportation Systems (ITSC)}, 2575--2582, 2018. DOI: 10.1109/ITSC.2018.8569938. \href{\detokenize{https://elib.dlr.de/127994/}}{DLR author repository}.
+\bibitem{ref22} P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. ``Microscopic Traffic Simulation using SUMO.'' \emph{21st International Conference on Intelligent Transportation Systems (ITSC)}, 2575--2582, 2018. DOI: \href{\detokenize{https://elib.dlr.de/127994/}}{10.1109/ITSC.2018.8569938}.
 % END SOURCE BLOCK 228
 
 % BEGIN SOURCE BLOCK 229 bibliography_item
-\bibitem{ref23} J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. ``Proximal Policy Optimization Algorithms.'' arXiv:1707.06347, 2017. \href{\detokenize{https://arxiv.org/abs/1707.06347}}{Author manuscript}.
+\bibitem{ref23} J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. \href{\detokenize{https://arxiv.org/abs/1707.06347}}{``Proximal Policy Optimization Algorithms.''} arXiv:1707.06347, 2017.
 % END SOURCE BLOCK 229
 
 % BEGIN SOURCE BLOCK 230 bibliography_item
-\bibitem{ref24} C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. ``The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games.'' \emph{Advances in Neural Information Processing Systems}, 35, 24611--24624, 2022. \href{\detokenize{https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf}}{Proceedings paper}.
+\bibitem{ref24} C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. \href{\detokenize{https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf}}{``The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games.''} \emph{Advances in Neural Information Processing Systems}, 35, 24611--24624, 2022.
 % END SOURCE BLOCK 230
 
 % BEGIN SOURCE BLOCK 231 bibliography_item
-\bibitem{ref25} P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. ``Deep Reinforcement Learning That Matters.'' \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, 32(1), 2018. DOI: 10.1609/aaai.v32i1.11694. \href{\detokenize{https://ojs.aaai.org/index.php/AAAI/article/view/11694}}{Publisher record}.
+\bibitem{ref25} P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. ``Deep Reinforcement Learning That Matters.'' \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, 32(1), 2018. DOI: \href{\detokenize{https://ojs.aaai.org/index.php/AAAI/article/view/11694}}{10.1609/aaai.v32i1.11694}.
 % END SOURCE BLOCK 231
 
 % BEGIN SOURCE BLOCK 232 bibliography_item
-\bibitem{ref26} R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. ``Deep Reinforcement Learning at the Edge of the Statistical Precipice.'' \emph{Advances in Neural Information Processing Systems}, 34, 29304--29320, 2021. \href{\detokenize{https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html}}{Proceedings record}.
+\bibitem{ref26} R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. \href{\detokenize{https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html}}{``Deep Reinforcement Learning at the Edge of the Statistical Precipice.''} \emph{Advances in Neural Information Processing Systems}, 34, 29304--29320, 2021.
 % END SOURCE BLOCK 232
 
 % BEGIN SOURCE BLOCK 233 bibliography_item
-\bibitem{ref27} R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. ``Towards a Standardised Performance Evaluation Protocol for Cooperative MARL.'' \emph{Advances in Neural Information Processing Systems}, 35, 5510--5521, 2022. \href{\detokenize{https://arxiv.org/abs/2209.10485}}{Author manuscript}.
+\bibitem{ref27} R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. \href{\detokenize{https://arxiv.org/abs/2209.10485}}{``Towards a Standardised Performance Evaluation Protocol for Cooperative MARL.''} \emph{Advances in Neural Information Processing Systems}, 35, 5510--5521, 2022.
 % END SOURCE BLOCK 233
 
 % BEGIN SOURCE BLOCK 234 bibliography_item
-\bibitem{ref28} F. Tao, H. Zhang, A. Liu and A. Y. C. Nee. ``Digital Twin in Industry: State-of-the-Art.'' \emph{IEEE Transactions on Industrial Informatics}, 15(4), 2405--2415, 2019. DOI: 10.1109/TII.2018.2873186. \href{\detokenize{https://doi.org/10.1109/TII.2018.2873186}}{Source}.
+\bibitem{ref28} F. Tao, H. Zhang, A. Liu and A. Y. C. Nee. ``Digital Twin in Industry: State-of-the-Art.'' \emph{IEEE Transactions on Industrial Informatics}, 15(4), 2405--2415, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/TII.2018.2873186}}{10.1109/TII.2018.2873186}.
 % END SOURCE BLOCK 234
 
 % BEGIN SOURCE BLOCK 235 bibliography_item
-\bibitem{ref29} S. Dasgupta, M. Rahman, A. D. Lidbe, W. Lu and S. Jones. ``A Transportation Digital-Twin Approach for Adaptive Traffic Control Systems.'' arXiv:2109.10863, 2021. \href{\detokenize{https://arxiv.org/abs/2109.10863}}{Source}.
+\bibitem{ref29} S. Dasgupta, M. Rahman, A. D. Lidbe, W. Lu and S. Jones. \href{\detokenize{https://arxiv.org/abs/2109.10863}}{``A Transportation Digital-Twin Approach for Adaptive Traffic Control Systems.''} arXiv:2109.10863, 2021.
 % END SOURCE BLOCK 235
 
 % BEGIN SOURCE BLOCK 236 bibliography_item
-\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. ``Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.'' arXiv:2407.11310, 2024. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{Source}.
+\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{``Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.''} arXiv:2407.11310, 2024.
 % END SOURCE BLOCK 236
 
 % BEGIN SOURCE BLOCK 237 bibliography_item
-\bibitem{ref31} S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. ``Autonomous Task Offloading of Vehicular Edge Computing with Parallel Computation Queues.'' \emph{IEEE Transactions on Mobile Computing}, 25(5), 7166--7181, 2026. DOI: 10.1109/TMC.2025.3640244. Author version arXiv:2509.03935v2. \href{\detokenize{https://arxiv.org/abs/2509.03935v2}}{Source}.
+\bibitem{ref31} S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. ``Autonomous Task Offloading of Vehicular Edge Computing with Parallel Computation Queues.'' \emph{IEEE Transactions on Mobile Computing}, 25(5), 7166--7181, 2026. DOI: \href{\detokenize{https://arxiv.org/abs/2509.03935v2}}{10.1109/TMC.2025.3640244}. Author version arXiv:2509.03935v2.
 % END SOURCE BLOCK 237
 
 % BEGIN SOURCE BLOCK 238 bibliography_item
-\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. ``Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.'' arXiv:2010.05693, 2020. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{Source}.
+\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{``Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.''} arXiv:2010.05693, 2020.
 % END SOURCE BLOCK 238
 
 % BEGIN SOURCE BLOCK 239 bibliography_item
-\bibitem{ref33} B. A. Nosek, C. R. Ebersole, A. C. DeHaven and D. T. Mellor. ``The preregistration revolution.'' \emph{Proceedings of the National Academy of Sciences}, 115(11), 2600--2606, 2018. DOI: 10.1073/pnas.1708274114. \href{\detokenize{https://doi.org/10.1073/pnas.1708274114}}{Source}.
+\bibitem{ref33} B. A. Nosek, C. R. Ebersole, A. C. DeHaven and D. T. Mellor. ``The preregistration revolution.'' \emph{Proceedings of the National Academy of Sciences}, 115(11), 2600--2606, 2018. DOI: \href{\detokenize{https://doi.org/10.1073/pnas.1708274114}}{10.1073/pnas.1708274114}.
 % END SOURCE BLOCK 239
 
 % BEGIN SOURCE BLOCK 240 bibliography_item
-\bibitem{ref34} O. J. Dunn. ``Multiple Comparisons among Means.'' \emph{Journal of the American Statistical Association}, 56(293), 52--64, 1961. DOI: 10.1080/01621459.1961.10482090. \href{\detokenize{https://doi.org/10.1080/01621459.1961.10482090}}{Source}.
+\bibitem{ref34} O. J. Dunn. ``Multiple Comparisons among Means.'' \emph{Journal of the American Statistical Association}, 56(293), 52--64, 1961. DOI: \href{\detokenize{https://doi.org/10.1080/01621459.1961.10482090}}{10.1080/01621459.1961.10482090}.
 % END SOURCE BLOCK 240
 
 % BEGIN SOURCE BLOCK 241 bibliography_item
-\bibitem{ref35} JAX authors. ``Benchmarking JAX code.'' Official JAX documentation, accessed 8 September 2026. \href{\detokenize{https://docs.jax.dev/en/latest/benchmarking.html}}{Benchmarking guidance}. Used for timing procedure, not scheduler efficacy.
+\bibitem{ref35} JAX authors. \href{\detokenize{https://docs.jax.dev/en/latest/benchmarking.html}}{``Benchmarking JAX code.''} Official JAX documentation, Accessed 8 September 2026. Used for timing procedure, not scheduler efficacy.
 % END SOURCE BLOCK 241
 
 % BEGIN SOURCE BLOCK 242 bibliography_item
-\bibitem{ref36} J. Bradbury et al. ``JAX: composable transformations of Python+NumPy programs.'' Software, version 0.4.30, 2018. \href{\detokenize{https://github.com/jax-ml/jax}}{Source}.
+\bibitem{ref36} J. Bradbury et al. \href{\detokenize{https://github.com/jax-ml/jax}}{``JAX: composable transformations of Python+NumPy programs.''} Software, version 0.4.30, 2024 (first released 2018).
 % END SOURCE BLOCK 242
 
 % BEGIN SOURCE BLOCK 243 bibliography_item
-\bibitem{ref37} G. Wilson et al. ``Best Practices for Scientific Computing.'' \emph{PLOS Biology}, 12(1), e1001745, 2014. DOI: 10.1371/journal.pbio.1001745. \href{\detokenize{https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745}}{Source}.
+\bibitem{ref37} G. Wilson et al. ``Best Practices for Scientific Computing.'' \emph{PLOS Biology}, 12(1), e1001745, 2014. DOI: \href{\detokenize{https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745}}{10.1371/journal.pbio.1001745}.
 % END SOURCE BLOCK 243
 
 % BEGIN SOURCE BLOCK 244 bibliography_item
-\bibitem{ref38} G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig. ``Ten Simple Rules for Reproducible Computational Research.'' \emph{PLOS Computational Biology}, 9(10), e1003285, 2013. DOI: 10.1371/journal.pcbi.1003285. \href{\detokenize{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285}}{Source}.
+\bibitem{ref38} G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig. ``Ten Simple Rules for Reproducible Computational Research.'' \emph{PLOS Computational Biology}, 9(10), e1003285, 2013. DOI: \href{\detokenize{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285}}{10.1371/journal.pcbi.1003285}.
 % END SOURCE BLOCK 244
 
 % BEGIN SOURCE BLOCK 245 bibliography_item
-\bibitem{ref39} J. Pineau, P. Vincent-Lamarre, K. Sinha, V. Larivière, A. Beygelzimer, F. d'Alché-Buc, E. Fox and H. Larochelle. ``Improving Reproducibility in Machine Learning Research (A Report from the NeurIPS 2019 Reproducibility Program).'' \emph{Journal of Machine Learning Research}, 22(164), 1--20, 2021. \href{\detokenize{https://jmlr.org/papers/v22/20-303.html}}{Source}.
+\bibitem{ref39} J. Pineau, P. Vincent-Lamarre, K. Sinha, V. Larivière, A. Beygelzimer, F. d'Alché-Buc, E. Fox and H. Larochelle. \href{\detokenize{https://jmlr.org/papers/v22/20-303.html}}{``Improving Reproducibility in Machine Learning Research (A Report from the NeurIPS 2019 Reproducibility Program).''} \emph{Journal of Machine Learning Research}, 22(164), 1--20, 2021.
 % END SOURCE BLOCK 245
 
 % BEGIN SOURCE BLOCK 246 bibliography_item
-\bibitem{ref40} S. Huang and S. Ontañón. ``A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.'' arXiv:2006.14171, 2020. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{Source}.
+\bibitem{ref40} S. Huang and S. Ontañón. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{``A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.''} arXiv:2006.14171, 2020.
 % END SOURCE BLOCK 246
 
 % BEGIN SOURCE BLOCK 247 bibliography_item
-\bibitem{ref41} D. Goldberg. ``What every computer scientist should know about floating-point arithmetic.'' \emph{ACM Computing Surveys}, 23(1), 5--48, 1991. DOI: 10.1145/103162.103163. \href{\detokenize{https://doi.org/10.1145/103162.103163}}{Source}.
+\bibitem{ref41} D. Goldberg. ``What every computer scientist should know about floating-point arithmetic.'' \emph{ACM Computing Surveys}, 23(1), 5--48, 1991. DOI: \href{\detokenize{https://doi.org/10.1145/103162.103163}}{10.1145/103162.103163}.
 % END SOURCE BLOCK 247
 
 % BEGIN SOURCE BLOCK 248 bibliography_item
-\bibitem{ref42} 3GPP. \emph{Service requirements for enhanced V2X scenarios.} TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clauses 5.2--5.3, Tables 5.2-1 (R.5.2-008) and 5.3-1 (R.5.3-004/005), pp. 9--10. \href{\detokenize{https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf}}{Primary document}. Accessed 15 September 2026.
+\bibitem{ref42} 3GPP. \href{\detokenize{https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf}}{\emph{Service requirements for enhanced V2X scenarios.}} TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clauses 5.2--5.3, Tables 5.2-1 (R.5.2-008) and 5.3-1 (R.5.3-004/005), pp. 9--10. Accessed 15 September 2026.
 % END SOURCE BLOCK 248
 
 % BEGIN SOURCE BLOCK 249 bibliography_item
-\bibitem{ref43} World Health Organization. \emph{Global status report on road safety 2023.} Geneva: WHO, 2023. ISBN 978-92-4-008651-7. Executive summary p. viii and p. 4. \href{\detokenize{https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content}}{Primary document}. Accessed 15 September 2026.
+\bibitem{ref43} World Health Organization. \href{\detokenize{https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content}}{\emph{Global status report on road safety 2023.}} Geneva: WHO, 2023. ISBN 978-92-4-008651-7. Executive summary p. viii and p. 4. Accessed 15 September 2026.
 % END SOURCE BLOCK 249
 
 % BEGIN SOURCE BLOCK 250 bibliography_item
-\bibitem{ref44} The University of Manchester. \emph{Ethics Decision Tool.} \href{\detokenize{https://www.manchester.ac.uk/research/environment/governance/ethics/approval/}}{University guidance}; \href{\detokenize{https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html}}{decision tool}. Checked by the author on 15 September 2026; outcome: ethics approval not required.
+\bibitem{ref44} The University of Manchester. \emph{Ethics Decision Tool.} \href{\detokenize{https://www.manchester.ac.uk/research/environment/governance/ethics/approval/}}{University guidance}; \href{\detokenize{https://www.training.itservices.manchester.ac.uk/uom/ERM/ethics_decision_tool/story.html}}{decision tool}. Accessed 15 September 2026; checked by the author; outcome: ethics approval not required.
 % END SOURCE BLOCK 250
 
 % BEGIN SOURCE BLOCK 251 bibliography_item
-\bibitem{ref45} M. Mitzenmacher. ``How useful is old information?'' \emph{IEEE Transactions on Parallel and Distributed Systems}, 11(1), 6--20, 2000. DOI: 10.1109/71.824633. \href{\detokenize{https://doi.org/10.1109/71.824633}}{Source}. \href{\detokenize{https://www.eecs.harvard.edu/~michaelm/NEWWORK/postscripts/oldinfo-jver-submit.pdf}}{Author manuscript}.
+\bibitem{ref45} M. Mitzenmacher. \href{\detokenize{https://www.eecs.harvard.edu/~michaelm/NEWWORK/postscripts/oldinfo-jver-submit.pdf}}{``How useful is old information?''} \emph{IEEE Transactions on Parallel and Distributed Systems}, 11(1), 6--20, 2000. DOI: \href{\detokenize{https://doi.org/10.1109/71.824633}}{10.1109/71.824633}.
 % END SOURCE BLOCK 251
 
 % BEGIN SOURCE BLOCK 252 bibliography_item
-\bibitem{ref46} A. Kovalenko, R. F. Hussain, O. Semiari and M. A. Salehi. ``Robust Resource Allocation Using Edge Computing for Vehicle to Infrastructure (V2I) Networks.'' \emph{2019 IEEE 3rd International Conference on Fog and Edge Computing (ICFEC)}, 1--6, 2019. DOI: 10.1109/CFEC.2019.8733151. \href{\detokenize{https://doi.org/10.1109/CFEC.2019.8733151}}{Source}. \href{\detokenize{https://arxiv.org/abs/1905.04458v1}}{Author manuscript, arXiv:1905.04458v1}.
+\bibitem{ref46} A. Kovalenko, R. F. Hussain, O. Semiari and M. A. Salehi. \href{\detokenize{https://arxiv.org/abs/1905.04458v1}}{``Robust Resource Allocation Using Edge Computing for Vehicle to Infrastructure (V2I) Networks.''} \emph{2019 IEEE 3rd International Conference on Fog and Edge Computing (ICFEC)}, 1--6, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/CFEC.2019.8733151}}{10.1109/CFEC.2019.8733151}.
 % END SOURCE BLOCK 252
 
 % BEGIN SOURCE BLOCK 253 bibliography_item
@@ -1625,15 +1659,43 @@ The sources below are project evidence, separate from scholarly references. Rela
 % END SOURCE BLOCK 291
 
 % BEGIN SOURCE BLOCK 292 paragraph
-The runtime is CPython 3.11.15, JAX/JAXlib 0.4.30 and NumPy 1.26.4, CPU, x64 disabled. Historical manifests retain their own identities. Full reproduction also needs the frozen actor, traces and authorised inputs.
+Table~\ref{tab:environment} records the execution environment. Historical manifests retain their own identities. Full reproduction also needs the frozen actor, traces and authorised inputs.
 % END SOURCE BLOCK 292
 
 % BEGIN SOURCE BLOCK 293 anchor
 \phantomsection\label{source-s17}
 % END SOURCE BLOCK 293
 
+
+% BEGIN EXEMPLAR ENVIRONMENT
+\begingroup
+\singlespacing\small
+\renewcommand{\thetable}{A2}
+\begin{xltabular}{\textwidth}{@{}lY@{}}
+\caption[Execution environment]{Execution environment. Research runtime values come from the benchmark and confirmation receipts; the compact verifier and product dependencies are identified separately.}\label{tab:environment} \\
+\toprule
+Component & Recorded value \\
+\midrule\endfirsthead
+\toprule Component & Recorded value \\\midrule\endhead
+\bottomrule\endfoot
+Hardware chip & Apple M5 (CPU) \\
+CPU count & 10, as recorded by the qualification receipt \\
+Physical memory & not recorded \\
+Operating system & macOS 26.4.1, arm64 \\
+CPython (evaluator) & 3.11.15 \\
+JAX / JAXlib & 0.4.30 / 0.4.30 \\
+NumPy (evaluator) & 1.26.4 \\
+SciPy (compact verifier) & 1.17.1; see Appendix~\ref{app:H} and its command receipt \\
+Streamlit (product lockfile) & 1.59.2 at source base \texttt{1e01b75} \\
+SUMO & 1.27.0, as reported by the source study \cite{ref47} \\
+Frozen evaluators & \texttt{2f63706}; \texttt{908bd10}; versioned confirmation copy: \path{joint_confirmation_2026-09-08/experimental/evaluator_v2.py} (S16) \\
+JAX x64 & disabled \\
+\end{xltabular}
+\endgroup
+% END EXEMPLAR ENVIRONMENT
+
 % BEGIN SOURCE BLOCK 294 paragraph
-\textbf{S17 --- Examiner-revision artefact evidence.} The \href{\detokenize{evidence/ARTEFACT_INVENTORY.json}}{source inventory}, \href{\detokenize{evidence/COMPACT_CHECKS.json}}{compact recomputation}, \href{\detokenize{evidence/DESCRIPTIVE_SPLIT.json}}{descriptive split}, \href{\detokenize{evidence/RSU_LAYOUT.json}}{figure inputs} and \href{\detokenize{document/REVISION_VALIDATION.json}}{revision validation} are generated from the pinned repository without new research execution. The \href{\detokenize{README.md}}{revision record} distinguishes historical receipts, document checks, the \href{\detokenize{evidence/PLATFORM_RESULTS_CAPTURE.json}}{Figure 7 workflow capture} and author-only completion items. The manuscript's source base is \path{1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8}. The \href{\detokenize{evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json}}{real-data capture receipt} and \href{\detokenize{evidence/TOS_ADAPTER_VALIDATION_2026-09-16.json}}{adapter validation receipt} bind Figure~\ref{fig:7}. The platform exposes the same services through the \path{traffictwin integration tos} command-line group (validate, matrix, compare-campaigns, provenance, audit, report). The \href{\detokenize{evidence/FINAL_FULL_RUN_COUNT_2026-09-16.json}}{full-run inventory} counts 274 distinct full-run records, counting the E0 reference reused by E1 once; 26 historical records establish full-run identity through accepted campaign receipts and manifests rather than retained per-summary horizons.
+\textbf{S17 --- Examiner-revision artefact evidence.} The \href{\detokenize{evidence/ARTEFACT_INVENTORY.json}}{source inventory}, \href{\detokenize{evidence/COMPACT_CHECKS.json}}{compact recomputation}, \href{\detokenize{evidence/DESCRIPTIVE_SPLIT.json}}{descriptive split}, \href{\detokenize{evidence/RSU_LAYOUT.json}}{figure inputs} and \href{\detokenize{document/REVISION_VALIDATION.json}}{revision validation} are generated from the pinned repository without new research execution. The \href{\detokenize{README.md}}{revision record} distinguishes historical receipts, document checks, the \href{\detokenize{evidence/PLATFORM_RESULTS_CAPTURE.json}}{Figure 7 workflow capture} and author-only completion items. The manuscript's source base is \path{1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8}. The \href{\detokenize{evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json}}{real-data capture receipt} and \href{\detokenize{evidence/TOS_ADAPTER_VALIDATION_2026-09-16.json}}{adapter validation receipt} bind Figures~\ref{fig:7} and~\ref{fig:7b}. The platform exposes the same services through the \texttt{traffictwin integration tos} command-line group (validate, matrix, compare-campaigns, provenance, audit, report). The \href{\detokenize{evidence/FINAL_FULL_RUN_COUNT_2026-09-16.json}}{full-run inventory} counts 274 distinct full-run records, counting the E0 reference reused by E1 once; 26 historical records establish full-run identity through accepted campaign receipts and manifests rather than retained per-summary horizons.
 % END SOURCE BLOCK 294
 
 % BEGIN SOURCE BLOCK 295 anchor
@@ -1876,7 +1938,7 @@ The earlier five-task 1/1/41/41/81 example has three deadline thresholds and lie
 % END SOURCE BLOCK 338
 
 % BEGIN SOURCE BLOCK 339 paragraph
-The frozen helper computes an inclusive \path{jnp.cumsum(w, axis=0)} and subtracts w to form the exclusive prefix. Exact cancellation removes the current candidate; rounded addition/subtraction need not do so identically for both values of its own mask. It also adds base workload after prefix accumulation. The causal helper starts at base workload and adds admitted services in scan order; floating-point associativity differs. Thus the exact dependency and upper/lower arguments are not a proof of float32 equivalence or convergence.
+The frozen helper computes an inclusive \texttt{jnp.cumsum(w, axis=0)} and subtracts w to form the exclusive prefix. Exact cancellation removes the current candidate; rounded addition/subtraction need not do so identically for both values of its own mask. It also adds base workload after prefix accumulation. The causal helper starts at base workload and adds admitted services in scan order; floating-point associativity differs. Thus the exact dependency and upper/lower arguments are not a proof of float32 equivalence or convergence.
 % END SOURCE BLOCK 339
 
 % BEGIN SOURCE BLOCK 340 paragraph
@@ -2145,7 +2207,7 @@ The \href{\detokenize{../empirical_extension_2026-09-08/analysis/results/BENCHMA
 \singlespacing\footnotesize\setlength{\tabcolsep}{3pt}
 \renewcommand{\thetable}{D2}
 \begin{xltabular}{\textwidth}{@{}YYYYY@{}}
-\caption[Scheduler-only engineering trade-offs]{Scheduler-only engineering trade-off on Apple M5 CPU, JAX/JAXlib 0.4.30, float32, default runtime threads. Times are milliseconds per five-substep batch; $S$/B denote sparse/busy fixtures. Temporary memory is XLA buffer analysis, not peak RSS. Reading: compare scheduler-only cost separately from simulated task latency.}\label{tab:D2} \\
+\caption[Scheduler-only engineering trade-offs]{Scheduler-only engineering trade-off in the environment recorded in Table~\ref{tab:environment}, float32, default runtime threads. Times are milliseconds per five-substep batch; $S$/B denote sparse/busy fixtures. Temporary memory is XLA buffer analysis, not peak RSS. Reading: compare scheduler-only cost separately from simulated task latency.}\label{tab:D2} \\
 \toprule
 Policy & $N=215$ median $S$/B & $N=2{,}488$ median $S$/B & Busy p95, 215/2,488 & Temporary KiB, 215/2,488 \\
 \midrule\endfirsthead
@@ -2314,5 +2376,27 @@ A further 104 forwarded tasks had penalty-equal latency ambiguity but were alrea
 % BEGIN SOURCE BLOCK 402 paragraph
 Four ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges leave admission, queues and actions unchanged. No full positive-cost simulation or network model is implied; penalty-equal ambiguity remains unresolved \hyperref[source-s6]{[S6]}.
 % END SOURCE BLOCK 402
+
+
+% BEGIN EXEMPLAR ACCESS
+\setcounter{section}{7}
+\appendixsection{app:H}{Artefact access and verification}
+\onehalfspacing
+The repository is \url{https://github.com/Abdulla4akash/traffictwin}. The manuscript branch is \path{docs/dissertation-examiner-revision-2026-09-11}, its source base is \texttt{1e01b75}, and the manuscript package is \path{docs/dissertation/examiner_revision_2026-09-11/}. The LaTeX source and its build inputs form this delivery; the tracked dissertation PDF is the preserved earlier build.
+
+\textbf{AUTHOR\_ACTION: access mechanism.} The owner must choose and arrange examiner read access or an archive deposit. Neither mechanism nor an off-machine backup is certified here. Submission gate 3 remains open until the owner completes access and preservation verification.
+
+The following commands are documented in the package README and the product README. Run them from an authorised repository copy with the recorded dependencies available; \texttt{EXTERNAL\_PACKAGE} denotes the owner's separately supplied external package directory. The compact verifier uses NumPy and SciPy to regenerate Tables~\ref{tab:6}, \ref{tab:7}, \ref{tab:7a} and~\ref{tab:7b} from retained compact evidence. It invokes the existing joint-confirmation verifier and independently recomputes the other paired summaries; it does not rerun the evaluator or task-level validation. The separately pinned three-trace evidence is read from its recorded Git object.
+
+{\small
+\begin{Verbatim}[breaklines=true,breakanywhere=true]
+python docs/dissertation/examiner_revision_2026-09-11/document/verify_compact_tables.py
+streamlit run src/traffictwin/ui/app.py
+traffictwin integration tos validate "$EXTERNAL_PACKAGE"
+\end{Verbatim}
+}
+
+The first command performs compact arithmetic, the second starts the local platform, and the third inspects an external package through the adapter. Each was executed once in a scratch copy; the \href{\detokenize{evidence/EXEMPLAR_COMMANDS_2026-09-16.json}}{command receipt} records source identities, exit statuses, the local-platform health response and its controlled shutdown. These checks launched no research workload. The original raw arrays, actor and traces still require separately authorised access for full reproduction.
+% END EXEMPLAR ACCESS
 
 \end{document}

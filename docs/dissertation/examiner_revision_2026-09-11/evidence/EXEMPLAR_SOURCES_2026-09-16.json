@@ -1,0 +1,57 @@
+{
+  "copyright_source": "/Users/akashx/scratch/UOM_COPYRIGHT_STATEMENT_2026-09-16.md",
+  "copyright_source_sha256": "dc0447dd5c2e9c6b2cb7d63aa34c5a7d5d4b2e1bd4a6ded6a9488abe7e191271",
+  "copyright_clauses": [
+    [
+      "i",
+      "The author of this thesis (including any appendices and/or schedules to this thesis) owns certain copyright or related rights in it (the \"Copyright\") and s/he has given The University of Manchester certain rights to use such Copyright, including for administrative purposes."
+    ],
+    [
+      "ii",
+      "Copies of this thesis, either in full or in extracts and whether in hard or electronic copy, may be made only in accordance with the Copyright, Designs and Patents Act 1988 (as amended) and regulations issued under it or, where appropriate, in accordance with licensing agreements which the University has from time to time. This page must form part of any such copies made."
+    ],
+    [
+      "iii",
+      "The ownership of certain Copyright, patents, designs, trade marks and other intellectual property (the \"Intellectual Property\") and any reproductions of copyright works in the thesis, for example graphs and tables (\"Reproductions\"), which may be described in this thesis, may not be owned by the author and may be owned by third parties. Such Intellectual Property and Reproductions cannot and must not be made available for use without the prior written permission of the owner(s) of the relevant Intellectual Property and/or Reproductions."
+    ],
+    [
+      "iv",
+      "Further information on the conditions under which disclosure, publication and commercialisation of this thesis, the Copyright and any Intellectual Property and/or Reproductions described in it may take place is available in the University IP Policy (see http://documents.manchester.ac.uk/DocuInfo.aspx?DocID=24420), in any relevant Thesis restriction declarations deposited in the University Library, The University Library's regulations (see http://www.library.manchester.ac.uk/about/regulations/) and in The University's policy on Presentation of Theses."
+    ]
+  ],
+  "files": {
+    "/Users/akashx/scratch/UOM_COPYRIGHT_STATEMENT_2026-09-16.md": "dc0447dd5c2e9c6b2cb7d63aa34c5a7d5d4b2e1bd4a6ded6a9488abe7e191271",
+    "/Users/akashx/scratch/CODEX_PROMPT_exemplar_alignment_2026-09-16.md": "0e9dfa8a4285a84cac4b84b0519e1ef4c87bce8ac34d973999c068dd4151ad21",
+    "/Users/akashx/Downloads/diss_mat/ICISS2026_SA0082_camera_ready-compressed.pdf": "e350f4e978fee9575ca8a55ab0cf8c94f9bd3301630e89f01bdd27da0351012d",
+    "/Users/akashx/scratch/traffictwin-examiner-revision/docs/dissertation/empirical_extension_2026-09-08/analysis/results/BENCHMARK.json": "23b0904aeece5be869f8e712eb941c713edaab0ef36a96ddceca2d88da109647",
+    "/Users/akashx/scratch/traffictwin-examiner-revision/docs/dissertation/joint_confirmation_2026-09-08/evidence/QUALIFICATION.json": "147d6ccd004b230eb4f81b660877e3353a7c5327bd07e2a1777bc6d2781e362a",
+    "/Users/akashx/scratch/traffictwin-examiner-revision/docs/dissertation/joint_confirmation_2026-09-08/evidence/ANALYSIS.json": "acbfcca8abb10f0f5e5b9c271612f63691311ed687b69f0e93e0d14c0faa6966"
+  },
+  "camera_ready_verified_section": "4.4 Traffic Simulation",
+  "camera_ready_facts": [
+    "OpenStreetMap via osmWebWizard",
+    "demand uniformly scaled to 70% of observed sensor counts to avoid simulated gridlock",
+    "SUMO version 1.27.0"
+  ],
+  "jax_year_source": "Owner-supplied CODEX_PROMPT_exemplar_alignment_2026-09-16.md F.5 gives the 2024 release-year correction; the QUALIFICATION.json and BENCHMARK.json pinned runtime independently confirm version 0.4.30. Existing reference-registration-2026-09-15.json retains the 2018 first-release citation. No external release-history fetch claimed.",
+  "environment_tex_values": [
+    "Apple M5",
+    "CPU count & 10",
+    "Physical memory & not recorded",
+    "macOS 26.4.1, arm64",
+    "3.11.15",
+    "0.4.30 / 0.4.30",
+    "1.26.4",
+    "1.17.1",
+    "1.59.2",
+    "2f63706",
+    "908bd10",
+    "JAX x64 & disabled"
+  ],
+  "streamlit_lockfile": {
+    "source": "1e01b75:uv.lock",
+    "sha256": "2985268e60a118f781f024d90ccc284ced896982b90f32bb6875b43fcde50611",
+    "version": "1.59.2"
+  },
+  "research_workloads_launched": 0
+}

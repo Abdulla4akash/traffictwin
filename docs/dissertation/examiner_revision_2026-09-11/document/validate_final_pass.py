@@ -10,6 +10,8 @@ from collections import Counter
 from functools import cache
 from pathlib import Path
 
+from validate_exemplar_alignment import baseline_bytes, checks as exemplar_checks, review_pdf_path
+
 PACKAGE = "docs/dissertation/examiner_revision_2026-09-11"
 FINAL_PASS_BASELINE = "a8cffe753047c4b7498dded39f61aac3e57f87e4"  # noqa: S105 -- Git identity
 FINAL_PASS_BASELINE_SHA256 = "7851287ff2be9307cf3665e42df09a192f13ecb50d670ed2564a6d043948334b"  # noqa: S105 -- SHA-256
@@ -292,7 +294,18 @@ def restore_final_pass(root: Path, here: Path, revised: str) -> tuple[str, dict[
     for path, expected in pins.items():
         target = here / path
         checks["final_pinned_" + path] = (
-            target.is_file() and digest(target.read_bytes()) == expected
+            target.is_file()
+            and digest(
+                baseline_bytes(here, path)
+                if path
+                in {
+                    CAPTURE_RECEIPT,
+                    "assets/traffictwin_platform_real_data.pdf",
+                    "assets/traffictwin_platform_real_data.png",
+                }
+                else target.read_bytes()
+            )
+            == expected
         )
     # Existing scientific table bodies remain exact except the three explicitly amended tables.
     before_ids = re.findall(r"(?m)^\*Table ([A-F]?\d+[a-z]?)\.", baseline)
@@ -429,16 +442,24 @@ def artifact_checks(here: Path, revised: str) -> dict[str, bool]:
     }
     locations = defaults | ledger.get("capture_files", {})
     for filename, expected in capture["files"].items():
-        path = here / locations.get(filename, "evidence/final_capture/" + filename)
+        path = here / (
+            filename
+            if filename.startswith(("assets/", "evidence/"))
+            else locations.get(filename, "evidence/final_capture/" + filename)
+        )
         checks["final_capture_file_" + filename] = (
             path.is_file() and digest(path.read_bytes()) == expected
         )
     tex = (here / "TrafficTwin_Dissertation.tex").read_text()
-    pdf = fitz.open(here / "TrafficTwin_Dissertation.pdf")
+    pdf = fitz.open(review_pdf_path(here))
     cover = " ".join(pdf[0].get_text().split())
     checks["final_title_page_values_in_tex_and_pdf"] = all(
-        value in tex and value in cover for value in OWNER.values()
+        value in tex and value in cover for key, value in OWNER.items() if key != "award"
     )
+    checks["exemplar_expanded_award_on_cover"] = (
+        "Master of Science in Artificial Intelligence" in cover
+    )
+    checks.update(exemplar_checks(here))
     checks["final_pdf_metadata_owner"] = pdf.metadata["author"] == OWNER["author"]
     pdf_text = " ".join(" ".join(page.get_text().split()) for page in pdf)
     checks["final_pdf_both_new_tables_present"] = (
@@ -457,7 +478,12 @@ def main() -> None:
     revised = (here / "TrafficTwin_Dissertation.md").read_text()
     _, checks = restore_final_pass(here.parents[2], here, revised)
     checks.update(artifact_checks(here, revised))
-    record = {"checks": checks, "passed": all(checks.values())}
+    record = {
+        "checks": checks,
+        "passed": all(checks.values()),
+        "scope": "Historical Markdown guards plus the hash-bound LaTeX exemplar overlay; review PDF is a local build only.",
+        "review_pdf": str(review_pdf_path(here)),
+    }
     (here / "evidence/FINAL_PASS_VALIDATION_2026-09-16.json").write_text(
         json.dumps(record, indent=2) + "\n"
     )

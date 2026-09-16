@@ -55,3 +55,9 @@ The 16 added references are listed with their attachment points in [the registra
 I confirmed that I checked the University of Manchester Ethics Decision Tool and that ethics approval is not required for this project. My reply was: “see we dont need i just checked it myself.” This is my confirmation of the screening outcome; the editing assistant did not observe an authenticated result. See [the dated receipt](evidence/ETHICS_DECISION_OWNER_CONFIRMATION_2026-09-15.json) and manuscript reference 44.
 
 The six C-items in Section 1.3 are my own contribution statement, supplied by me on 15 September 2026.
+
+## Exemplar-alignment owner items — 16 September 2026
+
+- AUTHOR_ACTION: access mechanism. Choose and arrange examiner read access or an archive deposit; Appendix H documents the pending decision. No mechanism is invented or certified.
+- AUTHOR_ACTION: confirm whether Student ID 14185028 remains on the title page. It is retained as instructed pending this decision.
+- Existing signature/date, AI-use permission, preservation, final independent reading, word trimming and assessed-video obligations remain open in SUBMISSION_GATES.md.
