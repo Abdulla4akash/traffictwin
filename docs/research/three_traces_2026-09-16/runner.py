@@ -169,19 +169,24 @@ def shared_arrays(a, b, prefix=None):
 def reserve_slot():
     """Global evaluator concurrency, reducing future starts without killing work."""
     while True:
-        limit = 2 if (RAW_PARENT / 'REDUCE_CONCURRENCY.json').exists() else 3
-        for index in range(limit):
-            stream = (RAW_PARENT / f'SLOT_{index}.lock').open('a+')
-            try:
-                fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
+        with (RAW_PARENT / 'SLOT_ALLOCATION.lock').open('a+') as allocation:
+            fcntl.flock(allocation, fcntl.LOCK_EX)
+            available = []
+            for index in range(3):
+                stream = (RAW_PARENT / f'SLOT_{index}.lock').open('a+')
+                try:
+                    fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    stream.close()
+                else:
+                    available.append(stream)
+            limit = 2 if (RAW_PARENT / 'REDUCE_CONCURRENCY.json').exists() else 3
+            occupied = 3 - len(available)
+            chosen = available.pop(0) if occupied < limit else None
+            for stream in available:
                 stream.close()
-                continue
-            # Recheck after acquiring: another trace may just have lowered limit.
-            if index == 2 and (RAW_PARENT / 'REDUCE_CONCURRENCY.json').exists():
-                stream.close()
-                continue
-            return stream
+            if chosen is not None:
+                return chosen
         time.sleep(1)
 
 

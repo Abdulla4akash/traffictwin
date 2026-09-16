@@ -1,16 +1,37 @@
 """Configuration parity and refusal checks; no new evaluator cells."""
 import ast
 import copy
+import fcntl
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import analyse
 import runner as r
 
 
 class ConfigurationChecks(unittest.TestCase):
+    def test_reduced_limit_counts_existing_slot_two(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(r, 'RAW_PARENT', Path(tmp)):
+            held = []
+            try:
+                for index in [1, 2]:
+                    stream = (Path(tmp) / f'SLOT_{index}.lock').open('a+')
+                    fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    held.append(stream)
+                (Path(tmp) / 'REDUCE_CONCURRENCY.json').write_text('{}')
+                with patch.object(r.time, 'sleep', side_effect=TimeoutError('correctly waits')):
+                    with self.assertRaisesRegex(TimeoutError, 'correctly waits'):
+                        r.reserve_slot()
+                held.pop(0).close()
+                with r.reserve_slot() as granted:
+                    self.assertTrue(granted.name.endswith('SLOT_0.lock'))
+            finally:
+                for stream in held:
+                    stream.close()
+
     def test_scientific_validator_only_declared_parameterisation(self):
         original = (r.LEGACY / 'validation.py').read_text()
         configured = (r.HERE / 'validation.py').read_text()
