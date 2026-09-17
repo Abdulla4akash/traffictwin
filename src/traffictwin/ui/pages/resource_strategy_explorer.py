@@ -325,6 +325,17 @@ def _render_e3_preset() -> bool:
 
 def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep thin
     render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)
+    if st.session_state.get("_v07_navigation_active"):
+        with st.container(border=True):
+            st.markdown("**Latest completed experiments · 15 September 2026**")
+            st.caption(
+                "Inspect two-choice placement, half-speed servers and the second actor study."
+            )
+            if st.button("Open latest experimental results", icon=":material/science:"):
+                st.session_state["experimental_results_study"] = (
+                    "Latest follow-ups · 15 September 2026"
+                )
+                st.switch_page("app_pages/experimental_results.py")
     st.caption(
         "Inspect admitted or explicitly synthetic resource-strategy studies across "
         "traffic/VEC policies. This view does not execute a scheduler, control an RSU, "

@@ -20,7 +20,12 @@ SCRIPT = "src/traffictwin/ui/app_pages/experimental_results.py"
 
 
 def _app() -> Any:  # noqa: ANN401 - Streamlit AppTest is dynamically imported
-    return vars(import_module("streamlit.testing.v1"))["AppTest"].from_file(SCRIPT).run()
+    app = vars(import_module("streamlit.testing.v1"))["AppTest"].from_file(SCRIPT).run()
+    return (
+        app.selectbox(key="experimental_results_study")
+        .select("Original confirmation · 8 September 2026")
+        .run()
+    )
 
 
 def test_builtin_study_shows_original_effects_and_truth_boundaries() -> None:
@@ -46,7 +51,7 @@ def test_builtin_study_shows_original_effects_and_truth_boundaries() -> None:
 def test_block_filter_preserves_primary_analysis() -> None:
     app = _app()
     before = app.dataframe[0].value.to_csv(index=False)
-    app.selectbox[0].select("3").run()
+    app.selectbox[1].select("3").run()
     assert not app.exception
     table = app.dataframe[1].value
     assert len(table) == 4
