@@ -414,7 +414,7 @@ Deliverable (brief wording) & Where addressed \\
 % END SOURCE BLOCK 053
 
 % BEGIN SOURCE BLOCK 054 paragraph
-The programme progressed from accounting validation (E0) and capacity scoping (E1) to an exploratory single-draw comparison (E2) and ingress-with-gate control (E2b). Incident four-draw common-target replication (E2c, the incident replication) motivated the adaptive per-task extension (E2d, the incident extension). A morning pilot then preceded prospective replication, sealed eight-block confirmation, declared follow-ups and a three-trace study. Comparisons used matched inputs under a frozen actor. Fleet draws or joint fleet/evaluator-seed blocks supplied the replications for paired Student-$t$ intervals; the prospective morning, confirmation and follow-up studies applied Bonferroni adjustments within declared contrast families. The \hyperref[tab:study-map]{Study map} identifies each stage and its results section \hyperref[source-s0]{[S0]}--\hyperref[source-s8]{[S8]}, \hyperref[source-s13]{[S13]}.
+The programme progressed from accounting validation (E0) and capacity scoping (E1) to an exploratory single-draw comparison (E2) and ingress-with-gate control (E2b). Incident four-draw common-target replication (E2c, the incident replication) motivated the incident per-task extension (E2d, the incident extension). A morning pilot then preceded prospective replication, sealed eight-block confirmation, declared follow-ups and a three-trace study. Comparisons used matched inputs under a frozen actor. Fleet draws or joint fleet/evaluator-seed blocks supplied the replications for paired Student-$t$ intervals; the prospective morning, confirmation and follow-up studies applied Bonferroni adjustments within declared contrast families. The \hyperref[tab:study-map]{Study map} identifies each stage and its results section \hyperref[source-s0]{[S0]}--\hyperref[source-s8]{[S8]}, \hyperref[source-s13]{[S13]}.
 % END SOURCE BLOCK 054
 
 % BEGIN SOURCE BLOCK 055 paragraph
@@ -1154,11 +1154,13 @@ The completed sensitivities address RQ3 and O4 by varying reported state and fix
 % END SOURCE BLOCK 162
 
 % BEGIN SOURCE BLOCK 163 paragraph
-\textbf{Report-age results.} In incident seed 1, fresh per-task attainment was 72.47\%, versus ingress 72.00\%. The 100 ms report left attainment unchanged at 72.47\% (+0.000 points). The 500 ms and 1,000 ms reports gave 72.47\% and 72.46\%, changes of +0.002 and \ensuremath{-}0.012 points from fresh \hyperref[source-s5]{[S5]}.
+\textbf{Setting.} The state-information pilot ran full evaluations of one incident draw with fresh and aged workload reports under live admission, alongside ingress (Section~\ref{sec:2.7}). In incident seed 1, fresh per-task attainment was 72.47\%, versus ingress 72.00\%.
+
+\textbf{Results.} The 100 ms report left attainment unchanged at 72.47\% (+0.000 points). The 500 ms and 1,000 ms reports gave 72.47\% and 72.46\%, changes of +0.002 and \ensuremath{-}0.012 points from fresh \hyperref[source-s5]{[S5]}.
 % END SOURCE BLOCK 163
 
 % BEGIN SOURCE BLOCK 164 paragraph
-\textbf{Treatment activation.} Every 100 ms report equalled fresh state over 35,990 non-startup RSU/batch observations: queues had emptied, making that treatment inactive. Reports differed at 500 ms in 79.58\% of observations and at 1,000 ms in all.
+Every 100 ms report equalled fresh state over 35,990 non-startup RSU/batch observations: queues had emptied, making that treatment inactive. Reports differed at 500 ms in 79.58\% of observations and at 1,000 ms in all.
 % END SOURCE BLOCK 164
 
 % BEGIN SOURCE BLOCK 165 paragraph
@@ -1320,7 +1322,7 @@ O5 Inspectable artefact & Met for software; user benefit unassessed & Product an
 % END SOURCE BLOCK 189
 
 % BEGIN SOURCE BLOCK 190 paragraph
-\textbf{Challenges.} I had to recover inherited evaluator semantics from source. The adaptive move from the incident replication (E2c) to the per-task extension (E2d) required prospective replication. The legacy scoring-mask exception remains unquantifiable because early task arrays were not retained. I controlled AI assistance through specification, review and modification, retaining responsibility for the design and interpretation.
+\textbf{Challenges.} I had to recover inherited evaluator semantics from source. The adaptive move from the incident replication (E2c) to the incident extension (E2d) required prospective replication. The legacy scoring-mask exception remains unquantifiable because early task arrays were not retained. I controlled AI assistance through specification, review and modification, retaining responsibility for the design and interpretation.
 % END SOURCE BLOCK 190
 
 \FloatBarrier
@@ -1373,7 +1375,7 @@ Fourth, I would test independently selected traces and actors under prospective 
 % END SOURCE BLOCK 201
 
 % BEGIN SOURCE BLOCK 202 paragraph
-I learned that an adaptive experiment can identify a useful question without independently confirming its answer. The incident replication (E2c) made the negative common-target comparison repeatable across fleet draws. I then designed the per-task extension (E2d) to change target timing and reservation visibility while reusing those controls. That reuse supported an interpretable comparison, but the inspected result had influenced the intervention. Prospective replication therefore required declared inputs and contrasts. I excluded the morning pilot from primary inference, and the later sealed joint blocks provided separate evidence for the comparison with cyclic spreading.
+I learned that an adaptive experiment can identify a useful question without independently confirming its answer. The incident replication (E2c) made the negative common-target comparison repeatable across fleet draws. I then designed the incident extension (E2d) to change target timing and reservation visibility while reusing those controls. That reuse supported an interpretable comparison, but the inspected result had influenced the intervention. Prospective replication therefore required declared inputs and contrasts. I excluded the morning pilot from primary inference, and the later sealed joint blocks provided separate evidence for the comparison with cyclic spreading.
 % END SOURCE BLOCK 202
 
 % BEGIN SOURCE BLOCK 203 paragraph
@@ -2126,7 +2128,7 @@ Original morning common-target work used only RSUs 0--4, with mean shares approx
 % END SOURCE BLOCK 358
 
 % BEGIN SOURCE BLOCK 359 paragraph
-The post-hoc audit found zero saved end-of-second workload and task counts in all four common-target runs, and target k at substep k whenever a V2I attempt exposed it. Empty substeps do not reveal the internal selector. Intermediate workloads were reconstructed, not saved directly, using recorded admissions/destinations and the qualified service reference. All endpoints and observable target minima agreed, although zero endpoints alone weakly constrain intermediate paths. Reconstructed pre-drain workload reached approximately 538.730 ms; task counts stayed below 26, far from the 1,000 ms drain and 6,220-task ceiling \hyperref[source-s9]{[S9]}.
+The post-hoc audit found zero saved end-of-second workload and task counts in all four common-target runs, and target k at substep k whenever a V2I attempt exposed it. Empty substeps do not reveal the internal selector. Intermediate workloads were reconstructed, not saved directly, using recorded admissions/destinations and the qualified service reference. All endpoints and observable target minima agreed, although zero endpoints alone weakly constrain intermediate paths. Reconstructed pre-drain workload reached approximately 538.730 ms; task counts stayed below 26, far from the 1,000 ms drain and 6,220-task ceiling. This maximum lies below the exact-model bound derived in Section~\ref{sec:C.5}, and the zero endpoints agree with the clearing that bound predicts \hyperref[source-s9]{[S9]}.
 % END SOURCE BLOCK 359
 
 % BEGIN SOURCE BLOCK 360 paragraph

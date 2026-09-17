@@ -1,3 +1,34 @@
+## Figure provenance and regeneration — 17 September 2026
+
+The manuscript includes nine figure files: four data plots, three hand-written diagrams and two interface captures. On 17 September 2026 every plotted value was recomputed from the source listed below and matched the figure, the adjacent table and the prose to three decimals: Figure 5 against Tables 5 and 6, Figure 6 against Table 7, Section 3.4 and [DESCRIPTIVE_SPLIT.json](evidence/DESCRIPTIVE_SPLIT.json), Figure 8 against the Section C.8 shares, and Figure 2 against the source hash in [RSU_LAYOUT.json](evidence/RSU_LAYOUT.json). No figure asset was changed in this pass.
+
+| Figure | Asset in `assets/` | Generator | Data source |
+|---|---|---|---|
+| 1, 3, 4 | `architecture.pdf`, `task_accounting.pdf`, `dispatch_example.pdf` | Hand-written SVGs beside the PDFs; converted by Inkscape inside `make_assets.py` | None. Figure 4 is the constructed mechanics example described in its accompanying paragraph. |
+| 2 | `morning_rsu_layout.pdf` | [`document/make_assets.py`](document/make_assets.py), Matplotlib | `rsu_xy` in the replication archive's [`input_validation.json`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/input_validation.json) |
+| 5 | `primary_replication.pdf` | [`../substantive_revision_2026-09-07/build_figures.py`](../substantive_revision_2026-09-07/build_figures.py), Matplotlib SVG dated 7 September 2026, then Inkscape | [`runs.csv`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/runs.csv) and [`paired_intervals.csv`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv) in the same archive |
+| 6 | `joint_confirmation_eight_blocks.pdf` | `document/make_assets.py`, Matplotlib | [`CELL_RESULTS.csv`](../joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv), 32 cells |
+| 7a, 7b | `traffictwin_platform_7a.png`, `traffictwin_platform_7b.png` | Playwright Chromium captures of the bridge worktree at `17d6b21` by [`capture_final.py`](evidence/final_capture/capture_final.py); cropped and composed by [`compose_figure.py`](evidence/final_capture/compose_figure.py); raw-shot hashes in [FINAL_PLATFORM_CAPTURE_2026-09-16.json](evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json) | External Putra package at `a75bbdb` and the bundled eight-block results packet |
+| 8 | `rsu_workload_distribution.pdf` | Same `build_figures.py` run as Figure 5 | [`rsu_workload_distribution.csv`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/rsu_workload_distribution.csv) in the same archive |
+
+`make_assets.py` redraws Figures 2 and 6, rewrites `RSU_LAYOUT.json`, `DESCRIPTIVE_SPLIT.json`, `ARTEFACT_INVENTORY.json` and `CAPTURE.json`, and then converts every SVG in `assets/` to PDF. It stops with an error when Inkscape is not on `PATH`. It does **not** redraw Figures 5 and 8: their SVGs are preserved copies, byte-identical to `../substantive_revision_2026-09-07/assets/`, and `make_assets.py` only converts them. To redraw them, run `build_figures.py` from its own package; it writes into that package's `assets/`, so copy the two SVGs here before conversion. `compose_figure.py` recomposes Figures 7a and 7b from the hash-bound raw shots without launching the interface; it expects the macOS `Arial Bold.ttf` path. `capture_final.py` is retained for provenance only and needs the bridge worktree served on port 8765. Use the existing document environment with Matplotlib, NumPy, Pillow, PyMuPDF and Inkscape; a bare `python3` without these packages fails at import. The `.svg` and `.png` twins in `assets/`, `traffictwin_platform_real_data.*`, `traffictwin_results_workflow.png` and `traffictwin_streamlit.png` are retained build inputs that the current TeX does not include.
+
+```sh
+pkg_dir=docs/dissertation/examiner_revision_2026-09-11
+python docs/dissertation/substantive_revision_2026-09-07/build_figures.py   # optional: redraw Figures 5 and 8
+cp docs/dissertation/substantive_revision_2026-09-07/assets/{primary_replication,rsu_workload_distribution}.svg "$pkg_dir/assets/"
+python "$pkg_dir/document/make_assets.py"                                    # Figures 2 and 6; SVG to PDF for 1, 3, 4, 5, 8
+(cd "$pkg_dir/evidence/final_capture" && python compose_figure.py)          # Figures 7a and 7b from bound shots
+```
+
+Known presentation limits, unchanged in this pass:
+
+- Figures 7a and 7b print interface body text near 5 pt and the grey provenance line near 4 pt at A4. Zoom the standalone 300 dpi PNGs for detail. Panel (a) shows the owner's local package path.
+- Figures 2 and 6 embed DejaVu Sans as Type 3 fonts (Matplotlib default `pdf.fonttype` 3). Set `pdf.fonttype` to 42 before regenerating if PDF/A is required. Their in-figure titles repeat the captions, and their tick labels print near 6 pt because 8.7 and 9.2 inch canvases are scaled to the text width. Figures 5 and 8 were drawn at 6.55 inches and print near 8 pt.
+- Figure 2's caption says "original zero-based indices" and Figure 8's axis says "Canonical RSU index". Both are the same 0–8 index of the nine-RSU morning layout in the replication archive.
+
+---
+
 ## LaTeX-only exemplar alignment — 16 September 2026
 
 The edited `TrafficTwin_Dissertation.tex` is the current manuscript source for this pass. **Do not run `convert_source.py`**: the Markdown and its source map are preserved historical inputs, and that converter would overwrite the authorised LaTeX changes. The tracked dissertation PDF remains the ded54bd build; it does not reflect this pass. The delivery contains LaTeX plus build inputs. See [CHANGES.md](CHANGES.md), [operation ledger](evidence/EXEMPLAR_OPERATIONS_2026-09-16.json) and [command receipt](evidence/EXEMPLAR_COMMANDS_2026-09-16.json).
