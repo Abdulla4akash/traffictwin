@@ -128,7 +128,7 @@ def word_counts(tex=None):
             }
         )
     study = tex.split("% BEGIN PROSE STUDY MAP", 1)[1].split("% END PROSE STUDY MAP", 1)[0]
-    study = study.split(r"\toprule", 1)[1].split(r"\bottomrule", 1)[0]
+    study = study.split(r"\toprule", 1)[-1].split(r"\bottomrule", 1)[0]
     study = study.replace(r"\midrule", "").replace(r"\\", "\n").replace("&", " ")
     study_words = len(re.findall(TOKEN, projection(study)))
     after = {
@@ -142,7 +142,7 @@ def word_counts(tex=None):
         ]
         lead = brief.split(r"\begingroup", 1)[0].strip()
         lead = re.sub(r"\\Needspace\{\d+\\baselineskip\}", "", lead)
-        table = brief.split(r"\toprule", 1)[1].split(r"\bottomrule", 1)[0]
+        table = brief.split(r"\toprule", 1)[-1].split(r"\bottomrule", 1)[0]
         table = table.replace(r"\midrule", "").replace(r"\\", "\n").replace("&", " ")
         brief_counts = count(
             [
@@ -346,9 +346,21 @@ def citation_checks(tex):
             result["citation_optional_" + key + "_applied"] = passed
         else:
             # The optional claim check is not applicable; guard the unedited baseline instead.
-            result["citation_optional_" + key + "_skipped_text_unchanged"] = (
-                current[number] == previous[number]
-            )
+            if key == "G.4":
+                # The 17 September prose edit replaces the former absolute
+                # value claim with an explicit definition of timely output.
+                result["citation_G4_timeliness_citations_and_offered_population"] = all(
+                    phrase in current[number][1]
+                    for phrase in (
+                        r"usable time window to count as timely \cite{ref4}.",
+                        r"communication and computation jointly \cite{ref3}.",
+                        "all offered tasks, including work rejected before execution",
+                    )
+                )
+            else:
+                result["citation_optional_" + key + "_skipped_text_unchanged"] = (
+                    current[number] == previous[number]
+                )
     old_tables, new_tables = table_environments(old), table_environments(tex)
     numeric = lambda value: re.findall(r"[-+]?\d+(?:[,.]\d+)*", value)
     result["citation_every_table_numeric_token_byte_identical_to_8523879"] = len(old_tables) == len(
@@ -356,24 +368,22 @@ def citation_checks(tex):
     ) and [(kind, numeric(value)) for kind, value in old_tables] == [
         (kind, numeric(value)) for kind, value in new_tables
     ]
-    result["citation_only_authorised_table_wording_changed"] = [
-        (
-            kind,
-            value.replace(
-                "Three 3GPP-derived task classes",
-                "Three task classes with 3GPP-motivated deadlines",
-            ),
-        )
-        for kind, value in old_tables
-    ] == new_tables
+    # Captions are now explicitly editable; preserve every table cell and its
+    # order, including the previous authorised 3GPP wording correction.
+    result["citation_table_payloads_preserved_after_caption_edit"] = [
+        (kind, value.split(r"\toprule", 1)[-1].replace(
+            "Three 3GPP-derived task classes",
+            "Three task classes with 3GPP-motivated deadlines",
+        )) for kind, value in old_tables
+    ] == [(kind, value.split(r"\toprule", 1)[-1]) for kind, value in new_tables]
     result["citation_all_fifty_source_tags_preserved_from_8523879"] = (
         re.findall(TAG, main) == re.findall(TAG, body(old)) and len(re.findall(TAG, main)) == 50
     )
-    # All manuscript numeric text is fixed; citation-key additions and bibliography metadata are exempt.
-    without_cites = lambda value: re.sub(r"\\cite\{[^}]+\}", "", value)
-    result["citation_all_body_numeric_tokens_unchanged"] = numeric(without_cites(main)) == numeric(
-        without_cites(body(old))
-    )
+    # Repetition may be removed only from the specifically recorded 4.3/C.8
+    # blocks, with each omitted value checked at its retained scientific source.
+    from validate_academic_prose import scientific_checks
+
+    result.update(scientific_checks(tex))
     counts = word_counts(tex)["after"]
     result["citation_displayed_counts_match_count_exemplar_words"] = (
         rf"\textbf{{Word count: {counts['strict']:,}}}" in tex
@@ -394,7 +404,7 @@ def checks(here=HERE, tex_override=None):
 
     # Literal table payloads, including all numeric precision, must survive unchanged.
     def table_payload(s):
-        return s.split(r"\toprule", 1)[1] if r"\toprule" in s else s
+        return s.split(r"\toprule", 1)[-1] if r"\toprule" in s else s
 
     new_without_map = re.sub(
         r"% BEGIN PROSE STUDY MAP.*?% END PROSE STUDY MAP", "", tex, flags=re.S
@@ -445,23 +455,26 @@ def checks(here=HERE, tex_override=None):
         set(re.findall(r"\\bibitem\{([^}]+)\}", tex)) <= citations
     )
     seen = set()
-    named_once = True
+    defined_before_use = True
     for number, (kind, value) in current.items():
         if not 7 <= number <= 205:
             continue
-        if kind == "heading":
-            seen = set()
         if kind != "paragraph":
             continue
         visible = re.sub(r"\\(?:ref|eqref|label)\{[^}]*\}", "", value)
         for match in re.finditer(r"\bE(?:0|1|2[bcd]?|3)\b", visible):
-            named_once &= (
-                visible[match.start() - 1 : match.start()] == "("
-                and visible[match.end() : match.end() + 1] == ")"
-                and match[0] not in seen
-            )
+            if match[0] not in seen:
+                defined_before_use &= (
+                    visible[match.start() - 1 : match.start()] == "("
+                    and visible[match.end() : match.end() + 1] in (",", ")")
+                )
             seen.add(match[0])
-    result["prose_codes_only_parenthesised_first_section_mentions"] = bool(named_once)
+    result["prose_study_identifiers_defined_before_shortened_use"] = (
+        defined_before_use
+        and seen == {"E0", "E1", "E2", "E2b", "E2c", "E2d", "E3"}
+        and "E2c, the incident replication" in current[54][1]
+        and "E2d, the incident extension" in current[54][1]
+    )
     preview = current[41][1].split(r"\textbf{Contributions.}", 1)[0].strip()
     result["prose_result_preview_three_sentences_under_60"] = (
         len(re.findall(TOKEN, projection(preview))) <= 60

@@ -1,3 +1,32 @@
+# Academic prose edit — 17 September 2026
+
+Source authority: PR #145 at `3eb469027a30933473204d95cc663c5b0a2f4afc`. At task start the remote PR, clean local manuscript checkout and delivered TeX were identical (TeX SHA-256 `525af8f5ac49e884e2f9bf89dc6a66bd2cb6785b25783d1bc6be7a74a3c549fb`). No reset or historical replacement was used. The complete 2,461-line manuscript, including references and appendices, was read before editing.
+
+The user authorised prose editing without a word target, substantive cuts for length, new results or experiments. This instruction supersedes historical word-budget requirements. The prior delivery in `~/Desktop/Dissertation/latex_final_2026-09-16/` is preserved unchanged; the revised TeX, fresh PDF, build inputs and current check receipts are delivered separately in `~/Desktop/Dissertation/latex_prose_2026-09-17/`.
+
+Editorial changes:
+
+- The abstract separates purpose, comparisons, principal estimates, follow-ups and contribution, while retaining its numerical results and scientific qualifications.
+- The introduction connects the scheduling problem to the closest dispatch work and states the implementation-specific gap. Study names are defined before using shorter names or identifiers.
+- Section 3.4 gives each follow-up a separate design/finding/interpretation paragraph, preserving reused blocks, protocol timing, interval families, shared training seed, scenario differences and AI attribution.
+- Section 4.3 answers the research questions and synthesises recurrence, workload awareness and modelling boundaries. Its duplicated numerical catalogue is retained in Section 3.4 and Tables 7–7b. The conclusion explicitly describes an adaptation and evaluation of established scheduling principles.
+- Appendix C.8 replaces the duplicate proof, queue-clearing calculation and adverse-example arithmetic with precise references to C.2–C.7. Its distinct reconstructed states, numerical caveat, full-run destination distinction and task accounting remain.
+- Caption edits remove repeated “Reading:” instructions while retaining denominators, replication units, uncertainty definitions and source links. Signposting fragments and disconnected cost paragraphs are repaired.
+
+Scientific preservation: all 26 table payloads, displayed equations, algorithms, proposition, full C.1–C.7 proof/model text (apart from the C1 table caption), figure assets and bibliography entries are unchanged. All numerical content is checked block by block; the only permitted omissions are the explicitly enumerated duplicates in blocks 193, 365 and 367, with a separate check of each retained source location. Every citation key and evidence hyperlink occurrence is preserved. The Declaration, personal verification record, failed product-test outcomes, historical scoring gap, pilot exclusion, joint-block inference, float32 limits, unperformed user evaluation and unexecuted E3 remain explicit.
+
+Verification: the current manuscript validators pass all substantive checks (brief 22/22; prose 546/546; final 678/678; Option B 223/223; exemplar 605/605; platform 11/11; combined 893/895). The combined validator’s only false results are its two report-only word-limit diagnostics. The added academic-prose validator passes 490/490 checks; 21 in-memory mutations are rejected, including altered results/signs, intervals, units, counts, algorithms, proof assumptions, protocol timing, attribution and scientific qualifications. Compact recomputation of Tables 6, 7, 7a and 7b passes. This is manuscript and compact-arithmetic verification, not a new raw-data audit, research campaign or product-suite pass.
+
+The earlier literal assertions were adjusted narrowly: table cells remain byte-identical while captions can change; study identifiers must be defined before shortened use; the edited timeliness sentence retains both citations and its offered-task denominator; ordered numeric-token equality is replaced by stricter per-block scientific preservation with enumerated duplicate exceptions. Scientific tests have not been disabled. The new validation modules pass Ruff; historical lint findings in the earlier validators are recorded separately rather than represented as a fresh whole-repository lint pass.
+
+Current build: XeLaTeX via latexmk, 65 pages, zero errors, overfull boxes, missing glyphs, undefined references or oversized floats. Removing local bibliography paragraph spacing resolved a short overflow page. A broken-line penalty prevents hyphenated words from crossing page boundaries. No text was padded to preserve pagination. All pages are rendered for visual review; the separate delivery receipt records final page inspection and exact PDF/source hashes.
+
+Word counts, using the unchanged existing tokenisation and live-TeX projection: **9,576 → 9,860 strict; 7,880 → 8,164 excluding tables and pseudocode**. Both displayed counts match the source and PDF. Historical WORD_COUNT.json and previous receipts are preserved as historical records; the current count and validation receipts are delivered separately. No new editorial ambiguity required an author decision; the existing scientific uncertainties are retained.
+
+PR #145 remains draft and must not be merged. The compiled PDF stays local. A fresh read-only review is bound separately to the pushed candidate; no preceding approval is transferred to this edit.
+
+---
+
 # Citation-wording pass — 16 September 2026
 
 Baseline: `85238791b47b7a8b37fc993a42d4170c77c98c6d`; branch `docs/dissertation-examiner-revision-2026-09-11`. This record supersedes the summaries below. Repository edits are limited to `TrafficTwin_Dissertation.tex`, three validators under `document/`, and this ledger. The historical Markdown, evidence JSONs, assets and tracked PDF remain unchanged. PR #145 remains draft; no merge.

@@ -143,7 +143,10 @@ def checks(here: Path = HERE, tex_override: str | None = None) -> dict[str, bool
     )
     without_brief = tex[: brief_match.start()] + tex[brief_match.end() :] if brief_match else tex
     old_tables, new_tables = table_environments(old), table_environments(without_brief)
-    result["brief_all_existing_table_environments_byte_identical"] = new_tables == old_tables
+    # The current authorisation includes caption editing; table cells stay fixed.
+    result["brief_all_existing_table_payloads_byte_identical"] = [
+        (kind, value.split(r"\toprule", 1)[-1]) for kind, value in new_tables
+    ] == [(kind, value.split(r"\toprule", 1)[-1]) for kind, value in old_tables]
 
     def numeric(table: str) -> list[str]:
         return re.findall(r"[-+]?\d+(?:[,.]\d+)*", table)
