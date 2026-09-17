@@ -13,6 +13,11 @@ def main() -> int:
     probes = [
         ("result sign", "+4.137", "-4.137"),
         ("interval endpoint", "+0.750", "+0.751"),
+        (
+            "interval endpoint order",
+            "+0.649 points [+0.517, +0.781]",
+            "+0.649 points [+0.781, +0.517]",
+        ),
         ("table count", "1,744,761 & 1,655,779", "1,744,762 & 1,655,779"),
         ("table unit", "Contrast & Mean difference, pp", "Contrast & Mean difference, percent"),
         (

@@ -25,7 +25,7 @@ def baseline() -> str:
     )
 
 
-def numeric(value: str) -> Counter[str]:
+def numeric(value: str) -> list[str]:
     # Ignore identifiers and cross-references, preserving scientific signs,
     # precision and comma grouping even when a value ends a sentence.
     value = re.sub(
@@ -35,7 +35,7 @@ def numeric(value: str) -> Counter[str]:
     )
     value = value.replace(r"\ensuremath{-}", "-")
     value = re.sub(r"\b(?:E|O|RQ)[0-9]+[bcd]?\b|\bStudy [789]\b", "", value)
-    return Counter(re.findall(r"(?<![\w.])[-+]?\d+(?:[,.]\d+)*(?!\w)", value))
+    return re.findall(r"(?<![\w.])[-+]?\d+(?:[,.]\d+)*(?!\w)", value)
 
 
 # Each entry removes only a duplicate from the named block. The scientific
@@ -85,11 +85,12 @@ def scientific_checks(tex: str | None = None) -> dict[str, bool]:
             ) == (kind, text)
         expected = numeric(text)
         for number, location in REPEATED_NUMBERS.get(n, {}).items():
-            expected[number] -= 1
+            expected.remove(number)
             checks[f"academic_duplicate_{n}_{number}_retained_in_{location}"] = (
-                numeric(current[location][1])[number] >= 1
+                number in numeric(current[location][1])
             )
-        expected = +expected
+        # Preserve order as well as values: interval endpoints and estimates
+        # must retain their original numerical associations within each block.
         # N moves with the cost explanation from 170 into 169, with no numbers.
         checks[f"academic_block_{n}_numerical_content_preserved"] = (
             numeric(current[n][1]) == expected
