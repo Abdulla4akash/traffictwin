@@ -120,7 +120,7 @@ def reference_pass(
     fleet: int = 1,
     tick: int = 5,
     slot: int = 0,
-) -> NDArray[Any]:
+) -> tuple[list[tuple[Any, ...]], NDArray[Any], NDArray[Any]]:
     busy = np.asarray(busy, dtype=np.float32).copy()
     loads = np.asarray(loads, dtype=np.int32).copy()
     output = []
