@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "checks": {
+    "wrong_table_7a_value_rejected_by_direct_analysis_check": true,
+    "restored_G4_sentence_rejected_by_absence_check": true
+  },
+  "mutations_written_to_manuscript": false
+}

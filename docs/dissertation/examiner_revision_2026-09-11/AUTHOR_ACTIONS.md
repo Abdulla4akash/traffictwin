@@ -1,5 +1,19 @@
 # Author confirmations and defence exercises
 
+## Owner amendments — 16 September 2026
+
+The owner authorised the final manuscript pass A–H, inclusion of studies 7–12, the designated G.1–G.9 moves/trims, and narrow consistency fixes. The 15 September design-authorship statement below describes the **initial programme**. Claude proposed the later three follow-up conditions and three-trace study; the owner authorised the runs. Prospective protocol sealing is scoped to the confirmation and follow-ups, while the earlier incident study remains adaptive.
+
+The supplied title-page values are **MSc Artificial Intelligence**, **14185028**, **S M Abdulla Al Mamun**, and **Faculty of Science and Engineering, School of Engineering, Department of Computer Science**. These fields and the standard prior-submission declaration are filled. Signature/date remain blank. The specified handbook contains no prescribed copyright statement; the existing page is retained under F.2's fallback, with the search recorded in the front-matter receipt.
+
+The owner waived the 8,950-word stop after all nine permitted fallbacks and will trim the manuscript themselves. The actual count remains 9,555 strict / 8,136 prose-only; neither the 8,950 ceiling nor the 9,000 rubric ceiling is certified as met. The Abstract alone uses the full seven-policy, five-scenario scale and 274 distinct full runs counted from receipts (82 + 72 + 120). The expected 275 double-counted the E0 reference reused in E1. C5 and Section 3.7 retain initial-programme scoping.
+
+The owner subsequently instructed: stop application tests, leave PR 144 open, cite study branch `research/dissertation-traces-2026-09-16` at scientific head `c95e4f8` in S19, and defer archive registration/main integration until after submission. Acceptance for this pass is limited to manuscript validators, the extended preservation validator and its two requested mutation probes, latexmk, and visual inspection. No application-suite pass, new scientific run, merge or tag is claimed. The pending archive-registration commit remains on the study branch.
+
+The new numerical and bibliographic checks record assistant verification, not a new attestation that the owner has completed the older reading/defence exercises for studies 7–12. AI-use permission, final PDF review, signature/date, copyright wording, backup/examiner access and the assessed video remain owner actions.
+
+## Earlier confirmations — historical record
+
 ## Author confirmation — S M Abdulla Al Mamun, 15 September 2026
 
 1. Design and decisions. The research questions and every evaluation design were mine: E1 capacity levels; the E2b ingress-with-gate control; the E2c four-draw replication; the E2d per-task placement and its reuse of E2c controls; the morning pilot and its exclusion; primary seeds 0/2/3/4; the three declared contrasts; the round-robin comparator; the eight joint fleet/evaluator blocks and rotating arm order. One exception: the 100 ms, 500 ms and 1,000 ms report-age levels were suggested by Dr Sandra Sampaio (email, 18 August 2026, `docs/correspondence/sandra_randy_vec_progress_email_thread_2026-08-18.md`, PDF page 4). I chose to run them.
@@ -41,3 +55,9 @@ The 16 added references are listed with their attachment points in [the registra
 I confirmed that I checked the University of Manchester Ethics Decision Tool and that ethics approval is not required for this project. My reply was: “see we dont need i just checked it myself.” This is my confirmation of the screening outcome; the editing assistant did not observe an authenticated result. See [the dated receipt](evidence/ETHICS_DECISION_OWNER_CONFIRMATION_2026-09-15.json) and manuscript reference 44.
 
 The six C-items in Section 1.3 are my own contribution statement, supplied by me on 15 September 2026.
+
+## Exemplar-alignment owner items — 16 September 2026
+
+- AUTHOR_ACTION: access mechanism. Choose and arrange examiner read access or an archive deposit; Appendix H documents the pending decision. No mechanism is invented or certified.
+- AUTHOR_ACTION: confirm whether Student ID 14185028 remains on the title page. It is retained as instructed pending this decision.
+- Existing signature/date, AI-use permission, preservation, final independent reading, word trimming and assessed-video obligations remain open in SUBMISSION_GATES.md.

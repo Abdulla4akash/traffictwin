@@ -1,0 +1,89 @@
+START ev block=0 arm=ingress_dla steps=23400 2026-09-16T00:06:39.424945+00:00
+VALIDATED ev block=0 arm=ingress_dla simulation_s=518.1
+START ev block=0 arm=dla steps=23400 2026-09-16T00:15:20.471249+00:00
+VALIDATED ev block=0 arm=dla simulation_s=557.5
+START ev block=0 arm=per_task_dla steps=23400 2026-09-16T00:24:41.709881+00:00
+VALIDATED ev block=0 arm=per_task_dla simulation_s=541.6
+START ev block=0 arm=causal_round_robin steps=23400 2026-09-16T00:33:47.027545+00:00
+VALIDATED ev block=0 arm=causal_round_robin simulation_s=534.7
+START ev block=0 arm=dla_p2c steps=23400 2026-09-16T00:42:45.695667+00:00
+VALIDATED ev block=0 arm=dla_p2c simulation_s=580.7
+BLOCK PASSED ev 0
+START ev block=1 arm=dla steps=23400 2026-09-16T00:52:39.273224+00:00
+VALIDATED ev block=1 arm=dla simulation_s=577.2
+START ev block=1 arm=per_task_dla steps=23400 2026-09-16T01:02:20.360267+00:00
+VALIDATED ev block=1 arm=per_task_dla simulation_s=536.2
+START ev block=1 arm=causal_round_robin steps=23400 2026-09-16T01:11:20.360686+00:00
+VALIDATED ev block=1 arm=causal_round_robin simulation_s=541.6
+START ev block=1 arm=dla_p2c steps=23400 2026-09-16T01:20:26.020581+00:00
+VALIDATED ev block=1 arm=dla_p2c simulation_s=588.7
+START ev block=1 arm=ingress_dla steps=23400 2026-09-16T01:30:23.158637+00:00
+VALIDATED ev block=1 arm=ingress_dla simulation_s=582.6
+BLOCK PASSED ev 1
+START ev block=2 arm=per_task_dla steps=23400 2026-09-16T01:40:14.215596+00:00
+VALIDATED ev block=2 arm=per_task_dla simulation_s=541.2
+START ev block=2 arm=causal_round_robin steps=23400 2026-09-16T01:49:19.186231+00:00
+VALIDATED ev block=2 arm=causal_round_robin simulation_s=549.8
+START ev block=2 arm=dla_p2c steps=23400 2026-09-16T01:58:33.186683+00:00
+VALIDATED ev block=2 arm=dla_p2c simulation_s=599.6
+START ev block=2 arm=ingress_dla steps=23400 2026-09-16T02:08:41.581750+00:00
+VALIDATED ev block=2 arm=ingress_dla simulation_s=593.3
+START ev block=2 arm=dla steps=23400 2026-09-16T02:18:38.373729+00:00
+VALIDATED ev block=2 arm=dla simulation_s=610.7
+BLOCK PASSED ev 2
+START ev block=3 arm=causal_round_robin steps=23400 2026-09-16T02:28:56.501789+00:00
+VALIDATED ev block=3 arm=causal_round_robin simulation_s=762.0
+START ev block=3 arm=dla_p2c steps=23400 2026-09-16T02:41:46.703110+00:00
+VALIDATED ev block=3 arm=dla_p2c simulation_s=922.0
+START ev block=3 arm=ingress_dla steps=23400 2026-09-16T02:57:26.499316+00:00
+VALIDATED ev block=3 arm=ingress_dla simulation_s=932.7
+START ev block=3 arm=dla steps=23400 2026-09-16T05:25:02.558221+00:00
+VALIDATED ev block=3 arm=dla simulation_s=667.7
+START ev block=3 arm=per_task_dla steps=23400 2026-09-16T05:36:13.481127+00:00
+VALIDATED ev block=3 arm=per_task_dla simulation_s=502.8
+BLOCK PASSED ev 3
+START ev block=4 arm=dla_p2c steps=23400 2026-09-16T05:44:44.318488+00:00
+VALIDATED ev block=4 arm=dla_p2c simulation_s=589.1
+START ev block=4 arm=ingress_dla steps=23400 2026-09-16T05:54:42.439708+00:00
+VALIDATED ev block=4 arm=ingress_dla simulation_s=609.8
+START ev block=4 arm=dla steps=23400 2026-09-16T06:04:56.265368+00:00
+VALIDATED ev block=4 arm=dla simulation_s=616.3
+START ev block=4 arm=per_task_dla steps=23400 2026-09-16T06:15:16.962879+00:00
+VALIDATED ev block=4 arm=per_task_dla simulation_s=568.1
+START ev block=4 arm=causal_round_robin steps=23400 2026-09-16T06:24:49.949986+00:00
+VALIDATED ev block=4 arm=causal_round_robin simulation_s=584.7
+BLOCK PASSED ev 4
+START ev block=5 arm=ingress_dla steps=23400 2026-09-16T06:34:44.067312+00:00
+VALIDATED ev block=5 arm=ingress_dla simulation_s=638.0
+START ev block=5 arm=dla steps=23400 2026-09-16T06:45:26.236095+00:00
+VALIDATED ev block=5 arm=dla simulation_s=636.1
+START ev block=5 arm=per_task_dla steps=23400 2026-09-16T06:56:06.223338+00:00
+VALIDATED ev block=5 arm=per_task_dla simulation_s=571.5
+START ev block=5 arm=causal_round_robin steps=23400 2026-09-16T07:05:41.037089+00:00
+VALIDATED ev block=5 arm=causal_round_robin simulation_s=544.6
+START ev block=5 arm=dla_p2c steps=23400 2026-09-16T07:14:49.851490+00:00
+VALIDATED ev block=5 arm=dla_p2c simulation_s=597.9
+BLOCK PASSED ev 5
+START ev block=6 arm=dla steps=23400 2026-09-16T07:27:21.456636+00:00
+VALIDATED ev block=6 arm=dla simulation_s=649.2
+START ev block=6 arm=per_task_dla steps=23400 2026-09-16T07:38:15.297601+00:00
+VALIDATED ev block=6 arm=per_task_dla simulation_s=616.2
+START ev block=6 arm=causal_round_robin steps=23400 2026-09-16T07:48:36.281281+00:00
+VALIDATED ev block=6 arm=causal_round_robin simulation_s=673.7
+START ev block=6 arm=dla_p2c steps=23400 2026-09-16T07:59:55.266824+00:00
+VALIDATED ev block=6 arm=dla_p2c simulation_s=723.4
+START ev block=6 arm=ingress_dla steps=23400 2026-09-16T08:12:09.472216+00:00
+VALIDATED ev block=6 arm=ingress_dla simulation_s=702.3
+BLOCK PASSED ev 6
+START ev block=7 arm=per_task_dla steps=23400 2026-09-16T08:24:05.080197+00:00
+VALIDATED ev block=7 arm=per_task_dla simulation_s=645.6
+START ev block=7 arm=causal_round_robin steps=23400 2026-09-16T08:34:54.800796+00:00
+VALIDATED ev block=7 arm=causal_round_robin simulation_s=617.5
+START ev block=7 arm=dla_p2c steps=23400 2026-09-16T08:45:17.829952+00:00
+VALIDATED ev block=7 arm=dla_p2c simulation_s=693.2
+START ev block=7 arm=ingress_dla steps=23400 2026-09-16T08:57:03.631999+00:00
+VALIDATED ev block=7 arm=ingress_dla simulation_s=772.6
+START ev block=7 arm=dla steps=23400 2026-09-16T09:10:02.039379+00:00
+VALIDATED ev block=7 arm=dla simulation_s=730.1
+BLOCK PASSED ev 7
+TRACE COMPLETE ev

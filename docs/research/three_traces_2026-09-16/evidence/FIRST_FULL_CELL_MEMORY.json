@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "checked_at": "2026-09-16T00:16:36.991993+00:00",
+  "first_full_cells": {
+    "we": {
+      "receipt_sha256": "ff2936e5bc87af4b6a1e386202de77da82b05ced4f6b9466618de173ffe6671b",
+      "simulation_s": 550.2589271670004,
+      "total_wall_s": 554.3416563330102,
+      "evaluator_peak_rss_bytes": 1316241408,
+      "runner_process_high_water_rss_bytes": 2280325120,
+      "limit_bytes": 4500000000,
+      "method": "/usr/bin/time -l evaluator; getrusage runner cumulative high-water"
+    },
+    "wd_pm": {
+      "receipt_sha256": "52717f61f5b84ab5e290c23ec3b686376c51f8f3efc0a49249d8dc69ea81ac1b",
+      "simulation_s": 520.8526598330063,
+      "total_wall_s": 524.0321500830032,
+      "evaluator_peak_rss_bytes": 1143209984,
+      "runner_process_high_water_rss_bytes": 1966948352,
+      "limit_bytes": 4500000000,
+      "method": "/usr/bin/time -l evaluator; getrusage runner cumulative high-water"
+    },
+    "ev": {
+      "receipt_sha256": "0da66f779528abd489b94e2140813db2245cf44c7d0ad7a8ce1bfc291c4193d5",
+      "simulation_s": 518.0816454580054,
+      "total_wall_s": 521.0330994999968,
+      "evaluator_peak_rss_bytes": 1261715456,
+      "runner_process_high_water_rss_bytes": 1942568960,
+      "limit_bytes": 4500000000,
+      "method": "/usr/bin/time -l evaluator; getrusage runner cumulative high-water"
+    }
+  },
+  "all_evaluator_peaks_below_3gb": true,
+  "concurrency_reduced": false,
+  "free_gb": 104.692076544
+}

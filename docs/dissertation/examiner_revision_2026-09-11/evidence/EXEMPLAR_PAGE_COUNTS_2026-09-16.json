@@ -1,0 +1,952 @@
+{
+  "before": [
+    {
+      "page": 1,
+      "words": 46,
+      "pdftotext_tokens_including_footer": 46,
+      "vertical_content_fill_pct": 92.66,
+      "start": "Dynamic Resource Management for Intelligent Transport Systems S M Abdulla Al Mamun The University of"
+    },
+    {
+      "page": 2,
+      "words": 503,
+      "pdftotext_tokens_including_footer": 504,
+      "vertical_content_fill_pct": 99.7,
+      "start": "Contents Abbreviations 5 Abstract 6 Declaration 7 Copyright and intellectual property 8 Acknowledgem"
+    },
+    {
+      "page": 3,
+      "words": 429,
+      "pdftotext_tokens_including_footer": 430,
+      "vertical_content_fill_pct": 99.59,
+      "start": "4.1 Verdict against the objectives . . . . . . . . . . . . . . . . . . . . . . . . . 41 4.2 Analysis"
+    },
+    {
+      "page": 4,
+      "words": 1079,
+      "pdftotext_tokens_including_footer": 1080,
+      "vertical_content_fill_pct": 92.9,
+      "start": "List of Figures 1 Experimental responsibility boundaries . . . . . . . . . . . . . . . . . . . . . ."
+    },
+    {
+      "page": 5,
+      "words": 75,
+      "pdftotext_tokens_including_footer": 76,
+      "vertical_content_fill_pct": 39.31,
+      "start": "Abbreviations CI Confidence interval CLI Command-line interface CPU Central processing unit DRL Deep"
+    },
+    {
+      "page": 6,
+      "words": 310,
+      "pdftotext_tokens_including_footer": 311,
+      "vertical_content_fill_pct": 78.68,
+      "start": "Abstract A vehicle\u2019s strongest radio link can lead to a busy computing server, and admitting its tas"
+    },
+    {
+      "page": 7,
+      "words": 188,
+      "pdftotext_tokens_including_footer": 189,
+      "vertical_content_fill_pct": 48.9,
+      "start": "Declaration No portion of the work referred to in the dissertation has been submitted in support of "
+    },
+    {
+      "page": 8,
+      "words": 68,
+      "pdftotext_tokens_including_footer": 69,
+      "vertical_content_fill_pct": 20.05,
+      "start": "Copyright and intellectual property Original text, third-party material, source code and research in"
+    },
+    {
+      "page": 9,
+      "words": 43,
+      "pdftotext_tokens_including_footer": 44,
+      "vertical_content_fill_pct": 14.93,
+      "start": "Acknowledgements I thank Dr Sandra Sampaio for supervising this project and suggesting the report-ag"
+    },
+    {
+      "page": 10,
+      "words": 389,
+      "pdftotext_tokens_including_footer": 390,
+      "vertical_content_fill_pct": 97.38,
+      "start": "1 Introduction 1.1 Problem and motivation Vehicular edge computing concerns where a vehicle\u2019s comput"
+    },
+    {
+      "page": 11,
+      "words": 293,
+      "pdftotext_tokens_including_footer": 294,
+      "vertical_content_fill_pct": 65.46,
+      "start": "Research on RSU-to-RSU cooperation [7] and task inference across vehicle, RSU and edge resources [8]"
+    },
+    {
+      "page": 12,
+      "words": 333,
+      "pdftotext_tokens_including_footer": 334,
+      "vertical_content_fill_pct": 99.78,
+      "start": "Frozen MAPPO actor one mode choice per vehicle-second Local V2V V2I radio ingress vehicle queue / se"
+    },
+    {
+      "page": 13,
+      "words": 406,
+      "pdftotext_tokens_including_footer": 407,
+      "vertical_content_fill_pct": 96.96,
+      "start": "work. TrafficTwin evaluates the latter implementation. Its immediate service-work reser- vation is a"
+    },
+    {
+      "page": 14,
+      "words": 418,
+      "pdftotext_tokens_including_footer": 419,
+      "vertical_content_fill_pct": 96.43,
+      "start": "Table 1: Closest-work comparison. \u201cWork\u201d means remaining service demand; \u201ccount\u201d means queued jobs. "
+    },
+    {
+      "page": 15,
+      "words": 330,
+      "pdftotext_tokens_including_footer": 331,
+      "vertical_content_fill_pct": 98.23,
+      "start": "Communication remains part of feasibility: Wu et al. model heterogeneous links under latency/reliabi"
+    },
+    {
+      "page": 16,
+      "words": 317,
+      "pdftotext_tokens_including_footer": 318,
+      "vertical_content_fill_pct": 84.66,
+      "start": "C1. Identifying the mismatch between task scoring and queue admission in the inherited evaluator, re"
+    },
+    {
+      "page": 17,
+      "words": 323,
+      "pdftotext_tokens_including_footer": 324,
+      "vertical_content_fill_pct": 100.0,
+      "start": "2 Methodology 2.1 Research design and evidence hierarchy Matched traffic, fleet and task inputs isol"
+    },
+    {
+      "page": 18,
+      "words": 314,
+      "pdftotext_tokens_including_footer": 315,
+      "vertical_content_fill_pct": 99.59,
+      "start": "need not retain one vehicle identity. Queues reset for each new visit; SoC does not. The incident tr"
+    },
+    {
+      "page": 19,
+      "words": 380,
+      "pdftotext_tokens_including_footer": 381,
+      "vertical_content_fill_pct": 98.13,
+      "start": "Each active vehicle offers min(Poisson(1.5), 5) tasks per second; inactive slots offer none. Operati"
+    },
+    {
+      "page": 20,
+      "words": 270,
+      "pdftotext_tokens_including_footer": 271,
+      "vertical_content_fill_pct": 91.94,
+      "start": "All offered tasks Admitted Deadline met primary denominator work and latency accounted primary numer"
+    },
+    {
+      "page": 21,
+      "words": 371,
+      "pdftotext_tokens_including_footer": 372,
+      "vertical_content_fill_pct": 98.94,
+      "start": "2.5 Placement algorithms and their implementation The inherited identifiers do not define canonical "
+    },
+    {
+      "page": 22,
+      "words": 310,
+      "pdftotext_tokens_including_footer": 311,
+      "vertical_content_fill_pct": 96.66,
+      "start": "Algorithm 1 common-target placement with gate (one substep) r[i] = lowest-index argmin(W), shared by"
+    },
+    {
+      "page": 23,
+      "words": 386,
+      "pdftotext_tokens_including_footer": 387,
+      "vertical_content_fill_pct": 99.5,
+      "start": "misses its deadline despite passing the backlog gate. Per-task selects 0, 1, 2, 0, leaves 80, 40, 40"
+    },
+    {
+      "page": 24,
+      "words": 345,
+      "pdftotext_tokens_including_footer": 346,
+      "vertical_content_fill_pct": 99.24,
+      "start": "diagnose distributional assumptions; these small-sample intervals remain conditional parametric summ"
+    },
+    {
+      "page": 25,
+      "words": 43,
+      "pdftotext_tokens_including_footer": 44,
+      "vertical_content_fill_pct": 9.39,
+      "start": "Retrospective type aggregation retains all types and draws without subgroup significance tests, usin"
+    },
+    {
+      "page": 26,
+      "words": 317,
+      "pdftotext_tokens_including_footer": 318,
+      "vertical_content_fill_pct": 95.2,
+      "start": "2.9 Method selection and alternatives Table 3a makes the design trade-offs explicit, using the contr"
+    },
+    {
+      "page": 27,
+      "words": 389,
+      "pdftotext_tokens_including_footer": 390,
+      "vertical_content_fill_pct": 99.59,
+      "start": "identified the mismatch between task scoring and queue admission; E0 qualified recorded accounting i"
+    },
+    {
+      "page": 28,
+      "words": 335,
+      "pdftotext_tokens_including_footer": 336,
+      "vertical_content_fill_pct": 97.11,
+      "start": "individual 95% interval of [\u22122.234, \u22122.011]. All four paired differences were negative. The inherite"
+    },
+    {
+      "page": 29,
+      "words": 257,
+      "pdftotext_tokens_including_footer": 258,
+      "vertical_content_fill_pct": 81.7,
+      "start": "tainment is 85.655%, 88.887% and 92.785%, respectively; its lower ingress/per-task means than the pi"
+    },
+    {
+      "page": 30,
+      "words": 186,
+      "pdftotext_tokens_including_footer": 187,
+      "vertical_content_fill_pct": 83.94,
+      "start": "Figure 5: Redrawn from archived morning primary data. Left: within-draw attainment. Right: draw diff"
+    },
+    {
+      "page": 31,
+      "words": 415,
+      "pdftotext_tokens_including_footer": 416,
+      "vertical_content_fill_pct": 100.0,
+      "start": "Table 7: New morning confirmation, eight paired joint-seed blocks with equal weighting. Two-sided Bo"
+    },
+    {
+      "page": 32,
+      "words": 178,
+      "pdftotext_tokens_including_footer": 179,
+      "vertical_content_fill_pct": 64.22,
+      "start": "Joint-randomness confirmation: all 32 cells 94 Offered-task deadline attainment (%) 92 90 88 86 84 C"
+    },
+    {
+      "page": 33,
+      "words": 321,
+      "pdftotext_tokens_including_footer": 322,
+      "vertical_content_fill_pct": 74.63,
+      "start": "Table 7a: Follow-up contrasts on the same eight blocks: post-hoc additions with a ten-contrast Bonfe"
+    },
+    {
+      "page": 34,
+      "words": 153,
+      "pdftotext_tokens_including_footer": 154,
+      "vertical_content_fill_pct": 34.76,
+      "start": "Table 7b: Three further Manchester traces, each with eight paired blocks and five arms. All-fifteen "
+    },
+    {
+      "page": 35,
+      "words": 346,
+      "pdftotext_tokens_including_footer": 347,
+      "vertical_content_fill_pct": 89.2,
+      "start": "3.5 Why destination semantics matter O4 addresses the mechanism component of RQ1. Common-target plac"
+    },
+    {
+      "page": 36,
+      "words": 321,
+      "pdftotext_tokens_including_footer": 322,
+      "vertical_content_fill_pct": 98.63,
+      "start": "3.6 Bounded state-information and forwarding sensitivities O4 addresses RQ3 through bounded sensitiv"
+    },
+    {
+      "page": 37,
+      "words": 151,
+      "pdftotext_tokens_including_footer": 152,
+      "vertical_content_fill_pct": 33.97,
+      "start": "Contracts require admission before recorded execution and a passing validation receipt before accept"
+    },
+    {
+      "page": 38,
+      "words": 122,
+      "pdftotext_tokens_including_footer": 122,
+      "vertical_content_fill_pct": 99.41,
+      "start": "38 Figure 7: TrafficTwin with real data. (a) An external evaluation package (R. P. Putra, Paper 2B d"
+    },
+    {
+      "page": 39,
+      "words": 192,
+      "pdftotext_tokens_including_footer": 193,
+      "vertical_content_fill_pct": 38.32,
+      "start": "I designed the research questions and the initial evaluation experiments in this report: the E1 capa"
+    },
+    {
+      "page": 40,
+      "words": 248,
+      "pdftotext_tokens_including_footer": 249,
+      "vertical_content_fill_pct": 65.42,
+      "start": "Table 8: Validity limits and their consequences for interpretation. Reading: use each row to identif"
+    },
+    {
+      "page": 41,
+      "words": 311,
+      "pdftotext_tokens_including_footer": 312,
+      "vertical_content_fill_pct": 99.02,
+      "start": "4 Conclusion Within the studied evaluator and matched populations, implementation semantics reverse "
+    },
+    {
+      "page": 42,
+      "words": 354,
+      "pdftotext_tokens_including_footer": 355,
+      "vertical_content_fill_pct": 98.48,
+      "start": "replication and joint-randomness confirmation. Table A1 in Appendix A lists component sizes and reco"
+    },
+    {
+      "page": 43,
+      "words": 360,
+      "pdftotext_tokens_including_footer": 361,
+      "vertical_content_fill_pct": 99.24,
+      "start": "in reduced rejection, alongside recovered admitted misses and smaller losses; it does not identify t"
+    },
+    {
+      "page": 44,
+      "words": 99,
+      "pdftotext_tokens_including_footer": 100,
+      "vertical_content_fill_pct": 22.96,
+      "start": "have planned retention around future audit needs as well as immediate analysis. The re- tained Septe"
+    },
+    {
+      "page": 45,
+      "words": 353,
+      "pdftotext_tokens_including_footer": 354,
+      "vertical_content_fill_pct": 99.35,
+      "start": "References [1] L. Liu, C. Chen, Q. Pei, S. Maharjan and Y. Zhang. \u201cVehicular Edge Computing and Netw"
+    },
+    {
+      "page": 46,
+      "words": 386,
+      "pdftotext_tokens_including_footer": 387,
+      "vertical_content_fill_pct": 97.19,
+      "start": "[12] R. R. Weber. \u201cOn the optimal assignment of customers to parallel servers.\u201d Journal of Applied P"
+    },
+    {
+      "page": 47,
+      "words": 384,
+      "pdftotext_tokens_including_footer": 385,
+      "vertical_content_fill_pct": 99.59,
+      "start": "[25] P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. \u201cDeep Rein- forcement Le"
+    },
+    {
+      "page": 48,
+      "words": 310,
+      "pdftotext_tokens_including_footer": 311,
+      "vertical_content_fill_pct": 79.11,
+      "start": "[39] J. Pineau, P. Vincent-Lamarre, K. Sinha, V. Larivi\u00e8re, A. Beygelzimer, F. d\u2019Alch\u00e9- Buc, E. Fox "
+    },
+    {
+      "page": 49,
+      "words": 374,
+      "pdftotext_tokens_including_footer": 375,
+      "vertical_content_fill_pct": 99.28,
+      "start": "Appendix A. Evidence sources and reproducibility The sources below are project evidence, separate fr"
+    },
+    {
+      "page": 50,
+      "words": 347,
+      "pdftotext_tokens_including_footer": 348,
+      "vertical_content_fill_pct": 74.42,
+      "start": "ification route. That original preparation package remains disabled and unchanged; S16 records the s"
+    },
+    {
+      "page": 51,
+      "words": 249,
+      "pdftotext_tokens_including_footer": 250,
+      "vertical_content_fill_pct": 64.01,
+      "start": "Table A1: Research and product artefact inventory at source commit 1e01b75. Sizes count physical Pyt"
+    },
+    {
+      "page": 52,
+      "words": 437,
+      "pdftotext_tokens_including_footer": 438,
+      "vertical_content_fill_pct": 96.47,
+      "start": "Appendix B. Audit coverage and diagnostic boundaries The September audit independently identifies of"
+    },
+    {
+      "page": 53,
+      "words": 444,
+      "pdftotext_tokens_including_footer": 445,
+      "vertical_content_fill_pct": 99.63,
+      "start": "Records Available evidence / cov- Completed gap-closure Consequence erage checks September morning p"
+    },
+    {
+      "page": 54,
+      "words": 167,
+      "pdftotext_tokens_including_footer": 168,
+      "vertical_content_fill_pct": 35.74,
+      "start": "interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inc"
+    },
+    {
+      "page": 55,
+      "words": 462,
+      "pdftotext_tokens_including_footer": 463,
+      "vertical_content_fill_pct": 90.72,
+      "start": "Appendix C. Exact-model result and numerical boundary This appendix retains the retrospective exact-"
+    },
+    {
+      "page": 56,
+      "words": 562,
+      "pdftotext_tokens_including_footer": 563,
+      "vertical_content_fill_pct": 99.12,
+      "start": "C.3 A deadline-count bound from eligibility Let dr be the number of distinct deadline thresholds amo"
+    },
+    {
+      "page": 57,
+      "words": 467,
+      "pdftotext_tokens_including_footer": 468,
+      "vertical_content_fill_pct": 98.84,
+      "start": "adds admitted services in scan order; floating-point associativity differs. Thus the exact dependenc"
+    },
+    {
+      "page": 58,
+      "words": 490,
+      "pdftotext_tokens_including_footer": 491,
+      "vertical_content_fill_pct": 93.86,
+      "start": "11111111 \u2192 11111110 \u2192 11111111 \u2192 11111110 \u2192 11111111. The unchanged production helper confirms the r"
+    },
+    {
+      "page": 59,
+      "words": 327,
+      "pdftotext_tokens_including_footer": 328,
+      "vertical_content_fill_pct": 99.59,
+      "start": "B preserves an empty RSU for substep 2. C spreads earlier work across both, making the later 100 ms "
+    },
+    {
+      "page": 60,
+      "words": 524,
+      "pdftotext_tokens_including_footer": 525,
+      "vertical_content_fill_pct": 98.67,
+      "start": "batch: each substep contributes at most one target, so their union has at most K mem- bers. This bou"
+    },
+    {
+      "page": 61,
+      "words": 406,
+      "pdftotext_tokens_including_footer": 407,
+      "vertical_content_fill_pct": 96.61,
+      "start": "mensions retained no loss. This identifies a possible interaction, not the cause or frequency of rec"
+    },
+    {
+      "page": 62,
+      "words": 470,
+      "pdftotext_tokens_including_footer": 471,
+      "vertical_content_fill_pct": 99.71,
+      "start": "Appendix D. Type aggregation and engineering evidence Scheduler timing uses actual JAX helpers, incl"
+    },
+    {
+      "page": 63,
+      "words": 188,
+      "pdftotext_tokens_including_footer": 189,
+      "vertical_content_fill_pct": 53.02,
+      "start": "Seed / type Arm Offered Success Attainment Admitted Gate re- Admitted jected miss 4/1 I 349,045 260,"
+    },
+    {
+      "page": 64,
+      "words": 502,
+      "pdftotext_tokens_including_footer": 503,
+      "vertical_content_fill_pct": 98.84,
+      "start": "Appendix E. Joint-randomness study controls and execu- tion The execution-authorised seal preserves "
+    },
+    {
+      "page": 65,
+      "words": 348,
+      "pdftotext_tokens_including_footer": 349,
+      "vertical_content_fill_pct": 96.8,
+      "start": "Table E1: Full new-study counts. Offered populations match within blocks; attainment is offered-task"
+    },
+    {
+      "page": 66,
+      "words": 275,
+      "pdftotext_tokens_including_footer": 276,
+      "vertical_content_fill_pct": 48.64,
+      "start": "Actions matched exactly in all 24 non-reference arm/block comparisons. Small observa- tion and logit"
+    },
+    {
+      "page": 67,
+      "words": 549,
+      "pdftotext_tokens_including_footer": 550,
+      "vertical_content_fill_pct": 94.39,
+      "start": "Appendix F. Latency, scoring and drain details The same archived one-hot-17 checkpoint is used in th"
+    },
+    {
+      "page": 68,
+      "words": 32,
+      "pdftotext_tokens_including_footer": 33,
+      "vertical_content_fill_pct": 5.83,
+      "start": "Four ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges"
+    }
+  ],
+  "after": [
+    {
+      "page": 1,
+      "words": 55,
+      "pdftotext_tokens_including_footer": 55,
+      "vertical_content_fill_pct": 92.66,
+      "start": "Dynamic Resource Management for Intelligent Transport Systems S M Abdulla Al Mamun A dissertation su"
+    },
+    {
+      "page": 2,
+      "words": 500,
+      "pdftotext_tokens_including_footer": 501,
+      "vertical_content_fill_pct": 99.69,
+      "start": "Contents Abbreviations 5 Glossary 6 Abstract 7 Declaration 8 Copyright statement 9 Acknowledgements "
+    },
+    {
+      "page": 3,
+      "words": 439,
+      "pdftotext_tokens_including_footer": 440,
+      "vertical_content_fill_pct": 99.59,
+      "start": "4 Conclusion 37 4.1 Verdict against the objectives . . . . . . . . . . . . . . . . . . . . . . . . ."
+    },
+    {
+      "page": 4,
+      "words": 1134,
+      "pdftotext_tokens_including_footer": 1135,
+      "vertical_content_fill_pct": 98.31,
+      "start": "List of Figures 1 Experimental responsibility boundaries . . . . . . . . . . . . . . . . . . . . . ."
+    },
+    {
+      "page": 5,
+      "words": 75,
+      "pdftotext_tokens_including_footer": 76,
+      "vertical_content_fill_pct": 39.31,
+      "start": "Abbreviations CI Confidence interval CLI Command-line interface CPU Central processing unit DRL Deep"
+    },
+    {
+      "page": 6,
+      "words": 349,
+      "pdftotext_tokens_including_footer": 350,
+      "vertical_content_fill_pct": 98.57,
+      "start": "Glossary Offered task A generated task remains in the primary outcome population whether it is admit"
+    },
+    {
+      "page": 7,
+      "words": 325,
+      "pdftotext_tokens_including_footer": 326,
+      "vertical_content_fill_pct": 82.71,
+      "start": "Abstract A dissertation submitted to The University of Manchester for the degree of Master of Scienc"
+    },
+    {
+      "page": 8,
+      "words": 188,
+      "pdftotext_tokens_including_footer": 189,
+      "vertical_content_fill_pct": 48.9,
+      "start": "Declaration No portion of the work referred to in the dissertation has been submitted in support of "
+    },
+    {
+      "page": 9,
+      "words": 262,
+      "pdftotext_tokens_including_footer": 263,
+      "vertical_content_fill_pct": 67.84,
+      "start": "Copyright statement (i) The author of this thesis (including any appendices and/or schedules to this"
+    },
+    {
+      "page": 10,
+      "words": 43,
+      "pdftotext_tokens_including_footer": 44,
+      "vertical_content_fill_pct": 14.93,
+      "start": "Acknowledgements I thank Dr Sandra Sampaio for supervising this project and suggesting the report-ag"
+    },
+    {
+      "page": 11,
+      "words": 390,
+      "pdftotext_tokens_including_footer": 391,
+      "vertical_content_fill_pct": 97.38,
+      "start": "1 Introduction 1.1 Problem and motivation Vehicular edge computing concerns where a vehicle\u2019s comput"
+    },
+    {
+      "page": 12,
+      "words": 293,
+      "pdftotext_tokens_including_footer": 294,
+      "vertical_content_fill_pct": 65.46,
+      "start": "Research on RSU-to-RSU cooperation [7] and task inference across vehicle, RSU and edge resources [8]"
+    },
+    {
+      "page": 13,
+      "words": 333,
+      "pdftotext_tokens_including_footer": 334,
+      "vertical_content_fill_pct": 99.78,
+      "start": "Frozen MAPPO actor one mode choice per vehicle-second Local V2V V2I radio ingress vehicle queue / se"
+    },
+    {
+      "page": 14,
+      "words": 406,
+      "pdftotext_tokens_including_footer": 407,
+      "vertical_content_fill_pct": 96.96,
+      "start": "work. TrafficTwin evaluates the latter implementation. Its immediate service-work reser- vation is a"
+    },
+    {
+      "page": 15,
+      "words": 418,
+      "pdftotext_tokens_including_footer": 419,
+      "vertical_content_fill_pct": 96.43,
+      "start": "Table 1: Closest-work comparison. \u201cWork\u201d means remaining service demand; \u201ccount\u201d means queued jobs. "
+    },
+    {
+      "page": 16,
+      "words": 330,
+      "pdftotext_tokens_including_footer": 331,
+      "vertical_content_fill_pct": 98.23,
+      "start": "Communication remains part of feasibility: Wu et al. model heterogeneous links under latency/reliabi"
+    },
+    {
+      "page": 17,
+      "words": 317,
+      "pdftotext_tokens_including_footer": 318,
+      "vertical_content_fill_pct": 84.66,
+      "start": "C1. Identifying the mismatch between task scoring and queue admission in the inherited evaluator, re"
+    },
+    {
+      "page": 18,
+      "words": 319,
+      "pdftotext_tokens_including_footer": 320,
+      "vertical_content_fill_pct": 100.0,
+      "start": "2 Methodology 2.1 Research design and evidence hierarchy Matched traffic, fleet and task inputs isol"
+    },
+    {
+      "page": 19,
+      "words": 307,
+      "pdftotext_tokens_including_footer": 308,
+      "vertical_content_fill_pct": 96.86,
+      "start": "checks reconstruct canonical arrays and verify entry markers because padded slots need not retain on"
+    },
+    {
+      "page": 20,
+      "words": 391,
+      "pdftotext_tokens_including_footer": 392,
+      "vertical_content_fill_pct": 98.09,
+      "start": "One archived MAPPO checkpoint and one device-tier preset are fixed in the initial studies; Section 3"
+    },
+    {
+      "page": 21,
+      "words": 285,
+      "pdftotext_tokens_including_footer": 286,
+      "vertical_content_fill_pct": 97.83,
+      "start": "All offered tasks Admitted Deadline met primary denominator work and latency accounted primary numer"
+    },
+    {
+      "page": 22,
+      "words": 371,
+      "pdftotext_tokens_including_footer": 372,
+      "vertical_content_fill_pct": 98.94,
+      "start": "2.5 Placement algorithms and their implementation The inherited identifiers do not define canonical "
+    },
+    {
+      "page": 23,
+      "words": 310,
+      "pdftotext_tokens_including_footer": 311,
+      "vertical_content_fill_pct": 96.66,
+      "start": "Algorithm 1 common-target placement with gate (one substep) r[i] = lowest-index argmin(W), shared by"
+    },
+    {
+      "page": 24,
+      "words": 386,
+      "pdftotext_tokens_including_footer": 387,
+      "vertical_content_fill_pct": 99.5,
+      "start": "misses its deadline despite passing the backlog gate. Per-task selects 0, 1, 2, 0, leaves 80, 40, 40"
+    },
+    {
+      "page": 25,
+      "words": 345,
+      "pdftotext_tokens_including_footer": 346,
+      "vertical_content_fill_pct": 99.24,
+      "start": "diagnose distributional assumptions; these small-sample intervals remain conditional parametric summ"
+    },
+    {
+      "page": 26,
+      "words": 295,
+      "pdftotext_tokens_including_footer": 296,
+      "vertical_content_fill_pct": 95.55,
+      "start": "Retrospective type aggregation retains all types and draws without subgroup significance tests, usin"
+    },
+    {
+      "page": 27,
+      "words": 387,
+      "pdftotext_tokens_including_footer": 388,
+      "vertical_content_fill_pct": 99.25,
+      "start": "E0 addressed a concrete mismatch between task scoring and queue admission. In the legacy clamp path,"
+    },
+    {
+      "page": 28,
+      "words": 345,
+      "pdftotext_tokens_including_footer": 346,
+      "vertical_content_fill_pct": 96.28,
+      "start": "fies a stronger comparator without assigning its entire gain solely to the gate. Subsequent gate-hel"
+    },
+    {
+      "page": 29,
+      "words": 314,
+      "pdftotext_tokens_including_footer": 315,
+      "vertical_content_fill_pct": 95.27,
+      "start": "Setting. The inspected morning pilot offered 1,744,116 tasks and produced 91.075% ingress versus 94."
+    },
+    {
+      "page": 30,
+      "words": 186,
+      "pdftotext_tokens_including_footer": 187,
+      "vertical_content_fill_pct": 83.94,
+      "start": "Figure 5: Redrawn from archived morning primary data. Left: within-draw attainment. Right: draw diff"
+    },
+    {
+      "page": 31,
+      "words": 415,
+      "pdftotext_tokens_including_footer": 416,
+      "vertical_content_fill_pct": 100.0,
+      "start": "Table 7: New morning confirmation, eight paired joint-seed blocks with equal weighting. Two-sided Bo"
+    },
+    {
+      "page": 32,
+      "words": 296,
+      "pdftotext_tokens_including_footer": 297,
+      "vertical_content_fill_pct": 99.38,
+      "start": "Joint-randomness confirmation: all 32 cells 94 Offered-task deadline attainment (%) 92 90 88 86 84 C"
+    },
+    {
+      "page": 33,
+      "words": 378,
+      "pdftotext_tokens_including_footer": 379,
+      "vertical_content_fill_pct": 98.31,
+      "start": "Study Contrast Mean difference (pp) All-ten simultaneous 95% interval 9 Per-task \u2212 round-robin +0.55"
+    },
+    {
+      "page": 34,
+      "words": 370,
+      "pdftotext_tokens_including_footer": 371,
+      "vertical_content_fill_pct": 98.0,
+      "start": "Common-target placement assigned morning work only to RSUs 0\u20134, whereas causal per- task placement u"
+    },
+    {
+      "page": 35,
+      "words": 327,
+      "pdftotext_tokens_including_footer": 328,
+      "vertical_content_fill_pct": 97.2,
+      "start": "72.45510%; single-draw changes do not establish equivalence or population robustness [S5]. Results. "
+    },
+    {
+      "page": 36,
+      "words": 431,
+      "pdftotext_tokens_including_footer": 432,
+      "vertical_content_fill_pct": 98.46,
+      "start": "The inventory measures project scope, not individually authored new code. Hosted run 34631121188, 11"
+    },
+    {
+      "page": 37,
+      "words": 213,
+      "pdftotext_tokens_including_footer": 214,
+      "vertical_content_fill_pct": 64.29,
+      "start": "Limitation Claim restricted Consequence / evidence needed Legacy off scoring masks differ Admission-"
+    },
+    {
+      "page": 38,
+      "words": 133,
+      "pdftotext_tokens_including_footer": 134,
+      "vertical_content_fill_pct": 98.33,
+      "start": "Figure 7a: TrafficTwin with real data. (a) An external evaluation package (R. P. Putra, Paper 2B dat"
+    },
+    {
+      "page": 39,
+      "words": 45,
+      "pdftotext_tokens_including_footer": 46,
+      "vertical_content_fill_pct": 78.31,
+      "start": "Figure 7b: TrafficTwin with real data. (c) This dissertation\u2019s sealed eight-block contrasts read fro"
+    },
+    {
+      "page": 40,
+      "words": 338,
+      "pdftotext_tokens_including_footer": 339,
+      "vertical_content_fill_pct": 94.92,
+      "start": "4.1 Verdict against the objectives Table 9: Objective-by-objective verdict for the completed work. \u201c"
+    },
+    {
+      "page": 41,
+      "words": 311,
+      "pdftotext_tokens_including_footer": 312,
+      "vertical_content_fill_pct": 95.14,
+      "start": "Challenges. I had to recover inherited evaluator semantics from source. The adaptive E2c- to-E2d dec"
+    },
+    {
+      "page": 42,
+      "words": 389,
+      "pdftotext_tokens_including_footer": 390,
+      "vertical_content_fill_pct": 95.92,
+      "start": "Second, an event-level service and communication model should be checked against mea- sured timing, "
+    },
+    {
+      "page": 43,
+      "words": 322,
+      "pdftotext_tokens_including_footer": 323,
+      "vertical_content_fill_pct": 98.44,
+      "start": "understanding. The lesson was to record design decisions, supplied code, automated assis- tance and "
+    },
+    {
+      "page": 44,
+      "words": 362,
+      "pdftotext_tokens_including_footer": 363,
+      "vertical_content_fill_pct": 95.12,
+      "start": "[11] Z. Ning, P. Dong, X. Wang, J. J. P. C. Rodrigues and F. Xia. \u201cDeep Reinforce- ment Learning for"
+    },
+    {
+      "page": 45,
+      "words": 377,
+      "pdftotext_tokens_including_footer": 378,
+      "vertical_content_fill_pct": 96.54,
+      "start": "[24] C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. \u201cThe Surprising Effectiveness"
+    },
+    {
+      "page": 46,
+      "words": 321,
+      "pdftotext_tokens_including_footer": 322,
+      "vertical_content_fill_pct": 78.47,
+      "start": "[38] G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig. \u201cTen Simple Rules for Repro- ducible Compu"
+    },
+    {
+      "page": 47,
+      "words": 374,
+      "pdftotext_tokens_including_footer": 375,
+      "vertical_content_fill_pct": 99.28,
+      "start": "Appendix A. Evidence sources and reproducibility The sources below are project evidence, separate fr"
+    },
+    {
+      "page": 48,
+      "words": 380,
+      "pdftotext_tokens_including_footer": 381,
+      "vertical_content_fill_pct": 99.59,
+      "start": "ification route. That original preparation package remains disabled and unchanged; S16 records the s"
+    },
+    {
+      "page": 49,
+      "words": 316,
+      "pdftotext_tokens_including_footer": 317,
+      "vertical_content_fill_pct": 79.77,
+      "start": "EFFECTS.csv, FINAL_ANALYSIS_AUDIT.json. PR #144 remains open; this source cites the study at c95e4f8"
+    },
+    {
+      "page": 50,
+      "words": 437,
+      "pdftotext_tokens_including_footer": 438,
+      "vertical_content_fill_pct": 96.47,
+      "start": "Appendix B. Audit coverage and diagnostic boundaries The September audit independently identifies of"
+    },
+    {
+      "page": 51,
+      "words": 444,
+      "pdftotext_tokens_including_footer": 445,
+      "vertical_content_fill_pct": 99.63,
+      "start": "Records Available evidence / cov- Completed gap-closure Consequence erage checks September morning p"
+    },
+    {
+      "page": 52,
+      "words": 167,
+      "pdftotext_tokens_including_footer": 168,
+      "vertical_content_fill_pct": 35.74,
+      "start": "interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inc"
+    },
+    {
+      "page": 53,
+      "words": 462,
+      "pdftotext_tokens_including_footer": 463,
+      "vertical_content_fill_pct": 90.72,
+      "start": "Appendix C. Exact-model result and numerical boundary This appendix retains the retrospective exact-"
+    },
+    {
+      "page": 54,
+      "words": 562,
+      "pdftotext_tokens_including_footer": 563,
+      "vertical_content_fill_pct": 99.12,
+      "start": "C.3 A deadline-count bound from eligibility Let dr be the number of distinct deadline thresholds amo"
+    },
+    {
+      "page": 55,
+      "words": 467,
+      "pdftotext_tokens_including_footer": 468,
+      "vertical_content_fill_pct": 98.84,
+      "start": "adds admitted services in scan order; floating-point associativity differs. Thus the exact dependenc"
+    },
+    {
+      "page": 56,
+      "words": 490,
+      "pdftotext_tokens_including_footer": 491,
+      "vertical_content_fill_pct": 93.86,
+      "start": "11111111 \u2192 11111110 \u2192 11111111 \u2192 11111110 \u2192 11111111. The unchanged production helper confirms the r"
+    },
+    {
+      "page": 57,
+      "words": 327,
+      "pdftotext_tokens_including_footer": 328,
+      "vertical_content_fill_pct": 99.59,
+      "start": "B preserves an empty RSU for substep 2. C spreads earlier work across both, making the later 100 ms "
+    },
+    {
+      "page": 58,
+      "words": 524,
+      "pdftotext_tokens_including_footer": 525,
+      "vertical_content_fill_pct": 98.67,
+      "start": "batch: each substep contributes at most one target, so their union has at most K mem- bers. This bou"
+    },
+    {
+      "page": 59,
+      "words": 406,
+      "pdftotext_tokens_including_footer": 407,
+      "vertical_content_fill_pct": 96.61,
+      "start": "mensions retained no loss. This identifies a possible interaction, not the cause or frequency of rec"
+    },
+    {
+      "page": 60,
+      "words": 470,
+      "pdftotext_tokens_including_footer": 471,
+      "vertical_content_fill_pct": 99.71,
+      "start": "Appendix D. Type aggregation and engineering evidence Scheduler timing uses actual JAX helpers, incl"
+    },
+    {
+      "page": 61,
+      "words": 189,
+      "pdftotext_tokens_including_footer": 190,
+      "vertical_content_fill_pct": 53.02,
+      "start": "Seed / type Arm Offered Success Attainment Admitted Gate re- Admitted jected miss 4/1 I 349,045 260,"
+    },
+    {
+      "page": 62,
+      "words": 502,
+      "pdftotext_tokens_including_footer": 503,
+      "vertical_content_fill_pct": 98.84,
+      "start": "Appendix E. Joint-randomness study controls and execu- tion The execution-authorised seal preserves "
+    },
+    {
+      "page": 63,
+      "words": 348,
+      "pdftotext_tokens_including_footer": 349,
+      "vertical_content_fill_pct": 96.8,
+      "start": "Table E1: Full new-study counts. Offered populations match within blocks; attainment is offered-task"
+    },
+    {
+      "page": 64,
+      "words": 275,
+      "pdftotext_tokens_including_footer": 276,
+      "vertical_content_fill_pct": 48.64,
+      "start": "Actions matched exactly in all 24 non-reference arm/block comparisons. Small observa- tion and logit"
+    },
+    {
+      "page": 65,
+      "words": 549,
+      "pdftotext_tokens_including_footer": 550,
+      "vertical_content_fill_pct": 94.39,
+      "start": "Appendix F. Latency, scoring and drain details The same archived one-hot-17 checkpoint is used in th"
+    },
+    {
+      "page": 66,
+      "words": 32,
+      "pdftotext_tokens_including_footer": 33,
+      "vertical_content_fill_pct": 5.83,
+      "start": "Four ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges"
+    },
+    {
+      "page": 67,
+      "words": 254,
+      "pdftotext_tokens_including_footer": 255,
+      "vertical_content_fill_pct": 78.31,
+      "start": "Appendix H. Artefact access and verification The repository is https://github.com/Abdulla4akash/traf"
+    }
+  ],
+  "method": "pdftotext -layout whitespace tokens, removing one final page-number token; image text is not OCR-counted. Fill is the text/image/vector bounding-box vertical extent within 25 mm top/bottom margins, excluding page-number footer; it is not a word-density or ink-area estimate."
+}

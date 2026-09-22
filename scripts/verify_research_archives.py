@@ -40,6 +40,7 @@ def verify(root: Path, manifest_path: Path) -> dict[str, object]:
         if len(path.parts) != 3 or path.parts[:2] not in (
             ("docs", "dissertation"),
             ("docs", "evaluation"),
+            ("docs", "research"),
         ):
             raise ValueError(f"Archive exclusions must name exact dated packages: {path}")
         if re.search(r"_2026-\d{2}-\d{2}$", path.name) is None:

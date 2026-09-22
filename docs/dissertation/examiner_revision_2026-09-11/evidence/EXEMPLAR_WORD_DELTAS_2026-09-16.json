@@ -1,0 +1,80 @@
+{
+  "before": {
+    "strict": 9555,
+    "prose_only": 8136
+  },
+  "after": {
+    "strict": 9605,
+    "prose_only": 8174
+  },
+  "blocks": [
+    {
+      "source_block": 6,
+      "strict_delta": 0,
+      "prose_only_delta": 0
+    },
+    {
+      "source_block": 13,
+      "strict_delta": 1,
+      "prose_only_delta": 1
+    },
+    {
+      "source_block": 64,
+      "strict_delta": 12,
+      "prose_only_delta": 0
+    },
+    {
+      "source_block": 152,
+      "strict_delta": 0,
+      "prose_only_delta": 0
+    },
+    {
+      "source_block": 176,
+      "strict_delta": 2,
+      "prose_only_delta": 2
+    },
+    {
+      "source_block": 180,
+      "strict_delta": 0,
+      "prose_only_delta": 0
+    },
+    {
+      "source_block": 194,
+      "strict_delta": 0,
+      "prose_only_delta": 0
+    },
+    {
+      "source_block": 61,
+      "strict_delta": 12,
+      "prose_only_delta": 12
+    },
+    {
+      "source_block": 142,
+      "strict_delta": 45,
+      "prose_only_delta": 45
+    },
+    {
+      "source_block": 143,
+      "strict_delta": -45,
+      "prose_only_delta": -45
+    },
+    {
+      "source_block": 183,
+      "strict_delta": 61,
+      "prose_only_delta": 61
+    },
+    {
+      "source_block": 184,
+      "strict_delta": -38,
+      "prose_only_delta": -38
+    },
+    {
+      "source_block": 197,
+      "strict_delta": 0,
+      "prose_only_delta": 0
+    }
+  ],
+  "F6_F7_strict_delta": 25,
+  "conclusion_opener_words": 85,
+  "A_to_D_strict_delta": 0
+}

@@ -7,6 +7,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
+import pytest
 from pytest import MonkeyPatch
 
 from traffictwin.ui.labels import UiPage
@@ -427,6 +428,95 @@ def test_compare_receives_generated_paths(tmp_path: Path, monkeypatch: MonkeyPat
     assert not any("tests/fixtures/bundles/baseline_valid" in v for v in baseline_inputs)
     assert not any("tests/fixtures/bundles/variation_valid" in v for v in variation_inputs)
     assert not any("must exist" in str(e.value) for e in app_compare.error)
+
+
+@pytest.mark.parametrize("router", ["v07", "legacy"])
+@pytest.mark.parametrize(
+    ("button_key", "destination", "bundle_field"),
+    [
+        ("whatif_open_compare", UiPage.COMPARE, None),
+        ("whatif_inspect_baseline", UiPage.RUN_OVERVIEW, "baseline_bundle_path"),
+        ("whatif_inspect_variation", UiPage.RUN_OVERVIEW, "variation_bundle_path"),
+    ],
+)
+def test_generated_result_buttons_open_the_selected_result(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+    router: str,
+    button_key: str,
+    destination: UiPage,
+    bundle_field: str | None,
+) -> None:
+    """Exercise the real router; setting paths without navigating is insufficient."""
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
+    monkeypatch.setenv("TRAFFICTWIN_V07_NAVIGATION", router)
+    for name in ("TRAFFICTWIN_TOS_DATA_PATH", "BODS_API_KEY", "NATIONAL_HIGHWAYS_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    # Start on Studio so AppTest's page-hash limitation does not return to Home
+    # between submissions. Both branches use the production routing helpers.
+    # Preserve the production app_pages layout for relative switch_page targets.
+    for page in (UiPage.WHATIF_STUDIO, UiPage.COMPARE, UiPage.RUN_OVERVIEW):
+        script = tmp_path / page_script_for(page)
+        script.parent.mkdir(exist_ok=True)
+        script.write_text((Path("src/traffictwin/ui") / page_script_for(page)).read_text())
+    entrypoint = tmp_path / "app.py"
+    entrypoint.write_text(
+        """
+import streamlit as st
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation import select_page
+from traffictwin.ui.navigation_v07 import page_script_for, v07_navigation_requested
+from traffictwin.ui.page_runtime import render_registered_page
+from traffictwin.ui.state import ensure_session_state, load_ui_config
+
+config = load_ui_config()
+ensure_session_state(st.session_state, config)
+if v07_navigation_requested():
+    st.session_state['_v07_navigation_active'] = True
+    pages = [
+        st.Page(page_script_for(page), default=index == 0)
+        for index, page in enumerate((UiPage.WHATIF_STUDIO, UiPage.COMPARE, UiPage.RUN_OVERVIEW))
+    ]
+    st.navigation(pages).run()
+else:
+    st.session_state['_v07_navigation_active'] = False
+    page = select_page()
+    st.session_state['_active_ui_page'] = page
+    render_registered_page(page, config)
+"""
+    )
+    app = app_test.from_file(str(entrypoint))
+    app.session_state["active_page"] = UiPage.WHATIF_STUDIO.value
+    app.run(timeout=30)
+    assert not app.exception
+    next(b for b in app.button if b.label == "Generate comparison").click().run(timeout=30)
+    assert not app.exception
+    receipt = dict(app.session_state["whatif_pair_receipt"])
+
+    # The action must restore this receipt's selection even after another selection.
+    app.session_state["selected_bundle_path"] = "tests/fixtures/bundles/baseline_valid"
+    app.session_state["selected_baseline_run"] = "tests/fixtures/bundles/baseline_valid"
+    app.session_state["selected_variation_run"] = "tests/fixtures/bundles/variation_valid"
+    app.button(key=button_key).click().run(timeout=30)
+
+    assert not app.exception
+    assert app.session_state["_active_ui_page"] is destination
+    if bundle_field is None:
+        assert app.session_state["selected_baseline_run"] == receipt["baseline_bundle_path"]
+        assert app.session_state["selected_variation_run"] == receipt["variation_bundle_path"]
+        assert any(title.value == "What-if Compare" for title in app.title)
+        assert {entry.value for entry in app.text_input} >= {
+            receipt["baseline_bundle_path"],
+            receipt["variation_bundle_path"],
+        }
+    else:
+        assert app.session_state["selected_bundle_path"] == receipt[bundle_field]
+        assert any(title.value == "Run Overview" for title in app.title)
+    assert not app.error
 
 
 def test_failure_leaves_no_partial_success_state(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:

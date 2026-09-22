@@ -1,0 +1,21 @@
+{
+  "execution_source_commit": "5cbe568c9260c432f3e3ae42b45dcfba7f1a8dbe",
+  "files": {
+    "ANALYSIS.json": "a71008f741b06aee5601dd8fc774242b72d890d928dc547452db0b227222c5d3",
+    "CELL_RESULTS.csv": "c370bffebba0a53b201d12f6780c3ac0ac6dc7cb6432b12944be047b1faf3151",
+    "FINDINGS.md": "c78cfe8ffadff3700603c73c2ba948fbda51d987164cc14300166efada87859e",
+    "GUARD_AMENDMENT.md": "a1aae05111a29e40433731abc8cd86d9f929c785de64360639f33c667518bf99",
+    "PAIRED_EFFECTS.csv": "0dec9ff0a0b6d6b53eca277f7020241282f6fc189bf96ce59ff78c3b6801dfcf",
+    "PROTOCOL.md": "68283ca97c24edadb31b177c0fd4b47b9a86b55eed1bd0ddf33e9ac95388ef52",
+    "RESULTS.md": "3573b179a21188cfff5adaa4b0ed9c407b26f76cef4154ddb9415eace7465dbb",
+    "evidence/BASELINE.json": "37a7f1d8aa628f2e74b98855ae8f7e461bc31d7bde6efd7989075d4038c1d482",
+    "evidence/EXECUTION_SEAL.json": "4ef9c00fd2211703e09a1a0b4ddb1b6ebffc724d27d0bb4604cb3a408d949d65",
+    "evidence/FINAL_ANALYSIS_AUDIT.json": "80eadc477b9803d63cf997c3ff096c3c962a080f9ffec3fe4615cfe9e4716c16",
+    "runs/COMPLETE.json": "6c19f2965707c920ef3e8349e4024bff37f20d56f53b07f2074a9ac827b61433"
+  },
+  "packet_sha256": "235825c7825756b2de535669dee07c21f95c9783f6692720832191b7f1395e51",
+  "repository_commit": "fe8c8d9e4f725665508e47e61dc6e3286d005450",
+  "schema": "traffictwin_frozen_followup_results_v1",
+  "study_id": "followups_2026-09-15",
+  "validation_scope": "Original compact evidence and historical audit; raw arrays excluded"
+}

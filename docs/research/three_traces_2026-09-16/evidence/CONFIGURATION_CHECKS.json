@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "test_count": 7,
+  "command": "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python -m unittest discover -s docs/research/three_traces_2026-09-16 -p test_configuration.py -v",
+  "no_evaluator_runs": true,
+  "checked_at": "2026-09-15T23:58:56.428692+00:00",
+  "checks": [
+    "validator arithmetic/tolerance parity except N/R and entry convention",
+    "P2C replay arithmetic parity except N/R",
+    "interval function AST parity",
+    "59-field schema missing/replaced-field refusal",
+    "incomplete attempt no retry",
+    "source hash drift refusal",
+    "120 planned commands and flags"
+  ]
+}

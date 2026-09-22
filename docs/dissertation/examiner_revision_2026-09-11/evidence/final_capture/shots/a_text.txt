@@ -1,0 +1,287 @@
+Overview
+
+home
+
+Home
+
+map
+
+Manchester Operations
+
+health_and_safety
+
+Source Health
+
+route
+
+Guided Demo
+
+search
+
+Search
+
+Build & run
+
+science
+
+Experiment Planner
+
+tune
+
+Parameter Sweep
+
+experiment
+
+Scenario Mutations
+
+compare
+
+What-If Studio
+
+edit_road
+
+Scenario Builder
+
+View 69 more
+
+TrafficTwin
+
+Import-first research UI
+
+Inspect and import documented TOS evaluation summaries and historical source arrays.
+
+TrafficTwin / TOS Data Import
+
+TOS Data Import
+
+This page reads an imported simulation-results package. It does not launch Randy's environment or provide live data. Confirmed source-specific RSU fields remain separate from TrafficTwin's canonical infrastructure metrics.
+
+TOS Data package directory
+
+Inspect Package
+
+Deep Validate NPZ Contracts
+
+warning ACCEPTED WITH WARNINGS IMPORTED SIMULATION
+
+Evaluation runs
+
+300
+
+Per-step files
+
+60
+
+Per-task showcases
+
+6
+
+Trace files
+
+5
+
+Training curves
+
+66
+
+Engine: v2_post_nrsus_fix | Package commit: a75bbdb1a956… | Fingerprint: 6424ce5375b4…
+
+keyboard_arrow_right
+
+Advanced: package identity
+
+Capability boundary
+keyboard_arrow_down
+
+Validation findings (6)
+
+keyboard_arrow_right
+
+vec_env source contract
+
+Registry import
+
+Registry path for TOS summaries
+
+Import registers 300 source-summary runs when the current package is complete. It does not create canonical task or infrastructure rows.
+
+Import Evaluation Summaries
+
+Evaluation summary analysis
+
+Campaign
+
+Scenario cell
+
+Evaluation fleet
+
+Selected evaluation run
+
+Deadline success
+
+0.9246562726391295
+
+Mean latency (ms)
+
+55.471838111536044
+
+Offload share
+
+0.4049345862328735
+
+RSU utilisation
+
+block unavailable
+
+Completion is the source-defined fraction of arrivals meeting deadlines. Mean latency includes deadline-missing arrivals and can represent backlog in overloaded cells.
+
+Diagnostic readiness: partially_ready
+
+Rule
+
+	
+
+Status
+
+
+
+
+R0
+
+	
+
+triggered
+
+
+
+
+R1
+
+	
+
+insufficient_evidence
+
+
+
+
+R2
+
+	
+
+insufficient_evidence
+
+
+
+
+R3
+
+	
+
+insufficient_evidence
+
+
+
+
+R4
+
+	
+
+insufficient_evidence
+
+
+
+
+R5
+
+	
+
+insufficient_evidence
+
+
+
+
+R6
+
+	
+
+insufficient_evidence
+
+
+
+
+R7
+
+	
+
+insufficient_evidence
+
+
+
+
+R8
+
+	
+
+insufficient_evidence
+
+Download EvidencePack JSON
+
+Download DiagnosticReport JSON
+
+Download Provenance JSON
+
+Source-summary comparison
+
+Choose runs with the same cell, evaluation fleet, and fleet seed. Comparison uses the existing deterministic delta service and retains source-metric provenance.
+
+Baseline source run
+
+Variation source run
+
+Instrumented historical replay
+
+history HISTORICAL REPLAY IMPORTED SIMULATION
+
+Instrumented run
+
+Time index
+
+Source timestamp
+
+63000.0
+
+Arrivals
+
+169
+
+Deadline met
+
+160
+
+Active slots
+
+120
+
+500
+1000
+1500
+2000
+500
+1000
+1500
+Vehicle slots at selected source timestamp
+Network position x (m)
+Network position y (m)
+keyboard_arrow_down
+
+RSU source state
+
+rsu_load is the active in-flight task count; rsu_busy_ms is remaining compute backlog. Pressure is active tasks / maximum concurrent tasks. It is not CPU utilisation or canonical queue length.
+
+Load RSU Pressure History
+
+Vehicle slot references are time-local and must not be treated as persistent IDs.
+
+Trace positions use network metres and speeds use metres per second.
+
+RSU concurrency pressure is active in-flight tasks divided by the recorded maximum concurrent tasks; it is not CPU utilisation.

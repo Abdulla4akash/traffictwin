@@ -1,6 +1,96 @@
-# Dynamic Resource Management for Intelligent Transport Systems
+## Figure provenance and regeneration — 17 September 2026
 
-## Current overlay: experimental results and abstract scale - 15 September 2026
+The manuscript includes nine figure files: four data plots, three hand-written diagrams and two interface captures. On 17 September 2026 every plotted value was recomputed from the source listed below and matched the figure, the adjacent table and the prose to three decimals: Figure 5 against Tables 5 and 6, Figure 6 against Table 7, Section 3.4 and [DESCRIPTIVE_SPLIT.json](evidence/DESCRIPTIVE_SPLIT.json), Figure 8 against the Section C.8 shares, and Figure 2 against the source hash in [RSU_LAYOUT.json](evidence/RSU_LAYOUT.json). No figure asset was changed in this pass.
+
+| Figure | Asset in `assets/` | Generator | Data source |
+|---|---|---|---|
+| 1, 3, 4 | `architecture.pdf`, `task_accounting.pdf`, `dispatch_example.pdf` | Hand-written SVGs beside the PDFs; converted by Inkscape inside `make_assets.py` | None. Figure 4 is the constructed mechanics example described in its accompanying paragraph. |
+| 2 | `morning_rsu_layout.pdf` | [`document/make_assets.py`](document/make_assets.py), Matplotlib | `rsu_xy` in the replication archive's [`input_validation.json`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/input_validation.json) |
+| 5 | `primary_replication.pdf` | [`../substantive_revision_2026-09-07/build_figures.py`](../substantive_revision_2026-09-07/build_figures.py), Matplotlib SVG dated 7 September 2026, then Inkscape | [`runs.csv`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/runs.csv) and [`paired_intervals.csv`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/paired_intervals.csv) in the same archive |
+| 6 | `joint_confirmation_eight_blocks.pdf` | `document/make_assets.py`, Matplotlib | [`CELL_RESULTS.csv`](../joint_confirmation_2026-09-08/evidence/CELL_RESULTS.csv), 32 cells |
+| 7a, 7b | `traffictwin_platform_7a.png`, `traffictwin_platform_7b.png` | Playwright Chromium captures of the bridge worktree at `17d6b21` by [`capture_final.py`](evidence/final_capture/capture_final.py); cropped and composed by [`compose_figure.py`](evidence/final_capture/compose_figure.py); raw-shot hashes in [FINAL_PLATFORM_CAPTURE_2026-09-16.json](evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json) | External Putra package at `a75bbdb` and the bundled eight-block results packet |
+| 8 | `rsu_workload_distribution.pdf` | Same `build_figures.py` run as Figure 5 | [`rsu_workload_distribution.csv`](../../evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/rsu_workload_distribution.csv) in the same archive |
+
+`make_assets.py` redraws Figures 2 and 6, rewrites `RSU_LAYOUT.json`, `DESCRIPTIVE_SPLIT.json`, `ARTEFACT_INVENTORY.json` and `CAPTURE.json`, and then converts every SVG in `assets/` to PDF. It stops with an error when Inkscape is not on `PATH`. It does **not** redraw Figures 5 and 8: their SVGs are preserved copies, byte-identical to `../substantive_revision_2026-09-07/assets/`, and `make_assets.py` only converts them. To redraw them, run `build_figures.py` from its own package; it writes into that package's `assets/`, so copy the two SVGs here before conversion. `compose_figure.py` recomposes Figures 7a and 7b from the hash-bound raw shots without launching the interface; it expects the macOS `Arial Bold.ttf` path. `capture_final.py` is retained for provenance only and needs the bridge worktree served on port 8765. Use the existing document environment with Matplotlib, NumPy, Pillow, PyMuPDF and Inkscape; a bare `python3` without these packages fails at import. The `.svg` and `.png` twins in `assets/`, `traffictwin_platform_real_data.*`, `traffictwin_results_workflow.png` and `traffictwin_streamlit.png` are retained build inputs that the current TeX does not include.
+
+```sh
+pkg_dir=docs/dissertation/examiner_revision_2026-09-11
+python docs/dissertation/substantive_revision_2026-09-07/build_figures.py   # optional: redraw Figures 5 and 8
+cp docs/dissertation/substantive_revision_2026-09-07/assets/{primary_replication,rsu_workload_distribution}.svg "$pkg_dir/assets/"
+python "$pkg_dir/document/make_assets.py"                                    # Figures 2 and 6; SVG to PDF for 1, 3, 4, 5, 8
+(cd "$pkg_dir/evidence/final_capture" && python compose_figure.py)          # Figures 7a and 7b from bound shots
+```
+
+Known presentation limits, unchanged in this pass:
+
+- Figures 7a and 7b print interface body text near 5 pt and the grey provenance line near 4 pt at A4. Zoom the standalone 300 dpi PNGs for detail. Panel (a) shows the owner's local package path.
+- Figures 2 and 6 embed DejaVu Sans as Type 3 fonts (Matplotlib default `pdf.fonttype` 3). Set `pdf.fonttype` to 42 before regenerating if PDF/A is required. Their in-figure titles repeat the captions, and their tick labels print near 6 pt because 8.7 and 9.2 inch canvases are scaled to the text width. Figures 5 and 8 were drawn at 6.55 inches and print near 8 pt.
+- Figure 2's caption says "original zero-based indices" and Figure 8's axis says "Canonical RSU index". Both are the same 0–8 index of the nine-RSU morning layout in the replication archive.
+
+---
+
+## LaTeX-only exemplar alignment — 16 September 2026
+
+The edited `TrafficTwin_Dissertation.tex` is the current manuscript source for this pass. **Do not run `convert_source.py`**: the Markdown and its source map are preserved historical inputs, and that converter would overwrite the authorised LaTeX changes. The tracked dissertation PDF remains the ded54bd build; it does not reflect this pass. The delivery contains LaTeX plus build inputs. See [CHANGES.md](CHANGES.md), [operation ledger](evidence/EXEMPLAR_OPERATIONS_2026-09-16.json) and [command receipt](evidence/EXEMPLAR_COMMANDS_2026-09-16.json).
+
+Appendix H uses these read-only inspection commands from an authorised repository copy with dependencies available. The compact helper extends the existing `joint_confirmation_2026-09-08/document/verify_results.py` route to Tables 6, 7, 7a and 7b. The platform and TOS commands are copied from the repository README (launch command and adapter examples); `EXTERNAL_PACKAGE` is an explicitly supplied package path. Launching the platform does not execute a research cell.
+
+```sh
+python docs/dissertation/examiner_revision_2026-09-11/document/verify_compact_tables.py
+streamlit run src/traffictwin/ui/app.py
+traffictwin integration tos validate "$EXTERNAL_PACKAGE"
+```
+
+Build with XeLaTeX/latexmk; no bibliography backend or custom class is required. Keep the Liberation Serif, Liberation Sans and DejaVu Sans Mono fonts available. Run `document/count_exemplar_words.py`, `document/validate_final_pass.py` and `document/validate_revision.py` for this overlay. When preserving the tracked PDF, set `TRAFFICTWIN_REVIEW_PDF` to the separately compiled current PDF for the validators; they must inspect that build, not the historical tracked PDF. The previous manuscript-only word-count waiver remains in force. PR remains draft, unmerged.
+
+---
+
+# Dynamic Resource Management for Intelligent Transportation System Applications
+
+## Current final-pass overlay — 16 September 2026
+
+[PDF](TrafficTwin_Dissertation.pdf) · [Markdown](TrafficTwin_Dissertation.md) · [acceptance receipt](evidence/FINAL_PASS_ACCEPTANCE_2026-09-16.json) · [combined validator](document/REVISION_VALIDATION.json)
+
+The **68-page draft** includes studies 7–12 in Section 3.4 (Tables 7a and 7b), the five-scenario interpretation, reference 47, authentic three-panel Figure 7, the supplied title-page identity and standard declaration. The 58-operation ledger preserves the published manuscript baseline `a8cffe7` and the earlier protection layers. Integration base is current main `fe8c8d9`; the draft changes only this revision package.
+
+**9,555 strict / 8,136 prose-only words.** All G.1–G.9 fallbacks were used. The owner explicitly waived the word-count stop and will trim the manuscript: the 8,950 ceiling is exceeded by 605 and the 9,000 rubric ceiling by 555. Both failed diagnostics remain in the validator; only those two are nonblocking under the recorded waiver. No further content cuts were made.
+
+The Abstract reports **seven policies, 274 distinct full evaluator runs and five Manchester scenarios**. Receipt counts are 82 + 72 + 120; the expected 275 counted the E0 reference reused by E1 twice. Of the historical records, 26 establish full-run identity through accepted campaign receipts/manifests instead of retained per-summary horizons. C5 and the ownership paragraph retain initial-programme scoping. The confirmation and follow-up protocols were sealed before outcomes; the initial incident development remains adaptive. Claude proposed the later conditions; the owner authorised them.
+
+**PR 144 is open/draft and unmerged by owner instruction.** S19 cites the original study source `c95e4f86d6dd83207ed3c810826ca48768af8471` on `research/dissertation-traces-2026-09-16`. The pending integration/archive-registration commit `885cc86` remains on that branch for post-submission work. Main remains `fe8c8d9`. S18 links the already merged studies 7–9 at `fe8c8d9`.
+
+Acceptance is restricted to the owner-requested manuscript checks: **223/223 extended preservation checks**, **70/70 final-pass checks**, **2/2 mutation probes**, and **285/287 combined checks**, with only the two waived word-limit diagnostics false. Clean latexmk succeeds with zero overfull boxes, oversized floats, missing glyphs or undefined references. All 68 pages were rendered; changed pages, new table layouts, source links, title/contents and Figure 7 were visually inspected. The full list and artifact hashes are recorded in the acceptance receipt. Application tests were stopped; incomplete logs are retained in the [stop receipt](evidence/APPLICATION_TEST_STOP_2026-09-16.json). No application-suite pass or new scientific execution is claimed. The push uses `[skip ci]` to honour the instruction not to launch that suite.
+
+Figure 7 includes panel **(c)** from the actual bridge at `17d6b21`, plus real external-package inspection/matrix panels. Capture and adapter receipts preserve the 300/60/6/5/66 inventory and distinguish the external engine's results from dissertation evidence. The source PNG/PDF retain 300 dpi; small interface detail can be inspected at zoom in the standalone asset.
+
+The award, faculty/school/department, student ID and author are filled. Signature/date remain for the owner. The prescribed copyright statement was not found in the specified handbook, so the existing page is kept under F.2's fallback. AI-use permission, copyright wording, backup/examiner access, final reading and the assessed video remain open in [SUBMISSION_GATES](SUBMISSION_GATES.md). This is a draft hand-off, not submission certification; no merge or tag is authorised before the owner's PDF review.
+
+### Rebuild and manuscript-only validation
+
+Use the existing document environment (MarkdownIt, PyMuPDF and XeLaTeX/latexmk), retaining the pinned historical Git objects. The original frozen research code and results are unchanged.
+
+```sh
+pkg_dir=docs/dissertation/examiner_revision_2026-09-11
+python "$pkg_dir/document/convert_source.py"
+latexmk -cd -C "$pkg_dir/TrafficTwin_Dissertation.tex"
+latexmk -cd -xelatex -interaction=nonstopmode -halt-on-error "$pkg_dir/TrafficTwin_Dissertation.tex"
+python "$pkg_dir/document/validate_option_b.py"
+python "$pkg_dir/document/validate_final_pass.py"
+python "$pkg_dir/document/probe_final_pass_mutations.py"
+python "$pkg_dir/document/validate_revision.py"
+```
+
+### Final artifact SHA-256
+
+- Markdown: `517256406a2bd81320b1da75e0b01aabca99285ec2bc2360a5732e1c5a17aedc`
+- TeX: `988f14d42e3c01cb6c23817ce8bed2b2a20503a890c51547a5d021d4531f54db`
+- PDF: `2730a690075f6c29586e9fe16c20f4ed367d1318692d91ae8fe847ebd50de2e8`
+
+## Earlier overlays — historical records
+
+The dates, counts, hashes and completion claims below describe their original candidates. The 16 September overlay above governs the current draft.
+
+## Experimental results and abstract scale - 15 September 2026
 
 [Current PDF](TrafficTwin_Dissertation.pdf) · [Markdown](TrafficTwin_Dissertation.md) · [current acceptance record](evidence/PLATFORM_CONNECTION_ACCEPTANCE_2026-09-15.json)
 

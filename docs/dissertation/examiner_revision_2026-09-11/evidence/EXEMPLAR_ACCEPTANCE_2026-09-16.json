@@ -1,0 +1,91 @@
+{
+  "status": "passed_with_owner_word_count_waiver",
+  "baseline_commit": "ded54bd2a043ec4ff7dbef6eb92e6176bc4963b9",
+  "branch": "docs/dissertation-examiner-revision-2026-09-11",
+  "git_remote_origin": "https://github.com/Abdulla4akash/traffictwin.git",
+  "source_base": "1e01b75",
+  "research_workloads_launched": 0,
+  "counts_before": {
+    "strict": 9555,
+    "prose_only": 8136
+  },
+  "counts_after": {
+    "strict": 9605,
+    "prose_only": 8174
+  },
+  "F6_F7_strict_delta": 25,
+  "conclusion_opener_words": 85,
+  "compile": {
+    "engine": "XeLaTeX via latexmk",
+    "exit_status": 0,
+    "errors": 0,
+    "overfull_boxes": 0,
+    "oversized_floats": 0,
+    "missing_glyphs": 0,
+    "undefined_references": 0,
+    "pages": 67,
+    "latexmk_invocations": 3,
+    "iteration_note": "Initial local build plus two corrective layout/text rebuilds; final build clean. All compiled dissertation PDFs stayed in scratch and were not delivered or committed.",
+    "log": "evidence/latexmk-exemplar-alignment-2026-09-16.log",
+    "log_sha256": "ebc3e869c065206a511ee80668e48b46cb5b44493d22f135db478be04cbe0638",
+    "review_pdf_sha256": "a33ecc891cc3067724d1f2ff7386505abd9adcdc853a79b6d6b81c3f7ed09d42",
+    "review_tex_sha256": "817b8dddf4140e86ef10c7691c2b8093fd8baa6983c6b945e70879126ae874d6"
+  },
+  "layout": {
+    "body_pages": [
+      11,
+      43
+    ],
+    "minimum_body_vertical_fill_pct": 64.29,
+    "body_pages_below_60": [],
+    "physical_page_10": "Acknowledgements: front matter, not a body page",
+    "pages_rendered": 67,
+    "visual_review": "All pages reviewed in contact sheets; title, glossary, copyright, abstract, changed results/layout, figures, references, environment and access appendix also inspected at page scale. Final changed pages 41 and 54 re-inspected after final text corrections.",
+    "figure_7": "split into 7a (a,b) and 7b (c); original shots unchanged; no landscape page remains",
+    "counts_receipt": "evidence/EXEMPLAR_PAGE_COUNTS_2026-09-16.json"
+  },
+  "validators": {
+    "final_pass": [
+      109,
+      109
+    ],
+    "revision": [
+      324,
+      326
+    ],
+    "only_nonblocking_false_checks": [
+      "word_count_in_range",
+      "rubric_word_count_in_range"
+    ],
+    "mutation_probes": [
+      7,
+      7
+    ]
+  },
+  "tracked_pdf_sha256": "2730a690075f6c29586e9fe16c20f4ed367d1318692d91ae8fe847ebd50de2e8",
+  "required_tracked_pdf_sha256": "2730a690075f6c29586e9fe16c20f4ed367d1318692d91ae8fe847ebd50de2e8",
+  "pr": {
+    "number": 145,
+    "state": "OPEN",
+    "draft": true,
+    "merge_performed": false
+  },
+  "author_actions": [
+    "access mechanism",
+    "confirm whether student ID remains (retained pending decision)"
+  ],
+  "inherited_owner_obligations": [
+    "signature and date",
+    "AI-use permission",
+    "off-machine preservation and examiner access",
+    "owner word trimming",
+    "final independent reading",
+    "assessed video",
+    "deferred study integration"
+  ],
+  "not_completed": [
+    "Owner decisions above remain open; no access mechanism, hardware memory quantity or approval was invented."
+  ],
+  "delivery": "~/Desktop/Dissertation/latex_final_2026-09-16/",
+  "pdf_commit_policy": "No PDF files changed in commit; all regenerated figure PDFs are local-only; Figure 7 uses PNG build inputs."
+}

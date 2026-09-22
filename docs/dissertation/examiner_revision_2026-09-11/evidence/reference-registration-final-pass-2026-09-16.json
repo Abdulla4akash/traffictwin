@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-16",
+  "reference": 47,
+  "source_file": "/Users/akashx/Downloads/diss_mat/ICISS2026_SA0082_camera_ready-compressed.pdf",
+  "source_sha256": "e350f4e978fee9575ca8a55ab0cf8c94f9bd3301630e89f01bdd27da0351012d",
+  "source_pages": 10,
+  "network_locator": {
+    "pdf_page": 5,
+    "section": "4.4 Traffic Simulation"
+  },
+  "simulated_collapse_locator": {
+    "pdf_page": 7,
+    "section": "5.4 Reactive-rule failure"
+  },
+  "identity_locator": {
+    "pdf_page": 1
+  },
+  "verification": "Read supplied camera-ready PDF; network and reactive collapse support local simulation provenance, not observed road incident. Bibliographic metadata transcribed from supplied copy.",
+  "doi_status": "pending in supplied copy; no DOI invented",
+  "assistant_checked_source": true,
+  "owner_reading_not_certified": true,
+  "supplied_doi_field": "10.1145/nnnnnnn.nnnnnnn (placeholder, not a DOI to cite)"
+}

@@ -1,0 +1,54 @@
+{
+  "owner_values": {
+    "award_wording": "MSc Artificial Intelligence",
+    "faculty_school": "Faculty of Science and Engineering, School of Engineering, Department of Computer Science",
+    "student_id": "14185028",
+    "author": "S M Abdulla Al Mamun"
+  },
+  "declaration": "No portion of the work referred to in the dissertation has been submitted in support of an application for another degree or qualification of this or any other university or other institute of learning.",
+  "copyright_source": {
+    "path": "/Users/akashx/Downloads/diss_mat/SoE PGT Handbook - Appendices (MSc Advanced Computer Science) (1).pdf",
+    "sha256": "df504ec76271f2cb4b2fa34be1f53f55d1363e65d4352456f856a92178d3da82",
+    "pages_examined": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "copyright_occurrences": 0
+  },
+  "copyright_status": "specified_handbook_statement_not_found; current page preserved under explicit F.2 fallback",
+  "additional_handbooks_checked": [
+    "SoE PGT Programme Handbook 2025-26 FINAL.pdf",
+    "SoE PGT Programme Handbook 2025-26 v2.pdf",
+    "SoE PGT Handbook - Appendices (MSc Advanced Computer Science).pdf"
+  ],
+  "exemplar_crosscheck": [
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/Report 1.pdf",
+      "sha256": "cadd89f6a01c3f69df5bfab93e0fd89699d462038134c57971d305979c02867d",
+      "pdf_page": 8
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/Report 2.pdf",
+      "sha256": "c6c577fb194ceabc1180b13fd3c8e8edcada47d74e115443fddd270ff8ed3192",
+      "pdf_page": 6
+    },
+    {
+      "path": "/Users/akashx/Downloads/diss_mat/Report 5.pdf",
+      "sha256": "fe3ce535112097aa344c4c4ddaa53342074ed92e10d41f52067dc40076e73475",
+      "pdf_page": 10
+    }
+  ],
+  "signature_and_date": "blank owner-completion lines retained",
+  "not_certified": [
+    "prescribed programme copyright text",
+    "signature",
+    "assessment AI-use permission"
+  ]
+}

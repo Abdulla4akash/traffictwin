@@ -1,0 +1,11 @@
+{
+  "action": "run",
+  "worker_exit_codes": {
+    "we": 0,
+    "wd_pm": 0,
+    "ev": 0
+  },
+  "wall_s": 26404.241618957996,
+  "finished_at": "2026-09-16T09:40:56.343027+00:00",
+  "retries": 0
+}

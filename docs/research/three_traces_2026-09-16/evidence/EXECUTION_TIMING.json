@@ -1,0 +1,29 @@
+{
+  "status": "complete",
+  "traces": {
+    "we": {
+      "started_at": "2026-09-16T00:06:39.414288+00:00",
+      "finished_at": "2026-09-16T09:40:56.129773+00:00",
+      "clock_elapsed_s": 34456.715485,
+      "runner_monotonic_s": 26403.293401916002,
+      "clock_minus_monotonic_s": 8053.422083083999
+    },
+    "wd_pm": {
+      "started_at": "2026-09-16T00:06:39.402968+00:00",
+      "finished_at": "2026-09-16T09:22:52.201534+00:00",
+      "clock_elapsed_s": 33372.798566,
+      "runner_monotonic_s": 25319.390076333002,
+      "clock_minus_monotonic_s": 8053.408489666996
+    },
+    "ev": {
+      "started_at": "2026-09-16T00:06:39.416062+00:00",
+      "finished_at": "2026-09-16T09:22:37.284690+00:00",
+      "clock_elapsed_s": 33357.868628,
+      "runner_monotonic_s": 25304.460233291,
+      "clock_minus_monotonic_s": 8053.408394708997
+    }
+  },
+  "clock_elapsed_basis": "UTC finished_at minus started_at from immutable trace receipts",
+  "runner_timer_basis": "Unmodified frozen runner time.monotonic() values; excludes host sleep on Darwin",
+  "low_power_sleep_record": "RUNTIME_INTERRUPTION.json"
+}

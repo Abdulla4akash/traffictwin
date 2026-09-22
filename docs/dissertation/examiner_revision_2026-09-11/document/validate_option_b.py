@@ -9,6 +9,7 @@ import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
+from validate_final_pass import FINAL_PASS_BASELINE, git_bytes, restore_final_pass
 from validate_platform_connection import (
     PLATFORM_INTEGRATION_BASE,
     restore_platform_connection,
@@ -20,7 +21,7 @@ BASELINE_SHA256 = "1f9b0280010cb13e622678e71122296e7360f649e517496559c98303cd086
 CLOSE_BASELINE = "2c29392cbf04bf060aacb0f03f1fbb900842d54a"
 CLOSE_BASELINE_SHA256 = "307862fcc37558df585b0e867a0766aa3616cd810ee0595df398dd3ffaf0cf89"
 CLOSE_LEDGER_SHA256 = "75fda6f1fcac0fe9f38d8df150cfd4b62619a10bedf11c04f6bf46c7a9cfb65d"
-PROJECT_TITLE = "Dynamic Resource Management for Intelligent Transport Systems"
+PROJECT_TITLE = "Dynamic Resource Management for Intelligent Transportation System Applications"
 PREVIOUS_TITLE = (
     "TrafficTwin: Admission and Dispatch Semantics in Vehicular Edge Computing "
     "under a Frozen MAPPO Policy"
@@ -47,11 +48,18 @@ def appendix(text: str, letter: str) -> str:
 
 
 def check_contributions(
-    root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
+    root: Path,
+    here: Path,
+    revised: str,
+    table_parser: Callable[[str], dict[str, list[str]]],
 ) -> tuple[str, dict[str, bool]]:
     """Bind the owner's contributions and designated trims to the reviewed source."""
     baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
-        ["/usr/bin/git", "show", f"{CONTRIBUTIONS_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
+        [
+            "/usr/bin/git",
+            "show",
+            f"{CONTRIBUTIONS_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md",
+        ],
         cwd=root,
         text=True,
     )
@@ -163,11 +171,18 @@ def check_contributions(
 
 
 def check_editorial_fixes(
-    root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
+    root: Path,
+    here: Path,
+    revised: str,
+    table_parser: Callable[[str], dict[str, list[str]]],
 ) -> tuple[str, dict[str, bool]]:
     """Check current content, then undo only the owner's six-point revision."""
     baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
-        ["/usr/bin/git", "show", f"{EDITORIAL_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
+        [
+            "/usr/bin/git",
+            "show",
+            f"{EDITORIAL_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md",
+        ],
         cwd=root,
         text=True,
     )
@@ -237,11 +252,18 @@ def check_editorial_fixes(
 
 
 def check_closing_moves(
-    root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
+    root: Path,
+    here: Path,
+    revised: str,
+    table_parser: Callable[[str], dict[str, list[str]]],
 ) -> tuple[str, dict[str, bool]]:
     """Undo only the pinned closing operations before checking the older contract."""
     baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
-        ["/usr/bin/git", "show", f"{CLOSE_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
+        [
+            "/usr/bin/git",
+            "show",
+            f"{CLOSE_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md",
+        ],
         cwd=root,
         text=True,
     )
@@ -308,14 +330,29 @@ def check_closing_moves(
 
 
 def check_option_b(
-    root: Path, here: Path, revised: str, table_parser: Callable[[str], dict[str, list[str]]]
+    root: Path,
+    here: Path,
+    revised: str,
+    table_parser: Callable[[str], dict[str, list[str]]],
 ) -> dict[str, bool]:
     # Each newer, explicitly authorised layer recovers the exact preceding manuscript.
-    revised, platform_checks = restore_platform_connection(root, here, revised)
+    revised, final_checks = restore_final_pass(root, here, revised)
+    historical_counts = json.loads(
+        git_bytes(root, FINAL_PASS_BASELINE, PACKAGE + "/document/WORD_COUNT.json")
+    )
+    revised, platform_checks = restore_platform_connection(
+        root, here, revised, historical_counts=historical_counts
+    )
     revised, contributions_checks = check_contributions(root, here, revised, table_parser)
     revised, editorial_checks = check_editorial_fixes(root, here, revised, table_parser)
     # The owner authorised only the first-line title change after 10ca7f2.
-    requested_heading = "# " + PROJECT_TITLE + "\n"
+    # This restoration validates the immutable historical Markdown title decision.
+    # The live LaTeX/PDF title is checked separately against PROJECT_TITLE.
+    requested_heading = (
+        git_bytes(root, FINAL_PASS_BASELINE, PACKAGE + "/TrafficTwin_Dissertation.md")
+        .decode()
+        .splitlines(keepends=True)[0]
+    )
     title_checks = {"title_matches_original_project_name": revised.startswith(requested_heading)}
     if revised.startswith(requested_heading):
         revised = "# " + PREVIOUS_TITLE + "\n" + revised[len(requested_heading) :]
@@ -369,7 +406,9 @@ def check_option_b(
             actual = actual.replace("(Section 4.4).", "(Section 4.3).", 1)
         elif n == 4:
             actual = actual.replace(
-                "separate fixtures in Appendix D, Table D2.", "separate fixtures in Table 8.", 1
+                "separate fixtures in Appendix D, Table D2.",
+                "separate fixtures in Table 8.",
+                1,
             )
         elif n == 5:
             actual = actual.replace(remark + "\n\n", "", 1)
@@ -423,7 +462,13 @@ def check_option_b(
     # The integration base already contains the separately approved platform.
     # Bind only this new document layer to its exact composed predecessor.
     changed = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
-        ["/usr/bin/git", "diff", "--name-only", PLATFORM_INTEGRATION_BASE],
+        [
+            "/usr/bin/git",
+            "diff",
+            "--name-only",
+            PLATFORM_INTEGRATION_BASE,
+            FINAL_PASS_BASELINE,
+        ],
         cwd=root,
         text=True,
     ).splitlines()
@@ -435,6 +480,7 @@ def check_option_b(
     checks.update(editorial_checks)
     checks.update(contributions_checks)
     checks.update(platform_checks)
+    checks.update(final_checks)
     return checks
 
 

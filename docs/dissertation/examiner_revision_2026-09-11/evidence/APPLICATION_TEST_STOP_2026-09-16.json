@@ -1,0 +1,97 @@
+{
+  "status": "stopped_by_explicit_owner_instruction",
+  "stopped_at": "2026-09-16T10:53:41.470503+00:00",
+  "reason": "Owner stopped all application tests and prohibited PR144 merge today; manuscript-only acceptance now authorised.",
+  "candidate": "885cc86da43b6436c33acd14f36d46a19284b410",
+  "main": "fe8c8d9e4f725665508e47e61dc6e3286d005450",
+  "root_pids": [
+    88577
+  ],
+  "stopped_processes": {
+    "88577": "run_ci_matrix; parent SIGTERM",
+    "88698": "uv pytest; parent SIGTERM",
+    "88699": "pytest; parent SIGTERM",
+    "2237": "pending baseline watchdog; preparation_audit SIGTERM"
+  },
+  "incomplete_logs_retained": true,
+  "python311_matrix_started": false,
+  "merge_performed": false,
+  "source_reverted": false,
+  "verified_at": "2026-09-16T10:57:01.163449+00:00",
+  "root_reported_sigterm_pids": [
+    88577,
+    88698,
+    88699
+  ],
+  "locally_terminated_watchdog_pid": 2237,
+  "known_pids_verified_absent": {
+    "88577": true,
+    "88698": true,
+    "88699": true,
+    "2237": true
+  },
+  "matrix_session_exit_code": 143,
+  "pending_baseline_session_exit_code": 143,
+  "python311_candidate_logs": [],
+  "baseline_reconciliation_started": false,
+  "candidate_full_test_status": "incomplete_owner_stop",
+  "remote_main_verified": "fe8c8d9e4f725665508e47e61dc6e3286d005450",
+  "remote_study_head_verified": "885cc86da43b6436c33acd14f36d46a19284b410",
+  "pr": {
+    "number": 144,
+    "state": "OPEN",
+    "draft": true,
+    "base": "main",
+    "head": "885cc86da43b6436c33acd14f36d46a19284b410"
+  },
+  "retained_logs": {
+    "base312_artifact_failures.log": {
+      "bytes": 2326,
+      "sha256": "26af9cbc633baed343df788d95b683789f1c7d3b377963e4a7a30cc9aad97949"
+    },
+    "base312_generate_reference.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "base312_reference_diff.log": {
+      "bytes": 12307,
+      "sha256": "fc86911f1969d455febf783a56c1f7484ffe825dcf048f4cd422320f0c53f7ec"
+    },
+    "base312_ui_group.log": {
+      "bytes": 512,
+      "sha256": "73f0aad43685ee7c130e9dd5213698eb70ce70dd49b8e490db07ea506510caa0"
+    },
+    "py312_archives.log": {
+      "bytes": 357,
+      "sha256": "941dfc3af7ebd870b74e709613932ba24b27f5a54bfccd9fd7605b3d6fad5941"
+    },
+    "py312_format.log": {
+      "bytes": 29,
+      "sha256": "a5e7543eb4dae8e13314ef114b90f4d53263fbb7871f34b3765043257e6a7914"
+    },
+    "py312_install.log": {
+      "bytes": 2249,
+      "sha256": "044c8eaef39f3b7da95c527ba38e8fc952519e79ef8e6a560217cf31b178a5da"
+    },
+    "py312_lint.log": {
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "py312_lock.log": {
+      "bytes": 28,
+      "sha256": "2ab93777985130697df6640b8aec0a63d0e568d8a70fa64f0e7746b031401d6a"
+    },
+    "py312_mypy.log": {
+      "bytes": 46,
+      "sha256": "93d4a77174355908ba281cf12238be4afbbe969d9bd948d01be72144b96a82b6"
+    },
+    "py312_pytest.log": {
+      "bytes": 42593,
+      "sha256": "04a8d7e63afb93c1da9a4efc025e24308bf415bacea4c6ff1c9b46846cceb38e"
+    },
+    "py312_runtime.log": {
+      "bytes": 147,
+      "sha256": "892984af120e9e71c6e88c6db62114abe3e49f34e04ac66eb5064b086f82eccf"
+    }
+  }
+}

@@ -21,7 +21,7 @@ from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.demo_workspace_service import resolve_effective_demo_paths
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation import render_page_header
+from traffictwin.ui.navigation import activate_page, render_page_header
 from traffictwin.ui.services import (
     ServiceError,
     WhatIfPairRequest,
@@ -55,6 +55,19 @@ def _reset_whatif_widgets_to_defaults() -> None:
 
     for key, default in DEFAULT_WHATIF_WIDGET_VALUES.items():
         st.session_state[key] = copy.deepcopy(default)
+
+
+def _open_generated_comparison(baseline_path: str, variation_path: str) -> None:
+    """Select the receipt's pair before the router handles this button callback."""
+    st.session_state["selected_baseline_run"] = baseline_path
+    st.session_state["selected_variation_run"] = variation_path
+    activate_page(UiPage.COMPARE)
+
+
+def _inspect_generated_run(bundle_path: str) -> None:
+    """Select the requested run and navigate before sidebar widgets are created."""
+    st.session_state["selected_bundle_path"] = bundle_path
+    activate_page(UiPage.RUN_OVERVIEW)
 
 
 def _seed_widgets_from_draft(draft: ChallengeWhatIfDraft) -> None:
@@ -697,18 +710,23 @@ def render(config: UiConfig) -> None:
             )
             c1, c2, c3 = st.columns(3)
             with c1:
-                if st.button("Open Compare (pre-filled)", key="whatif_open_compare"):
-                    st.session_state["selected_baseline_run"] = receipt.baseline_bundle_path or ""
-                    st.session_state["selected_variation_run"] = receipt.variation_bundle_path or ""
-                    st.success(
-                        "Compare paths set. Use sidebar → Compare & test → "
-                        "Comparison to view results."
-                    )
+                st.button(
+                    "Open Compare (pre-filled)",
+                    key="whatif_open_compare",
+                    on_click=_open_generated_comparison,
+                    args=(receipt.baseline_bundle_path or "", receipt.variation_bundle_path or ""),
+                )
             with c2:
-                if st.button("Inspect baseline Run Overview", key="whatif_inspect_baseline"):
-                    st.session_state["selected_bundle_path"] = receipt.baseline_bundle_path or ""
-                    st.success("Baseline selected. Use Results → Run Overview to inspect.")
+                st.button(
+                    "Inspect baseline Run Overview",
+                    key="whatif_inspect_baseline",
+                    on_click=_inspect_generated_run,
+                    args=(receipt.baseline_bundle_path or "",),
+                )
             with c3:
-                if st.button("Inspect variation Run Overview", key="whatif_inspect_variation"):
-                    st.session_state["selected_bundle_path"] = receipt.variation_bundle_path or ""
-                    st.success("Variation selected. Use Results → Run Overview to inspect.")
+                st.button(
+                    "Inspect variation Run Overview",
+                    key="whatif_inspect_variation",
+                    on_click=_inspect_generated_run,
+                    args=(receipt.variation_bundle_path or "",),
+                )

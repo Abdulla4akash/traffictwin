@@ -33,11 +33,15 @@ PINNED_FILES = {
 
 
 def restore_platform_connection(
-    root: Path, here: Path, revised: str
+    root: Path, here: Path, revised: str, *, historical_counts: dict | None = None
 ) -> tuple[str, dict[str, bool]]:
     """Recover b3b8dbc exactly; do not relax any earlier manuscript protections."""
     baseline = subprocess.check_output(  # noqa: S603 -- fixed read-only Git arguments
-        ["/usr/bin/git", "show", f"{PLATFORM_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md"],
+        [
+            "/usr/bin/git",
+            "show",
+            f"{PLATFORM_BASELINE}:{PACKAGE}/TrafficTwin_Dissertation.md",
+        ],
         cwd=root,
         text=True,
     )
@@ -79,7 +83,11 @@ def restore_platform_connection(
         and imported["primary_contrasts"] == 3
         and imported["packet_sha256"] == PACKET_SHA256
     )
-    counts = json.loads((here / "document/WORD_COUNT.json").read_text())
+    counts = (
+        historical_counts
+        if historical_counts is not None
+        else json.loads((here / "document/WORD_COUNT.json").read_text())
+    )
     checks["platform_connection_exact_authorised_counts"] = (
         counts["words"] == 8984 and counts["prose_only_words"] == 7784
     )

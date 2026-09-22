@@ -39,6 +39,16 @@ def render() -> None:
     """Load and present one original study; invalid imports never retain old results."""
 
     st.title("Experimental Results")
+    study = st.selectbox(
+        "Study",
+        ("Latest follow-ups · 15 September 2026", "Original confirmation · 8 September 2026"),
+        key="experimental_results_study",
+    )
+    if study == "Latest follow-ups · 15 September 2026":
+        from traffictwin.ui.components.followup_results import render_followup_results
+
+        render_followup_results()
+        return
     st.caption("Workflow demonstration · completed simulation evidence · 8 September 2026")
     with st.expander("Import study evidence", expanded=False):
         source = st.radio(

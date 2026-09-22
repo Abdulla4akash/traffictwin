@@ -1,0 +1,13 @@
+START ev block=0 arm=ingress_dla steps=300 2026-09-16T00:04:38.136846+00:00
+VALIDATED ev block=0 arm=ingress_dla simulation_s=11.7
+START ev block=0 arm=dla steps=300 2026-09-16T00:04:49.956287+00:00
+VALIDATED ev block=0 arm=dla simulation_s=11.2
+START ev block=0 arm=per_task_dla steps=300 2026-09-16T00:05:01.205296+00:00
+VALIDATED ev block=0 arm=per_task_dla simulation_s=10.6
+START ev block=0 arm=causal_round_robin steps=300 2026-09-16T00:05:11.870720+00:00
+VALIDATED ev block=0 arm=causal_round_robin simulation_s=10.5
+START ev block=0 arm=dla_p2c steps=300 2026-09-16T00:05:22.464174+00:00
+VALIDATED ev block=0 arm=dla_p2c simulation_s=11.1
+START ev block=0 arm=per_task_dla steps=150 2026-09-16T00:05:36.611445+00:00
+VALIDATED ev block=0 arm=per_task_dla simulation_s=7.0
+QUALIFICATION PASSED ev

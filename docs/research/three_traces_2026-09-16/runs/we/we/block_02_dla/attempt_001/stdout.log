@@ -1,0 +1,243 @@
+[mc] enter-reset=ON reset_soc_on_enter=False
+[mc] substep-queue=sequential (co-batch queueing charged; 3 gate iterations)
+[mc] rsu-cap-mode=reject (buffer-full tasks individually failed; enqueued work conserved)
+[mc] veh-queue=conserved (helper co-batch pricing + per-task MQD rejection on vehicle queues)
+[mc] ABSOLUTE cap override: 6220 tasks/RSU (ratio form would give 348)
+[mc] T=32400 maxN=139 RSU_MAX_CONCURRENT=6220 K_MAX=5
+[fleet] uk2030: ev_share=0.2518 tier_hist=[53, 45, 41]
+{
+  "trace": "trace_we_wdrsu.npz",
+  "actor": "mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+  "model": "C",
+  "T": 32400,
+  "maxN": 139,
+  "rsu_max_concurrent": 6220,
+  "fleet": "uk2030",
+  "fleet_seed": 102,
+  "obs_variant": "onehot17",
+  "lambda_arrival": 1.5,
+  "rsu_service_mult": 1.0,
+  "rsu_lb": "dla",
+  "rsu_backhaul_ms": 0.0,
+  "k8s_scale": "off",
+  "k8s_params": {},
+  "k8s_mean_mult": 1.0,
+  "k8s_scale_events": 0,
+  "k8s_first_scaleup_s": -1.0,
+  "rsu_cap_mode": "reject",
+  "substep_queue": "sequential",
+  "v2i_gate_rejected": 202606.0,
+  "v2i_cap_rejected": 0.0,
+  "veh_queue_mode": "conserved",
+  "local_mqd_rejected": 455.0,
+  "v2v_mqd_rejected": 2544.0,
+  "v2i_unavailable": 86.0,
+  "v2v_unavailable": 9.0,
+  "work_ms": {
+    "v2i_offered": 13887223.0,
+    "v2i_admitted": 12292853.0,
+    "v2i_rejected_or_unavailable": 1594370.0,
+    "veh_offered": 81431608.0,
+    "veh_admitted": 81384864.0,
+    "veh_rejected": 46744.0
+  },
+  "enter_reset": true,
+  "reset_soc_on_enter": false,
+  "engine_version": "v3_enter_reset",
+  "fleet_ev_share": 0.2517985701560974,
+  "fleet_tier_hist": [
+    53,
+    45,
+    41
+  ],
+  "completion": 0.8851149999216991,
+  "n_offered": 4150655.0,
+  "n_admitted": 3944955.0,
+  "completion_admitted": 0.9312671500688855,
+  "avg_latency_admitted_ms": 58.10009797323417,
+  "avg_latency_met_ms": 46.50796299315669,
+  "t1_completion": 0.7250690938305042,
+  "t2_completion": 0.9888917011164543,
+  "t3_completion": 0.88700344931968,
+  "total_energy_j": 2099788.75,
+  "avg_energy_j_per_task": 0.5058933469536736,
+  "avg_latency_ms_per_task": 105.66037794034918,
+  "p_local": 0.5666370729439089,
+  "p_v2i": 0.20774937931483103,
+  "p_v2v": 0.2256135477412601,
+  "t1_share": 0.20032452709271187,
+  "t2_share": 0.2998478553384948,
+  "t3_share": 0.49982761756879335,
+  "total_tasks": 4150655.0,
+  "wall_s": 826.8,
+  "v2i_path_metrics": {
+    "schema_version": "e2_native_v2i_path_v1",
+    "v2i_attempts": 862296,
+    "v2i_admitted_tasks": 659604,
+    "ingress_count_per_rsu": [
+      248976,
+      111846,
+      92205,
+      88382,
+      46808,
+      34168,
+      147699,
+      17589,
+      74623
+    ],
+    "selected_target_count_per_rsu": [
+      448302,
+      255105,
+      110061,
+      38038,
+      10790,
+      0,
+      0,
+      0,
+      0
+    ],
+    "actual_execution_count_per_rsu": [
+      291944,
+      211796,
+      107093,
+      37982,
+      10789,
+      0,
+      0,
+      0,
+      0
+    ],
+    "forwarded_admitted_task_count": 531511,
+    "forwarded_share_of_admitted_v2i": 0.8058031788770231,
+    "total_forwarding_latency_ms": 0.0,
+    "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+    "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+    "ingress_to_execution_pair_matrix": [
+      [
+        84632,
+        61174,
+        30877,
+        10916,
+        3090,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        37744,
+        27480,
+        13915,
+        4868,
+        1394,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        31463,
+        22647,
+        11511,
+        4104,
+        1144,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        29732,
+        21667,
+        10956,
+        3882,
+        1100,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        15661,
+        11435,
+        5899,
+        2095,
+        588,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        11454,
+        8398,
+        4287,
+        1467,
+        431,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        49778,
+        36169,
+        18276,
+        6608,
+        1926,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        6057,
+        4354,
+        2156,
+        747,
+        206,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        25423,
+        18472,
+        9216,
+        3295,
+        910,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "execution_share_per_rsu": [
+      0.44260495691354207,
+      0.3210956877156597,
+      0.1623595369342818,
+      0.05758303466928642,
+      0.016356783767230036,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "maximum_execution_share": 0.44260495691354207,
+    "imbalance_diagnostic": {
+      "name": "execution_share_range",
+      "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+      "value": 0.44260495691354207
+    }
+  },
+  "extension_schema": "joint_seed_cyclic_v2_records",
+  "substep_queue_iterations": 3,
+  "k_max": 5,
+  "n_rsus": 9,
+  "max_vehicle_queue_depth": 10,
+  "evaluator_seed": 202,
+  "round_robin_pointer_final": null
+}
+[per-step] wrote /Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/we/block_02_dla/attempt_001/per_step.npz (T=32400, N=139, R=9; join vehicles on the trace npz pos_x/pos_y/mask for positions)
+[per-task] wrote /Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/we/block_02_dla/attempt_001/per_task.npz ([T,KMAX,N] = [32400,5,139]; filter on task_active)

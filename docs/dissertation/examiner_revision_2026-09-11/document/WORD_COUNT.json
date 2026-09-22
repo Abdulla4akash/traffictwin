@@ -1,12 +1,28 @@
 {
-  "words": 8984,
-  "prose_only_words": 7784,
-  "headline_words": 8984,
+  "words": 9605,
+  "prose_only_words": 8174,
+  "headline_words": 9605,
   "headline_method": "package",
   "acceptance_bounds": {
     "prose_only_min": 7600,
-    "package_max": 8950
+    "package_max": 8950,
+    "owner_waived_word_count_stop": true,
+    "owner_will_trim": true
   },
   "prose_only_method": "Same tokenisation and boundaries as package method; additionally excludes table bodies and pseudocode",
-  "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded"
+  "method": "Unicode word tokens; Abstract, main headings/body, table text, equations and pseudocode included; references, captions, appendices and front matter excluded",
+  "latex_only_overlay": {
+    "baseline_commit": "ded54bd",
+    "before": {
+      "strict": 9555,
+      "prose_only": 8136
+    },
+    "after": {
+      "strict": 9605,
+      "prose_only": 8174
+    },
+    "projection": "evidence/EXEMPLAR_OPERATIONS_2026-09-16.json#count_source_overrides",
+    "tool": "document/count_exemplar_words.py",
+    "tokenisation": "Unchanged from document/convert_source.py; abstract header is excluded front matter."
+  }
 }

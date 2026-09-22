@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-09-16T00:06:39.414288+00:00",
+  "preflight": {
+    "timestamp": "2026-09-16T00:06:39.396458+00:00",
+    "runtime": {
+      "python": "3.11.15",
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "scipy": "1.17.1",
+      "x64": false,
+      "devices": [
+        "TFRT_CPU_0"
+      ]
+    },
+    "python_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "trace_sha256": "8bb0a05e9e494041943a9d99efbcfc6fce7bc529b348230593a9155580b0d976",
+    "actor_sha256": {
+      "original": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+    },
+    "free_gib": 100.97525787353516,
+    "numerical_environment": {
+      "JAX_ENABLE_X64": "false",
+      "JAX_PLATFORMS": "cpu",
+      "MKL_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "PYTHONHASHSEED": "0",
+      "VECLIB_MAXIMUM_THREADS": null,
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_RSU_SERVICE_MULT": "1.0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_STRESS_LANES": "0",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "XLA_FLAGS": null
+    }
+  },
+  "seal_sha256": "cef966f145c88dc8cc6fb8f3ea0afb11b5c4a22aa0dc265091243e21876012a3"
+}

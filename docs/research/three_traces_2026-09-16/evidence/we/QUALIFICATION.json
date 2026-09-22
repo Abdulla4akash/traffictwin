@@ -1,0 +1,199 @@
+{
+  "status": "passed",
+  "completed_at": "2026-09-16T00:05:37.503148+00:00",
+  "trace": "we",
+  "qualification_seal_sha256": "5b5515972393e4b8bd9afee80dc8df3ad8c10ceba8d71ab7c3fe5c408913a8a8",
+  "within_trace": {
+    "ingress_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "per_task_dla": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "causal_round_robin": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    },
+    "dla_p2c": {
+      "status": "passed",
+      "exogenous_inputs": "matched",
+      "service_activation": null,
+      "endogenous_differences": {
+        "veh_action": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_actor_logits": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        },
+        "veh_observations": {
+          "identical": true,
+          "changed_values": 0,
+          "max_absolute_difference": 0.0
+        }
+      },
+      "actions_forced": false
+    }
+  },
+  "shared_input_field_count": 14,
+  "restart": {
+    "per_step.npz": [
+      "active",
+      "arrivals",
+      "done",
+      "exogenous_keys",
+      "lat_sum",
+      "n_local",
+      "n_v2i",
+      "n_v2v",
+      "observation_task_size",
+      "observation_task_type",
+      "rr_pointer_after",
+      "rr_pointer_before",
+      "rsu_busy_ms",
+      "rsu_load",
+      "rsu_pre_drain_busy_ms",
+      "rsu_pre_drain_load",
+      "rsu_start_busy_ms",
+      "rsu_start_load",
+      "slot_is_ev",
+      "slot_soc_initial",
+      "slot_tier",
+      "slot_tx_power_w",
+      "times",
+      "veh_action",
+      "veh_actor_logits",
+      "veh_best_rsu",
+      "veh_best_v2v",
+      "veh_done",
+      "veh_energy_j",
+      "veh_k",
+      "veh_load",
+      "veh_observations",
+      "veh_pre_drain_busy_ms",
+      "veh_pre_drain_load",
+      "veh_queue_ms",
+      "veh_soc_after",
+      "veh_soc_before",
+      "veh_start_busy_ms",
+      "veh_start_load",
+      "veh_v2i_capacity_mbps",
+      "veh_v2i_quality",
+      "veh_v2v_radio_viable",
+      "veh_v2v_target"
+    ],
+    "per_task.npz": [
+      "task_active",
+      "task_execution_rsu",
+      "task_final_admitted",
+      "task_forwarded",
+      "task_forwarding_latency_ms",
+      "task_ingress_rsu",
+      "task_lat_ms",
+      "task_local_service_ms",
+      "task_met",
+      "task_outcome",
+      "task_rsu_service_ms",
+      "task_selected_execution_rsu",
+      "task_sizes_mb",
+      "task_type",
+      "task_v2i_admitted",
+      "task_v2v_service_ms"
+    ]
+  },
+  "restart_array_count": 59,
+  "short_attempts": 6,
+  "attempt_receipts": {
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/qualification/01_ingress_dla/attempt_001/VALIDATED.json": "e258174477bc3679c8dd19784d8d50ceda03b71c68f1175583a4eb1c651d2780",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/qualification/02_dla/attempt_001/VALIDATED.json": "59308f3ba48e4caeb2371bd48a3ed26b9b62cb964b2f589593901cd489ee5706",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/qualification/03_per_task_dla/attempt_001/VALIDATED.json": "a2d1af98ee65eaaf3395e0ec3bbb5249e7eb837385f38647c2309a5e3ab866f3",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/qualification/04_causal_round_robin/attempt_001/VALIDATED.json": "9a4ba67fb985df2ebb64832afe45b1a628fde742d8646ced94d089a4cd2808f2",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/qualification/05_dla_p2c/attempt_001/VALIDATED.json": "e5c28e61666dd77fba6d75cc6980ea33976e807d67a35990e1f870c8f5cefd41",
+    "/Users/akashx/Downloads/diss_mat/traffictwin-traces-raw-2026-09-16/we/qualification/06_per_task_dla_prefix/attempt_001/VALIDATED.json": "e46b0e6cf3401615b76417f79749ff2286f1076c06e6d083140d782380201ba9"
+  }
+}

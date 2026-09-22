@@ -1,0 +1,18 @@
+      502.70 real       798.37 user       376.65 sys
+          1422147584  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              349753  page reclaims
+                  43  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 814  voluntary context switches
+            51657729  involuntary context switches
+      10234350923832  instructions retired
+       3525666212343  cycles elapsed
+          1970768176  peak memory footprint

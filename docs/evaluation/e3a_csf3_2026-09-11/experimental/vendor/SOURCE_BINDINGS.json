@@ -1,0 +1,40 @@
+{
+  "status": "versioned E3a evaluator dependencies; per-source status below",
+  "runtime_recorded": "vec_env-state-delay-run",
+  "sources": [
+    {
+      "runtime_relative_path": "jaxmarl/env/vec_jax.py",
+      "sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+      "new_copy": "vec_jax.py",
+      "copy_status": "unchanged"
+    },
+    {
+      "runtime_relative_path": "eval/e2_path_instrumentation.py",
+      "upstream_sha256": "6c764965fe07faf3238504bc20bd52ef4c03cfd458281bb7c4f3e6a09600d69a",
+      "sha256": "0b3ee8812e17f918a978707bc0f8c7af8a49b6bad293466e47cd2ad22a9c99d0",
+      "new_copy": "e2_path_instrumentation.py",
+      "copy_status": "P2C-only conditional permits no selected target on N0; prior modes unchanged"
+    },
+    {
+      "runtime_relative_path": "eval/e2d_per_task_placement.py",
+      "source_repository_path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/e2d_per_task_placement.py",
+      "sha256": "76d1ed2086165b84e67643688443d3f6853bb4ea4c60380f40667c666d966a09",
+      "new_copy": "e2d_per_task_placement.py",
+      "copy_status": "unchanged"
+    },
+    {
+      "runtime_relative_path": "eval/rsu_state_delay.py",
+      "source_repository_path": "docs/evaluation/vec_followup_2026-09-07/frozen_evaluator/eval/rsu_state_delay.py",
+      "sha256": "b4cf128d3eddf2fb11b0d58dde790c7441a38cfdd12fc82859e7c5a1c6d4f751",
+      "new_copy": "rsu_state_delay.py",
+      "copy_status": "unchanged"
+    },
+    {
+      "runtime_relative_path": "eval/e3_p2c_placement.py",
+      "source_commit": "dc606770059f0c4a413bac2217d7f38600b74fff",
+      "sha256": "3f7e623b4afd4bede9cec9d79119331b6da5f6ff9e4862606735703a8dff1ff7",
+      "new_copy": "preserved_e3_p2c_placement.py",
+      "copy_status": "unchanged; differential test oracle only, not simulation driver"
+    }
+  ]
+}

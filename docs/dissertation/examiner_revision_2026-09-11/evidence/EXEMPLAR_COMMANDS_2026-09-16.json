@@ -1,0 +1,396 @@
+{
+  "status": "passed",
+  "research_workloads_launched": 0,
+  "source_base": "1e01b75",
+  "compact_baseline": "ded54bd",
+  "followup_source": "fe8c8d9",
+  "trace_source": "c95e4f8",
+  "commands": [
+    {
+      "command": [
+        "/Users/akashx/Downloads/diss_mat/vec_env-state-delay/.venv/bin/python",
+        "docs/dissertation/examiner_revision_2026-09-11/document/verify_compact_tables.py"
+      ],
+      "cwd": "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16/commands",
+      "exit_status": 0,
+      "stdout_sha256": "b975ff7d1da8ef2f0535145912528a99754bcad9b1e2ac9b2c0e4f89250020c9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/akashx/scratch/traffictwin-results-bridge/.venv/bin/streamlit",
+        "run",
+        "src/traffictwin/ui/app.py"
+      ],
+      "cwd": "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16/commands",
+      "exit_status": 0,
+      "health": {
+        "status": 200,
+        "body": "ok"
+      },
+      "termination": "Controlled SIGINT after loopback health check",
+      "ui_interaction": "None; no research, import, demo-generation or data-modification action invoked"
+    },
+    {
+      "command": [
+        "/Users/akashx/scratch/traffictwin-results-bridge/.venv/bin/traffictwin",
+        "integration",
+        "tos",
+        "validate",
+        "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16/external_package"
+      ],
+      "cwd": "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16/commands",
+      "exit_status": 0,
+      "stdout_sha256": "351b139236c51d437c4e3dd45087d1e0746e0ca97771018134fd9a3cb90f2803",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "compact_result": {
+    "status": "passed",
+    "tables": {
+      "6": [
+        {
+          "contrast": "per_task_minus_ingress",
+          "mean_and_family95": [
+            3.8985222313194754,
+            2.671291357288343,
+            5.125753105350608
+          ],
+          "individual95": [
+            3.0943484670538886,
+            4.702695995585062
+          ]
+        },
+        {
+          "contrast": "common_target_minus_ingress",
+          "mean_and_family95": [
+            -3.2322534739661783,
+            -4.671778673373711,
+            -1.7927282745586453
+          ],
+          "individual95": [
+            -4.175538411510342,
+            -2.288968536422015
+          ]
+        },
+        {
+          "contrast": "per_task_minus_common_target",
+          "mean_and_family95": [
+            7.130775705285654,
+            4.466110282046811,
+            9.795441128524496
+          ],
+          "individual95": [
+            5.384686954376367,
+            8.87686445619494
+          ]
+        }
+      ],
+      "7": [
+        {
+          "contrast": "per_task_dla minus ingress_dla",
+          "effects_pp": [
+            4.541538927108078,
+            4.2435538808825015,
+            5.0202226936226,
+            3.8392365213931328,
+            3.594354751749947,
+            3.4376686887348313,
+            3.996050732020933,
+            4.422544995191259
+          ],
+          "mean_pp": 4.13689639883791,
+          "sd_pp": 0.5249056502594575,
+          "family95_low_pp": 3.556478453517487,
+          "family95_high_pp": 4.717314344158334
+        },
+        {
+          "contrast": "dla minus ingress_dla",
+          "effects_pp": [
+            -3.8130723921499765,
+            -3.6313664221669484,
+            -4.280092200556311,
+            -3.1819826203814046,
+            -3.016775605626435,
+            -3.027314538375933,
+            -3.4569871333078908,
+            -3.624146148828885
+          ],
+          "mean_pp": -3.503967132674223,
+          "sd_pp": 0.43078403331153114,
+          "family95_low_pp": -3.9803094684214817,
+          "family95_high_pp": -3.0276247969269643
+        },
+        {
+          "contrast": "per_task_dla minus causal_round_robin",
+          "effects_pp": [
+            0.7062285321599973,
+            0.6629637500933399,
+            0.8262455830135167,
+            0.5415006188987945,
+            0.5158062821339371,
+            0.5192891091401179,
+            0.5944566742915924,
+            0.6776933208462879
+          ],
+          "mean_pp": 0.630522983822198,
+          "sd_pp": 0.10828188514724806,
+          "family95_low_pp": 0.5107895626606577,
+          "family95_high_pp": 0.7502564049837382
+        }
+      ],
+      "7a": [
+        {
+          "contrast": "per_task_minus_two_choice",
+          "condition": "07_two_choice",
+          "mean_and_family95": [
+            0.6488842834325474,
+            0.5171956268205418,
+            0.7805729400445531
+          ]
+        },
+        {
+          "contrast": "two_choice_minus_ingress",
+          "condition": "07_two_choice",
+          "mean_and_family95": [
+            3.488012115405363,
+            2.868939580860987,
+            4.107084649949739
+          ]
+        },
+        {
+          "contrast": "two_choice_minus_round_robin",
+          "condition": "07_two_choice",
+          "mean_and_family95": [
+            -0.01836129961034949,
+            -0.048383663889350836,
+            0.011661064668651858
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_ingress_dla",
+          "condition": "08_half_speed",
+          "mean_and_family95": [
+            4.215340868119345,
+            3.9544545788993255,
+            4.4762271573393635
+          ]
+        },
+        {
+          "contrast": "dla_minus_ingress_dla",
+          "condition": "08_half_speed",
+          "mean_and_family95": [
+            -3.395907452258715,
+            -3.9870506834402,
+            -2.8047642210772303
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_causal_round_robin",
+          "condition": "08_half_speed",
+          "mean_and_family95": [
+            0.8238624881765144,
+            0.7874782287037666,
+            0.8602467476492622
+          ]
+        },
+        {
+          "contrast": "change_in_per_task_minus_round_robin_gap",
+          "condition": "08_half_speed",
+          "mean_and_family95": [
+            0.19333950435431646,
+            0.03431519858567639,
+            0.35236381012295653
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_ingress_dla",
+          "condition": "09_second_actor",
+          "mean_and_family95": [
+            3.5389505589014316,
+            2.8607373115033146,
+            4.217163806299549
+          ]
+        },
+        {
+          "contrast": "dla_minus_ingress_dla",
+          "condition": "09_second_actor",
+          "mean_and_family95": [
+            -3.440358265679123,
+            -4.001476547159495,
+            -2.8792399841987506
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_causal_round_robin",
+          "condition": "09_second_actor",
+          "mean_and_family95": [
+            0.549706124886356,
+            0.43152209978275025,
+            0.6678901499899617
+          ]
+        }
+      ],
+      "7b": [
+        {
+          "contrast": "per_task_dla_minus_ingress_dla",
+          "condition": "we",
+          "mean_and_family95": [
+            3.728391381968361,
+            2.3127303136981396,
+            5.144052450238583
+          ]
+        },
+        {
+          "contrast": "dla_minus_ingress_dla",
+          "condition": "we",
+          "mean_and_family95": [
+            -2.996093694821175,
+            -4.229517604667211,
+            -1.7626697849751387
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_causal_round_robin",
+          "condition": "we",
+          "mean_and_family95": [
+            0.5129364090153068,
+            0.2838377052663631,
+            0.7420351127642505
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_dla_p2c",
+          "condition": "we",
+          "mean_and_family95": [
+            0.5802826730767947,
+            0.3766834318057434,
+            0.783881914347846
+          ]
+        },
+        {
+          "contrast": "dla_p2c_minus_causal_round_robin",
+          "condition": "we",
+          "mean_and_family95": [
+            -0.06734626406148791,
+            -0.09388716255645128,
+            -0.040805365566524546
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_ingress_dla",
+          "condition": "wd_pm",
+          "mean_and_family95": [
+            4.3588005263707394,
+            2.4063149810916142,
+            6.311286071649865
+          ]
+        },
+        {
+          "contrast": "dla_minus_ingress_dla",
+          "condition": "wd_pm",
+          "mean_and_family95": [
+            -3.59390061007133,
+            -5.403442916647514,
+            -1.7843583034951456
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_causal_round_robin",
+          "condition": "wd_pm",
+          "mean_and_family95": [
+            0.6056030949681794,
+            0.16016737510900525,
+            1.0510388148273537
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_dla_p2c",
+          "condition": "wd_pm",
+          "mean_and_family95": [
+            0.6462811763662639,
+            0.2897355364415392,
+            1.0028268162909886
+          ]
+        },
+        {
+          "contrast": "dla_p2c_minus_causal_round_robin",
+          "condition": "wd_pm",
+          "mean_and_family95": [
+            -0.04067808139808449,
+            -0.13250558060959866,
+            0.0511494178134297
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_ingress_dla",
+          "condition": "ev",
+          "mean_and_family95": [
+            3.7348229009682044,
+            2.385031206914868,
+            5.084614595021541
+          ]
+        },
+        {
+          "contrast": "dla_minus_ingress_dla",
+          "condition": "ev",
+          "mean_and_family95": [
+            -3.592530180587868,
+            -4.916498598255944,
+            -2.2685617629197923
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_causal_round_robin",
+          "condition": "ev",
+          "mean_and_family95": [
+            0.42759369422049787,
+            0.25495467406269845,
+            0.6002327143782973
+          ]
+        },
+        {
+          "contrast": "per_task_dla_minus_dla_p2c",
+          "condition": "ev",
+          "mean_and_family95": [
+            0.5335811951860876,
+            0.3504235025791186,
+            0.7167388877930566
+          ]
+        },
+        {
+          "contrast": "dla_p2c_minus_causal_round_robin",
+          "condition": "ev",
+          "mean_and_family95": [
+            -0.10598750096558973,
+            -0.12194140126757798,
+            -0.09003360066360148
+          ]
+        }
+      ]
+    },
+    "source_sha256": {
+      "docs/evaluation/vec_followup_2026-09-07/generalisation-replication-2026-09-07/analysis_validation.json": "f08018f1330474db43f214c182749aaed17e4bcdb4fc322e58a62ec0acc8158b",
+      "docs/dissertation/joint_confirmation_2026-09-08/document/verify_results.py": "3d4d00488f32ea85ba83c03ea3aa929880f30ff89e33d1ea84756cdf8253d0a5",
+      "fe8c8d9e4f725665508e47e61dc6e3286d005450:docs/dissertation/followups_2026-09-15/ANALYSIS.json": "a71008f741b06aee5601dd8fc774242b72d890d928dc547452db0b227222c5d3",
+      "c95e4f86d6dd83207ed3c810826ca48768af8471:docs/research/three_traces_2026-09-16/ANALYSIS.json": "f2d0b5023bedcb73469c663bf6fc410238f05b70a6a37f5ec29b9adafc2fa4ee"
+    },
+    "runtime": {
+      "python": "3.11.15",
+      "numpy": "1.26.4",
+      "scipy": "1.17.1"
+    },
+    "scope": "Compact paired arithmetic; existing joint receipt checks; no raw-task revalidation or new research. All declared rows retained, including rows not printed in shortened manuscript tables.",
+    "research_workloads_launched": 0
+  },
+  "scratch_source_files_unchanged": true,
+  "external_package_files_unchanged": true,
+  "external_file_count": 299,
+  "stdout_logs": "/Users/akashx/scratch/traffictwin-exemplar-qa-2026-09-16",
+  "no_raw_full_reproduction_claimed": true,
+  "compact_verifier_source": {
+    "executed_sha256": "5235360d37402f086c289933884001e205e3e51b27660e3fb33fef18d4129eaf",
+    "delivered_sha256": "2a2d1fa8f3ce9e55064444fc5b1ec6c2ab74387b49ad8e00c831a8f4ef43c15c",
+    "formatting_only_after_execution_ast_equal": true
+  }
+}

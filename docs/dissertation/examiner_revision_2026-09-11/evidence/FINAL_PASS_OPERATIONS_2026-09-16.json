@@ -1,0 +1,466 @@
+{
+  "baseline": "a8cffe753047c4b7498dded39f61aac3e57f87e4",
+  "baseline_markdown_sha256": "7851287ff2be9307cf3665e42df09a192f13ecb50d670ed2564a6d043948334b",
+  "main_sha": "fe8c8d9e4f725665508e47e61dc6e3286d005450",
+  "integration_baseline": "fe8c8d9e4f725665508e47e61dc6e3286d005450",
+  "study_source_sha": "c95e4f86d6dd83207ed3c810826ca48768af8471",
+  "study_merge_deferred_by_owner": true,
+  "owner_prompt": "CODEX_PROMPT_final_manuscript_pass_2026-09-16.md",
+  "owner_amendments": [
+    "Supplied MSc Artificial Intelligence,14185028,S M Abdulla Al Mamun",
+    "Approved narrow historical scope and consistency corrections",
+    "Waived word-count stop and retained personal final trimming",
+    "Requested full Abstract totals; observed274distinct(82+72+120),sevenpolicies,fivescenarios;prospective sealing scope",
+    "Owner stopped application tests and deferred PR144 merge; cite c95 fallback and run only manuscript validators,extended preservation,latexmk,visual inspection"
+  ],
+  "capture_files": {
+    "evidence/final_capture/capture_final.py": "evidence/final_capture/capture_final.py",
+    "evidence/final_capture/compose_figure.py": "evidence/final_capture/compose_figure.py",
+    "assets/traffictwin_platform_real_data.png": "assets/traffictwin_platform_real_data.png",
+    "assets/traffictwin_platform_real_data.pdf": "assets/traffictwin_platform_real_data.pdf",
+    "evidence/final_capture/TOS_ADAPTER_VALIDATION.json": "evidence/final_capture/TOS_ADAPTER_VALIDATION.json",
+    "evidence/final_capture/shots/a_tall.png": "evidence/final_capture/shots/a_tall.png",
+    "evidence/final_capture/shots/b_tall.png": "evidence/final_capture/shots/b_tall.png",
+    "evidence/final_capture/shots/c_tall.png": "evidence/final_capture/shots/c_tall.png"
+  },
+  "word_count_stop_waived": true,
+  "fallback_steps_used": [
+    "G.1",
+    "G.2",
+    "G.3",
+    "G.4",
+    "G.5",
+    "G.6",
+    "G.7",
+    "G.8",
+    "G.9"
+  ],
+  "operations": [
+    {
+      "item": "A.1/A.8 results derived from analysis JSON",
+      "old": "### 3.5 Why destination semantics matter",
+      "new": "**Follow-up tests declared after the sealed confirmation.** Three further studies reused the eight joint blocks under a protocol sealed before their outcomes. They are post-hoc additions outside the original three-contrast family and are reported with intervals adjusted across all ten new contrasts (Table 7a). First, the evaluator's own two-choice mode (`dla_p2c`) was added as a fifth arm: per-task exceeded it by +0.649 points [+0.517, +0.781], while two-choice did not differ conclusively from round-robin (−0.018 [−0.048, +0.012]). Second, halving the RSU service rate with all else fixed raised the per-task advantage over round-robin from 0.631 to 0.824 points; the within-block change was +0.193 [+0.034, +0.352]. Third, a second Model-C checkpoint trained on the UK-fleet distribution, sharing training seed 100, preserved the ranking common-target < ingress < round-robin < per-task, with per-task minus round-robin +0.550 [+0.432, +0.668] and per-task minus ingress +3.539 [+2.861, +4.217]. These conditions and the three-trace study were proposed by an AI assistant from the limitation rows of Table 8 and authorised by me; because the blocks are reused and the checkpoints share a seed, they extend rather than replace the sealed evidence [[S18]](#source-s18).\n\n*Table 7a. Follow-up contrasts on the same eight blocks: post-hoc additions with a ten-contrast Bonferroni family. Half-speed and second-actor studies are separate conditions and are not combined. These conditions and the three-trace study were proposed by an AI assistant and authorised by the author. Reading: compare each condition within its matched blocks, retaining the original confirmation as a separate family.*\n\n| Study | Contrast | Mean difference (pp) | All-ten simultaneous 95% interval |\n|---|---|---:|---|\n| 7 | Per-task − two-choice | +0.649 | [+0.517, +0.781] |\n| 7 | Two-choice − ingress | +3.488 | [+2.869, +4.107] |\n| 7 | Two-choice − round-robin | −0.018 | [−0.048, +0.012] |\n| 8 | Per-task − round-robin at half speed | +0.824 | [+0.787, +0.860] |\n| 8 | Change in per-task − round-robin gap | +0.193 | [+0.034, +0.352] |\n| 9 | Per-task − ingress | +3.539 | [+2.861, +4.217] |\n| 9 | Per-task − round-robin | +0.550 | [+0.432, +0.668] |\n\n**Recurrence on three further Manchester traces.** A further declared study ran the same five arms on eight seed blocks for each of three unused traces from the same calibrated network: weekend (Sunday 15 September 2024, 12:00–21:00), weekday evening peak (Tuesday 15 October 2024, 14:00–21:00) and event night (Wednesday 18 September 2024, 17:30–24:00), 120 cells with no failures, protocol sealed before outcomes (Table 7b). The ranking common-target < ingress < round-robin < per-task recurred on every trace: common-target lost 3.0 to 3.6 points to ingress, per-task gained 3.7 to 4.4, and per-task exceeded round-robin by +0.43 to +0.61 and two-choice by +0.53 to +0.65, with all fifteen intervals adjusted as one family. Two-choice never exceeded round-robin and trailed it on the weekend and event traces. Ordered by mean active vehicles per second, the workload-aware increment rose monotonically across event night, weekend, evening peak and morning (0.43, 0.51, 0.61, 0.63), consistent with the half-speed result; event night also has twelve RSUs against nine or ten. The weekend trace carries the entry-channel fix; the evening-peak and event traces retain the legacy slot-reuse convention noted for the incident trace [[S19]](#source-s19).\n\n*Table 7b. Three further Manchester traces, each with eight paired blocks and five arms. All-fifteen simultaneous 95% Student-t intervals use one Bonferroni family across the fifteen new contrasts; the complete analysis also reports two-choice minus round-robin [[S19]](#source-s19). Reading: assess each trace separately; density ordering is descriptive, with no pooling or cross-trace test.*\n\n| Trace | Contrast | Mean difference (pp) | All-fifteen simultaneous 95% interval |\n|---|---|---:|---|\n| Weekend | Per-task − ingress | +3.728 | [+2.313, +5.144] |\n| Weekend | Common-target − ingress | −2.996 | [−4.230, −1.763] |\n| Weekend | Per-task − round-robin | +0.513 | [+0.284, +0.742] |\n| Weekend | Per-task − two-choice | +0.580 | [+0.377, +0.784] |\n| PM peak | Per-task − ingress | +4.359 | [+2.406, +6.311] |\n| PM peak | Common-target − ingress | −3.594 | [−5.403, −1.784] |\n| PM peak | Per-task − round-robin | +0.606 | [+0.160, +1.051] |\n| PM peak | Per-task − two-choice | +0.646 | [+0.290, +1.003] |\n| Event night | Per-task − ingress | +3.735 | [+2.385, +5.085] |\n| Event night | Common-target − ingress | −3.593 | [−4.916, −2.269] |\n| Event night | Per-task − round-robin | +0.428 | [+0.255, +0.600] |\n| Event night | Per-task − two-choice | +0.534 | [+0.350, +0.717] |\n\n### 3.5 Why destination semantics matter"
+    },
+    {
+      "item": "A.3",
+      "old": "Does the reversal recur in separate morning samples, and does workload-aware causal placement add benefit over cyclic spreading in the new joint-randomness blocks?",
+      "new": "Does the reversal recur in separate morning samples and on further scenarios of the same network, does causal per-task placement add benefit over cyclic and sampled alternatives, and does that benefit persist under reduced RSU service rate and a second actor checkpoint?"
+    },
+    {
+      "item": "A.4",
+      "old": "Per-task exceeded causal round-robin by +0.631 points, with its simultaneous interval entirely positive.",
+      "new": "Per-task exceeded causal round-robin by +0.631 points, with its simultaneous interval entirely positive. Declared follow-ups found per-task above two-choice by +0.649 points, a half-speed increase in the per-task–round-robin gap of +0.193, and a second-checkpoint per-task–round-robin advantage of +0.550. The full ranking recurred on weekend, evening-peak and event-night traces, with per-task above round-robin and two-choice on each."
+    },
+    {
+      "item": "A.5",
+      "old": "| Original four fleet draws; new eight joint blocks on one morning trace/actor | Population uncertainty and generalisation | Joint randomness broadens stream coverage; geographical, actor and model uncertainty remain |",
+      "new": "| Original four fleet draws; new eight joint blocks; five scenarios of one calibrated Manchester network; two checkpoints sharing a training seed; follow-ups reuse the seed pairs | Population uncertainty and generalisation | Independent network, independent training seed and combined conditions remain open |"
+    },
+    {
+      "item": "A.5/G.2",
+      "old": "nd reduced adverse example do not establish fleet-frequency effects |\n| Two-choice spreading not evaluated | Workload-aware benefit relative to sampled placement | Run `dla_p2c` on the same blocks |\n| Single-draw sensitivities | General staleness/forwarding robustness ",
+      "new": "nd reduced adverse example do not establish fleet-frequency effects |\n| Single-draw sensitivities | General staleness/forwarding robustness "
+    },
+    {
+      "item": "A.6",
+      "old": "The reversal recurs in the incident and morning samples; the separate eight-block confirmation supports all three declared contrasts (Tables 4–7).",
+      "new": "The reversal recurs in the incident and morning samples; the separate eight-block confirmation supports all three declared contrasts (Tables 4–7), and declared follow-ups on the same blocks and on three further traces extend the evidence (Tables 7a–7b)."
+    },
+    {
+      "item": "A.7",
+      "old": "First, I would evaluate `dla_p2c` on the sealed eight blocks under identical controls, to separate randomised sampling from exact least-workload selection. This post-hoc addition would be outside the sealed family.",
+      "new": "First, an independently trained checkpoint, a second calibrated network and a service-rate curve beyond the single half-speed point would test whether the workload-aware increment scales as the mechanism predicts."
+    },
+    {
+      "item": "B paragraph 2; C5 printed phrase retained",
+      "old": "Common-target least-workload placement underperformed execution at ingress, while causal per-task placement improved it. This reversal appeared in an adaptive incident study and a separate four-draw morning replication that excluded its inspected pilot. A later confirmation completed 32 evaluations across eight fresh joint fleet/evaluator-seed blocks. Per-task minus ingress was +4.137 percentage points; common-target minus ingress was −3.504. Per-task also exceeded causal cyclic spreading by +0.631 points, with a Bonferroni simultaneous 95% interval of [+0.511, +0.750]. All actions matched, although feedback was permitted and small observation/logit differences occurred in one block.",
+      "new": "Six infrastructure policies were compared across three replicated studies, more than eighty full evaluator runs, under protocols sealed before outcomes. Common-target least-workload placement underperformed execution at ingress, while causal per-task placement improved it, in an adaptive incident study, a four-draw morning replication and a 32-cell confirmation on eight fresh joint fleet/evaluator-seed blocks: per-task minus ingress +4.137 percentage points, common-target minus ingress −3.504, and per-task minus causal cyclic spreading +0.631 with a Bonferroni simultaneous 95% interval of [+0.511, +0.750]. Declared follow-ups showed per-task exceeding the evaluator's two-choice mode by +0.649, a wider advantage over spreading when server speed was halved (+0.193), the same ranking under a second actor checkpoint, and recurrence of the full ranking on weekend, evening-peak and event-night traces of the same network."
+    },
+    {
+      "item": "B paragraph 4",
+      "old": "One actor, the same morning trace for confirmation,",
+      "new": "Two checkpoints sharing one training seed, one calibrated Manchester network for all five scenarios,"
+    },
+    {
+      "item": "C Declaration",
+      "old": "Codex and ChatGPT produced code, campaign tooling and draft text to my specification, which I reviewed and in many cases rewrote before use.",
+      "new": "Codex and ChatGPT produced code, campaign tooling and draft text to my specification, which I reviewed and in many cases rewrote before use. Claude (Anthropic) proposed the three follow-up conditions and the three-trace study reported in Section 3.4 from the report's own limitations table and produced reviewer-style critiques of drafts; I authorised the runs, and each protocol was sealed before its outcomes."
+    },
+    {
+      "item": "C section 3.7",
+      "old": "I designed the research questions and every evaluation experiment in this report: the E1 capacity levels, the E2b ingress-with-gate control, the E2c four-draw replication, the E2d per-task implementation and its reuse of the E2c controls, the morning pilot and its exclusion, the primary seeds, the three declared contrasts, the round-robin comparator, and the eight joint fleet/evaluator blocks with rotating arm order. The software was developed with generative-AI assistance: Codex and ChatGPT produced code and tooling to my specification, which I reviewed and in many cases modified before it was run (vec_env commit 2f63706 records the per-task mode under my name). Putra supplied the actor, environment and the accounting repair [[S12]](#source-s12). I ran or authorised every campaign, recomputed the block-0 paired effect from the offered counts, checked the Table 6 and Table 7 intervals, worked through Proposition 1 and Table C1, and traced the common-target selection in the frozen evaluator source.",
+      "new": "I designed the research questions and every evaluation experiment in this report: the E1 capacity levels, the E2b ingress-with-gate control, the E2c four-draw replication, the E2d per-task implementation and its reuse of the E2c controls, the morning pilot and its exclusion, the primary seeds, the three declared contrasts, the round-robin comparator, and the eight joint fleet/evaluator blocks with rotating arm order. The software was developed with generative-AI assistance: Codex and ChatGPT produced code and tooling to my specification, which I reviewed and in many cases modified before it was run (vec_env commit 2f63706 records the per-task mode under my name). Putra supplied the actor, environment and the accounting repair [[S12]](#source-s12). I ran or authorised every campaign, recomputed the block-0 paired effect from the offered counts, checked the Table 6 and Table 7 intervals, worked through Proposition 1 and Table C1, and traced the common-target selection in the frozen evaluator source. The follow-up conditions were proposed as described in the Declaration; I authorised and reviewed them."
+    },
+    {
+      "item": "D.1",
+      "old": "## Appendix A. Evidence sources and reproducibility",
+      "new": "<a id=\"ref-47\"></a>\n[47] R. P. Putra, L. Figueiredo Silva, S. Sampaio and P. Sampaio. “Evaluating the Value of Predictive Information in Partially Observed Networked Systems: A Traffic Control Case Study.” In *Proceedings of the 9th International Conference on Information Science and Systems (ICISS 2026)*, Cambridge, UK, 27–29 August 2026. ACM, 10 pages. ISBN 979-8-4007-2432-9. DOI pending in the camera-ready copy supplied by the first author.\n\n## Appendix A. Evidence sources and reproducibility"
+    },
+    {
+      "item": "D.3",
+      "old": "The Manchester scenarios give the comparison a concrete traffic setting.",
+      "new": "The Manchester scenarios, taken from a calibrated simulation of the Etihad and Co-op Live area [[47]](#ref-47), give the comparison a concrete intelligent-transport setting."
+    },
+    {
+      "item": "D.2",
+      "old": "Both scenarios are drawn from the Manchester SUMO working-day and incident models: `manchester_workingday/trace_wd_am_wdrsu.npz` and the 15 March 2024 incident trace (Table 2).",
+      "new": "Both scenarios are drawn from the Manchester SUMO working-day and incident models: `manchester_workingday/trace_wd_am_wdrsu.npz` and the 15 March 2024 incident trace (Table 2). Both traces are exported from the calibrated Manchester SUMO network of Putra et al., built from OpenStreetMap around the Etihad Stadium and Co-op Live with demand generated from Transport for Greater Manchester sensor counts; the incident hour is that study's documented reactive-control collapse on 15 March 2024, used here as a simulated dense-traffic stress case rather than a recorded incident [[47]](#ref-47)."
+    },
+    {
+      "item": "D.4",
+      "old": "Scenario identity and fixed placement controls.",
+      "new": "Scenario identity and fixed placement controls; the incident window is a simulated network-lockdown hour from [[47]](#ref-47)."
+    },
+    {
+      "item": "E.3 supersedes published platform update",
+      "old": "Figure 7 demonstrates the completed evidence workflow.",
+      "new": "Figure 7 shows the platform after validating an external 300-run evaluation package and loading this dissertation's own results; it demonstrates provenance and comparison workflows, not results."
+    },
+    {
+      "item": "E.2 asset",
+      "old": "![TrafficTwin workflow demonstration with completed joint-randomness results](assets/traffictwin_results_workflow.png)",
+      "new": "![TrafficTwin with real external data and sealed dissertation results](assets/traffictwin_platform_real_data.pdf)"
+    },
+    {
+      "item": "E.2 caption",
+      "old": "*Figure 7. Workflow demonstration of the completed joint-randomness study in TrafficTwin. The interface imports the archived `CELL_RESULTS.csv`, `PAIRED_EFFECTS.csv` and receipts, displaying 32 cells across eight paired blocks and the three declared contrasts. File hashes, compact arithmetic and receipt bindings are checked; task-level validation remains the historical receipts' record, and raw simulation arrays are not rechecked. The screenshot demonstrates inspection of existing results, not original experimental execution through the platform, independent scientific validation or a user study [[S16]](#source-s16), [[S17]](#source-s17). Reading: follow the completed campaign's outputs into the results view while retaining their original evidence boundaries.*",
+      "new": "*Figure 7. TrafficTwin with real data. (a) An external evaluation package (R. P. Putra, Paper 2B data, tos-data commit a75bbdb, 18–23 July 2026; engine `v2_post_nrsus_fix`) validated read-only, with its provenance line. (b) That package's 300 evaluation runs across five Manchester traces as a deadline-success matrix with the paired campaign comparison beneath; these are external numbers from an engine since revised (vec_env 9db5096, 3 Aug 2026; df022e6/82d3ecf, 5 Aug 2026), shown to demonstrate provenance and comparison workflows, not as results of this dissertation. (c) This dissertation's sealed eight-block contrasts read from the bundled results packet. Reading: the platform demonstrates validation, comparison and provenance on genuine inputs; the numerical claims of this report rest on the bound campaign outputs, not on the interface.*"
+    },
+    {
+      "item": "E.3 Table A1",
+      "old": "8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped | Configured Ruff",
+      "new": "8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped; adapter validation and capture receipts (S17) | Configured Ruff"
+    },
+    {
+      "item": "E.3 S17",
+      "old": "<a id=\"source-s17\"></a>\n**S17 — Examiner-revision artefact evidence.** The [source inventory](evidence/ARTEFACT_INVENTORY.json), [compact recomputation](evidence/COMPACT_CHECKS.json), [descriptive split](evidence/DESCRIPTIVE_SPLIT.json), [figure inputs](evidence/RSU_LAYOUT.json) and [revision validation](document/REVISION_VALIDATION.json) are generated from the pinned repository without new research execution. The [revision record](README.md) distinguishes historical receipts, document checks, the [Figure 7 workflow capture](evidence/PLATFORM_RESULTS_CAPTURE.json) and author-only completion items. The manuscript's source base is `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`.",
+      "new": "<a id=\"source-s17\"></a>\n**S17 — Examiner-revision artefact evidence.** The [source inventory](evidence/ARTEFACT_INVENTORY.json), [compact recomputation](evidence/COMPACT_CHECKS.json), [descriptive split](evidence/DESCRIPTIVE_SPLIT.json), [figure inputs](evidence/RSU_LAYOUT.json) and [revision validation](document/REVISION_VALIDATION.json) are generated from the pinned repository without new research execution. The [revision record](README.md) distinguishes historical receipts, document checks, the [Figure 7 workflow capture](evidence/PLATFORM_RESULTS_CAPTURE.json) and author-only completion items. The manuscript's source base is `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`. The [real-data capture receipt](evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json) and [adapter validation receipt](evidence/TOS_ADAPTER_VALIDATION_2026-09-16.json) bind Figure 7. The platform exposes the same services through the `traffictwin integration tos` command-line group (validate, matrix, compare-campaigns, provenance, audit, report)."
+    },
+    {
+      "item": "A.2/A.2b sources",
+      "old": "*Table A1.",
+      "new": "<a id=\"source-s18\"></a>\n**S18 — Declared follow-up studies (15 September 2026).** [PROTOCOL.md](https://github.com/Abdulla4akash/traffictwin/blob/fe8c8d9e4f725665508e47e61dc6e3286d005450/docs/dissertation/followups_2026-09-15/PROTOCOL.md), [ANALYSIS.json](https://github.com/Abdulla4akash/traffictwin/blob/fe8c8d9e4f725665508e47e61dc6e3286d005450/docs/dissertation/followups_2026-09-15/ANALYSIS.json), [CELL_RESULTS.csv](https://github.com/Abdulla4akash/traffictwin/blob/fe8c8d9e4f725665508e47e61dc6e3286d005450/docs/dissertation/followups_2026-09-15/CELL_RESULTS.csv), [PAIRED_EFFECTS.csv](https://github.com/Abdulla4akash/traffictwin/blob/fe8c8d9e4f725665508e47e61dc6e3286d005450/docs/dissertation/followups_2026-09-15/PAIRED_EFFECTS.csv), [FINAL_ANALYSIS_AUDIT.json](https://github.com/Abdulla4akash/traffictwin/blob/fe8c8d9e4f725665508e47e61dc6e3286d005450/docs/dissertation/followups_2026-09-15/evidence/FINAL_ANALYSIS_AUDIT.json), [TIMINGS.json](https://github.com/Abdulla4akash/traffictwin/blob/fe8c8d9e4f725665508e47e61dc6e3286d005450/docs/dissertation/followups_2026-09-15/evidence/TIMINGS.json). The study completed 72 full cells, with 0 failures, in 3 h 55 min; conditions were proposed by an AI assistant, authorised by the author, and the protocol was sealed before outcomes.\n\n<a id=\"source-s19\"></a>\n**S19 — Three-trace generalisation study (16 September 2026).** [PROTOCOL.md](https://github.com/Abdulla4akash/traffictwin/blob/c95e4f86d6dd83207ed3c810826ca48768af8471/docs/research/three_traces_2026-09-16/PROTOCOL.md), [TRACE_INVENTORY.json](https://github.com/Abdulla4akash/traffictwin/blob/c95e4f86d6dd83207ed3c810826ca48768af8471/docs/research/three_traces_2026-09-16/TRACE_INVENTORY.json), [ANALYSIS.json](https://github.com/Abdulla4akash/traffictwin/blob/c95e4f86d6dd83207ed3c810826ca48768af8471/docs/research/three_traces_2026-09-16/ANALYSIS.json), [CELL_RESULTS.csv](https://github.com/Abdulla4akash/traffictwin/blob/c95e4f86d6dd83207ed3c810826ca48768af8471/docs/research/three_traces_2026-09-16/CELL_RESULTS.csv), [PAIRED_EFFECTS.csv](https://github.com/Abdulla4akash/traffictwin/blob/c95e4f86d6dd83207ed3c810826ca48768af8471/docs/research/three_traces_2026-09-16/PAIRED_EFFECTS.csv), [FINAL_ANALYSIS_AUDIT.json](https://github.com/Abdulla4akash/traffictwin/blob/c95e4f86d6dd83207ed3c810826ca48768af8471/docs/research/three_traces_2026-09-16/FINAL_ANALYSIS_AUDIT.json). PR #144 remains open; this source cites the study at `c95e4f8` on `research/dissertation-traces-2026-09-16`. Archive registration and main integration are deferred until after submission. The study completed 120 full cells, 18 qualification attempts and 24 block receipts, with 0 failures; clock time was 9 h 34 min including a 2 h 12 min host sleep; trace selection and the legacy-convention caveat are recorded in the inventory.\n\n*Table A1."
+    },
+    {
+      "item": "F.3 standard declaration",
+      "old": "**Assistance and attribution.**",
+      "new": "No portion of the work referred to in the dissertation has been submitted in support of an application for another degree or qualification of this or any other university or other institute of learning.\n\n**Assistance and attribution.**"
+    },
+    {
+      "item": "Consistency: initial abstract scale",
+      "old": "The programme evaluated six infrastructure policies over more than eighty full runs,",
+      "new": "The initial programme evaluated six infrastructure policies over more than eighty full runs,"
+    },
+    {
+      "item": "Consistency: adaptive versus prospective sealing",
+      "old": "Six infrastructure policies were compared across three replicated studies, more than eighty full evaluator runs, under protocols sealed before outcomes.",
+      "new": "The initial programme compared six infrastructure policies across three replication stages and more than eighty full evaluator runs; protocols for prospective replication and confirmation were sealed before outcomes."
+    },
+    {
+      "item": "Consistency: C5 initial programme",
+      "old": "Designing and executing the comparison of six infrastructure policies",
+      "new": "Designing and executing the initial comparison of six infrastructure policies"
+    },
+    {
+      "item": "Consistency: Declaration attribution",
+      "old": "I designed this study and every evaluation experiment reported here,",
+      "new": "I designed the initial study and its evaluation experiments,"
+    },
+    {
+      "item": "Consistency: contribution attribution",
+      "old": "I designed the research questions and every evaluation experiment in this report:",
+      "new": "I designed the research questions and the initial evaluation experiments in this report:"
+    },
+    {
+      "item": "Consistency: evaluated two-choice",
+      "old": "that was not evaluated here [[17]](#ref-17)",
+      "new": "that was evaluated in the declared follow-ups (Section 3.4) [[17]](#ref-17)"
+    },
+    {
+      "item": "Consistency: Table 3",
+      "old": "`p2c` and `dla_p2c` are available; not evaluated.",
+      "new": "`p2c` was not evaluated; `dla_p2c` was added in the declared follow-ups."
+    },
+    {
+      "item": "Consistency: Table 3a",
+      "old": "Two-choice comparison deferred (Section 4.4)",
+      "new": "Two-choice evaluated in declared follow-ups (Section 3.4)"
+    },
+    {
+      "item": "Consistency: section 3.2",
+      "old": "the two-choice mode remains the first comparator to add (Section 4.4)",
+      "new": "the two-choice mode was added later (Section 3.4)"
+    },
+    {
+      "item": "Consistency: initial two scenarios",
+      "old": "Both scenarios are drawn from the Manchester SUMO working-day and incident models:",
+      "new": "The initial two scenarios are drawn from the Manchester SUMO working-day and incident models:"
+    },
+    {
+      "item": "Consistency: initial checkpoint",
+      "old": "One archived MAPPO checkpoint and one device-tier preset are fixed throughout; training was not reproduced (Appendix F).",
+      "new": "One archived MAPPO checkpoint and one device-tier preset are fixed in the initial studies; Section 3.4 adds a second checkpoint. Training was not reproduced (Appendix F)."
+    },
+    {
+      "item": "Consistency: initial investigation",
+      "old": "I coordinated an investigation across two Manchester scenarios, one frozen actor and three replication stages:",
+      "new": "I coordinated the initial investigation across two Manchester scenarios, one frozen actor and three replication stages:"
+    },
+    {
+      "item": "Consistency: confirmation checks",
+      "old": "All 32 cells were valid without retries,",
+      "new": "In the confirmation, all 32 cells were valid without retries,"
+    },
+    {
+      "item": "Consistency: timing scope",
+      "old": "Transfer, peak memory and full-evaluator costs were unmeasured;",
+      "new": "Those scheduler-only fixtures did not measure transfer, peak memory or full-evaluator costs;"
+    },
+    {
+      "item": "Consistency: RQ2 scope",
+      "old": "RQ2 is answered by two distinct morning samples.",
+      "new": "RQ2 is answered initially by two distinct morning samples."
+    },
+    {
+      "item": "Consistency: unused trace scope",
+      "old": "three unused traces from the same calibrated network:",
+      "new": "three traces not previously used in this dissertation, from the same calibrated network:"
+    },
+    {
+      "item": "Consistency: means, not universal ordering",
+      "old": "Two-choice never exceeded round-robin and trailed it on the weekend and event traces.",
+      "new": "In trace means, two-choice never exceeded round-robin and trailed it on the weekend and event traces."
+    },
+    {
+      "item": "Consistency: no cross-trace test",
+      "old": "Ordered by mean active vehicles per second, the workload-aware increment",
+      "new": "Descriptively, ordered by mean active vehicles per second, the workload-aware increment"
+    },
+    {
+      "item": "Consistency: Appendix F checkpoint",
+      "old": "The same archived one-hot-17 checkpoint is used throughout.",
+      "new": "The same archived one-hot-17 checkpoint is used in the initial studies; Section 3.4 declares the second-checkpoint condition."
+    },
+    {
+      "item": "Consistency: within-condition controls",
+      "old": "Actor training and trace remain fixed.",
+      "new": "Actor training and trace remain fixed within each condition."
+    },
+    {
+      "item": "Consistency: half-speed exception",
+      "old": "All placement arms use service multiplier 1.",
+      "new": "All initial placement arms use service multiplier 1; the half-speed follow-up is a separate condition (Section 3.4)."
+    },
+    {
+      "item": "Owner amendment: full-count provenance and limitation",
+      "old": "<a id=\"source-s17\"></a>\n**S17 — Examiner-revision artefact evidence.** The [source inventory](evidence/ARTEFACT_INVENTORY.json), [compact recomputation](evidence/COMPACT_CHECKS.json), [descriptive split](evidence/DESCRIPTIVE_SPLIT.json), [figure inputs](evidence/RSU_LAYOUT.json) and [revision validation](document/REVISION_VALIDATION.json) are generated from the pinned repository without new research execution. The [revision record](README.md) distinguishes historical receipts, document checks, the [Figure 7 workflow capture](evidence/PLATFORM_RESULTS_CAPTURE.json) and author-only completion items. The manuscript's source base is `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`. The [real-data capture receipt](evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json) and [adapter validation receipt](evidence/TOS_ADAPTER_VALIDATION_2026-09-16.json) bind Figure 7. The platform exposes the same services through the `traffictwin integration tos` command-line group (validate, matrix, compare-campaigns, provenance, audit, report).",
+      "new": "<a id=\"source-s17\"></a>\n**S17 — Examiner-revision artefact evidence.** The [source inventory](evidence/ARTEFACT_INVENTORY.json), [compact recomputation](evidence/COMPACT_CHECKS.json), [descriptive split](evidence/DESCRIPTIVE_SPLIT.json), [figure inputs](evidence/RSU_LAYOUT.json) and [revision validation](document/REVISION_VALIDATION.json) are generated from the pinned repository without new research execution. The [revision record](README.md) distinguishes historical receipts, document checks, the [Figure 7 workflow capture](evidence/PLATFORM_RESULTS_CAPTURE.json) and author-only completion items. The manuscript's source base is `1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8`. The [real-data capture receipt](evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json) and [adapter validation receipt](evidence/TOS_ADAPTER_VALIDATION_2026-09-16.json) bind Figure 7. The platform exposes the same services through the `traffictwin integration tos` command-line group (validate, matrix, compare-campaigns, provenance, audit, report). The [full-run inventory](evidence/FINAL_FULL_RUN_COUNT_2026-09-16.json) counts 274 distinct full-run records, counting the E0 reference reused by E1 once; 26 historical records establish full-run identity through accepted campaign receipts and manifests rather than retained per-summary horizons."
+    },
+    {
+      "item": "Owner amendment: full Abstract totals counted from receipts",
+      "old": "The initial programme evaluated six infrastructure policies over more than eighty full runs, with three replication stages culminating in a confirmation under a sealed protocol.",
+      "new": "The programme evaluated seven infrastructure policies in 274 full evaluator runs across five Manchester scenarios, with the confirmation and follow-up studies under protocols sealed before outcomes."
+    },
+    {
+      "item": "Owner amendment: retain one Abstract scale sentence",
+      "old": "mation and follow-up studies under protocols sealed before outcomes.\n\nThe initial programme compared six infrastructure policies across three replication stages and more than eighty full evaluator runs; protocols for prospective replication and confirmation were sealed before outcomes. Common-target least-workload placement underperformed execution at ing",
+      "new": "mation and follow-up studies under protocols sealed before outcomes.\n\nCommon-target least-workload placement underperformed execution at ing"
+    },
+    {
+      "item": "G.1 source",
+      "old": "E1 varied waiting-room capacity across five matched draws. The archived score difference for 99,520 versus 1,866 tasks per RSU was −0.01094 percentage points, with a 95% interval [−0.02465, +0.00276]. Recalculation from surviving run summaries reproduces this interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inconclusive under the historical implementation. Its interpretation as admission-consistent deadline attainment remains qualified by the unquantified scoring-mask exception. The interval describes sampling uncertainty conditional on that implementation, not the additional measurement uncertainty. Neither equivalence nor statistically supported degradation follows [[S1]](#source-s1).\n\nThe saved secondary summaries report more admissions and lower rejection at larger limits, while mean admitted latency rises from approximately 3.77 to 12.19 and 132.49 seconds. These changing admitted populations cannot substitute for the offered-task contrast; their latency summaries retain the scoring-mask qualification. More retained work need not mean more useful service.",
+      "new": "E1's archived capacity contrast is statistically inconclusive under the historical implementation and retains the scoring-mask qualification; Appendix B gives the interval and the admitted-latency summaries."
+    },
+    {
+      "item": "G.1 verbatim destination",
+      "old": "## Appendix B. Audit coverage and diagnostic boundaries\n\nThe September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.\n\nTask joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.\n\nRetrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).\n\nConsider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.\n\nThe relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.\n\nTable B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.\n\n*Table B1. Historical availability and retained gap-closure audit coverage, 8 September 2026. Historical receipts remain unchanged. Reading: distinguish archived summaries from raw-array audit coverage and retain unquantifiable historical scoring impact.*\n\n| Records | Available evidence / coverage | Completed gap-closure checks | Consequence |\n|---|---|---|---|\n| E0: two ten-step repeats and full seed 0 | Surviving receipts, manifests, sources; full receipt records 834,120 cap rejections | Not assessable from available records | Raw arrays not retained; summaries and receipts archived |\n| E1: five seeds × three caps | Fifteen run summaries/receipts; seed-0 middle cap reuses E0 | Not assessable from available records | Original interval reproduced from summaries; scoring impact unresolved |\n| E2 off/jsq/dla seed 0 and E2b reused cells | Hash-bound summaries and receipts; E2b reuses E2 exactly | Not assessable from available records | No new cell or historical task join inferred from reuse |\n| E2b new ingress / E2c / E2d originals | Compact sources/records survive; original raw availability not established | Not assessable from available records | No non-retention or fresh raw-validation claim extended to these studies |\n| September morning primary | Twelve full runs, seeds 0/2/3/4; 1,744,116 offered per cell | Zero discrepancies in each inspected run | Supports these gate-enabled records; excludes pilot from inference |\n| September morning pilot | Two full seed-1 runs, 1,744,116 offered each | Zero discrepancies in each inspected run | Remains exploratory, outside primary inference |\n| September incident sensitivity pilot | Five full seed-1 runs, 13,076,234 offered each | Zero discrepancies in each inspected run | Does not replace historical E2d records |\n| Other September arrays | Remaining inventory entries authenticated only | Integrity-only in the prior audit | Qualification/preflight files are not additional fleet replications |\n\nThe per-run JSON records preserve offered/admitted counts, explicit rejection and unavailability categories, false-success and latency discrepancy counts, penalty-equal ambiguity, summary reconciliation and source bindings. A rejected task's finite latency is not necessarily a false success. For the 19 available full runs, both false-success and non-penalty rejection-latency counts are zero, and fixed-history admission-consistent scores equal their archived values. Historical unavailable cells are labelled “not assessable,” never zero. Receipt checks are reported as past observations, not freshly rerun validation.\n\nTable B2 details primary morning ingress→per-task task accounting. “Both” columns partition the same offered population; no task-level confidence intervals are constructed.\n\n*Table B2. Descriptive task transitions from ingress to per-task placement; four primary morning draws, pilot excluded. Reading: follow gains and losses within each fleet draw; their difference is the net change over the same offered tasks.*\n\n| Fleet seed | Failure → success | Success → failure | Success both | Failure both | Net successes |\n|---|---:|---:|---:|---:|---:|\n| 0 | 71,152 | 3,340 | 1,545,724 | 123,900 | 67,812 |\n| 2 | 83,543 | 4,640 | 1,522,085 | 133,848 | 78,903 |\n| 3 | 70,862 | 2,913 | 1,550,789 | 119,552 | 67,949 |\n| 4 | 59,264 | 1,949 | 1,569,719 | 113,184 | 57,315 |\n\nAll 23 eligible within-study pairs are retained in the machine-readable record. Task identity uses matched trace-row/substep/slot coordinates and verified stream identities; sampled sizes are source-derived correspondence, not independently observed fields. Later queue divergence prevents these descriptive transitions from identifying a unique causal contribution of individual placements.\n\nThe scalar suite includes 440 primary cases and ten deletion trials, below its 500-case limit. The five-task case is minimal under single-candidate deletion, not a globally minimal counterexample over every numeric parameter. A's retained mask remains unchanged by the diagnostic code: the fourth replacement is inspected only. C's repeated complete passes restart from the same state. That scalar exercise performed no full-evaluator prefix, actor inference, SUMO run, campaign or retraining; the new authorised campaign is separate.\n\n\n",
+      "new": "## Appendix B. Audit coverage and diagnostic boundaries\n\nThe September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.\n\nTask joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.\n\nRetrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).\n\nConsider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.\n\nThe relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.\n\nTable B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.\n\n*Table B1. Historical availability and retained gap-closure audit coverage, 8 September 2026. Historical receipts remain unchanged. Reading: distinguish archived summaries from raw-array audit coverage and retain unquantifiable historical scoring impact.*\n\n| Records | Available evidence / coverage | Completed gap-closure checks | Consequence |\n|---|---|---|---|\n| E0: two ten-step repeats and full seed 0 | Surviving receipts, manifests, sources; full receipt records 834,120 cap rejections | Not assessable from available records | Raw arrays not retained; summaries and receipts archived |\n| E1: five seeds × three caps | Fifteen run summaries/receipts; seed-0 middle cap reuses E0 | Not assessable from available records | Original interval reproduced from summaries; scoring impact unresolved |\n| E2 off/jsq/dla seed 0 and E2b reused cells | Hash-bound summaries and receipts; E2b reuses E2 exactly | Not assessable from available records | No new cell or historical task join inferred from reuse |\n| E2b new ingress / E2c / E2d originals | Compact sources/records survive; original raw availability not established | Not assessable from available records | No non-retention or fresh raw-validation claim extended to these studies |\n| September morning primary | Twelve full runs, seeds 0/2/3/4; 1,744,116 offered per cell | Zero discrepancies in each inspected run | Supports these gate-enabled records; excludes pilot from inference |\n| September morning pilot | Two full seed-1 runs, 1,744,116 offered each | Zero discrepancies in each inspected run | Remains exploratory, outside primary inference |\n| September incident sensitivity pilot | Five full seed-1 runs, 13,076,234 offered each | Zero discrepancies in each inspected run | Does not replace historical E2d records |\n| Other September arrays | Remaining inventory entries authenticated only | Integrity-only in the prior audit | Qualification/preflight files are not additional fleet replications |\n\nThe per-run JSON records preserve offered/admitted counts, explicit rejection and unavailability categories, false-success and latency discrepancy counts, penalty-equal ambiguity, summary reconciliation and source bindings. A rejected task's finite latency is not necessarily a false success. For the 19 available full runs, both false-success and non-penalty rejection-latency counts are zero, and fixed-history admission-consistent scores equal their archived values. Historical unavailable cells are labelled “not assessable,” never zero. Receipt checks are reported as past observations, not freshly rerun validation.\n\nTable B2 details primary morning ingress→per-task task accounting. “Both” columns partition the same offered population; no task-level confidence intervals are constructed.\n\n*Table B2. Descriptive task transitions from ingress to per-task placement; four primary morning draws, pilot excluded. Reading: follow gains and losses within each fleet draw; their difference is the net change over the same offered tasks.*\n\n| Fleet seed | Failure → success | Success → failure | Success both | Failure both | Net successes |\n|---|---:|---:|---:|---:|---:|\n| 0 | 71,152 | 3,340 | 1,545,724 | 123,900 | 67,812 |\n| 2 | 83,543 | 4,640 | 1,522,085 | 133,848 | 78,903 |\n| 3 | 70,862 | 2,913 | 1,550,789 | 119,552 | 67,949 |\n| 4 | 59,264 | 1,949 | 1,569,719 | 113,184 | 57,315 |\n\nAll 23 eligible within-study pairs are retained in the machine-readable record. Task identity uses matched trace-row/substep/slot coordinates and verified stream identities; sampled sizes are source-derived correspondence, not independently observed fields. Later queue divergence prevents these descriptive transitions from identifying a unique causal contribution of individual placements.\n\nThe scalar suite includes 440 primary cases and ten deletion trials, below its 500-case limit. The five-task case is minimal under single-candidate deletion, not a globally minimal counterexample over every numeric parameter. A's retained mask remains unchanged by the diagnostic code: the fourth replacement is inspected only. C's repeated complete passes restart from the same state. That scalar exercise performed no full-evaluator prefix, actor inference, SUMO run, campaign or retraining; the new authorised campaign is separate.\n\nE1 varied waiting-room capacity across five matched draws. The archived score difference for 99,520 versus 1,866 tasks per RSU was −0.01094 percentage points, with a 95% interval [−0.02465, +0.00276]. Recalculation from surviving run summaries reproduces this interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inconclusive under the historical implementation. Its interpretation as admission-consistent deadline attainment remains qualified by the unquantified scoring-mask exception. The interval describes sampling uncertainty conditional on that implementation, not the additional measurement uncertainty. Neither equivalence nor statistically supported degradation follows [[S1]](#source-s1).\n\nThe saved secondary summaries report more admissions and lower rejection at larger limits, while mean admitted latency rises from approximately 3.77 to 12.19 and 132.49 seconds. These changing admitted populations cannot substitute for the offered-task contrast; their latency summaries retain the scoring-mask qualification. More retained work need not mean more useful service.\n\n"
+    },
+    {
+      "item": "G.3 source",
+      "old": "th; the calculation models neither congestion nor postponed arrivals. A further 104 forwarded tasks had penalty-equal latency ambiguity but were already misses and remained misses under every nonnegative charge. Their latency ambiguity remains unresolved. RQ3 supports the tested information and fixed-cost models, not an extr",
+      "new": "th; the calculation models neither congestion nor postponed arrivals. RQ3 supports the tested information and fixed-cost models, not an extr"
+    },
+    {
+      "item": "G.3 verbatim destination",
+      "old": "## Appendix F. Latency, scoring and drain details\n\nThe same archived one-hot-17 checkpoint is used in the initial studies; Section 3.4 declares the second-checkpoint condition. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed within each condition. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).\n\nV2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).\n\nFor homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All initial placement arms use service multiplier 1; the half-speed follow-up is a separate condition (Section 3.4).\n\nT(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.\n\nThe gate-enabled paths pass final admission into latency scoring. Historical `off` instead passes earlier coarse eligibility while enqueueing uses refined admission: an in-substep capacity rejection need not receive penalty latency. Its historical numerical impact remains unquantified (§3.1). The final mapping is L[i] = 10D[i] when L_raw[i] ≥ 10⁸ ms, and L[i] = L_raw[i] otherwise. Finite late latencies are not generally clipped; success uses L[i] ≤ D[i], inclusively. Finite rejection latency alone is not a false deadline success.\n\nThis aggregate carry approximation has no individual departure-event model; Equation (5) checks its declared dynamics rather than physical calibration. After the fifth substep, S[r] = min(W_post[r], 1,000) is served and W_next[r] = W_post[r] − S[r]. If this empties the queue, its task count becomes zero. Otherwise the evaluator subtracts floor(Q_post[r] × S[r]/W_post[r]), retaining at least one task while positive work remains.\n",
+      "new": "## Appendix F. Latency, scoring and drain details\n\nThe same archived one-hot-17 checkpoint is used in the initial studies; Section 3.4 declares the second-checkpoint condition. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed within each condition. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).\n\nV2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).\n\nFor homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All initial placement arms use service multiplier 1; the half-speed follow-up is a separate condition (Section 3.4).\n\nT(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.\n\nThe gate-enabled paths pass final admission into latency scoring. Historical `off` instead passes earlier coarse eligibility while enqueueing uses refined admission: an in-substep capacity rejection need not receive penalty latency. Its historical numerical impact remains unquantified (§3.1). The final mapping is L[i] = 10D[i] when L_raw[i] ≥ 10⁸ ms, and L[i] = L_raw[i] otherwise. Finite late latencies are not generally clipped; success uses L[i] ≤ D[i], inclusively. Finite rejection latency alone is not a false deadline success.\n\nThis aggregate carry approximation has no individual departure-event model; Equation (5) checks its declared dynamics rather than physical calibration. After the fifth substep, S[r] = min(W_post[r], 1,000) is served and W_next[r] = W_post[r] − S[r]. If this empties the queue, its task count becomes zero. Otherwise the evaluator subtracts floor(Q_post[r] × S[r]/W_post[r]), retaining at least one task while positive work remains.\n\nA further 104 forwarded tasks had penalty-equal latency ambiguity but were already misses and remained misses under every nonnegative charge. Their latency ambiguity remains unresolved.\n\n"
+    },
+    {
+      "item": "G.4",
+      "old": "ve comparison of methodological choices; they were not all evaluated. Matched conditions support attribution within the evaluator, while replication defines which uncertainty the intervals address.\n\n*Table 3a. Method selection and alternatives. Reasons refer to the i",
+      "new": "ve comparison of methodological choices; they were not all evaluated. \n\n*Table 3a. Method selection and alternatives. Reasons refer to the i"
+    },
+    {
+      "item": "G.5",
+      "old": "fication, retaining responsibility for the design and interpretation. These difficulties made evidence boundaries and retention part of the method rather than administrative details.\n\n### 4.3 Research answers and interpretation\n\nRQ1 separates comparato",
+      "new": "fication, retaining responsibility for the design and interpretation. \n\n### 4.3 Research answers and interpretation\n\nRQ1 separates comparato"
+    },
+    {
+      "item": "G.6 source",
+      "old": "Changing the off scoring mask could affect transmit energy, SoC and later observations: even admission-consistent saved flags would describe fixed history, not a corrected rerun. Separately, the completed audit found no non-admitted successes or non-penalty rejection latencies in 19 authenticated September gate-enabled runs, with admission/category/summary agreement. It supports those outcomes without resolving historical measurement impact.",
+      "new": "Appendix B notes why a saved-flag correction would describe fixed history only."
+    },
+    {
+      "item": "G.6 verbatim destination",
+      "old": "## Appendix B. Audit coverage and diagnostic boundaries\n\nThe September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.\n\nTask joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.\n\nRetrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).\n\nConsider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.\n\nThe relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.\n\nTable B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.\n\n*Table B1. Historical availability and retained gap-closure audit coverage, 8 September 2026. Historical receipts remain unchanged. Reading: distinguish archived summaries from raw-array audit coverage and retain unquantifiable historical scoring impact.*\n\n| Records | Available evidence / coverage | Completed gap-closure checks | Consequence |\n|---|---|---|---|\n| E0: two ten-step repeats and full seed 0 | Surviving receipts, manifests, sources; full receipt records 834,120 cap rejections | Not assessable from available records | Raw arrays not retained; summaries and receipts archived |\n| E1: five seeds × three caps | Fifteen run summaries/receipts; seed-0 middle cap reuses E0 | Not assessable from available records | Original interval reproduced from summaries; scoring impact unresolved |\n| E2 off/jsq/dla seed 0 and E2b reused cells | Hash-bound summaries and receipts; E2b reuses E2 exactly | Not assessable from available records | No new cell or historical task join inferred from reuse |\n| E2b new ingress / E2c / E2d originals | Compact sources/records survive; original raw availability not established | Not assessable from available records | No non-retention or fresh raw-validation claim extended to these studies |\n| September morning primary | Twelve full runs, seeds 0/2/3/4; 1,744,116 offered per cell | Zero discrepancies in each inspected run | Supports these gate-enabled records; excludes pilot from inference |\n| September morning pilot | Two full seed-1 runs, 1,744,116 offered each | Zero discrepancies in each inspected run | Remains exploratory, outside primary inference |\n| September incident sensitivity pilot | Five full seed-1 runs, 13,076,234 offered each | Zero discrepancies in each inspected run | Does not replace historical E2d records |\n| Other September arrays | Remaining inventory entries authenticated only | Integrity-only in the prior audit | Qualification/preflight files are not additional fleet replications |\n\nThe per-run JSON records preserve offered/admitted counts, explicit rejection and unavailability categories, false-success and latency discrepancy counts, penalty-equal ambiguity, summary reconciliation and source bindings. A rejected task's finite latency is not necessarily a false success. For the 19 available full runs, both false-success and non-penalty rejection-latency counts are zero, and fixed-history admission-consistent scores equal their archived values. Historical unavailable cells are labelled “not assessable,” never zero. Receipt checks are reported as past observations, not freshly rerun validation.\n\nTable B2 details primary morning ingress→per-task task accounting. “Both” columns partition the same offered population; no task-level confidence intervals are constructed.\n\n*Table B2. Descriptive task transitions from ingress to per-task placement; four primary morning draws, pilot excluded. Reading: follow gains and losses within each fleet draw; their difference is the net change over the same offered tasks.*\n\n| Fleet seed | Failure → success | Success → failure | Success both | Failure both | Net successes |\n|---|---:|---:|---:|---:|---:|\n| 0 | 71,152 | 3,340 | 1,545,724 | 123,900 | 67,812 |\n| 2 | 83,543 | 4,640 | 1,522,085 | 133,848 | 78,903 |\n| 3 | 70,862 | 2,913 | 1,550,789 | 119,552 | 67,949 |\n| 4 | 59,264 | 1,949 | 1,569,719 | 113,184 | 57,315 |\n\nAll 23 eligible within-study pairs are retained in the machine-readable record. Task identity uses matched trace-row/substep/slot coordinates and verified stream identities; sampled sizes are source-derived correspondence, not independently observed fields. Later queue divergence prevents these descriptive transitions from identifying a unique causal contribution of individual placements.\n\nThe scalar suite includes 440 primary cases and ten deletion trials, below its 500-case limit. The five-task case is minimal under single-candidate deletion, not a globally minimal counterexample over every numeric parameter. A's retained mask remains unchanged by the diagnostic code: the fourth replacement is inspected only. C's repeated complete passes restart from the same state. That scalar exercise performed no full-evaluator prefix, actor inference, SUMO run, campaign or retraining; the new authorised campaign is separate.\n\nE1 varied waiting-room capacity across five matched draws. The archived score difference for 99,520 versus 1,866 tasks per RSU was −0.01094 percentage points, with a 95% interval [−0.02465, +0.00276]. Recalculation from surviving run summaries reproduces this interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inconclusive under the historical implementation. Its interpretation as admission-consistent deadline attainment remains qualified by the unquantified scoring-mask exception. The interval describes sampling uncertainty conditional on that implementation, not the additional measurement uncertainty. Neither equivalence nor statistically supported degradation follows [[S1]](#source-s1).\n\nThe saved secondary summaries report more admissions and lower rejection at larger limits, while mean admitted latency rises from approximately 3.77 to 12.19 and 132.49 seconds. These changing admitted populations cannot substitute for the offered-task contrast; their latency summaries retain the scoring-mask qualification. More retained work need not mean more useful service.\n\n",
+      "new": "## Appendix B. Audit coverage and diagnostic boundaries\n\nThe September audit independently identifies offers from active masks, V2I admission from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags, categories, latency/deadlines, assignments and summaries.\n\nTask joins require matched trace-row/substep/slot coordinates and corresponding fleet, task, arrival, action and ingress fields. Unsaved sizes correspond through the arm-independent key schedule. Gains minus losses must equal the success difference over the common offered denominator; later queues can diverge, so these are descriptive transitions.\n\nRetrospective diagnostics distinguish simultaneous common-target admission A, causal admission replaying A's targets B, and causal reselection C. The completed proof and numerical investigation are retained in Appendix C, separately from observed fleet results [[S14]](#source-s14).\n\nConsider a constructed explanation, not an observed historical pair: one queue place remains and two viable tasks each require 40 ms. Legacy fractional enqueue adds (1/2) × 80 = 40 ms, although both can remain in the scored population. With unequal services, fractional enqueue can also differ from the work of the particular admitted task. Reject-mode admission instead accepts one task in order, enqueues its full 40 ms and assigns the other a failure.\n\nThe relevant invariant is that offers partition into admissions and terminal failures, with no execution or success assigned to rejected work. E0's negative fixture changes the summary offered count without adding a task record and must fail. Summary work partition alone is weaker: rejected work is calculated as offered minus admitted. Later reconstruction instead checks enqueue, drain and queue endpoints independently.\n\nTable B1 retains the completed gap-closure audit coverage. Those raw checks and joins were not repeated for this revision.\n\n*Table B1. Historical availability and retained gap-closure audit coverage, 8 September 2026. Historical receipts remain unchanged. Reading: distinguish archived summaries from raw-array audit coverage and retain unquantifiable historical scoring impact.*\n\n| Records | Available evidence / coverage | Completed gap-closure checks | Consequence |\n|---|---|---|---|\n| E0: two ten-step repeats and full seed 0 | Surviving receipts, manifests, sources; full receipt records 834,120 cap rejections | Not assessable from available records | Raw arrays not retained; summaries and receipts archived |\n| E1: five seeds × three caps | Fifteen run summaries/receipts; seed-0 middle cap reuses E0 | Not assessable from available records | Original interval reproduced from summaries; scoring impact unresolved |\n| E2 off/jsq/dla seed 0 and E2b reused cells | Hash-bound summaries and receipts; E2b reuses E2 exactly | Not assessable from available records | No new cell or historical task join inferred from reuse |\n| E2b new ingress / E2c / E2d originals | Compact sources/records survive; original raw availability not established | Not assessable from available records | No non-retention or fresh raw-validation claim extended to these studies |\n| September morning primary | Twelve full runs, seeds 0/2/3/4; 1,744,116 offered per cell | Zero discrepancies in each inspected run | Supports these gate-enabled records; excludes pilot from inference |\n| September morning pilot | Two full seed-1 runs, 1,744,116 offered each | Zero discrepancies in each inspected run | Remains exploratory, outside primary inference |\n| September incident sensitivity pilot | Five full seed-1 runs, 13,076,234 offered each | Zero discrepancies in each inspected run | Does not replace historical E2d records |\n| Other September arrays | Remaining inventory entries authenticated only | Integrity-only in the prior audit | Qualification/preflight files are not additional fleet replications |\n\nThe per-run JSON records preserve offered/admitted counts, explicit rejection and unavailability categories, false-success and latency discrepancy counts, penalty-equal ambiguity, summary reconciliation and source bindings. A rejected task's finite latency is not necessarily a false success. For the 19 available full runs, both false-success and non-penalty rejection-latency counts are zero, and fixed-history admission-consistent scores equal their archived values. Historical unavailable cells are labelled “not assessable,” never zero. Receipt checks are reported as past observations, not freshly rerun validation.\n\nTable B2 details primary morning ingress→per-task task accounting. “Both” columns partition the same offered population; no task-level confidence intervals are constructed.\n\n*Table B2. Descriptive task transitions from ingress to per-task placement; four primary morning draws, pilot excluded. Reading: follow gains and losses within each fleet draw; their difference is the net change over the same offered tasks.*\n\n| Fleet seed | Failure → success | Success → failure | Success both | Failure both | Net successes |\n|---|---:|---:|---:|---:|---:|\n| 0 | 71,152 | 3,340 | 1,545,724 | 123,900 | 67,812 |\n| 2 | 83,543 | 4,640 | 1,522,085 | 133,848 | 78,903 |\n| 3 | 70,862 | 2,913 | 1,550,789 | 119,552 | 67,949 |\n| 4 | 59,264 | 1,949 | 1,569,719 | 113,184 | 57,315 |\n\nAll 23 eligible within-study pairs are retained in the machine-readable record. Task identity uses matched trace-row/substep/slot coordinates and verified stream identities; sampled sizes are source-derived correspondence, not independently observed fields. Later queue divergence prevents these descriptive transitions from identifying a unique causal contribution of individual placements.\n\nThe scalar suite includes 440 primary cases and ten deletion trials, below its 500-case limit. The five-task case is minimal under single-candidate deletion, not a globally minimal counterexample over every numeric parameter. A's retained mask remains unchanged by the diagnostic code: the fourth replacement is inspected only. C's repeated complete passes restart from the same state. That scalar exercise performed no full-evaluator prefix, actor inference, SUMO run, campaign or retraining; the new authorised campaign is separate.\n\nE1 varied waiting-room capacity across five matched draws. The archived score difference for 99,520 versus 1,866 tasks per RSU was −0.01094 percentage points, with a 95% interval [−0.02465, +0.00276]. Recalculation from surviving run summaries reproduces this interval; it is not fresh task-level validation. The archived E1 score contrast is statistically inconclusive under the historical implementation. Its interpretation as admission-consistent deadline attainment remains qualified by the unquantified scoring-mask exception. The interval describes sampling uncertainty conditional on that implementation, not the additional measurement uncertainty. Neither equivalence nor statistically supported degradation follows [[S1]](#source-s1).\n\nThe saved secondary summaries report more admissions and lower rejection at larger limits, while mean admitted latency rises from approximately 3.77 to 12.19 and 132.49 seconds. These changing admitted populations cannot substitute for the offered-task contrast; their latency summaries retain the scoring-mask qualification. More retained work need not mean more useful service.\n\nChanging the off scoring mask could affect transmit energy, SoC and later observations: even admission-consistent saved flags would describe fixed history, not a corrected rerun. Separately, the completed audit found no non-admitted successes or non-penalty rejection latencies in 19 authenticated September gate-enabled runs, with admission/category/summary agreement. It supports those outcomes without resolving historical measurement impact.\n\n"
+    },
+    {
+      "item": "G.7 source",
+      "old": "Four ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges leave admission, queues and actions unchanged. No full positive-cost simulation or network model is implied; penalty-equal ambiguity remains unresolved [[S6]](#source-s6).",
+      "new": "Appendix F records the four forwarding probes and their qualification."
+    },
+    {
+      "item": "G.7 verbatim destination",
+      "old": "## Appendix F. Latency, scoring and drain details\n\nThe same archived one-hot-17 checkpoint is used in the initial studies; Section 3.4 declares the second-checkpoint condition. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed within each condition. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).\n\nV2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).\n\nFor homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All initial placement arms use service multiplier 1; the half-speed follow-up is a separate condition (Section 3.4).\n\nT(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.\n\nThe gate-enabled paths pass final admission into latency scoring. Historical `off` instead passes earlier coarse eligibility while enqueueing uses refined admission: an in-substep capacity rejection need not receive penalty latency. Its historical numerical impact remains unquantified (§3.1). The final mapping is L[i] = 10D[i] when L_raw[i] ≥ 10⁸ ms, and L[i] = L_raw[i] otherwise. Finite late latencies are not generally clipped; success uses L[i] ≤ D[i], inclusively. Finite rejection latency alone is not a false deadline success.\n\nThis aggregate carry approximation has no individual departure-event model; Equation (5) checks its declared dynamics rather than physical calibration. After the fifth substep, S[r] = min(W_post[r], 1,000) is served and W_next[r] = W_post[r] − S[r]. If this empties the queue, its task count becomes zero. Otherwise the evaluator subtracts floor(Q_post[r] × S[r]/W_post[r]), retaining at least one task while positive work remains.\n\nA further 104 forwarded tasks had penalty-equal latency ambiguity but were already misses and remained misses under every nonnegative charge. Their latency ambiguity remains unresolved.\n\n",
+      "new": "## Appendix F. Latency, scoring and drain details\n\nThe same archived one-hot-17 checkpoint is used in the initial studies; Section 3.4 declares the second-checkpoint condition. Its supplied Model C training used synthetic mobility, 128 environments, learning rate 0.003 and seed 100; training was not reproduced here. The provisional UK2030 preset samples RPi/Jetson/GPU tiers with probabilities (0.40, 0.35, 0.25) and EV status with probability 0.22, not measured Manchester shares. Actor training and trace remain fixed within each condition. Original replications vary fleet seed at evaluator seed 0; the later eight blocks vary both (§3.4).\n\nV2V selection excludes the source and full-queue peers, then chooses the strongest remaining simulated link. Fading as well as distance determines quality, so this is not nearest-neighbour selection. Peer workload and capability affect latency, not this ranking. Observation and operational links use separate fading samples. Randy Prasetia Putra confirmed these inherited conventions and one mode/helper per vehicle-second; they were held constant across placement arms [[S4]](#source-s4).\n\nFor homogeneous RSUs, service milliseconds are s = ξ × C_t / [2.2 × 1.5 × min(12, p_t) × 0.9 × min(5, g_t)], where C_t is million cycles, p_t = (4, 4, 2), g_t = (40, 5, 1), and ξ is uniform on 0.9–1.1. The denominator uses 2.2 GHz, 1.5 instructions per cycle, effective cores, utilisation and capped GPU acceleration. Million-cycle/GHz conversion yields milliseconds. Before noise, services are approximately (21.111, 35.354, 2.525) ms. All initial placement arms use service multiplier 1; the half-speed follow-up is a separate condition (Section 3.4).\n\nT(b,q,c) is 0.1 + 1,000 × 8b/c milliseconds for q ≥ 0.15 and capacity c > 0.000000001 Mbps, with b in MB; otherwise it uses a 10⁹ ms failure value (up to the 0.1 ms propagation addition). The 0.001 MB return term reuses the ingress quality and capacity. It is not a separately simulated downlink or inter-RSU route. The fixed forwarding charge f is added once. Local latency is vehicle backlog plus local service; V2V adds input/return transfers on the selected peer link, peer backlog, preceding local/V2V reservations and peer service. Service s derives from task cycles, device frequency, parallelism, utilisation and acceleration, with a sampled 0.9–1.1 multiplier. The placement code reserves the same sampled work used for latency: exact service knowledge is a declared information assumption.\n\nThe gate-enabled paths pass final admission into latency scoring. Historical `off` instead passes earlier coarse eligibility while enqueueing uses refined admission: an in-substep capacity rejection need not receive penalty latency. Its historical numerical impact remains unquantified (§3.1). The final mapping is L[i] = 10D[i] when L_raw[i] ≥ 10⁸ ms, and L[i] = L_raw[i] otherwise. Finite late latencies are not generally clipped; success uses L[i] ≤ D[i], inclusively. Finite rejection latency alone is not a false deadline success.\n\nThis aggregate carry approximation has no individual departure-event model; Equation (5) checks its declared dynamics rather than physical calibration. After the fifth substep, S[r] = min(W_post[r], 1,000) is served and W_next[r] = W_post[r] − S[r]. If this empties the queue, its task count becomes zero. Otherwise the evaluator subtracts floor(Q_post[r] × S[r]/W_post[r]), retaining at least one task while positive work remains.\n\nA further 104 forwarded tasks had penalty-equal latency ambiguity but were already misses and remained misses under every nonnegative charge. Their latency ambiguity remains unresolved.\n\nFour ten-step forwarding probes qualify fixed-latency transformations of saved full records: charges leave admission, queues and actions unchanged. No full positive-cost simulation or network model is implied; penalty-equal ambiguity remains unresolved [[S6]](#source-s6).\n\n"
+    },
+    {
+      "item": "G.8",
+      "old": " differed at 500 ms in 79.58% of observations and at 1,000 ms in all. Live admission and immediate reservations protect this older-report model; stale capacity, delayed acknowledgements or dispersed arrivals would change it. Equal outcomes do not establish harmless communication delay.\n\nFixed ",
+      "new": " differed at 500 ms in 79.58% of observations and at 1,000 ms in all.  Equal outcomes do not establish harmless communication delay.\n\nFixed "
+    },
+    {
+      "item": "G.9",
+      "old": "ries does not independently validate a coupled radio/computing model. This distinction explains why a source-correct result can be scientifically useful while remaining conditional on simulation semantics.\n\nPPO and MAPPO identify the reused actor's provenance [[23]](#ref-23)",
+      "new": "ries does not independently validate a coupled radio/computing model. \n\nPPO and MAPPO identify the reused actor's provenance [[23]](#ref-23)"
+    }
+  ],
+  "count_forecast": [
+    {
+      "stage": "A–F plus approved consistency fixes",
+      "counts": {
+        "words": 9838,
+        "prose_only_words": 8419
+      }
+    },
+    {
+      "stage": "G.1",
+      "counts": {
+        "words": 9713,
+        "prose_only_words": 8294
+      }
+    },
+    {
+      "stage": "G.2",
+      "counts": {
+        "words": 9713,
+        "prose_only_words": 8294
+      }
+    },
+    {
+      "stage": "G.3",
+      "counts": {
+        "words": 9688,
+        "prose_only_words": 8269
+      }
+    },
+    {
+      "stage": "G.4",
+      "counts": {
+        "words": 9673,
+        "prose_only_words": 8254
+      }
+    },
+    {
+      "stage": "G.5",
+      "counts": {
+        "words": 9658,
+        "prose_only_words": 8239
+      }
+    },
+    {
+      "stage": "G.6",
+      "counts": {
+        "words": 9613,
+        "prose_only_words": 8194
+      }
+    },
+    {
+      "stage": "G.7",
+      "counts": {
+        "words": 9591,
+        "prose_only_words": 8172
+      }
+    },
+    {
+      "stage": "G.8",
+      "counts": {
+        "words": 9572,
+        "prose_only_words": 8153
+      }
+    },
+    {
+      "stage": "G.9",
+      "counts": {
+        "words": 9555,
+        "prose_only_words": 8136
+      }
+    }
+  ],
+  "receipt_sha256": {
+    "evidence/FINAL_PLATFORM_CAPTURE_2026-09-16.json": "35589ae31cc96e0da2f80db7fc99c0cbe1cfc093d7d9d07efd6c23299bed0d79",
+    "evidence/TOS_ADAPTER_VALIDATION_2026-09-16.json": "a74eaf1ddef795281c6a50b2c661a0b381629c4d9dbeb5654b770b0e4b0a569f",
+    "evidence/FRONT_MATTER_RECEIPT_2026-09-16.json": "fccfec3a7d7bdedc2b45cd31b0d735759f8fcffb4ffdae2372112087c78dd2fa",
+    "evidence/reference-registration-final-pass-2026-09-16.json": "3255bd0294f2f4d78a1cc47623f4ca3fd725255887b462e02fd48712c36af6b5",
+    "evidence/FINAL_FULL_RUN_COUNT_2026-09-16.json": "5c3bbe602357bee3931ce6ac34e6268e810e7bf79b046cce85d10f4055c91012",
+    "assets/traffictwin_platform_real_data.pdf": "3f66ee181ab2e13ee0937230067730095a72ca64fed9617b019b365bf1eeef3e",
+    "assets/traffictwin_platform_real_data.png": "27d0e5603b98a0dce16e89b66c645abfb90e793eb366ab39bc90ed9314787746"
+  },
+  "front_matter": {
+    "owner_values": {
+      "award_wording": "MSc Artificial Intelligence",
+      "faculty_school": "Faculty of Science and Engineering, School of Engineering, Department of Computer Science",
+      "student_id": "14185028",
+      "author": "S M Abdulla Al Mamun"
+    },
+    "declaration": "No portion of the work referred to in the dissertation has been submitted in support of an application for another degree or qualification of this or any other university or other institute of learning.",
+    "copyright_source": {
+      "path": "/Users/akashx/Downloads/diss_mat/SoE PGT Handbook - Appendices (MSc Advanced Computer Science) (1).pdf",
+      "sha256": "df504ec76271f2cb4b2fa34be1f53f55d1363e65d4352456f856a92178d3da82",
+      "pages_examined": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "copyright_occurrences": 0
+    },
+    "copyright_status": "specified_handbook_statement_not_found; current page preserved under explicit F.2 fallback",
+    "additional_handbooks_checked": [
+      "SoE PGT Programme Handbook 2025-26 FINAL.pdf",
+      "SoE PGT Programme Handbook 2025-26 v2.pdf",
+      "SoE PGT Handbook - Appendices (MSc Advanced Computer Science).pdf"
+    ],
+    "exemplar_crosscheck": [
+      {
+        "path": "/Users/akashx/Downloads/diss_mat/Report 1.pdf",
+        "sha256": "cadd89f6a01c3f69df5bfab93e0fd89699d462038134c57971d305979c02867d",
+        "pdf_page": 8
+      },
+      {
+        "path": "/Users/akashx/Downloads/diss_mat/Report 2.pdf",
+        "sha256": "c6c577fb194ceabc1180b13fd3c8e8edcada47d74e115443fddd270ff8ed3192",
+        "pdf_page": 6
+      },
+      {
+        "path": "/Users/akashx/Downloads/diss_mat/Report 5.pdf",
+        "sha256": "fe3ce535112097aa344c4c4ddaa53342074ed92e10d41f52067dc40076e73475",
+        "pdf_page": 10
+      }
+    ],
+    "signature_and_date": "blank owner-completion lines retained",
+    "not_certified": [
+      "prescribed programme copyright text",
+      "signature",
+      "assessment AI-use permission"
+    ]
+  },
+  "authorisation": "Owner explicitly authorised A–H, exact frontmatter values, consistency amendments, full Abstract receipt-derived totals and continuation above word ceiling. Latest instruction stops application tests, defers PR144 merge, and authorises c95 study citation fallback. No new evaluator runs; no manuscript merge or tag authorised."
+}

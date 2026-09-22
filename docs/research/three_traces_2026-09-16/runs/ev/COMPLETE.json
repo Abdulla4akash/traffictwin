@@ -1,0 +1,8 @@
+{
+  "status": "complete",
+  "trace": "ev",
+  "finished_at": "2026-09-16T09:22:37.284690+00:00",
+  "full_cells": 40,
+  "wall_s": 25304.460233291,
+  "seal_sha256": "b81549dca82d23a7a011ce99760b79ced9639e1ff9362883b3d736ab7aebe382"
+}

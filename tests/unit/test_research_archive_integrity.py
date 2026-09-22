@@ -24,8 +24,8 @@ def _module() -> ModuleType:
     return module
 
 
-def _fixture(root: Path) -> tuple[Path, Path]:
-    source = root / ARCHIVE / "frozen.py"
+def _fixture(root: Path, archive: str = ARCHIVE) -> tuple[Path, Path]:
+    source = root / archive / "frozen.py"
     source.parent.mkdir(parents=True)
     source.write_bytes(b"x=1\n")
     manifest = root / "manifest.json"
@@ -34,7 +34,7 @@ def _fixture(root: Path) -> tuple[Path, Path]:
             {
                 "schema_version": 1,
                 "baseline_commit": "a" * 40,
-                "roots": [ARCHIVE],
+                "roots": [archive],
                 "files": {
                     source.relative_to(root).as_posix(): {
                         "bytes": 4,
@@ -44,7 +44,7 @@ def _fixture(root: Path) -> tuple[Path, Path]:
             }
         )
     )
-    (root / "pyproject.toml").write_text(f'[tool.ruff]\nextend-exclude = ["{ARCHIVE}"]\n')
+    (root / "pyproject.toml").write_text(f'[tool.ruff]\nextend-exclude = ["{archive}"]\n')
     return source, manifest
 
 
@@ -56,6 +56,25 @@ def test_original_bytes_pass_without_executing_source(tmp_path: Path) -> None:
     assert result["checked_bytes"] == 4
     assert source.read_bytes() == b"x=1\n"
     assert not (source.parent / "__pycache__").exists()
+
+
+def test_exact_dated_research_package_passes_without_executing_source(tmp_path: Path) -> None:
+    source, manifest = _fixture(tmp_path, "docs/research/three_traces_2026-09-16")
+    result = _module().verify(tmp_path, manifest)
+    assert result["status"] == "passed"
+    assert result["archive_roots"] == 1
+    assert result["checked_files"] == 1
+    assert source.read_bytes() == b"x=1\n"
+    assert not (source.parent / "__pycache__").exists()
+
+
+@pytest.mark.parametrize("archive", ["docs/research", "docs/research/maintained_tools"])
+def test_research_exclusion_cannot_expand_beyond_dated_package(
+    tmp_path: Path, archive: str
+) -> None:
+    _, manifest = _fixture(tmp_path, archive)
+    with pytest.raises(ValueError, match="dated package"):
+        _module().verify(tmp_path, manifest)
 
 
 @pytest.mark.parametrize("changed", [b"x=2\n", b"x = 1\n"])
@@ -124,12 +143,14 @@ def test_manifest_cannot_escape_checkout(tmp_path: Path) -> None:
 def test_repository_exclusions_leave_editorial_and_maintained_code_checked() -> None:
     config = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
     exclusions = config["tool"]["ruff"]["extend-exclude"]
-    assert len(exclusions) == 9
+    assert len(exclusions) == 10
     assert "docs/dissertation/followups_2026-09-15" in exclusions
+    assert "docs/research/three_traces_2026-09-16" in exclusions
     for maintained in (
         Path("src"),
         Path("tests"),
         Path("scripts"),
         Path("docs/dissertation/editorial_final_2026-09-09"),
+        Path("docs/research/maintained_tools"),
     ):
         assert not any(maintained.is_relative_to(Path(excluded)) for excluded in exclusions)

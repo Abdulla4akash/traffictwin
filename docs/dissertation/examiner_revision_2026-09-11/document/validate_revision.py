@@ -4,11 +4,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
 import fitz
 from markdown_it import MarkdownIt
+from validate_exemplar_alignment import review_pdf_path
+from validate_final_pass import (
+    FINAL_PASS_BASELINE,
+    PACKAGE,
+    artifact_checks,
+    git_bytes,
+    restore_final_pass,
+)
 from validate_option_b import PROJECT_TITLE, check_option_b
 from validate_platform_connection import restore_platform_connection
 
@@ -84,7 +93,13 @@ def main() -> None:
     checks["table_3_only_authorised_disclosure_rows_added"] = after["3"] == (
         before["3"] + disclosure_rows
     )
-    restored, _ = restore_platform_connection(ROOT, HERE, revised)
+    restored, _ = restore_final_pass(ROOT, HERE, revised)
+    historical_counts = json.loads(
+        git_bytes(ROOT, FINAL_PASS_BASELINE, PACKAGE + "/document/WORD_COUNT.json")
+    )
+    restored, _ = restore_platform_connection(
+        ROOT, HERE, restored, historical_counts=historical_counts
+    )
     checks["abstract_unchanged_before_authorised_scale_sentence"] = (
         original.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
         == restored.split("## Abstract\n", 1)[1].split("## 1.", 1)[0].strip()
@@ -99,11 +114,11 @@ def main() -> None:
         checks[f"preserved_svg_{asset.stem}"] = sha(asset) == sha(HERE / "assets" / asset.name)
     checks["three_research_questions"] = len(re.findall(r"\*\*RQ[123]:", revised)) == 3
     checks["no_rq4"] = "RQ4" not in revised
-    checks["forty_six_references"] = len(newmap["bibkeys"]) == 46
+    checks["forty_seven_references"] = len(newmap["bibkeys"]) == 47
     cited_order = list(dict.fromkeys(re.findall(r"\[\[\d+\]\]\(#ref-(\d+)\)", revised)))
     # Stable identifiers preserve prior citations; additions need not be in appearance order.
-    checks["references_have_stable_baseline_and_five_additions"] = newmap["bibkeys"] == [
-        f"ref{n}" for n in range(1, 47)
+    checks["references_have_stable_baseline_and_six_additions"] = newmap["bibkeys"] == [
+        f"ref{n}" for n in range(1, 48)
     ]
     checks["every_reference_cited"] = {f"ref{n}" for n in cited_order} == set(newmap["bibkeys"])
     captions = re.findall(r"(?m)^\*(?:Figure|Table) .*", revised)
@@ -112,18 +127,34 @@ def main() -> None:
     checks["unique_caption_readings"] = len(readings) == len(set(readings))
     checks["no_editorial_ownership_placeholders_in_body"] = all(
         phrase not in revised
-        for phrase in ["for author review", "still require the candidate's", "[Owner note:"]
+        for phrase in [
+            "for author review",
+            "still require the candidate's",
+            "[Owner note:",
+        ]
     )
     counts = json.loads((HERE / "document/WORD_COUNT.json").read_text())
+    # The stored WORD_COUNT.json is the historical exemplar receipt. The live
+    # LaTeX pass derives its own counts; all word ceilings are report-only.
+    from validate_prose_pass import word_counts
+
+    live_counts = word_counts()["after"]
+    counts.update(
+        words=live_counts["strict"],
+        headline_words=live_counts["strict"],
+        prose_only_words=live_counts["prose_only"],
+    )
     count = counts["words"]
     # Retain the earlier owner gate as a disclosed failure; the later authorised
     # abstract sentence is separately checked against the rubric ceiling.
     checks["word_count_in_range"] = counts["prose_only_words"] >= 7600 and count <= 8950
+    checks["prose_only_minimum_retained"] = counts["prose_only_words"] >= 7600
     checks["rubric_word_count_in_range"] = 7000 <= count <= 9000
     checks["package_count_is_headline"] = (
         counts["headline_words"] == count and counts["headline_method"] == "package"
     )
     checks.update(check_option_b(ROOT, HERE, revised, tables))
+    checks.update(artifact_checks(HERE, revised))
     parser = MarkdownIt("commonmark").enable("table")
     missing = []
     anchors = set(re.findall(r'<a id="([^"]+)"', revised))
@@ -140,19 +171,24 @@ def main() -> None:
             elif not (HERE / target.partition("#")[0]).exists():
                 missing.append(target)
     checks["manuscript_links_resolve"] = not missing
-    pdf = fitz.open(HERE / "TrafficTwin_Dissertation.pdf")
+    pdf = fitz.open(review_pdf_path(HERE))
     checks["pdf_metadata_has_project_title"] = pdf.metadata["title"] == PROJECT_TITLE
     checks["pdf_metadata_has_author"] = pdf.metadata["author"] == "S M Abdulla Al Mamun"
     checks["pdf_cover_has_requested_project_title"] = PROJECT_TITLE in " ".join(
         pdf[0].get_text().split()
     )
     pdftext = "\n".join(page.get_text() for page in pdf)
-    log = (HERE / "TrafficTwin_Dissertation.log").read_text(errors="replace")
+    log_path = review_pdf_path(HERE).with_suffix(".log")
+    if not log_path.exists():
+        log_path = HERE / "evidence/latexmk-exemplar-alignment-2026-09-16.log"
+    log = log_path.read_text(errors="replace")
     checks["no_overfull_boxes"] = "Overfull \\" not in log
     checks["no_missing_glyphs"] = "Missing character:" not in log
     checks["no_undefined_references"] = "undefined references" not in log.lower()
     checks["pdf_has_disclosure"] = "Assistance and attribution" in pdftext
-    checks["pdf_has_expected_figures"] = all(f"Figure {n}:" in pdftext for n in range(1, 9))
+    checks["pdf_has_expected_figures"] = all(
+        f"Figure {n}:" in pdftext for n in (1, 2, 3, 4, 5, 6, "7a", "7b", 8)
+    )
     contents_sentence = (
         f"Word count: {count:,} (main text including tables, equations and pseudocode; "
         "excluding captions, references, appendices and front matter); "
@@ -182,10 +218,19 @@ def main() -> None:
         )
         sentences.append({"source_block": block["id"], "ending": ending, "flagged": flagged})
     flag_count = sum(item["flagged"] for item in sentences)
+    waived_checks = {
+        "word_count_in_range",
+        "rubric_word_count_in_range",
+        "prose_only_minimum_retained",
+    }
+    blocking_checks = {name: value for name, value in checks.items() if name not in waived_checks}
     record = {
         "base_commit": "1e01b755b8b633f43c9c7bb6fdd0d75beb6469e8",
         "checks": checks,
-        "passed": all(checks.values()),
+        "passed": all(blocking_checks.values()),
+        "all_checks_passed": all(checks.values()),
+        "owner_waived_nonblocking_checks": sorted(waived_checks),
+        "blocking_checks_passed": all(blocking_checks.values()),
         "missing_links": missing,
         "words": count,
         "prose_only_words": counts["prose_only_words"],
@@ -195,15 +240,20 @@ def main() -> None:
             "excess_over_earlier_ceiling": max(count - 8950, 0),
             "rubric_range": [7000, 9000],
             "rubric_range_met": 7000 <= count <= 9000,
-            "interpretation": "Later owner authorised the current 8,984-word version; "
-            "the earlier ceiling remains unmet, not silently waived.",
+            "owner_waived_word_count_stop": True,
+            "interpretation": "On 16 September 2026 the owner waived the word-count stop "
+            "and will trim the manuscript. Ceiling and rubric compliance remain reported "
+            "as actual booleans; this waiver does not certify submission readiness.",
         },
         "author_confirmation": {
-            "date": "2026-09-15",
+            "date": "2026-09-16",
             "source": "AUTHOR_ACTIONS.md",
             "status": "owner-confirmed; not independently certified by automation",
         },
         "pages": len(pdf),
+        "review_pdf": str(review_pdf_path(HERE)),
+        "review_pdf_sha256": sha(review_pdf_path(HERE)),
+        "delivery": "LaTeX and build inputs only; tracked dissertation PDF preserved at ded54bd",
         "captions": len(captions),
         "hashes": {
             name: sha(HERE / name)
@@ -231,8 +281,10 @@ def main() -> None:
             "full regression-suite pass",
         ],
     }
-    (HERE / "document/ENDING_AUDIT.json").write_text(json.dumps(sentences, indent=2) + "\n")
-    (HERE / "document/REVISION_VALIDATION.json").write_text(json.dumps(record, indent=2) + "\n")
+    receipt_dir = Path(os.environ.get("TRAFFICTWIN_VALIDATION_OUTPUT", str(HERE / "document")))
+    receipt_dir.mkdir(parents=True, exist_ok=True)
+    (receipt_dir / "ENDING_AUDIT.json").write_text(json.dumps(sentences, indent=2) + "\n")
+    (receipt_dir / "REVISION_VALIDATION.json").write_text(json.dumps(record, indent=2) + "\n")
     print(json.dumps(record, indent=2))
     if not record["passed"]:
         raise SystemExit(1)
