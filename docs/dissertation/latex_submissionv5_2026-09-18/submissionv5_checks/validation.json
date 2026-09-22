@@ -1,0 +1,26 @@
+{
+  "pages": 62,
+  "changed_text_pages": [
+    3,
+    9
+  ],
+  "changed_rendered_pages": [
+    3,
+    9
+  ],
+  "all_other_pages_visually_identical": true,
+  "all_pages_rendered": 62,
+  "word_count": 8386,
+  "copyright_matches_official_guidance": true,
+  "copyright_links_verified": true,
+  "build_errors_or_undefined_references": [],
+  "visual_inspection": {
+    "pages": [
+      3,
+      9
+    ],
+    "issues": []
+  },
+  "only_requested_source_changes": true,
+  "originals_preserved": true
+}

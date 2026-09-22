@@ -1,0 +1,298 @@
+{
+  "original_pdf_sha256": "78ef5d81801727897fd25f806b6d5f7f4738725ff3748677215228af52455bc2",
+  "number_map": [
+    {
+      "key": "ref1",
+      "old_number": 1,
+      "new_number": 1
+    },
+    {
+      "key": "ref2",
+      "old_number": 2,
+      "new_number": 2
+    },
+    {
+      "key": "ref3",
+      "old_number": 3,
+      "new_number": 3
+    },
+    {
+      "key": "ref43",
+      "old_number": 43,
+      "new_number": 4
+    },
+    {
+      "key": "ref42",
+      "old_number": 42,
+      "new_number": 5
+    },
+    {
+      "key": "ref4",
+      "old_number": 4,
+      "new_number": 6
+    },
+    {
+      "key": "ref5",
+      "old_number": 5,
+      "new_number": 7
+    },
+    {
+      "key": "ref7",
+      "old_number": 7,
+      "new_number": 8
+    },
+    {
+      "key": "ref6",
+      "old_number": 6,
+      "new_number": 9
+    },
+    {
+      "key": "ref47",
+      "old_number": 47,
+      "new_number": 10
+    },
+    {
+      "key": "ref8",
+      "old_number": 8,
+      "new_number": 11
+    },
+    {
+      "key": "ref9",
+      "old_number": 9,
+      "new_number": 12
+    },
+    {
+      "key": "ref10",
+      "old_number": 10,
+      "new_number": 13
+    },
+    {
+      "key": "ref11",
+      "old_number": 11,
+      "new_number": 14
+    },
+    {
+      "key": "ref12",
+      "old_number": 12,
+      "new_number": 15
+    },
+    {
+      "key": "ref13",
+      "old_number": 13,
+      "new_number": 16
+    },
+    {
+      "key": "ref14",
+      "old_number": 14,
+      "new_number": 17
+    },
+    {
+      "key": "ref15",
+      "old_number": 15,
+      "new_number": 18
+    },
+    {
+      "key": "ref16",
+      "old_number": 16,
+      "new_number": 19
+    },
+    {
+      "key": "ref17",
+      "old_number": 17,
+      "new_number": 20
+    },
+    {
+      "key": "ref18",
+      "old_number": 18,
+      "new_number": 21
+    },
+    {
+      "key": "ref45",
+      "old_number": 45,
+      "new_number": 22
+    },
+    {
+      "key": "ref19",
+      "old_number": 19,
+      "new_number": 23
+    },
+    {
+      "key": "ref20",
+      "old_number": 20,
+      "new_number": 24
+    },
+    {
+      "key": "ref46",
+      "old_number": 46,
+      "new_number": 25
+    },
+    {
+      "key": "ref21",
+      "old_number": 21,
+      "new_number": 26
+    },
+    {
+      "key": "ref22",
+      "old_number": 22,
+      "new_number": 27
+    },
+    {
+      "key": "ref23",
+      "old_number": 23,
+      "new_number": 28
+    },
+    {
+      "key": "ref24",
+      "old_number": 24,
+      "new_number": 29
+    },
+    {
+      "key": "ref25",
+      "old_number": 25,
+      "new_number": 30
+    },
+    {
+      "key": "ref26",
+      "old_number": 26,
+      "new_number": 31
+    },
+    {
+      "key": "ref27",
+      "old_number": 27,
+      "new_number": 32
+    },
+    {
+      "key": "ref28",
+      "old_number": 28,
+      "new_number": 33
+    },
+    {
+      "key": "ref29",
+      "old_number": 29,
+      "new_number": 34
+    },
+    {
+      "key": "ref30",
+      "old_number": 30,
+      "new_number": 35
+    },
+    {
+      "key": "ref31",
+      "old_number": 31,
+      "new_number": 36
+    },
+    {
+      "key": "ref32",
+      "old_number": 32,
+      "new_number": 37
+    },
+    {
+      "key": "ref48",
+      "old_number": 48,
+      "new_number": 38
+    },
+    {
+      "key": "ref44",
+      "old_number": 44,
+      "new_number": 39
+    },
+    {
+      "key": "ref33",
+      "old_number": 33,
+      "new_number": 40
+    },
+    {
+      "key": "ref34",
+      "old_number": 34,
+      "new_number": 41
+    },
+    {
+      "key": "ref35",
+      "old_number": 35,
+      "new_number": 42
+    },
+    {
+      "key": "ref41",
+      "old_number": 41,
+      "new_number": 43
+    },
+    {
+      "key": "ref36",
+      "old_number": 36,
+      "new_number": 44
+    },
+    {
+      "key": "ref37",
+      "old_number": 37,
+      "new_number": 45
+    },
+    {
+      "key": "ref38",
+      "old_number": 38,
+      "new_number": 46
+    },
+    {
+      "key": "ref39",
+      "old_number": 39,
+      "new_number": 47
+    },
+    {
+      "key": "ref40",
+      "old_number": 40,
+      "new_number": 48
+    }
+  ],
+  "alternate_links_retained_on_titles": [
+    {
+      "key": "ref3",
+      "doi_url": "https://doi.org/10.1109/COMST.2017.2745201",
+      "title_url": "https://arxiv.org/abs/1701.01090"
+    },
+    {
+      "key": "ref14",
+      "doi_url": "https://doi.org/10.1007/3-540-68061-6_19",
+      "title_url": "https://www.cs.cmu.edu/~harchol/Papers/tools.pdf"
+    },
+    {
+      "key": "ref15",
+      "doi_url": "https://doi.org/10.1145/2517349.2522716",
+      "title_url": "https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf"
+    },
+    {
+      "key": "ref18",
+      "doi_url": "https://doi.org/10.1109/TNET.2020.2980061",
+      "title_url": "https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf"
+    },
+    {
+      "key": "ref20",
+      "doi_url": "https://doi.org/10.1016/j.cor.2012.05.004",
+      "title_url": "https://arxiv.org/abs/2207.12815"
+    },
+    {
+      "key": "ref22",
+      "doi_url": "https://doi.org/10.1109/ITSC.2018.8569938",
+      "title_url": "https://elib.dlr.de/127994/"
+    },
+    {
+      "key": "ref25",
+      "doi_url": "https://doi.org/10.1609/aaai.v32i1.11694",
+      "title_url": "https://ojs.aaai.org/index.php/AAAI/article/view/11694"
+    },
+    {
+      "key": "ref31",
+      "doi_url": "https://doi.org/10.1109/TMC.2025.3640244",
+      "title_url": "https://arxiv.org/abs/2509.03935v2"
+    },
+    {
+      "key": "ref37",
+      "doi_url": "https://doi.org/10.1371/journal.pbio.1001745",
+      "title_url": "https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745"
+    },
+    {
+      "key": "ref38",
+      "doi_url": "https://doi.org/10.1371/journal.pcbi.1003285",
+      "title_url": "https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285"
+    }
+  ],
+  "non_citation_body_preserved": true
+}

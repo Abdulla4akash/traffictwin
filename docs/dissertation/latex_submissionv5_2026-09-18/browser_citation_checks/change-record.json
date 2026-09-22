@@ -1,0 +1,26 @@
+{
+  "scope": "Correct citation placement and link the reported browser result to its retained inspection record. No new browser checks or scientific workloads were run.",
+  "original_directory": "/Users/akashx/Desktop/Dissertation/latex_second_pass_citations_fixed_2026-09-18",
+  "original_manuscript_sha256": {
+    "TrafficTwin_Dissertation.tex": "44756fb08e0a1b8c90b54a31ab3e0b4e061aef16edb56cbc8c87b70d9f4eb4f9",
+    "TrafficTwin_Dissertation.pdf": "a5e3a0fbcd86df21dcc970b5dc3f7cbf129e353687e35e78290fbbfb0e2abc3c"
+  },
+  "before": "A five-page browser check found no application exceptions or horizontal overflow but did not assess usability \\cite{ref37}, \\cite{ref38}.",
+  "after": "Version control, documented software checks and preserved analysis records support inspectability and reproducibility \\cite{ref37}, \\cite{ref38}. No Streamlit exceptions or horizontal overflow were observed in an automated inspection of five TrafficTwin pages at a $1440 \\times 1000$ desktop viewport in light theme (\\href{\\detokenize{evidence/product_capture/ui/accessibility-audit.json}}{inspection record}). This inspection did not assess usability.",
+  "inspection_record_original_directory": "/Users/akashx/Desktop/Dissertation/TrafficTwin-platform-connection/source/docs/dissertation/examiner_revision_2026-09-11/evidence/product_capture/ui",
+  "inspection_files_sha256": {
+    "evidence/product_capture/ui/accessibility-audit.json": "70573a91f6a173e10830d01625826045f2753d40a16708e7b60e0c5acf68a18e",
+    "evidence/product_capture/ui/light-desktop-about.png": "7784cbcc3be25b9e2a11945b6fb58ba17f553d139fac712bea4ccfbb32bdd6bd",
+    "evidence/product_capture/ui/light-desktop-guided-demo.png": "bb172ef16e2a7f35125459a846f30ef9aeb79bad0b3017326074639d717fd1fb",
+    "evidence/product_capture/ui/light-desktop-home.png": "5d13bb42637993d9d918db3d06c0dae625bd598d2cb5c920b2639dbf1b963117",
+    "evidence/product_capture/ui/light-desktop-manchester-operations.png": "d36336e174d6831ec7e384e5c0ec393a9a907252a805e4bf5512828ed7a03ae6",
+    "evidence/product_capture/ui/light-desktop-replay.png": "963d827280abf25974506eafd080f3b0e0decbfec648177df40f36a2f4519089"
+  },
+  "inspection_pages": [
+    "Home [light/desktop]",
+    "Guided Demo [light/desktop]",
+    "Replay [light/desktop]",
+    "About [light/desktop]",
+    "Manchester Operations [light/desktop]"
+  ]
+}

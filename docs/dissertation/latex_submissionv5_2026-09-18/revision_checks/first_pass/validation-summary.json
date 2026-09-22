@@ -1,0 +1,8 @@
+{
+  "page_count": 63,
+  "build_engine": "Tectonic 0.17.0",
+  "visual_review": "All pages rendered and inspected via contact sheets; revised figures, equations, glossary, declaration, table layouts and affected pages inspected at reading size. Latest PDF matches inspected page images.",
+  "source_checks": "16 scenario/results tables retain data rows; 48 bibliography entries unchanged; all source refs resolve.",
+  "pdf_checks": "24 table destination pages and References destination checked; no unresolved markers, replacement glyphs, text outside page bounds, duplicate destinations or overfull boxes.",
+  "limitations": "No experiments or software test campaigns rerun. See README.md for historical scoring, software-test, institutional form and unfinished author appendix-review checks."
+}

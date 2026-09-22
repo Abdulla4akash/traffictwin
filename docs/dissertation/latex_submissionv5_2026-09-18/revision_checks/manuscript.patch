@@ -1,0 +1,186 @@
+--- latex_objections_fixed_2026-09-17/TrafficTwin_Dissertation.tex
++++ latex_second_pass_2026-09-17/TrafficTwin_Dissertation.tex
+@@ -1,4 +1,4 @@
+-% Revision addressing the first-pass objections, 17 September 2026. See README.md and revision_checks/.
++% Second-pass revision, 17 September 2026. See SECOND_PASS_CHANGES.md and revision_checks/.
+ \documentclass[12pt,a4paper]{article}
+ \usepackage{fontspec}
+ \setmainfont{LiberationSerif-Regular.ttf}[Path=build_inputs/fonts/,BoldFont=LiberationSerif-Bold.ttf,ItalicFont=LiberationSerif-Italic.ttf,BoldItalicFont=LiberationSerif-BoldItalic.ttf]
+@@ -60,8 +60,16 @@
+ \vfill
+ \noindent Student ID: 14185028\par
+ \clearpage
++\begingroup
++\makeatletter
++\let\SecondPassSectionEntry\l@section
++\renewcommand{\l@section}[2]{\SecondPassSectionEntry{#1\hspace{1em}}{#2}}
++\let\SecondPassSubsectionEntry\l@subsection
++\renewcommand{\l@subsection}[2]{\SecondPassSubsectionEntry{#1\hspace{1em}}{#2}}
++\makeatother
+ \tableofcontents
+-\vfill\noindent\textbf{Automated word count: 8,444} (abstract and main text, including headings, table bodies, equations and pseudocode; excluding captions, references, appendices and other front matter).\par
++\endgroup
++\vfill\noindent\textbf{Automated word count: 8,355} (abstract and main text, including headings, table bodies, equations and pseudocode; excluding captions, references, appendices and other front matter).\par
+ \clearpage
+ {\footnotesize\singlespacing
+ \listoffigures
+@@ -142,7 +150,7 @@
+ \addcontentsline{toc}{section}{Declaration}
+ No portion of the work referred to in the dissertation has been submitted in support of an application for another degree or qualification of this or any other university or other institute of learning.
+ 
+-\textbf{Assistance and attribution.} I selected the research questions and studies, directed implementation, and take responsibility for the analysis and interpretation. Following literature review and discussion of alternatives with AI assistants, I selected the follow-up conditions and three-trace study. Codex and ChatGPT assisted with code, campaign tooling and manuscript drafting and revision; Claude assisted with discussion of alternatives and draft critique. Protocols were sealed before their respective outcomes. Randy Prasetia Putra supplied the MAPPO actor, the \texttt{vec\_env} environment and evaluator, and implemented the 5 August accounting repair. Dr Sandra Sampaio suggested the report-age levels in Section~\ref{sec:2.7}. Section~\ref{sec:3.7} identifies the recorded verification exercises.
++\textbf{Assistance and attribution.} I selected the research questions and studies, directed implementation, and take responsibility for the analysis and interpretation. Following literature review and brainstorming with large language models (LLMs), and subsequent discussion with my PI and permission to proceed, I selected the follow-up conditions and three-trace study and directed their implementation. Codex and ChatGPT assisted with code, campaign tooling and manuscript drafting and revision; Claude assisted with discussion of alternatives and draft critique. Protocols were sealed before their respective outcomes. Randy Prasetia Putra supplied the MAPPO actor, the \texttt{vec\_env} environment and evaluator, and implemented the 5 August accounting repair. Dr Sandra Sampaio suggested the report-age levels in Section~\ref{sec:2.7}. Section~\ref{sec:3.7} identifies the recorded verification exercises.
+ 
+ \bigskip
+ Signature: \rule{60mm}{0.3pt}\qquad Date: \rule{25mm}{0.3pt}
+@@ -324,7 +332,7 @@
+ % END SOURCE BLOCK 039
+ 
+ % BEGIN SOURCE BLOCK 040 paragraph
+-Established work addresses least-workload routing, within-batch updates and vehicular cooperation \cite{ref14}, \cite{ref16}, \cite{ref7}, \cite{ref8}. This study examines whether destination selection and reservation timing reverse a matched deadline-attainment comparison under fixed actor weights. Section~\ref{sec:4.1} relates the outcomes to the objectives.
++Established work addresses least-workload routing, within-batch updates and vehicular cooperation \cite{ref14}, \cite{ref16}, \cite{ref7}, \cite{ref8}. This study examines whether destination selection and reservation timing reverse a matched deadline-attainment comparison under fixed actor weights. Section~\ref{sec:4} relates the outcomes to the objectives.
+ % END SOURCE BLOCK 040
+ 
+ % BEGIN SOURCE BLOCK 041 paragraph
+@@ -352,7 +360,7 @@
+ % END SOURCE BLOCK 046
+ 
+ % BEGIN SOURCE BLOCK 047 paragraph
+-\textbf{C6.} Completing report-age/forwarding sensitivities, scheduler benchmarks and the product inventory, with their limitations and recorded test outcomes.
++\textbf{C6.} Completing report-age/forwarding sensitivities, scheduler benchmarks and the product inventory, with their recorded limitations.
+ % END SOURCE BLOCK 047
+ 
+ \FloatBarrier
+@@ -361,7 +369,7 @@
+ % END SOURCE BLOCK 048
+ 
+ % BEGIN SOURCE BLOCK 049 paragraph
+-The completed research evaluates the trace-driven VEC scheduler; Section~\ref{sec:3.7} describes the implemented TrafficTwin workflows and their software checks.
++The completed research evaluates the trace-driven VEC scheduler; Section~\ref{sec:3.7} describes the implemented TrafficTwin workflows and their evaluation boundaries.
+ % END SOURCE BLOCK 049
+ 
+ % BEGIN SOURCE BLOCK 050 paragraph
+@@ -835,7 +843,7 @@
+ % BEGIN SOURCE BLOCK 126 paragraph
+ \textbf{Results.} The incident replication (E2c) tested common-target against ingress on four new fleet draws, excluding discovery seed 0. Its mean difference was \ensuremath{-}2.122 points, with an individual 95\% interval of [\ensuremath{-}2.234, \ensuremath{-}2.011]; all four paired differences were negative.
+ 
+-The evaluator's documentation records that the inherited scheduler selects one least-workload target per task substep and assigns it to every V2I candidate in that substep. I therefore chose a causal per-task implementation to test target timing and reservation visibility while keeping the least-workload criterion fixed. The incident extension (E2d) used the same actor, trace, gate predicate, queue ceiling, service and forwarding controls. Table~\ref{tab:4} retains all four draw-level results. The evaluator's randomised two-choice mode was evaluated later (Section~\ref{sec:3.4}) \hyperref[source-s3]{[S3]}.
++The evaluator's documentation records that the inherited scheduler selects one least-workload target per task substep and assigns it to every V2I candidate in that substep. I therefore chose a causal per-task implementation to test reselecting the destination for each task using workloads updated after earlier admissions, while keeping the least-workload criterion fixed. The incident extension (E2d) used the same actor, trace, gate predicate, queue ceiling, service and forwarding controls. Table~\ref{tab:4} retains all four draw-level results. The evaluator's randomised two-choice mode was evaluated later (Section~\ref{sec:3.4}) \hyperref[source-s3]{[S3]}.
+ % END SOURCE BLOCK 126
+ 
+ % BEGIN SOURCE BLOCK 127 table
+@@ -1157,11 +1165,11 @@
+ % END SOURCE BLOCK 174
+ 
+ % BEGIN SOURCE BLOCK 175 paragraph
+-Table~\ref{tab:A1} records component scope, required conditions and software checks; line counts do not measure individually authored code or establish reliability.
++Table~\ref{tab:A1} records component scope and required conditions; line counts do not measure individually authored code or establish reliability.
+ % END SOURCE BLOCK 175
+ 
+ % BEGIN SOURCE BLOCK 176 paragraph
+-The retained software test run includes failures in product acceptance, evidence validation and UI checks; Table~\ref{tab:A1} reports all counts. These limit platform-reliability claims, while research campaigns have separate validation records. A five-page browser check found no application exceptions or horizontal overflow but did not assess usability \cite{ref37}, \cite{ref38}. Figures~\ref{fig:7} and~\ref{fig:7b} demonstrate imported-data validation, comparison and provenance; numerical claims rest on the bound campaign outputs.
++A five-page browser check found no application exceptions or horizontal overflow but did not assess usability \cite{ref37}, \cite{ref38}. Figures~\ref{fig:7} and~\ref{fig:7b} demonstrate imported-data validation, comparison and provenance; numerical claims rest on the bound campaign outputs.
+ % END SOURCE BLOCK 176
+ 
+ 
+@@ -1223,45 +1231,28 @@
+ % END SOURCE BLOCK 182
+ 
+ % BEGIN SOURCE BLOCK 183 paragraph
+-Infrastructure scheduling implementation reversed the deadline-attainment comparison under fixed actor weights. Across 274 runs, the project compared placement and admission rules using all offered tasks as the outcome population. The sealed confirmation found a +4.137-point per-task advantage over ingress and +0.631 over round-robin (Table~\ref{tab:7}). These results adapt established scheduling ideas: their contribution is an explicit, tested account of destination selection and reservation timing within one evaluator and network.
++Infrastructure scheduling implementation reversed the deadline-attainment comparison under fixed actor weights. Across 274 runs, the project compared placement and admission rules using all offered tasks as the outcome population. The sealed confirmation found a +4.137-point per-task advantage over ingress and +0.631 over round-robin (Table~\ref{tab:7}). These results adapt established scheduling ideas: their contribution is an explicit, tested account of destination selection and reservation timing within one evaluator and network. Against the original objectives, the project clarified offered/admitted accounting and tested scheduling alternatives under matched controls. TrafficTwin implements scenario configuration, validation/export and comparison/evidence workflows. Historical scoring impact remains unresolved, generalisation is limited to the tested model and network, and usability and operator benefit remain unevaluated.
+ % END SOURCE BLOCK 183
+ 
+ % BEGIN SOURCE BLOCK 184 paragraph
+ 
+ % END SOURCE BLOCK 184
+ 
+-\FloatBarrier
+-\Needspace{17\baselineskip}
+ % BEGIN SOURCE BLOCK 185 heading
+-\subsection{Outcomes against the objectives}\label{sec:4.1}
++
+ % END SOURCE BLOCK 185
+ 
+ % BEGIN SOURCE BLOCK 186 table
+-\begingroup
+-\singlespacing\footnotesize\setlength{\tabcolsep}{3pt}
+-\begin{xltabular}{\textwidth}{@{}>{\hsize=.55\hsize\linewidth=\hsize}Y>{\hsize=1.45\hsize\linewidth=\hsize}Y@{}}
+-\caption[Outcomes against objectives]{Evidence and remaining limitations against the stated objectives.}\label{tab:9}\\
+-\toprule
+-Objective & Outcome and remaining limitation \\
+-\midrule\endfirsthead
+-\toprule Objective & Outcome and remaining limitation \\\midrule\endhead
+-\bottomrule\endfoot
+-O1 Measurement & Explicit offered/admitted accounting and later validation; historical off-mode scoring impact remains unknown (Section~\ref{sec:3.1}).\\
+-O2 Dispatch & Operational definitions and checked per-task/cyclic implementations (Sections~\ref{sec:2.5} and~\ref{sec:2.8}).\\
+-O3 Matched estimates & Reversal in incident/morning samples and sealed confirmation; follow-ups extend tested conditions (Tables~\ref{tab:4}--\ref{tab:7b}).\\
+-O4 Mechanisms & Destination concentration, conditional exact bound and sensitivities; no unique causal decomposition or distributed-robustness claim (Section~\ref{sec:3.5}; Appendix~\ref{app:C}).\\
+-O5 Software & Implemented platform workflows, source inventory and disclosed checks; operator benefit remains unmeasured (Section~\ref{sec:3.7}).\\
+-\end{xltabular}
+-\endgroup
++
+ % END SOURCE BLOCK 186
+ 
+ \FloatBarrier
+ % BEGIN SOURCE BLOCK 187 heading
+-\subsection{Analysis of the project approach}\label{sec:4.2}
++\subsection{Analysis of the project approach}\label{sec:4.1}
+ % END SOURCE BLOCK 187
+ 
+ % BEGIN SOURCE BLOCK 188 paragraph
+-\textbf{Scope and execution.} The initial programme connected incident draws, morning replication and joint-seed confirmation. All 32 confirmation cells were valid without retries, with actions matching in 24 non-reference comparisons. The maximum reconstructed RSU service discrepancy was about 0.00012 ms; Appendix~\ref{app:E} gives the separate vehicle-queue bound. Product reliability is qualified by its disclosed software-test failures.
++\textbf{Scope and execution.} The initial programme connected incident draws, morning replication and joint-seed confirmation. All 32 confirmation cells were valid without retries, with actions matching in 24 non-reference comparisons. The maximum reconstructed RSU service discrepancy was about 0.00012 ms; Appendix~\ref{app:E} gives the separate vehicle-queue bound.
+ % END SOURCE BLOCK 188
+ 
+ % BEGIN SOURCE BLOCK 189 paragraph
+@@ -1274,7 +1265,7 @@
+ 
+ \FloatBarrier
+ % BEGIN SOURCE BLOCK 191 heading
+-\subsection{Research answers and interpretation}\label{sec:4.3}
++\subsection{Research answers and interpretation}\label{sec:4.2}
+ % END SOURCE BLOCK 191
+ 
+ % BEGIN SOURCE BLOCK 192 paragraph
+@@ -1295,7 +1286,7 @@
+ 
+ \FloatBarrier
+ % BEGIN SOURCE BLOCK 196 heading
+-\subsection{Prioritised future work}\label{sec:4.4}
++\subsection{Prioritised future work}\label{sec:4.3}
+ % END SOURCE BLOCK 196
+ 
+ % BEGIN SOURCE BLOCK 197 paragraph
+@@ -1316,7 +1307,7 @@
+ 
+ \FloatBarrier
+ % BEGIN SOURCE BLOCK 201 heading
+-\subsection{Reflection on the process}\label{sec:4.5}
++\subsection{Reflection on the process}\label{sec:4.4}
+ % END SOURCE BLOCK 201
+ 
+ % BEGIN SOURCE BLOCK 202 paragraph
+@@ -1743,7 +1734,7 @@
+ \begingroup
+ \singlespacing\footnotesize\setlength{\tabcolsep}{3pt}
+ \begin{xltabular}{\textwidth}{@{}YYYYY@{}}
+-\caption[Software components and checks]{Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines; hosted test outcomes are reported separately from collection. Research coverage refers to archived receipts unless explicitly labelled as a new document check \hyperref[source-s17]{[S17]}. The role and required conditions/checks identify each component's contribution; these include task-handling rules, evidence acceptance and software verification. Size alone proves neither quality nor independent authorship.}\label{tab:A1} \\
++\caption[Software components and checks]{Research and product artefact inventory at source commit 1e01b75. Sizes count physical Python source lines, including comments and blank lines. Research coverage refers to archived receipts unless explicitly labelled as a new document check \hyperref[source-s17]{[S17]}. The role and required conditions/checks identify each component's contribution; these include task-handling rules, evidence acceptance and software verification. Size alone proves neither quality nor independent authorship.}\label{tab:A1} \\
+ \toprule
+ Component & Size & Tests / recorded checks & Required conditions / checks & Role \\
+ \midrule\endfirsthead
+@@ -1756,10 +1747,12 @@
+ Cyclic comparator & 46 lines & Pointer/restart and unchanged-arm compatibility & Persistent pointer; no retry or full-node skipping & Workload-unaware causal control \\
+ Campaign runner & 138 lines & Prelaunch safeguards; 32 completed cells in S16 & Source, seeds, completion and validation bindings & Executes and records the declared campaign \\
+ Campaign validators & 160 lines plus compact verifier & 8 block receipts; 32-cell compact recomputation & Reject inconsistent inputs, counts and identities & Separates successful execution from admissible evidence \\
+-TrafficTwin product & 678 Python files; 270,721 lines & 590 test files; run 34631121188 (11 September 2026): 8,301 collected, 8,179 passed, 56 failed (provenance/ancestry, artifact and UI assertions), 66 skipped; adapter validation and capture receipts (S17) & Configured Ruff, mypy, pytest, archive and fixture checks & Streamlit, CLI, typed services and provenance workflows \\
++TrafficTwin product & 678 Python files; 270,721 lines & Adapter validation and capture receipts (S17) & Configured Ruff, mypy, pytest, archive and fixture checks & Streamlit, CLI, typed services and provenance workflows \\
+ \end{xltabular}
+ \endgroup
+ % END SOURCE BLOCK 299
++
++Repository software-testing records are retained separately from the research-campaign validation records.
+ 
+ % BEGIN SOURCE BLOCK 300 heading
+ \appendixsection{app:B}{Audit coverage and diagnostic boundaries}

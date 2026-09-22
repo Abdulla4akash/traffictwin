@@ -1,0 +1,318 @@
+--- second_pass/TrafficTwin_Dissertation.tex
++++ citations_fixed/TrafficTwin_Dissertation.tex
+@@ -221,7 +221,7 @@
+ \begin{figure}[htbp]
+ \centering
+ \includegraphics[width=\linewidth,height=.57\textheight,keepaspectratio]{assets/architecture.pdf}
+-\caption[Experimental responsibility boundaries]{Experimental responsibility boundaries. Only admitted V2I work enters the selected execution queue; logical forwarding applies when ingress and execution differ. Resource scaling is outside the completed comparison. \hyperref[source-s11]{[S11]}.}\label{fig:1}
++\caption[Experimental responsibility boundaries]{Experimental responsibility boundaries. Only admitted V2I work enters the selected execution queue; logical forwarding applies when ingress and execution differ. Resource scaling is outside the completed comparison \hyperref[source-s11]{[S11]}.}\label{fig:1}
+ \end{figure}
+ % END SOURCE BLOCK 018
+ 
+@@ -332,7 +332,7 @@
+ % END SOURCE BLOCK 039
+ 
+ % BEGIN SOURCE BLOCK 040 paragraph
+-Established work addresses least-workload routing, within-batch updates and vehicular cooperation \cite{ref14}, \cite{ref16}, \cite{ref7}, \cite{ref8}. This study examines whether destination selection and reservation timing reverse a matched deadline-attainment comparison under fixed actor weights. Section~\ref{sec:4} relates the outcomes to the objectives.
++Established work addresses least-workload routing, within-batch updates and vehicular cooperation \cite{ref7}, \cite{ref8}, \cite{ref14}, \cite{ref16}. This study examines whether destination selection and reservation timing reverse a matched deadline-attainment comparison under fixed actor weights. Section~\ref{sec:4} relates the outcomes to the objectives.
+ % END SOURCE BLOCK 040
+ 
+ % BEGIN SOURCE BLOCK 041 paragraph
+@@ -940,7 +940,7 @@
+ \begin{figure}[htbp]
+ \centering
+ \includegraphics[width=\linewidth,height=.57\textheight,keepaspectratio]{assets/primary_replication.pdf}
+-\caption[Four-draw morning replication]{Redrawn from archived morning primary data. Left: within-draw attainment. Right: draw differences, mean diamonds and three-contrast Bonferroni intervals. The inspected pilot is excluded; uncertainty concerns four newly declared fleet draws, conditional on the frozen actor and morning scenario. \hyperref[source-s8]{[S8]}.}\label{fig:5}
++\caption[Four-draw morning replication]{Redrawn from archived morning primary data. Left: within-draw attainment. Right: draw differences, mean diamonds and three-contrast Bonferroni intervals. The inspected pilot is excluded; uncertainty concerns four newly declared fleet draws, conditional on the frozen actor and morning scenario \hyperref[source-s8]{[S8]}.}\label{fig:5}
+ \end{figure}
+ % END SOURCE BLOCK 137
+ 
+@@ -1294,7 +1294,7 @@
+ % END SOURCE BLOCK 197
+ 
+ % BEGIN SOURCE BLOCK 198 paragraph
+-Second, an event-level service and communication model should be checked against measured timing, including transfers and individual departures. Simulation verification and VEC communication/resource models provide the relevant foundation \cite{ref21}, \cite{ref31}, \cite{ref6}. The decisive test would be whether the reversal survives a calibrated timing model.
++Second, an event-level service and communication model should be checked against measured timing, including transfers and individual departures. Simulation verification and VEC communication/resource models provide the relevant foundation \cite{ref6}, \cite{ref21}, \cite{ref31}. The decisive test would be whether the reversal survives a calibrated timing model.
+ % END SOURCE BLOCK 198
+ 
+ % BEGIN SOURCE BLOCK 199 paragraph
+@@ -1332,47 +1332,59 @@
+ % END SOURCE BLOCK 206
+ 
+ % BEGIN SOURCE BLOCK 207 bibliography_item
+-\bibitem{ref1} L. Liu, C. Chen, Q. Pei, S. Maharjan and Y. Zhang. ``Vehicular Edge Computing and Networking: A Survey.'' \emph{Mobile Networks and Applications}, 26(3), 1145--1168, 2021. DOI: \href{\detokenize{https://doi.org/10.1007/s11036-020-01624-1}}{10.1007/s11036-020-01624-1}.
++\bibitem{ref1} L. Liu, C. Chen, Q. Pei, S. Maharjan and Y. Zhang. ``Vehicular edge computing and networking: A survey.'' \emph{Mobile Networks and Applications}, 26(3), 1145--1168, 2021. DOI: \href{\detokenize{https://doi.org/10.1007/s11036-020-01624-1}}{10.1007/s11036-020-01624-1}.
+ % END SOURCE BLOCK 207
+ 
+ % BEGIN SOURCE BLOCK 208 bibliography_item
+-\bibitem{ref2} S. Raza, S. Wang, M. Ahmed and M. R. Anwar. ``A Survey on Vehicular Edge Computing: Architecture, Applications, Technical Issues, and Future Directions.'' \emph{Wireless Communications and Mobile Computing}, 2019, 1--19, 2019. DOI: \href{\detokenize{https://doi.org/10.1155/2019/3159762}}{10.1155/2019/3159762}.
++\bibitem{ref2} S. Raza, S. Wang, M. Ahmed and M. R. Anwar. ``A survey on vehicular edge computing: Architecture, applications, technical issues, and future directions.'' \emph{Wireless Communications and Mobile Computing}, 2019, 1--19, 2019. DOI: \href{\detokenize{https://doi.org/10.1155/2019/3159762}}{10.1155/2019/3159762}.
+ % END SOURCE BLOCK 208
+ 
+ % BEGIN SOURCE BLOCK 209 bibliography_item
+-\bibitem{ref3} Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. ``A Survey on Mobile Edge Computing: The Communication Perspective.'' \emph{IEEE Communications Surveys \& Tutorials}, 19(4), 2322--2358, 2017. DOI: \href{\detokenize{https://arxiv.org/abs/1701.01090}}{10.1109/COMST.2017.2745201}.
++\bibitem{ref3} Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/1701.01090}}{``A survey on mobile edge computing: The communication perspective.''} \emph{IEEE Communications Surveys \& Tutorials}, 19(4), 2322--2358, 2017. DOI: \href{\detokenize{https://doi.org/10.1109/COMST.2017.2745201}}{10.1109/COMST.2017.2745201}.
+ % END SOURCE BLOCK 209
+ 
++% BEGIN SOURCE BLOCK 249 bibliography_item
++\bibitem{ref43} World Health Organization. \href{\detokenize{https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content}}{\emph{Global status report on road safety 2023.}} Geneva: WHO, 2023. ISBN 978-92-4-008651-7. Executive summary p. viii and p. 4. Accessed 15 September 2026.
++% END SOURCE BLOCK 249
++
++% BEGIN SOURCE BLOCK 248 bibliography_item
++\bibitem{ref42} 3GPP. \href{\detokenize{https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf}}{\emph{Service requirements for enhanced V2X scenarios.}} TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clauses 5.2--5.3, Tables 5.2-1 (R.5.2-008) and 5.3-1 (R.5.3-004/005), pp. 9--10. Accessed 15 September 2026.
++% END SOURCE BLOCK 248
++
+ % BEGIN SOURCE BLOCK 210 bibliography_item
+-\bibitem{ref4} C. L. Liu and J. W. Layland. ``Scheduling Algorithms for Multiprogramming in a Hard-Real-Time Environment.'' \emph{Journal of the ACM}, 20(1), 46--61, 1973. DOI: \href{\detokenize{https://doi.org/10.1145/321738.321743}}{10.1145/321738.321743}.
++\bibitem{ref4} C. L. Liu and J. W. Layland. ``Scheduling algorithms for multiprogramming in a hard-real-time environment.'' \emph{Journal of the ACM}, 20(1), 46--61, 1973. DOI: \href{\detokenize{https://doi.org/10.1145/321738.321743}}{10.1145/321738.321743}.
+ % END SOURCE BLOCK 210
+ 
+ % BEGIN SOURCE BLOCK 211 bibliography_item
+ \bibitem{ref5} A. Molisch, F. Tufvesson, J. Karedal and C. Mecklenbrauker. ``A survey on vehicle-to-vehicle propagation channels.'' \emph{IEEE Wireless Communications}, 16(6), 12--22, 2009. DOI: \href{\detokenize{https://doi.org/10.1109/MWC.2009.5361174}}{10.1109/MWC.2009.5361174}.
+ % END SOURCE BLOCK 211
+ 
++% BEGIN SOURCE BLOCK 213 bibliography_item
++\bibitem{ref7} W. Fan, Y. Zhang, G. Zhou and Y. Liu. ``Deep reinforcement learning-based task offloading for vehicular edge computing with flexible RSU-RSU cooperation.'' \emph{IEEE Transactions on Intelligent Transportation Systems}, 25(7), 7712--7725, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/TITS.2024.3349546}}{10.1109/TITS.2024.3349546}.
++% END SOURCE BLOCK 213
++
+ % BEGIN SOURCE BLOCK 212 bibliography_item
+-\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{``URLLC-Awared Resource Allocation for Heterogeneous Vehicular Edge Computing.''} \emph{IEEE Transactions on Vehicular Technology}, 73(8), 11789--11805, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/TVT.2024.3370196}}{10.1109/TVT.2024.3370196}. Author version arXiv:2311.18352.
++\bibitem{ref6} Q. Wu, W. Wang, P. Fan, Q. Fan, J. Wang and K. B. Letaief. \href{\detokenize{https://arxiv.org/abs/2311.18352}}{``URLLC-awared resource allocation for heterogeneous vehicular edge computing.''} \emph{IEEE Transactions on Vehicular Technology}, 73(8), 11789--11805, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/TVT.2024.3370196}}{10.1109/TVT.2024.3370196}. Author version arXiv:2311.18352.
+ % END SOURCE BLOCK 212
+ 
+-% BEGIN SOURCE BLOCK 213 bibliography_item
+-\bibitem{ref7} W. Fan, Y. Zhang, G. Zhou and Y. Liu. ``Deep Reinforcement Learning-Based Task Offloading for Vehicular Edge Computing With Flexible RSU-RSU Cooperation.'' \emph{IEEE Transactions on Intelligent Transportation Systems}, 25(7), 7712--7725, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/TITS.2024.3349546}}{10.1109/TITS.2024.3349546}.
+-% END SOURCE BLOCK 213
++% BEGIN SOURCE BLOCK 253 bibliography_item
++\bibitem{ref47} R. P. Putra, L. Figueiredo Silva, S. Sampaio and P. Sampaio. ``Evaluating the value of predictive information in partially observed networked systems: A traffic control case study.'' In \emph{Proceedings of the 9th International Conference on Information Science and Systems (ICISS 2026)}, Cambridge, UK, 27--29 August 2026. ACM, 10 pages. ISBN 979-8-4007-2432-9. DOI pending in the camera-ready copy supplied by the first author.
++% END SOURCE BLOCK 253
+ 
+ % BEGIN SOURCE BLOCK 214 bibliography_item
+-\bibitem{ref8} W. Fan, Y. Yu, C. Bao and Y. Liu. ``Vehicular Edge Intelligence: DRL-Based Resource Orchestration for Task Inference in Vehicle-RSU-Edge Collaborative Networks.'' \emph{IEEE Transactions on Mobile Computing}, 24(10), 10927--10944, 2025. DOI: \href{\detokenize{https://doi.org/10.1109/TMC.2025.3572296}}{10.1109/TMC.2025.3572296}.
++\bibitem{ref8} W. Fan, Y. Yu, C. Bao and Y. Liu. ``Vehicular edge intelligence: DRL-based resource orchestration for task inference in vehicle-RSU-edge collaborative networks.'' \emph{IEEE Transactions on Mobile Computing}, 24(10), 10927--10944, 2025. DOI: \href{\detokenize{https://doi.org/10.1109/TMC.2025.3572296}}{10.1109/TMC.2025.3572296}.
+ % END SOURCE BLOCK 214
+ 
+ % BEGIN SOURCE BLOCK 215 bibliography_item
+-\bibitem{ref9} J. Zhang and K. B. Letaief. ``Mobile Edge Intelligence and Computing for the Internet of Vehicles.'' \emph{Proceedings of the IEEE}, 108(2), 246--261, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/JPROC.2019.2947490}}{10.1109/JPROC.2019.2947490}.
++\bibitem{ref9} J. Zhang and K. B. Letaief. ``Mobile edge intelligence and computing for the Internet of Vehicles.'' \emph{Proceedings of the IEEE}, 108(2), 246--261, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/JPROC.2019.2947490}}{10.1109/JPROC.2019.2947490}.
+ % END SOURCE BLOCK 215
+ 
+ % BEGIN SOURCE BLOCK 216 bibliography_item
+-\bibitem{ref10} Y. Liu, H. Yu, S. Xie and Y. Zhang. ``Deep Reinforcement Learning for Offloading and Resource Allocation in Vehicle Edge Computing and Networks.'' \emph{IEEE Transactions on Vehicular Technology}, 68(11), 11158--11168, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/TVT.2019.2935450}}{10.1109/TVT.2019.2935450}.
++\bibitem{ref10} Y. Liu, H. Yu, S. Xie and Y. Zhang. ``Deep reinforcement learning for offloading and resource allocation in vehicle edge computing and networks.'' \emph{IEEE Transactions on Vehicular Technology}, 68(11), 11158--11168, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/TVT.2019.2935450}}{10.1109/TVT.2019.2935450}.
+ % END SOURCE BLOCK 216
+ 
+ % BEGIN SOURCE BLOCK 217 bibliography_item
+-\bibitem{ref11} Z. Ning, P. Dong, X. Wang, J. J. P. C. Rodrigues and F. Xia. ``Deep Reinforcement Learning for Vehicular Edge Computing: An Intelligent Offloading System.'' \emph{ACM Transactions on Intelligent Systems and Technology}, 10(6), 1--24, 2019. DOI: \href{\detokenize{https://doi.org/10.1145/3317572}}{10.1145/3317572}.
++\bibitem{ref11} Z. Ning, P. Dong, X. Wang, J. J. P. C. Rodrigues and F. Xia. ``Deep reinforcement learning for vehicular edge computing: An intelligent offloading system.'' \emph{ACM Transactions on Intelligent Systems and Technology}, 10(6), 1--24, 2019. DOI: \href{\detokenize{https://doi.org/10.1145/3317572}}{10.1145/3317572}.
+ % END SOURCE BLOCK 217
+ 
+ % BEGIN SOURCE BLOCK 218 bibliography_item
+@@ -1380,19 +1392,19 @@
+ % END SOURCE BLOCK 218
+ 
+ % BEGIN SOURCE BLOCK 219 bibliography_item
+-\bibitem{ref13} M. Harchol-Balter. ``Performance Modeling and Design of Computer Systems: Queueing Theory in Action.'' \emph{Cambridge University Press}, 2013. DOI: \href{\detokenize{https://doi.org/10.1017/CBO9781139226424}}{10.1017/CBO9781139226424}.
++\bibitem{ref13} M. Harchol-Balter. \emph{Performance modeling and design of computer systems: Queueing theory in action}. Cambridge University Press, 2013. DOI: \href{\detokenize{https://doi.org/10.1017/CBO9781139226424}}{10.1017/CBO9781139226424}.
+ % END SOURCE BLOCK 219
+ 
+ % BEGIN SOURCE BLOCK 220 bibliography_item
+-\bibitem{ref14} M. Harchol-Balter, M. E. Crovella and C. D. Murta. ``On Choosing a Task Assignment Policy for a Distributed Server System.'' \emph{Computer Performance Evaluation (TOOLS 1998)}, LNCS 1469, 231--242, 1998. DOI: \href{\detokenize{https://www.cs.cmu.edu/~harchol/Papers/tools.pdf}}{10.1007/3-540-68061-6\_19}.
++\bibitem{ref14} M. Harchol-Balter, M. E. Crovella and C. D. Murta. \href{\detokenize{https://www.cs.cmu.edu/~harchol/Papers/tools.pdf}}{``On choosing a task assignment policy for a distributed server system.''} \emph{Computer Performance Evaluation (TOOLS 1998)}, LNCS 1469, 231--242, 1998. DOI: \href{\detokenize{https://doi.org/10.1007/3-540-68061-6_19}}{10.1007/3-540-68061-6\_19}.
+ % END SOURCE BLOCK 220
+ 
+ % BEGIN SOURCE BLOCK 221 bibliography_item
+-\bibitem{ref15} K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. ``Sparrow: Distributed, Low Latency Scheduling.'' \emph{24th ACM Symposium on Operating Systems Principles}, 69--84, 2013. DOI: \href{\detokenize{https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf}}{10.1145/2517349.2522716}.
++\bibitem{ref15} K. Ousterhout, P. Wendell, M. Zaharia and I. Stoica. \href{\detokenize{https://sigops.org/s/conferences/sosp/2013/papers/p69-ousterhout.pdf}}{``Sparrow: Distributed, low latency scheduling.''} \emph{24th ACM Symposium on Operating Systems Principles}, 69--84, 2013. DOI: \href{\detokenize{https://doi.org/10.1145/2517349.2522716}}{10.1145/2517349.2522716}.
+ % END SOURCE BLOCK 221
+ 
+ % BEGIN SOURCE BLOCK 222 bibliography_item
+-\bibitem{ref16} L. Ying, R. Srikant and X. Kang. \href{\detokenize{https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf}}{``The Power of Slightly More than One Sample in Randomized Load Balancing.''} \emph{IEEE INFOCOM}, 1131--1139, 2015. \href{\detokenize{https://doi.org/10.1109/INFOCOM.2015.7218487}}{doi:10.1109/INFOCOM.2015.7218487}.
++\bibitem{ref16} L. Ying, R. Srikant and X. Kang. \href{\detokenize{https://bpb-us-w2.wpmucdn.com/sites.coecis.cornell.edu/dist/9/287/files/2019/08/Srikant-1-YinSriKan14tech.pdf}}{``The power of slightly more than one sample in randomized load balancing.''} \emph{IEEE INFOCOM}, 1131--1139, 2015. DOI: \href{\detokenize{https://doi.org/10.1109/INFOCOM.2015.7218487}}{10.1109/INFOCOM.2015.7218487}.
+ % END SOURCE BLOCK 222
+ 
+ % BEGIN SOURCE BLOCK 223 bibliography_item
+@@ -1400,130 +1412,119 @@
+ % END SOURCE BLOCK 223
+ 
+ % BEGIN SOURCE BLOCK 224 bibliography_item
+-\bibitem{ref18} S. Vargaftik, I. Keslassy and A. Orda. ``LSQ: Load Balancing in Large-Scale Heterogeneous Systems With Multiple Dispatchers.'' \emph{IEEE/ACM Transactions on Networking}, 28(3), 1186--1198, 2020. DOI: \href{\detokenize{https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf}}{10.1109/TNET.2020.2980061}.
++\bibitem{ref18} S. Vargaftik, I. Keslassy and A. Orda. \href{\detokenize{https://webee.technion.ac.il/~isaac/p/ton20_lsq.pdf}}{``LSQ: Load balancing in large-scale heterogeneous systems with multiple dispatchers.''} \emph{IEEE/ACM Transactions on Networking}, 28(3), 1186--1198, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/TNET.2020.2980061}}{10.1109/TNET.2020.2980061}.
+ % END SOURCE BLOCK 224
+ 
++% BEGIN SOURCE BLOCK 251 bibliography_item
++\bibitem{ref45} M. Mitzenmacher. \href{\detokenize{https://www.eecs.harvard.edu/~michaelm/NEWWORK/postscripts/oldinfo-jver-submit.pdf}}{``How useful is old information?''} \emph{IEEE Transactions on Parallel and Distributed Systems}, 11(1), 6--20, 2000. DOI: \href{\detokenize{https://doi.org/10.1109/71.824633}}{10.1109/71.824633}.
++% END SOURCE BLOCK 251
++
+ % BEGIN SOURCE BLOCK 225 bibliography_item
+-\bibitem{ref19} M. van der Boor, S. C. Borst, J. S. H. van Leeuwaarden and D. Mukherjee. ``Scalable Load Balancing in Networked Systems: A Survey of Recent Advances.'' \emph{SIAM Review}, 64(3), 554--622, 2022. DOI: \href{\detokenize{https://doi.org/10.1137/20M1323746}}{10.1137/20M1323746}.
++\bibitem{ref19} M. van der Boor, S. C. Borst, J. S. H. van Leeuwaarden and D. Mukherjee. ``Scalable load balancing in networked systems: A survey of recent advances.'' \emph{SIAM Review}, 64(3), 554--622, 2022. DOI: \href{\detokenize{https://doi.org/10.1137/20M1323746}}{10.1137/20M1323746}.
+ % END SOURCE BLOCK 225
+ 
+ % BEGIN SOURCE BLOCK 226 bibliography_item
+-\bibitem{ref20} J. Niño-Mora. ``Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.'' \emph{Computers \& Operations Research}, 39, 3431--3444, 2012. DOI: \href{\detokenize{https://arxiv.org/abs/2207.12815}}{10.1016/j.cor.2012.05.004}.
++\bibitem{ref20} J. Niño-Mora. \href{\detokenize{https://arxiv.org/abs/2207.12815}}{``Admission and routing of soft real-time jobs to multiclusters: Design and comparison of index policies.''} \emph{Computers \& Operations Research}, 39, 3431--3444, 2012. DOI: \href{\detokenize{https://doi.org/10.1016/j.cor.2012.05.004}}{10.1016/j.cor.2012.05.004}.
+ % END SOURCE BLOCK 226
+ 
++% BEGIN SOURCE BLOCK 252 bibliography_item
++\bibitem{ref46} A. Kovalenko, R. F. Hussain, O. Semiari and M. A. Salehi. \href{\detokenize{https://arxiv.org/abs/1905.04458v1}}{``Robust resource allocation using edge computing for vehicle to infrastructure (V2I) networks.''} \emph{2019 IEEE 3rd International Conference on Fog and Edge Computing (ICFEC)}, 1--6, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/CFEC.2019.8733151}}{10.1109/CFEC.2019.8733151}.
++% END SOURCE BLOCK 252
++
+ % BEGIN SOURCE BLOCK 227 bibliography_item
+-\bibitem{ref21} R. G. Sargent. \href{\detokenize{https://www.informs-sim.org/wsc11papers/016.pdf}}{``Verification and Validation of Simulation Models.''} \emph{Proceedings of the 2011 Winter Simulation Conference}, 183--198, 2011.
++\bibitem{ref21} R. G. Sargent. \href{\detokenize{https://www.informs-sim.org/wsc11papers/016.pdf}}{``Verification and validation of simulation models.''} \emph{Proceedings of the 2011 Winter Simulation Conference}, 183--198, 2011.
+ % END SOURCE BLOCK 227
+ 
+ % BEGIN SOURCE BLOCK 228 bibliography_item
+-\bibitem{ref22} P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. ``Microscopic Traffic Simulation using SUMO.'' \emph{21st International Conference on Intelligent Transportation Systems (ITSC)}, 2575--2582, 2018. DOI: \href{\detokenize{https://elib.dlr.de/127994/}}{10.1109/ITSC.2018.8569938}.
++\bibitem{ref22} P. Alvarez Lopez, M. Behrisch, L. Bieker-Walz, J. Erdmann, Y.-P. Flötteröd, R. Hilbrich, L. Lücken, J. Rummel, P. Wagner and E. Wießner. \href{\detokenize{https://elib.dlr.de/127994/}}{``Microscopic traffic simulation using SUMO.''} \emph{21st International Conference on Intelligent Transportation Systems (ITSC)}, 2575--2582, 2018. DOI: \href{\detokenize{https://doi.org/10.1109/ITSC.2018.8569938}}{10.1109/ITSC.2018.8569938}.
+ % END SOURCE BLOCK 228
+ 
+ % BEGIN SOURCE BLOCK 229 bibliography_item
+-\bibitem{ref23} J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. \href{\detokenize{https://arxiv.org/abs/1707.06347}}{``Proximal Policy Optimization Algorithms.''} arXiv:1707.06347, 2017.
++\bibitem{ref23} J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov. \href{\detokenize{https://arxiv.org/abs/1707.06347}}{``Proximal policy optimization algorithms.''} arXiv:1707.06347, 2017.
+ % END SOURCE BLOCK 229
+ 
+ % BEGIN SOURCE BLOCK 230 bibliography_item
+-\bibitem{ref24} C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. \href{\detokenize{https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf}}{``The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games.''} \emph{Advances in Neural Information Processing Systems}, 35, 24611--24624, 2022.
++\bibitem{ref24} C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu. \href{\detokenize{https://papers.nips.cc/paper/2022/file/9c1535a02f0ce079433344e14d910597-Paper-Datasets_and_Benchmarks.pdf}}{``The surprising effectiveness of PPO in cooperative multi-agent games.''} \emph{Advances in Neural Information Processing Systems}, 35, 24611--24624, 2022.
+ % END SOURCE BLOCK 230
+ 
+ % BEGIN SOURCE BLOCK 231 bibliography_item
+-\bibitem{ref25} P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. ``Deep Reinforcement Learning That Matters.'' \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, 32(1), 2018. DOI: \href{\detokenize{https://ojs.aaai.org/index.php/AAAI/article/view/11694}}{10.1609/aaai.v32i1.11694}.
++\bibitem{ref25} P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup and D. Meger. \href{\detokenize{https://ojs.aaai.org/index.php/AAAI/article/view/11694}}{``Deep reinforcement learning that matters.''} \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, 32(1), 2018. DOI: \href{\detokenize{https://doi.org/10.1609/aaai.v32i1.11694}}{10.1609/aaai.v32i1.11694}.
+ % END SOURCE BLOCK 231
+ 
+ % BEGIN SOURCE BLOCK 232 bibliography_item
+-\bibitem{ref26} R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. \href{\detokenize{https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html}}{``Deep Reinforcement Learning at the Edge of the Statistical Precipice.''} \emph{Advances in Neural Information Processing Systems}, 34, 29304--29320, 2021.
++\bibitem{ref26} R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville and M. G. Bellemare. \href{\detokenize{https://proceedings.neurips.cc/paper/2021/hash/f514cec81cb148559cf475e7426eed5e-Abstract.html}}{``Deep reinforcement learning at the edge of the statistical precipice.''} \emph{Advances in Neural Information Processing Systems}, 34, 29304--29320, 2021.
+ % END SOURCE BLOCK 232
+ 
+ % BEGIN SOURCE BLOCK 233 bibliography_item
+-\bibitem{ref27} R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. \href{\detokenize{https://arxiv.org/abs/2209.10485}}{``Towards a Standardised Performance Evaluation Protocol for Cooperative MARL.''} \emph{Advances in Neural Information Processing Systems}, 35, 5510--5521, 2022.
++\bibitem{ref27} R. Gorsane, O. Mahjoub, R. de Kock, R. Dubb, S. Singh and A. Pretorius. \href{\detokenize{https://arxiv.org/abs/2209.10485}}{``Towards a standardised performance evaluation protocol for cooperative MARL.''} \emph{Advances in Neural Information Processing Systems}, 35, 5510--5521, 2022.
+ % END SOURCE BLOCK 233
+ 
+ % BEGIN SOURCE BLOCK 234 bibliography_item
+-\bibitem{ref28} F. Tao, H. Zhang, A. Liu and A. Y. C. Nee. ``Digital Twin in Industry: State-of-the-Art.'' \emph{IEEE Transactions on Industrial Informatics}, 15(4), 2405--2415, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/TII.2018.2873186}}{10.1109/TII.2018.2873186}.
++\bibitem{ref28} F. Tao, H. Zhang, A. Liu and A. Y. C. Nee. ``Digital twin in industry: State-of-the-art.'' \emph{IEEE Transactions on Industrial Informatics}, 15(4), 2405--2415, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/TII.2018.2873186}}{10.1109/TII.2018.2873186}.
+ % END SOURCE BLOCK 234
+ 
+ % BEGIN SOURCE BLOCK 235 bibliography_item
+-\bibitem{ref29} S. Dasgupta, M. Rahman, A. D. Lidbe, W. Lu and S. Jones. \href{\detokenize{https://arxiv.org/abs/2109.10863}}{``A Transportation Digital-Twin Approach for Adaptive Traffic Control Systems.''} arXiv:2109.10863, 2021.
++\bibitem{ref29} S. Dasgupta, M. Rahman, A. D. Lidbe, W. Lu and S. Jones. \href{\detokenize{https://arxiv.org/abs/2109.10863}}{``A transportation digital-twin approach for adaptive traffic control systems.''} arXiv:2109.10863, 2021.
+ % END SOURCE BLOCK 235
+ 
+ % BEGIN SOURCE BLOCK 236 bibliography_item
+-\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{``Digital Twin Vehicular Edge Computing Network: Task Offloading and Resource Allocation.''} \emph{2024 7th International Conference on Information Communication and Signal Processing (ICICSP)}, 1137--1141, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/ICICSP62589.2024.10809180}}{10.1109/ICICSP62589.2024.10809180}.
++\bibitem{ref30} Y. Xie, Q. Wu and P. Fan. \href{\detokenize{https://arxiv.org/abs/2407.11310}}{``Digital twin vehicular edge computing network: Task offloading and resource allocation.''} \emph{2024 7th International Conference on Information Communication and Signal Processing (ICICSP)}, 1137--1141, 2024. DOI: \href{\detokenize{https://doi.org/10.1109/ICICSP62589.2024.10809180}}{10.1109/ICICSP62589.2024.10809180}.
+ % END SOURCE BLOCK 236
+ 
+ % BEGIN SOURCE BLOCK 237 bibliography_item
+-\bibitem{ref31} S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. ``Autonomous Task Offloading of Vehicular Edge Computing with Parallel Computation Queues.'' \emph{IEEE Transactions on Mobile Computing}, 25(5), 7166--7181, 2026. DOI: \href{\detokenize{https://arxiv.org/abs/2509.03935v2}}{10.1109/TMC.2025.3640244}. Author version arXiv:2509.03935v2.
++\bibitem{ref31} S. Cho, S. I. Choi, S. H. Oh, I. P. Roberts and S. H. Lee. \href{\detokenize{https://arxiv.org/abs/2509.03935v2}}{``Autonomous task offloading of vehicular edge computing with parallel computation queues.''} \emph{IEEE Transactions on Mobile Computing}, 25(5), 7166--7181, 2026. DOI: \href{\detokenize{https://doi.org/10.1109/TMC.2025.3640244}}{10.1109/TMC.2025.3640244}. Author version arXiv:2509.03935v2.
+ % END SOURCE BLOCK 237
+ 
+ % BEGIN SOURCE BLOCK 238 bibliography_item
+-\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{``Hybrid Vehicular and Cloud Distributed Computing: A Case for Cooperative Perception.''} \emph{GLOBECOM 2020 -- 2020 IEEE Global Communications Conference}, 1--6, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/GLOBECOM42002.2020.9322247}}{10.1109/GLOBECOM42002.2020.9322247}.
++\bibitem{ref32} E. Krijestorac, A. Memedi, T. Higuchi, S. Ucar, O. Altintas and D. Cabric. \href{\detokenize{https://arxiv.org/abs/2010.05693}}{``Hybrid vehicular and cloud distributed computing: A case for cooperative perception.''} \emph{GLOBECOM 2020 -- 2020 IEEE Global Communications Conference}, 1--6, 2020. DOI: \href{\detokenize{https://doi.org/10.1109/GLOBECOM42002.2020.9322247}}{10.1109/GLOBECOM42002.2020.9322247}.
+ % END SOURCE BLOCK 238
++
++% BEGIN SOURCE BLOCK 254 bibliography_item
++\bibitem{ref48} S. Sampaio (proposer). \href{\detokenize{https://digital.cs.manchester.ac.uk/taught-project-explorer/student/project-id-237}}{``Dynamic resource management for intelligent transportation system applications.''} Taught Project Explorer, project 237, The University of Manchester. Accessed 27 May 2026.
++% END SOURCE BLOCK 254
++
++% BEGIN SOURCE BLOCK 250 bibliography_item
++\bibitem{ref44} The University of Manchester. \emph{Ethics Decision Tool.} \href{\detokenize{https://www.manchester.ac.uk/research/environment/governance/ethics/approval/}}{University guidance}. Accessed 15 September 2026; checked by the author; outcome: ethics approval not required.
++% END SOURCE BLOCK 250
+ 
+ % BEGIN SOURCE BLOCK 239 bibliography_item
+ \bibitem{ref33} B. A. Nosek, C. R. Ebersole, A. C. DeHaven and D. T. Mellor. ``The preregistration revolution.'' \emph{Proceedings of the National Academy of Sciences}, 115(11), 2600--2606, 2018. DOI: \href{\detokenize{https://doi.org/10.1073/pnas.1708274114}}{10.1073/pnas.1708274114}.
+ % END SOURCE BLOCK 239
+ 
+ % BEGIN SOURCE BLOCK 240 bibliography_item
+-\bibitem{ref34} O. J. Dunn. ``Multiple Comparisons among Means.'' \emph{Journal of the American Statistical Association}, 56(293), 52--64, 1961. DOI: \href{\detokenize{https://doi.org/10.1080/01621459.1961.10482090}}{10.1080/01621459.1961.10482090}.
++\bibitem{ref34} O. J. Dunn. ``Multiple comparisons among means.'' \emph{Journal of the American Statistical Association}, 56(293), 52--64, 1961. DOI: \href{\detokenize{https://doi.org/10.1080/01621459.1961.10482090}}{10.1080/01621459.1961.10482090}.
+ % END SOURCE BLOCK 240
+ 
+ % BEGIN SOURCE BLOCK 241 bibliography_item
+-\bibitem{ref35} JAX authors. \href{\detokenize{https://docs.jax.dev/en/latest/benchmarking.html}}{``Benchmarking JAX code.''} Official JAX documentation, Accessed 8 September 2026. Used for timing procedure, not scheduler efficacy.
++\bibitem{ref35} JAX authors. \href{\detokenize{https://docs.jax.dev/en/latest/benchmarking.html}}{``Benchmarking JAX code.''} Official JAX documentation. Accessed 8 September 2026. Used for timing procedure, not scheduler efficacy.
+ % END SOURCE BLOCK 241
+-
+-% BEGIN SOURCE BLOCK 242 bibliography_item
+-\bibitem{ref36} J. Bradbury et al. \href{\detokenize{https://github.com/jax-ml/jax}}{``JAX: composable transformations of Python+NumPy programs.''} Software, version 0.4.30, 2024 (first released 2018).
+-% END SOURCE BLOCK 242
+-
+-% BEGIN SOURCE BLOCK 243 bibliography_item
+-\bibitem{ref37} G. Wilson et al. ``Best Practices for Scientific Computing.'' \emph{PLOS Biology}, 12(1), e1001745, 2014. DOI: \href{\detokenize{https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745}}{10.1371/journal.pbio.1001745}.
+-% END SOURCE BLOCK 243
+-
+-% BEGIN SOURCE BLOCK 244 bibliography_item
+-\bibitem{ref38} G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig. ``Ten Simple Rules for Reproducible Computational Research.'' \emph{PLOS Computational Biology}, 9(10), e1003285, 2013. DOI: \href{\detokenize{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285}}{10.1371/journal.pcbi.1003285}.
+-% END SOURCE BLOCK 244
+-
+-% BEGIN SOURCE BLOCK 245 bibliography_item
+-\bibitem{ref39} J. Pineau, P. Vincent-Lamarre, K. Sinha, V. Larivière, A. Beygelzimer, F. d'Alché-Buc, E. Fox and H. Larochelle. \href{\detokenize{https://jmlr.org/papers/v22/20-303.html}}{``Improving Reproducibility in Machine Learning Research (A Report from the NeurIPS 2019 Reproducibility Program).''} \emph{Journal of Machine Learning Research}, 22(164), 1--20, 2021.
+-% END SOURCE BLOCK 245
+-
+-% BEGIN SOURCE BLOCK 246 bibliography_item
+-\bibitem{ref40} S. Huang and S. Ontañón. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{``A Closer Look at Invalid Action Masking in Policy Gradient Algorithms.''} \emph{The International FLAIRS Conference Proceedings}, 35, 2022. DOI: \href{\detokenize{https://doi.org/10.32473/flairs.v35i.130584}}{10.32473/flairs.v35i.130584}.
+-% END SOURCE BLOCK 246
+ 
+ % BEGIN SOURCE BLOCK 247 bibliography_item
+ \bibitem{ref41} D. Goldberg. ``What every computer scientist should know about floating-point arithmetic.'' \emph{ACM Computing Surveys}, 23(1), 5--48, 1991. DOI: \href{\detokenize{https://doi.org/10.1145/103162.103163}}{10.1145/103162.103163}.
+ % END SOURCE BLOCK 247
+ 
+-% BEGIN SOURCE BLOCK 248 bibliography_item
+-\bibitem{ref42} 3GPP. \href{\detokenize{https://www.etsi.org/deliver/etsi_ts/122100_122199/122186/16.02.00_60/ts_122186v160200p.pdf}}{\emph{Service requirements for enhanced V2X scenarios.}} TS 22.186, version 16.2.0, Release 16; ETSI TS 122 186 V16.2.0, November 2020. Clauses 5.2--5.3, Tables 5.2-1 (R.5.2-008) and 5.3-1 (R.5.3-004/005), pp. 9--10. Accessed 15 September 2026.
+-% END SOURCE BLOCK 248
+-
+-% BEGIN SOURCE BLOCK 249 bibliography_item
+-\bibitem{ref43} World Health Organization. \href{\detokenize{https://iris.who.int/server/api/core/bitstreams/46275f9f-ef66-4892-8ddd-a496ef8c1b74/content}}{\emph{Global status report on road safety 2023.}} Geneva: WHO, 2023. ISBN 978-92-4-008651-7. Executive summary p. viii and p. 4. Accessed 15 September 2026.
+-% END SOURCE BLOCK 249
+-
+-% BEGIN SOURCE BLOCK 250 bibliography_item
+-\bibitem{ref44} The University of Manchester. \emph{Ethics Decision Tool.} \href{\detokenize{https://www.manchester.ac.uk/research/environment/governance/ethics/approval/}}{University guidance}. Accessed 15 September 2026; checked by the author; outcome: ethics approval not required.
+-% END SOURCE BLOCK 250
+-
+-% BEGIN SOURCE BLOCK 251 bibliography_item
+-\bibitem{ref45} M. Mitzenmacher. \href{\detokenize{https://www.eecs.harvard.edu/~michaelm/NEWWORK/postscripts/oldinfo-jver-submit.pdf}}{``How useful is old information?''} \emph{IEEE Transactions on Parallel and Distributed Systems}, 11(1), 6--20, 2000. DOI: \href{\detokenize{https://doi.org/10.1109/71.824633}}{10.1109/71.824633}.
+-% END SOURCE BLOCK 251
+-
+-% BEGIN SOURCE BLOCK 252 bibliography_item
+-\bibitem{ref46} A. Kovalenko, R. F. Hussain, O. Semiari and M. A. Salehi. \href{\detokenize{https://arxiv.org/abs/1905.04458v1}}{``Robust Resource Allocation Using Edge Computing for Vehicle to Infrastructure (V2I) Networks.''} \emph{2019 IEEE 3rd International Conference on Fog and Edge Computing (ICFEC)}, 1--6, 2019. DOI: \href{\detokenize{https://doi.org/10.1109/CFEC.2019.8733151}}{10.1109/CFEC.2019.8733151}.
+-% END SOURCE BLOCK 252
+-
+-% BEGIN SOURCE BLOCK 253 bibliography_item
+-\bibitem{ref47} R. P. Putra, L. Figueiredo Silva, S. Sampaio and P. Sampaio. ``Evaluating the Value of Predictive Information in Partially Observed Networked Systems: A Traffic Control Case Study.'' In \emph{Proceedings of the 9th International Conference on Information Science and Systems (ICISS 2026)}, Cambridge, UK, 27--29 August 2026. ACM, 10 pages. ISBN 979-8-4007-2432-9. DOI pending in the camera-ready copy supplied by the first author.
+-% END SOURCE BLOCK 253
+-
+-% BEGIN SOURCE BLOCK 254 bibliography_close
+-\bibitem{ref48} S. Sampaio (proposer). \href{\detokenize{https://digital.cs.manchester.ac.uk/taught-project-explorer/student/project-id-237}}{``Dynamic Resource Management for Intelligent Transportation System Applications.''} Taught Project Explorer, project 237, The University of Manchester. Accessed 27 May 2026.
++% BEGIN SOURCE BLOCK 242 bibliography_item
++\bibitem{ref36} J. Bradbury et al. \href{\detokenize{https://github.com/jax-ml/jax}}{``JAX: Composable transformations of Python+NumPy programs.''} Software, version 0.4.30, 2024 (first released 2018).
++% END SOURCE BLOCK 242
++
++% BEGIN SOURCE BLOCK 243 bibliography_item
++\bibitem{ref37} G. Wilson et al. \href{\detokenize{https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745}}{``Best practices for scientific computing.''} \emph{PLOS Biology}, 12(1), e1001745, 2014. DOI: \href{\detokenize{https://doi.org/10.1371/journal.pbio.1001745}}{10.1371/journal.pbio.1001745}.
++% END SOURCE BLOCK 243
++
++% BEGIN SOURCE BLOCK 244 bibliography_item
++\bibitem{ref38} G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig. \href{\detokenize{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285}}{``Ten simple rules for reproducible computational research.''} \emph{PLOS Computational Biology}, 9(10), e1003285, 2013. DOI: \href{\detokenize{https://doi.org/10.1371/journal.pcbi.1003285}}{10.1371/journal.pcbi.1003285}.
++% END SOURCE BLOCK 244
++
++% BEGIN SOURCE BLOCK 245 bibliography_item
++\bibitem{ref39} J. Pineau, P. Vincent-Lamarre, K. Sinha, V. Larivière, A. Beygelzimer, F. d'Alché-Buc, E. Fox and H. Larochelle. \href{\detokenize{https://jmlr.org/papers/v22/20-303.html}}{``Improving reproducibility in machine learning research (a report from the NeurIPS 2019 Reproducibility Program).''} \emph{Journal of Machine Learning Research}, 22(164), 1--20, 2021.
++% END SOURCE BLOCK 245
++
++% BEGIN SOURCE BLOCK 246 bibliography_item
++\bibitem{ref40} S. Huang and S. Ontañón. \href{\detokenize{https://arxiv.org/abs/2006.14171}}{``A closer look at invalid action masking in policy gradient algorithms.''} \emph{The International FLAIRS Conference Proceedings}, 35, 2022. DOI: \href{\detokenize{https://doi.org/10.32473/flairs.v35i.130584}}{10.32473/flairs.v35i.130584}.
++% END SOURCE BLOCK 246
++
+ 
+ \end{thebibliography}
+-% END SOURCE BLOCK 254
+ 
+ % BEGIN SOURCE BLOCK 255 appendix_open
+ \appendix

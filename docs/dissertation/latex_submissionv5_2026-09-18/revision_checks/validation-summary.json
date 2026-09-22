@@ -1,0 +1,31 @@
+{
+  "all_four_revision_requests_implemented": true,
+  "page_count": 62,
+  "build_engine": "Tectonic 0.17.0",
+  "all_source_checks_pass": true,
+  "word_count": 8355,
+  "abstract_words": 217,
+  "visual_review": "All pages rendered and inspected using contact sheets. Contents, List of Tables, Declaration, revised introduction/scope, scheduling passage, software discussion, Conclusion and Appendix A inventory checked at reading size. After final layout and consistency changes, changed rendered pages were checked again; other affected pages match their inspected renders.",
+  "reading_size_pages": [
+    2,
+    3,
+    4,
+    8,
+    14,
+    15,
+    26,
+    34,
+    37,
+    38,
+    39,
+    45
+  ],
+  "original_directory_and_notes_unchanged": true,
+  "no_experiments_benchmarks_simulations_or_repository_tests_run": true,
+  "no_implementation_or_evidence_changes": true,
+  "material_unresolved_build_or_verification_issues": [],
+  "non_material_engine_notices": "Inherited underfull boxes in bibliography/evidence entries and invalid UTF-8 in legacy package comments. No replacement glyphs appear in PDF text; no overfull boxes or undefined references.",
+  "external_evidence_access": "Existing repository-relative evidence links require the original research repository; this is a manuscript source bundle, not the research-data archive.",
+  "tex_sha256": "1a99d2ad61240620494f2128bc6b4a7a65cec5af3b154d6f2308a41a094c57de",
+  "pdf_sha256": "78ef5d81801727897fd25f806b6d5f7f4738725ff3748677215228af52455bc2"
+}

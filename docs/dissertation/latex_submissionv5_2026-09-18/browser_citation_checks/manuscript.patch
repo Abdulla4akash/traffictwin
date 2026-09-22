@@ -1,0 +1,20 @@
+--- before/TrafficTwin_Dissertation.tex
++++ after/TrafficTwin_Dissertation.tex
+@@ -69,7 +69,7 @@
+ \makeatother
+ \tableofcontents
+ \endgroup
+-\vfill\noindent\textbf{Automated word count: 8,355} (abstract and main text, including headings, table bodies, equations and pseudocode; excluding captions, references, appendices and other front matter).\par
++\vfill\noindent\textbf{Automated word count: 8,386} (abstract and main text, including headings, table bodies, equations and pseudocode; excluding captions, references, appendices and other front matter).\par
+ \clearpage
+ {\footnotesize\singlespacing
+ \listoffigures
+@@ -1169,7 +1169,7 @@
+ % END SOURCE BLOCK 175
+ 
+ % BEGIN SOURCE BLOCK 176 paragraph
+-A five-page browser check found no application exceptions or horizontal overflow but did not assess usability \cite{ref37}, \cite{ref38}. Figures~\ref{fig:7} and~\ref{fig:7b} demonstrate imported-data validation, comparison and provenance; numerical claims rest on the bound campaign outputs.
++Version control, documented software checks and preserved analysis records support inspectability and reproducibility \cite{ref37}, \cite{ref38}. No Streamlit exceptions or horizontal overflow were observed in an automated inspection of five TrafficTwin pages at a $1440 \times 1000$ desktop viewport in light theme (\href{\detokenize{evidence/product_capture/ui/accessibility-audit.json}}{inspection record}). This inspection did not assess usability. Figures~\ref{fig:7} and~\ref{fig:7b} demonstrate imported-data validation, comparison and provenance; numerical claims rest on the bound campaign outputs.
+ % END SOURCE BLOCK 176
+ 
+ 

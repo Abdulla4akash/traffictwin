@@ -1,0 +1,27 @@
+{
+  "original_sha256": "d0853aa304199461999032eafc739c38ff2ffc4c3ccb778800ec38eee5919434",
+  "revised_source_sha256": "378ec9ea3b67a761dcbca32c0693f5552bc7bc9810c93fe19e8e276d477f4e32",
+  "unchanged_bibliography_entries": 48,
+  "retained_source_blocks": 401,
+  "empirical_table_blocks_with_identical_data_rows": [
+    64,
+    127,
+    134,
+    136,
+    144,
+    151,
+    153,
+    307,
+    310,
+    353,
+    371,
+    372,
+    378,
+    380,
+    388,
+    389
+  ],
+  "labels": 107,
+  "duplicate_labels": 0,
+  "unresolved_source_references": 0
+}

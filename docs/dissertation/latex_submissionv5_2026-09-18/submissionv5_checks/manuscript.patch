@@ -1,0 +1,32 @@
+--- submissionv4.tex
++++ submissionv5.tex
+@@ -69,7 +69,7 @@
+ \makeatother
+ \tableofcontents
+ \endgroup
+-\vfill\noindent\textbf{Automated word count: 8,386} (abstract and main text, including headings, table bodies, equations and pseudocode; excluding captions, references, appendices and other front matter).\par
++\vfill\noindent\textbf{Word count: 8,386}\par
+ \clearpage
+ {\footnotesize\singlespacing
+ \listoffigures
+@@ -158,13 +158,13 @@
+ \section*{Copyright statement}
+ \addcontentsline{toc}{section}{Copyright statement}
+ \begin{enumerate}
+-\item[(i)] The author of this thesis (including any appendices and/or schedules to this thesis) owns certain copyright or related rights in it (the "Copyright") and s/he has given The University of Manchester certain rights to use such Copyright, including for administrative purposes.
+-
+-\item[(ii)] Copies of this thesis, either in full or in extracts and whether in hard or electronic copy, may be made only in accordance with the Copyright, Designs and Patents Act 1988 (as amended) and regulations issued under it or, where appropriate, in accordance with licensing agreements which the University has from time to time. This page must form part of any such copies made.
+-
+-\item[(iii)] The ownership of certain Copyright, patents, designs, trade marks and other intellectual property (the "Intellectual Property") and any reproductions of copyright works in the thesis, for example graphs and tables ("Reproductions"), which may be described in this thesis, may not be owned by the author and may be owned by third parties. Such Intellectual Property and Reproductions cannot and must not be made available for use without the prior written permission of the owner(s) of the relevant Intellectual Property and/or Reproductions.
+-
+-\item[(iv)] Further information on the conditions under which disclosure, publication and commercialisation of this thesis, the Copyright and any Intellectual Property and/or Reproductions described in it may take place is available in the University IP Policy (see \url{http://documents.manchester.ac.uk/DocuInfo.aspx?DocID=24420}), in any relevant Thesis restriction declarations deposited in the University Library, The University Library's regulations (see \url{http://www.library.manchester.ac.uk/about/regulations/}) and in The University's policy on Presentation of Theses.
++\item[(i)] The author of this dissertation (including any appendices and/or schedules to this dissertation) owns certain copyright or related rights in it (the “Copyright”) and they have given The University of Manchester certain rights to use such Copyright, including for administrative purposes.
++
++\item[(ii)] Copies of this dissertation, either in full or in extracts and whether in hard or electronic copy, may be made \textbf{only} in accordance with the Copyright, Designs and Patents Act 1988 (as amended) and regulations issued under it or, where appropriate, in accordance with licensing agreements which the University has entered into. This page must form part of any such copies made.
++
++\item[(iii)] The ownership of certain Copyright, patents, designs, trademarks and other intellectual property (the “Intellectual Property”) and any reproductions of copyright works in the dissertation, for example graphs and tables (“Reproductions”), which may be described in this dissertation, may not be owned by the author and may be owned by third parties. Such Intellectual Property and Reproductions cannot and must not be made available for use without the prior written permission of the owner(s) of the relevant Intellectual Property and/or Reproductions.
++
++\item[(iv)] Further information on the conditions under which disclosure, publication and commercialisation of this dissertation, the Copyright and any Intellectual Property and/or Reproductions described in it may take place is available in the \href{http://documents.manchester.ac.uk/display.aspx?DocID=24420}{University IP Policy}, in any relevant Dissertation restriction declarations deposited in the University Library, and \href{https://www.library.manchester.ac.uk/about/regulations/}{The University Library’s regulations}.
+ 
+ \end{enumerate}
+ \section*{Acknowledgements}

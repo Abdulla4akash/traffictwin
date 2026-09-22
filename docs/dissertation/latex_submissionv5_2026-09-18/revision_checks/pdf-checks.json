@@ -1,0 +1,62 @@
+{
+  "page_count": 62,
+  "phrase_locations": {
+    "brainstorming with large language models": [
+      8
+    ],
+    "reselecting the destination": [
+      26
+    ],
+    "Against the original objectives": [
+      37
+    ],
+    "Repository software-testing records": [
+      45
+    ],
+    "reselected destinations": [
+      39
+    ]
+  },
+  "undefined_or_overfull_or_missing_glyph_messages": [],
+  "replacement_characters_or_unresolved_markers": [],
+  "bad_internal_link_pages": [],
+  "removed_title_absent_from_pdf": true,
+  "main_table_numbers": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+  ],
+  "conclusion_subsections": [
+    [
+      "4.1",
+      "Analysis of the project approach"
+    ],
+    [
+      "4.2",
+      "Research answers and interpretation"
+    ],
+    [
+      "4.3",
+      "Prioritised future work"
+    ],
+    [
+      "4.4",
+      "Reflection on the process"
+    ]
+  ],
+  "displayed_word_count": true,
+  "all_pages_have_text": true,
+  "all_text_inside_page": true,
+  "tex_sha256": "1a99d2ad61240620494f2128bc6b4a7a65cec5af3b154d6f2308a41a094c57de",
+  "pdf_sha256": "78ef5d81801727897fd25f806b6d5f7f4738725ff3748677215228af52455bc2",
+  "contents_minimum_gap_verified": true
+}

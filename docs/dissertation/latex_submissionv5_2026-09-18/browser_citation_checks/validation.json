@@ -1,0 +1,35 @@
+{
+  "checks": {
+    "page_count_62": true,
+    "only_pages_3_and_34_text_changed": true,
+    "only_manuscript_block_176_changed": true,
+    "all_48_bibliography_mappings_preserved": true,
+    "wilson_45_sandve_46": true,
+    "no_undefined_citations_or_references": true,
+    "no_overfull_boxes": true,
+    "no_missing_glyphs": true,
+    "no_rendered_replacement_characters": true,
+    "inspection_link_embedded_and_target_present": true,
+    "inspection_files_copied_unchanged": true,
+    "original_manuscript_preserved": true,
+    "historical_records_assets_and_build_inputs_preserved": true,
+    "displayed_word_count_matches_recount": true,
+    "changed_pages_visually_reviewed": true
+  },
+  "page_count": 62,
+  "changed_text_pages": [
+    3,
+    34
+  ],
+  "visual_review": {
+    "pages": [
+      3,
+      34
+    ],
+    "layout_issues_found": []
+  },
+  "build": "Tectonic 0.17.0; successful. Inherited package-comment encoding and underfull-box warnings remain.",
+  "scope": "Correct citation placement and link the reported browser result to its retained inspection record. No new browser checks or scientific workloads were run.",
+  "tex_sha256": "29f9c8ff651ee5de43b68a782a05b63b2a75c942402ee9bf0e96c5c6b78b0cd2",
+  "pdf_sha256": "8072341c473617d36b7f1cb90310c0a24696f44a758bd6b64ce07d79ee45caad"
+}

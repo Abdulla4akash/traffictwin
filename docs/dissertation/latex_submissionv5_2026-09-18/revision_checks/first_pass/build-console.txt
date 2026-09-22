@@ -1,0 +1,32 @@
+note: "version 2" Tectonic command-line interface activated
+note: Running TeX ...
+warning: algorithm.sty:11: 
+Invalid UTF-8 byte or sequence at line 11 replaced by U+FFFD.
+warning: lineno.sty:296: Invalid UTF-8 byte or sequence at line 296 replaced by U+FFFD.
+warning: TrafficTwin_Dissertation.tex:1366: Underfull \hbox (badness 1122) in paragraph at lines 1364--1366
+warning: TrafficTwin_Dissertation.tex:1366: Underfull \hbox (badness 2205) in paragraph at lines 1364--1366
+warning: TrafficTwin_Dissertation.tex:1382: Underfull \hbox (badness 1152) in paragraph at lines 1380--1382
+warning: TrafficTwin_Dissertation.tex:1394: Underfull \hbox (badness 1490) in paragraph at lines 1392--1394
+warning: TrafficTwin_Dissertation.tex:1406: Underfull \hbox (badness 1406) in paragraph at lines 1404--1406
+warning: TrafficTwin_Dissertation.tex:1466: Underfull \hbox (badness 1810) in paragraph at lines 1464--1466
+warning: TrafficTwin_Dissertation.tex:1741: Underfull \hbox (badness 1005) in paragraph at lines 1739--1741
+note: Rerunning TeX because "TrafficTwin_Dissertation.toc" changed ...
+warning: algorithm.sty:11: 
+Invalid UTF-8 byte or sequence at line 11 replaced by U+FFFD.
+warning: lineno.sty:296: Invalid UTF-8 byte or sequence at line 296 replaced by U+FFFD.
+warning: TrafficTwin_Dissertation.tex:1366: Underfull \hbox (badness 1122) in paragraph at lines 1364--1366
+warning: TrafficTwin_Dissertation.tex:1366: Underfull \hbox (badness 2205) in paragraph at lines 1364--1366
+warning: TrafficTwin_Dissertation.tex:1382: Underfull \hbox (badness 1152) in paragraph at lines 1380--1382
+warning: TrafficTwin_Dissertation.tex:1394: Underfull \hbox (badness 1490) in paragraph at lines 1392--1394
+warning: TrafficTwin_Dissertation.tex:1406: Underfull \hbox (badness 1406) in paragraph at lines 1404--1406
+warning: TrafficTwin_Dissertation.tex:1466: Underfull \hbox (badness 1810) in paragraph at lines 1464--1466
+warning: TrafficTwin_Dissertation.tex:1741: Underfull \hbox (badness 1005) in paragraph at lines 1739--1741
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+note: Running xdvipdfmx ...
+note: Writing `TrafficTwin_Dissertation.pdf` (1.0592308044433594 MiB)
+note: Writing `TrafficTwin_Dissertation.toc` (4.7529296875 KiB)
+note: Writing `TrafficTwin_Dissertation.log` (31.119140625 KiB)
+note: Writing `TrafficTwin_Dissertation.lof` (1 KiB)
+note: Writing `TrafficTwin_Dissertation.lot` (2.2509765625 KiB)
+note: Writing `TrafficTwin_Dissertation.out` (12.19140625 KiB)
+note: Writing `TrafficTwin_Dissertation.aux` (27.353515625 KiB)

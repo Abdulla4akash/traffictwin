@@ -1,0 +1,19 @@
+note: "version 2" Tectonic command-line interface activated
+note: Running TeX ...
+warning: algorithm.sty:11: 
+Invalid UTF-8 byte or sequence at line 11 replaced by U+FFFD.
+warning: lineno.sty:296: Invalid UTF-8 byte or sequence at line 296 replaced by U+FFFD.
+warning: TrafficTwin_Dissertation.tex:1369: Underfull \hbox (badness 3000) in paragraph at lines 1367--1369
+warning: TrafficTwin_Dissertation.tex:1369: Underfull \hbox (badness 1655) in paragraph at lines 1367--1369
+warning: TrafficTwin_Dissertation.tex:1397: Underfull \hbox (badness 2818) in paragraph at lines 1395--1397
+warning: TrafficTwin_Dissertation.tex:1397: Underfull \hbox (badness 1365) in paragraph at lines 1395--1397
+warning: TrafficTwin_Dissertation.tex:1733: Underfull \hbox (badness 1005) in paragraph at lines 1731--1733
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+note: Running xdvipdfmx ...
+note: Writing `TrafficTwin_Dissertation.out` (11.974609375 KiB)
+note: Writing `TrafficTwin_Dissertation.log` (30.625 KiB)
+note: Writing `TrafficTwin_Dissertation.pdf` (1.058669090270996 MiB)
+note: Writing `TrafficTwin_Dissertation.toc` (4.658203125 KiB)
+note: Writing `TrafficTwin_Dissertation.lot` (2.1552734375 KiB)
+note: Writing `TrafficTwin_Dissertation.lof` (1 KiB)
+note: Writing `TrafficTwin_Dissertation.aux` (26.8583984375 KiB)

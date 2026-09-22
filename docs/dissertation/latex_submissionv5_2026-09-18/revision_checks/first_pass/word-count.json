@@ -1,0 +1,948 @@
+{
+  "before": {
+    "strict": 9605,
+    "prose_only": 8174
+  },
+  "after": {
+    "strict": 8444,
+    "prose_only": 6969
+  },
+  "deltas": [
+    {
+      "block": 2,
+      "kind": "heading",
+      "baseline_projection_difference": 24,
+      "strict_delta": -19,
+      "prose_delta": -19
+    },
+    {
+      "block": 3,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -12,
+      "prose_delta": -12
+    },
+    {
+      "block": 4,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -38,
+      "prose_delta": -38
+    },
+    {
+      "block": 5,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -29,
+      "prose_delta": -29
+    },
+    {
+      "block": 6,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -15,
+      "prose_delta": -15
+    },
+    {
+      "block": 10,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 11,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -22,
+      "prose_delta": -22
+    },
+    {
+      "block": 12,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -19,
+      "prose_delta": -19
+    },
+    {
+      "block": 13,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -16,
+      "prose_delta": -16
+    },
+    {
+      "block": 14,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -9,
+      "prose_delta": -9
+    },
+    {
+      "block": 15,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -15,
+      "prose_delta": -15
+    },
+    {
+      "block": 16,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -16,
+      "prose_delta": -16
+    },
+    {
+      "block": 17,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -14,
+      "prose_delta": -14
+    },
+    {
+      "block": 20,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 6,
+      "prose_delta": 6
+    },
+    {
+      "block": 21,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -54,
+      "prose_delta": -54
+    },
+    {
+      "block": 22,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -63,
+      "prose_delta": -63
+    },
+    {
+      "block": 23,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -23,
+      "prose_delta": -23
+    },
+    {
+      "block": 24,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -58,
+      "prose_delta": -58
+    },
+    {
+      "block": 25,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -68,
+      "prose_delta": -68
+    },
+    {
+      "block": 28,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -19,
+      "prose_delta": -19
+    },
+    {
+      "block": 31,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 33,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 4,
+      "prose_delta": 4
+    },
+    {
+      "block": 34,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 4,
+      "prose_delta": 4
+    },
+    {
+      "block": 39,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -22,
+      "prose_delta": -22
+    },
+    {
+      "block": 40,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -23,
+      "prose_delta": -23
+    },
+    {
+      "block": 41,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 0,
+      "prose_delta": 0
+    },
+    {
+      "block": 42,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -4,
+      "prose_delta": -4
+    },
+    {
+      "block": 43,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -13,
+      "prose_delta": -13
+    },
+    {
+      "block": 44,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -11,
+      "prose_delta": -11
+    },
+    {
+      "block": 45,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -2,
+      "prose_delta": -2
+    },
+    {
+      "block": 46,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -15,
+      "prose_delta": -15
+    },
+    {
+      "block": 47,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -11,
+      "prose_delta": -11
+    },
+    {
+      "block": 49,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -10,
+      "prose_delta": -10
+    },
+    {
+      "block": 50,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 30,
+      "prose_delta": 30
+    },
+    {
+      "block": 51,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -47,
+      "prose_delta": -47
+    },
+    {
+      "block": 54,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 15,
+      "prose_delta": 15
+    },
+    {
+      "block": 55,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -30,
+      "prose_delta": -30
+    },
+    {
+      "block": 57,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 3,
+      "prose_delta": 3
+    },
+    {
+      "block": 58,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 12,
+      "prose_delta": 12
+    },
+    {
+      "block": 61,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 0,
+      "prose_delta": 0
+    },
+    {
+      "block": 62,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -1,
+      "prose_delta": -1
+    },
+    {
+      "block": 65,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 3,
+      "prose_delta": 3
+    },
+    {
+      "block": 66,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 9,
+      "prose_delta": 9
+    },
+    {
+      "block": 67,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 9,
+      "prose_delta": 9
+    },
+    {
+      "block": 68,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 5,
+      "prose_delta": 5
+    },
+    {
+      "block": 70,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -8,
+      "prose_delta": -8
+    },
+    {
+      "block": 71,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 5,
+      "prose_delta": 5
+    },
+    {
+      "block": 73,
+      "kind": "equation",
+      "baseline_projection_difference": 9,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 74,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 10,
+      "prose_delta": 10
+    },
+    {
+      "block": 80,
+      "kind": "equation",
+      "baseline_projection_difference": 10,
+      "strict_delta": 0,
+      "prose_delta": 0
+    },
+    {
+      "block": 81,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 62,
+      "prose_delta": 62
+    },
+    {
+      "block": 82,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -18,
+      "prose_delta": -18
+    },
+    {
+      "block": 87,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 14,
+      "prose_delta": 14
+    },
+    {
+      "block": 89,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -4,
+      "prose_delta": -4
+    },
+    {
+      "block": 90,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -5,
+      "prose_delta": -5
+    },
+    {
+      "block": 93,
+      "kind": "algorithm",
+      "baseline_projection_difference": 12,
+      "strict_delta": 7,
+      "prose_delta": 0
+    },
+    {
+      "block": 94,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -2,
+      "prose_delta": -2
+    },
+    {
+      "block": 95,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 2,
+      "prose_delta": 2
+    },
+    {
+      "block": 98,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 99,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 0,
+      "prose_delta": 0
+    },
+    {
+      "block": 100,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -15,
+      "prose_delta": -15
+    },
+    {
+      "block": 101,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -6,
+      "prose_delta": -6
+    },
+    {
+      "block": 103,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 15,
+      "prose_delta": 15
+    },
+    {
+      "block": 105,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 0,
+      "prose_delta": 0
+    },
+    {
+      "block": 109,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 116,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 3,
+      "prose_delta": 3
+    },
+    {
+      "block": 117,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -21,
+      "prose_delta": -21
+    },
+    {
+      "block": 118,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -19,
+      "prose_delta": -19
+    },
+    {
+      "block": 119,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -14,
+      "prose_delta": -14
+    },
+    {
+      "block": 120,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 121,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -12,
+      "prose_delta": -12
+    },
+    {
+      "block": 123,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 3,
+      "prose_delta": 3
+    },
+    {
+      "block": 124,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 3,
+      "prose_delta": 3
+    },
+    {
+      "block": 125,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 126,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -11,
+      "prose_delta": -11
+    },
+    {
+      "block": 129,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 1,
+      "prose_delta": 1
+    },
+    {
+      "block": 131,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 5,
+      "prose_delta": 5
+    },
+    {
+      "block": 132,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -3,
+      "prose_delta": -3
+    },
+    {
+      "block": 133,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 8,
+      "prose_delta": 8
+    },
+    {
+      "block": 139,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -6,
+      "prose_delta": -6
+    },
+    {
+      "block": 141,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 11,
+      "prose_delta": 11
+    },
+    {
+      "block": 142,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -5,
+      "prose_delta": -5
+    },
+    {
+      "block": 145,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 12,
+      "prose_delta": 12
+    },
+    {
+      "block": 146,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -10,
+      "prose_delta": -10
+    },
+    {
+      "block": 147,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 12,
+      "prose_delta": 12
+    },
+    {
+      "block": 149,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -11,
+      "prose_delta": -11
+    },
+    {
+      "block": 150,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -81,
+      "prose_delta": -81
+    },
+    {
+      "block": 152,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -63,
+      "prose_delta": -63
+    },
+    {
+      "block": 155,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 39,
+      "prose_delta": 39
+    },
+    {
+      "block": 156,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 0,
+      "prose_delta": 0
+    },
+    {
+      "block": 158,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 10,
+      "prose_delta": 10
+    },
+    {
+      "block": 159,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 5,
+      "prose_delta": 5
+    },
+    {
+      "block": 160,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -66,
+      "prose_delta": -66
+    },
+    {
+      "block": 162,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 13,
+      "prose_delta": 13
+    },
+    {
+      "block": 163,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 13,
+      "prose_delta": 13
+    },
+    {
+      "block": 164,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -7,
+      "prose_delta": -7
+    },
+    {
+      "block": 165,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 20,
+      "prose_delta": 20
+    },
+    {
+      "block": 168,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 7,
+      "prose_delta": 7
+    },
+    {
+      "block": 169,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 30,
+      "prose_delta": 30
+    },
+    {
+      "block": 170,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -20,
+      "prose_delta": -20
+    },
+    {
+      "block": 171,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -14,
+      "prose_delta": -14
+    },
+    {
+      "block": 172,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -8,
+      "prose_delta": -8
+    },
+    {
+      "block": 173,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 3,
+      "prose_delta": 3
+    },
+    {
+      "block": 174,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -4,
+      "prose_delta": -4
+    },
+    {
+      "block": 175,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 7,
+      "prose_delta": 7
+    },
+    {
+      "block": 176,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -46,
+      "prose_delta": -46
+    },
+    {
+      "block": 178,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -120,
+      "prose_delta": -120
+    },
+    {
+      "block": 181,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -10,
+      "prose_delta": -10
+    },
+    {
+      "block": 183,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -14,
+      "prose_delta": -14
+    },
+    {
+      "block": 185,
+      "kind": "heading",
+      "baseline_projection_difference": -2,
+      "strict_delta": 0,
+      "prose_delta": 0
+    },
+    {
+      "block": 188,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 18,
+      "prose_delta": 18
+    },
+    {
+      "block": 189,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -76,
+      "prose_delta": -76
+    },
+    {
+      "block": 190,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -11,
+      "prose_delta": -11
+    },
+    {
+      "block": 192,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 17,
+      "prose_delta": 17
+    },
+    {
+      "block": 193,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -42,
+      "prose_delta": -42
+    },
+    {
+      "block": 194,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": 3,
+      "prose_delta": 3
+    },
+    {
+      "block": 195,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -3,
+      "prose_delta": -3
+    },
+    {
+      "block": 198,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -10,
+      "prose_delta": -10
+    },
+    {
+      "block": 202,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -41,
+      "prose_delta": -41
+    },
+    {
+      "block": 203,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -40,
+      "prose_delta": -40
+    },
+    {
+      "block": 204,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -54,
+      "prose_delta": -54
+    },
+    {
+      "block": 205,
+      "kind": "paragraph",
+      "baseline_projection_difference": 0,
+      "strict_delta": -65,
+      "prose_delta": -65
+    }
+  ],
+  "study_map_words": 113,
+  "brief_deliverables_words": {
+    "strict": 0,
+    "prose_only": 0
+  },
+  "method": "Automated project token count: pinned cf8b514 source-map baseline plus checked TeX-projection deltas for prose, equations, pseudocode and table bodies; study map included. Abstract, main headings, table bodies and pseudocode included. Captions, references, appendices and other front matter excluded. Repeated continuation headers excluded. TOKEN = [\\w]+(?:[\u2019'-][\\w]+)*",
+  "table_body_deltas": [
+    {
+      "block": 27,
+      "before": 201,
+      "after": 206,
+      "delta": 5
+    },
+    {
+      "block": 64,
+      "before": 89,
+      "after": 89,
+      "delta": 0
+    },
+    {
+      "block": 88,
+      "before": 58,
+      "after": 67,
+      "delta": 9
+    },
+    {
+      "block": 113,
+      "before": 160,
+      "after": 161,
+      "delta": 1
+    },
+    {
+      "block": 127,
+      "before": 44,
+      "after": 44,
+      "delta": 0
+    },
+    {
+      "block": 134,
+      "before": 44,
+      "after": 44,
+      "delta": 0
+    },
+    {
+      "block": 136,
+      "before": 44,
+      "after": 44,
+      "delta": 0
+    },
+    {
+      "block": 144,
+      "before": 32,
+      "after": 32,
+      "delta": 0
+    },
+    {
+      "block": 151,
+      "before": 78,
+      "after": 78,
+      "delta": 0
+    },
+    {
+      "block": 153,
+      "before": 125,
+      "after": 125,
+      "delta": 0
+    },
+    {
+      "block": 180,
+      "before": 189,
+      "after": 181,
+      "delta": -8
+    },
+    {
+      "block": 186,
+      "before": 177,
+      "after": 94,
+      "delta": -83
+    }
+  ],
+  "abstract_words": 217,
+  "limitations": "This is not a manual count or a statement of additional institutional exclusions. Mathematical and hyphenated tokens depend on the documented source-projection convention; layout and figure labels are not narrative text. Requires markdown-it-py."
+}

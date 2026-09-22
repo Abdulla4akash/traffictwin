@@ -1,0 +1,150 @@
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.3 or, at your option, any later version.
+%%
+% Copyright 2018-2025 Herbert Voss    <hvoss@tug.org>
+%                     Rolf Niepraschk <Rolf.Niepraschk@gmx.de>
+%%
+\ProvidesPackage{xltabular}[2025/02/28 v0.2i `xltabular' package (hv,RN)]
+\RequirePackage{tabularx}
+\RequirePackage{etoolbox}
+\let\XLT@i@tabularx=\tabularx
+\let\XLT@i@endtabularx=\endtabularx
+\let\XLT@i@TX@endtabularx=\TX@endtabularx
+%
+\RequirePackage{ltablex}
+\keepXColumns% xltabular behaves like tabularx
+%
+\newif\ifXLT@normalPB \XLT@normalPBtrue
+\newcommand*\normalLTpagebreak{\global\XLT@normalPBtrue}
+\newcommand*\specialLTpagebreak{\global\XLT@normalPBfalse}
+%
+\let\XLT@ii@tabularx=\tabularx
+\let\XLT@ii@TX@endtabularx=\TX@endtabularx
+
+%% Redefine it for tagging %%
+\renewcommand\XLT@ii@TX@endtabularx{%
+	\expandafter\TX@newcol\expandafter{\tabularxcolumn{\TX@col@width}}%
+	\let\verb\TX@verb
+	\def\@elt##1{\global\value{##1}\the\value{##1}\relax}%
+	\edef\TX@ckpt{\cl@@ckpt}%
+	\let\@elt\relax
+	\TX@old@table=\maxdimen
+	\TX@col@width=\TX@target
+	\global\TX@cols=\@ne
+	\TX@typeout@
+	{\@spaces Table Width\@spaces Column Width\@spaces X Columns}%
+	%
+	% define \endhead, etc. to be \\ so that in this part
+	% of the process they are just rows
+	%
+	\let\savecaption\caption
+	\def\caption{% RN, 2014/08/13
+		\@ifstar\TX@cap@gobble\TX@cap@gobble
+	}
+	\let\saveendhead\endhead
+	\def\endhead{\\}
+	\let\saveendfirsthead\endfirsthead
+	\def\endfirsthead{\\}
+	\let\saveendfoot\endfoot
+	\def\endfoot{\\}
+	\let\saveendlastfoot\endlastfoot
+	\def\endlastfoot{\\}
+	%
+	%
+	\SuspendTagging {tabularx}%<-------------------------------
+	\ifTX@convertX@
+	\TX@trial{\def\NC@rewrite@X{\NC@find l}}
+	\ifdim\wd\@tempboxa<\TX@target
+	\TX@newcol{l}
+	\else
+	\TX@convertX@false
+	\fi
+	\fi
+	\ifTX@convertX@
+	\relax
+	\else
+	\TX@trial{\def\NC@rewrite@X{%
+			\global\advance\TX@cols\@ne\NC@find p{\TX@col@width}}}%
+	\loop
+	\TX@arith
+	\ifTX@
+	\TX@trial{}%
+	\repeat
+	\fi
+	\ResumeTagging {tabularx}%<----------------------------
+	{\let\@footnotetext\TX@ftntext\let\@xfootnotenext\TX@xftntext
+		% we may as well set \LTchunksize to be \maxdimen as the whole
+		% thing is already in memory anyway so we may as well do it in one
+		% chunk. if it is too big for one chunk we are already dead..
+		\LTchunksize\maxdimen
+		%
+		% restore \endhead, etc.
+		%
+		\let\caption\savecaption
+		\let\endhead\saveendhead
+		\let\endfirsthead\saveendfirsthead
+		\let\endfoot\saveendfoot
+		\let\endlastfoot\saveendlastfoot
+		%
+		\expandafter\longtable
+		\the\toks@
+		\endlongtable
+	}%
+	\global\TX@ftn\expandafter{\expandafter}\the\TX@ftn
+	\ifnum0=`{\fi}%
+\end{tabularx}
+}
+
+
+\let\XLT@longtable=\longtable
+% prevents problematic behavior of longtable at page breaks (\XLT@normalPBfalse)
+\patchcmd{\LT@start}{\vfil \break}{\ifXLT@normalPB \vfil \break \fi}{}{}
+\patchcmd{\LT@start}{\penalty \z@}{\ifXLT@normalPB \penalty \z@ \fi}{}{}
+\let\XLT@LT@start=\LT@start
+\let\XLT@LT@array=\LT@array
+\@ifundefined{scr@LT@array}{%
+  \AtBeginDocument{%
+    \@ifundefined{adl@LT@array}{}{\let\XLT@adl@LT@array=\adl@LT@array}
+  }
+}{\let\XLT@scr@LT@array=\scr@LT@array}%
+
+%
+% restore original tabularx
+\renewenvironment{tabularx}%
+  {\let\TX@endtabularx=\XLT@i@TX@endtabularx\XLT@i@tabularx}
+  {\XLT@i@endtabularx}
+
+
+%
+% define a new tabularx like the one from "ltablex"
+%
+\newenvironment{xltabular}[1][x]%
+{%
+  \par
+  \if l#1%
+    \LTleft\z@ \LTright\fill
+  \else\if r#1%
+    \LTleft\fill \LTright\z@
+  \else\if c#1%
+    \LTleft\fill \LTright\fill
+  \fi\fi\fi
+  \let\TX@endtabularx=\XLT@ii@TX@endtabularx
+  \let\endtabularx\endxltabular
+  \XLT@ii@tabularx}
+{\def\@currenvir{tabularx}}
+
+\providecommand*\LTcaptype{table}% support of package "caption"
+%\def\longtable{%
+%  \ifXLT@HypRef
+%    % revert to the unpatched version if \caption is not used
+%    \global\let\LT@start=\XLT@LT@start
+%  \fi
+%  \XLT@longtable
+%}
+
+\endinput
+%%
+%% End of file `xltabular.sty'.
+

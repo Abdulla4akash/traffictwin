@@ -1,0 +1,888 @@
+{
+  "page_count": 63,
+  "all_pages_rendered": true,
+  "unresolved_markers": 0,
+  "replacement_glyphs": 0,
+  "off_page_text_blocks": 0,
+  "table_anchors_checked": [
+    {
+      "label": "tab:1",
+      "number": "1",
+      "page": 13
+    },
+    {
+      "label": "tab:2",
+      "number": "2",
+      "page": 17
+    },
+    {
+      "label": "tab:3",
+      "number": "3",
+      "page": 20
+    },
+    {
+      "label": "tab:study-map",
+      "number": "4",
+      "page": 22
+    },
+    {
+      "label": "tab:3a",
+      "number": "5",
+      "page": 24
+    },
+    {
+      "label": "tab:4",
+      "number": "6",
+      "page": 27
+    },
+    {
+      "label": "tab:5",
+      "number": "7",
+      "page": 28
+    },
+    {
+      "label": "tab:6",
+      "number": "8",
+      "page": 28
+    },
+    {
+      "label": "tab:7",
+      "number": "9",
+      "page": 29
+    },
+    {
+      "label": "tab:7a",
+      "number": "10",
+      "page": 31
+    },
+    {
+      "label": "tab:7b",
+      "number": "11",
+      "page": 32
+    },
+    {
+      "label": "tab:8",
+      "number": "12",
+      "page": 37
+    },
+    {
+      "label": "tab:9",
+      "number": "13",
+      "page": 38
+    },
+    {
+      "label": "tab:environment",
+      "number": "A1",
+      "page": 45
+    },
+    {
+      "label": "tab:A1",
+      "number": "A2",
+      "page": 46
+    },
+    {
+      "label": "tab:B1",
+      "number": "B1",
+      "page": 47
+    },
+    {
+      "label": "tab:B2",
+      "number": "B2",
+      "page": 48
+    },
+    {
+      "label": "tab:C1",
+      "number": "C1",
+      "page": 53
+    },
+    {
+      "label": "tab:C2",
+      "number": "C2",
+      "page": 55
+    },
+    {
+      "label": "tab:C3",
+      "number": "C3",
+      "page": 56
+    },
+    {
+      "label": "tab:D1",
+      "number": "D1",
+      "page": 57
+    },
+    {
+      "label": "tab:D2",
+      "number": "D2",
+      "page": 58
+    },
+    {
+      "label": "tab:E1",
+      "number": "E1",
+      "page": 60
+    },
+    {
+      "label": "tab:E2",
+      "number": "E2",
+      "page": 61
+    }
+  ],
+  "named_destinations": 261,
+  "page_checks": [
+    {
+      "page": 1,
+      "first_lines": [
+        "Dynamic Resource Management for",
+        "Intelligent Transportation System",
+        "Applications"
+      ],
+      "words": 56,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 2,
+      "first_lines": [
+        "Contents",
+        "Abbreviations",
+        "5"
+      ],
+      "words": 501,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 3,
+      "first_lines": [
+        "4",
+        "Conclusion",
+        "37"
+      ],
+      "words": 439,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 4,
+      "first_lines": [
+        "List of Figures",
+        "1",
+        "Experimental responsibility boundaries"
+      ],
+      "words": 1338,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 5,
+      "first_lines": [
+        "Abbreviations",
+        "CI",
+        "Confidence interval"
+      ],
+      "words": 70,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 6,
+      "first_lines": [
+        "Glossary",
+        "Offered task A generated task presented to the system remains in the primary outcome population",
+        "whether admitted, rejected or unavailable. [Section 2.4]"
+      ],
+      "words": 379,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 7,
+      "first_lines": [
+        "Abstract",
+        "TrafficTwin is a research-software platform for configuring, comparing and inspecting ve-",
+        "hicular edge-computing studies. This dissertation uses a supplied trace-driven evaluator"
+      ],
+      "words": 218,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 8,
+      "first_lines": [
+        "Declaration",
+        "No portion of the work referred to in the dissertation has been submitted in support of an",
+        "application for another degree or qualification of this or any other university or other insti-"
+      ],
+      "words": 146,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 9,
+      "first_lines": [
+        "Copyright statement",
+        "(i) The author of this thesis (including any appendices and/or schedules to this thesis)",
+        "owns certain copyright or related rights in it (the \u201dCopyright\u201d) and s/he has given"
+      ],
+      "words": 299,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 10,
+      "first_lines": [
+        "1",
+        "Introduction",
+        "1.1"
+      ],
+      "words": 368,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 11,
+      "first_lines": [
+        "TrafficTwin is the research-software platform developed for this project around a supplied",
+        "trace-driven VEC evaluator. Its inherited vec_env environment selects the ingress RSU,",
+        "the roadside entry point, using the strongest simulated radio link. Execution placement"
+      ],
+      "words": 296,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 12,
+      "first_lines": [
+        "1.2",
+        "Related work and the position of this study",
+        "Because the vehicle policy is fixed, the closest scheduling comparison is parallel-server"
+      ],
+      "words": 342,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 13,
+      "first_lines": [
+        "Kovalenko et al. report lower deadline-miss rates with heterogeneous federation than no",
+        "redirection [46]. Their probabilistic placement and communication model differ from Traf-",
+        "ficTwin\u2019s frozen-actor comparison; Table 1 compares mechanisms."
+      ],
+      "words": 409,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 14,
+      "first_lines": [
+        "These differ from the fixed-actor, multiple-RSU dispatch comparison here, motivating clear",
+        "control and queue semantics.",
+        "Communication remains part of feasibility: Wu et al. model heterogeneous links under"
+      ],
+      "words": 331,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 15,
+      "first_lines": [
+        "C2. Explaining common-target concentration through destination timing, deterministic ties,",
+        "the min(K, R) bound and Proposition 1.",
+        "C3. Specifying and implementing per-task and round-robin placement with explicit reser-"
+      ],
+      "words": 271,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 16,
+      "first_lines": [
+        "2.2",
+        "Architecture and information boundaries",
+        "Figure 1 separates actor mode choice, environmental radio targeting and infrastructure"
+      ],
+      "words": 343,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 17,
+      "first_lines": [
+        "0",
+        "500",
+        "1000"
+      ],
+      "words": 277,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 18,
+      "first_lines": [
+        "type mean by an independent uniform 0.8\u20131.2 factor. The Poisson mean is before capping;",
+        "the cap changes offered work as well as scheduling opportunities [S4].",
+        "At nominal RSU service multiplier 1, task cycles, frequency, parallelism, utilisation and"
+      ],
+      "words": 345,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 19,
+      "first_lines": [
+        "All offered tasks",
+        "primary denominator",
+        "Admitted"
+      ],
+      "words": 285,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 20,
+      "first_lines": [
+        "2.5",
+        "Placement algorithms and their implementation",
+        "The inherited identifiers do not define canonical scheduling algorithms: jsq selects least"
+      ],
+      "words": 376,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 21,
+      "first_lines": [
+        "Algorithm 1 common-target placement with gate (one substep)",
+        "r[i] = lowest-index argmin(W), shared by all candidates",
+        "M = E"
+      ],
+      "words": 303,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 22,
+      "first_lines": [
+        "selects RSUs (0, 1, 2, 0), leaves (80, 40, 40) ms and completes all four on time. These sim-",
+        "plified services illustrate mechanics, not observed task outcomes.",
+        "Common target: one shared destination"
+      ],
+      "words": 321,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 23,
+      "first_lines": [
+        "draws in the incident extension (E2d), reusing the replication controls. This makes E2d an",
+        "adaptive extension [S0]\u2013[S3].",
+        "The morning pilot uses seed 1 for ingress and per-task placement. After inspecting it, the"
+      ],
+      "words": 392,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 24,
+      "first_lines": [
+        "A retrospective audit cross-checks admission, categories, latency and assignments; Ap-",
+        "pendix B records its coverage and the A/B/C diagnostic design.",
+        "2.8"
+      ],
+      "words": 299,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 25,
+      "first_lines": [
+        "Choice",
+        "Considered alternative",
+        "Reason for selection"
+      ],
+      "words": 303,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 26,
+      "first_lines": [
+        "Setting. E2, the exploratory comparison on seed 0, showed offered attainment of approx-",
+        "imately 68.362% for strongest-link execution without the deadline gate, 67.568% for in-",
+        "herited least-busy placement without the gate, and 69.494% for inherited least-busy place-"
+      ],
+      "words": 310,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 27,
+      "first_lines": [
+        "Table 6: Incident offered-task deadline attainment, expressed as percentages. E2d reused the exact",
+        "E2c ingress and common-target controls; these are four paired draws, not separate sets of",
+        "independent controls."
+      ],
+      "words": 253,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 28,
+      "first_lines": [
+        "Table 7: Morning primary replication. Seed 1 is absent because it was the inspected pilot; each row",
+        "is a matched fleet draw on the same morning trace.",
+        "Fleet seed"
+      ],
+      "words": 191,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 29,
+      "first_lines": [
+        "The five-draw ingress/per-task mean including the pilot is +3.709 points descriptively, out-",
+        "side Table 8; no common-target pilot result is available.",
+        "The larger morning effect cannot be attributed solely to density: RSU layout/count, date,"
+      ],
+      "words": 337,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 30,
+      "first_lines": [
+        "Figure 6 shows all four arms in each of the eight blocks. Equal block weighting gives mean",
+        "attainment of 88.372% for ingress, 91.879% for round-robin and 92.509% for per-task",
+        "placement. The descriptive round-robin-minus-ingress difference is +3.506 percentage"
+      ],
+      "words": 290,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 31,
+      "first_lines": [
+        "Study 7 added the evaluator\u2019s dla_p2c mode. Per-task exceeded it by +0.649 points; two-",
+        "choice did not differ conclusively from round-robin. Study 8 halved RSU service rate:",
+        "the per-task advantage over round-robin increased by +0.193 points, supporting the tested"
+      ],
+      "words": 329,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 32,
+      "first_lines": [
+        "Table 11: Three further Manchester traces, each with eight paired blocks and five arms. All-fifteen",
+        "simultaneous 95% Student-t intervals use one Bonferroni family across the fifteen new contrasts;",
+        "the complete analysis also reports two-choice minus round-robin. Each trace is assessed separately;"
+      ],
+      "words": 397,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 33,
+      "first_lines": [
+        "This exact-arithmetic result guarantees neither optimal placement nor timely completion;",
+        "Appendix C proves the bound and states the float32 boundary [41].",
+        "Matched task accounting in the original morning replication (seeds 0, 2, 3 and 4) records"
+      ],
+      "words": 350,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 34,
+      "first_lines": [
+        "compiler-dependent ordering. These host timings exclude compilation and are distinct from",
+        "simulated task latency.",
+        "Compilation took 58\u2013267 ms per scheduler configuration, measured separately from lower-"
+      ],
+      "words": 268,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 35,
+      "first_lines": [
+        "Figure 7: TrafficTwin with real data. (a) An external evaluation package (R. P. Putra, Paper 2B data, tos-data",
+        "commit a75bbdb, 18\u201323 July 2026; engine v2_post_nrsus_fix) validated read-only, with its provenance",
+        "line. (b) That package\u2019s 300 evaluation runs across five Manchester traces as a deadline-success matrix with"
+      ],
+      "words": 120,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 36,
+      "first_lines": [
+        "Figure 8: TrafficTwin with real data. (c) This dissertation\u2019s sealed eight-block contrasts read from the",
+        "bundled results packet. The platform demonstrates validation, comparison and provenance on genuine inputs;",
+        "the numerical claims of this report rest on the bound campaign outputs, not on the interface."
+      ],
+      "words": 45,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 37,
+      "first_lines": [
+        "Table 12: Validity limits and their consequences for interpretation.",
+        "Limitation",
+        "Effect on conclusions"
+      ],
+      "words": 285,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 38,
+      "first_lines": [
+        "4.1",
+        "Outcomes against the objectives",
+        "Table 13: Evidence and remaining limitations against the stated objectives."
+      ],
+      "words": 305,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 39,
+      "first_lines": [
+        "second checkpoint. Reused blocks, a shared training seed and bundled scenario differences",
+        "limit generalisation; arm differences do not identify causal mechanism shares.",
+        "RQ3: information and forwarding. Older reports produced small changes with live ad-"
+      ],
+      "words": 309,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 40,
+      "first_lines": [
+        "Substantial what-if functionality was implemented, including scenario configuration, vali-",
+        "dation/export and comparison/evidence workflows. A user evaluation was not completed,",
+        "leaving usability and operator benefit unmeasured."
+      ],
+      "words": 377,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 41,
+      "first_lines": [
+        "[12] R. R. Weber. \u201cOn the optimal assignment of customers to parallel servers.\u201d Journal of",
+        "Applied Probability, 15(2), 406\u2013413, 1978. DOI: 10.2307/3213411.",
+        "[13] M. Harchol-Balter. \u201cPerformance Modeling and Design of Computer Sys-"
+      ],
+      "words": 484,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 42,
+      "first_lines": [
+        "10.1109/TII.2018.2873186.",
+        "[29] S. Dasgupta, M. Rahman, A. D. Lidbe, W. Lu and S. Jones. \u201cA Transportation",
+        "Digital-Twin Approach for Adaptive Traffic Control Systems.\u201d arXiv:2109.10863,"
+      ],
+      "words": 456,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 43,
+      "first_lines": [
+        "and Distributed Systems, 11(1), 6\u201320, 2000. DOI: 10.1109/71.824633.",
+        "[46] A. Kovalenko, R. F. Hussain, O. Semiari and M. A. Salehi. \u201cRobust Resource Allo-",
+        "cation Using Edge Computing for Vehicle to Infrastructure (V2I) Networks.\u201d 2019"
+      ],
+      "words": 139,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 44,
+      "first_lines": [
+        "Appendix A. Evidence sources and reproducibility",
+        "The sources below are project evidence, separate from scholarly references. Relative links",
+        "resolve in the repository checkout. The historical baseline and later packages retain their"
+      ],
+      "words": 345,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 45,
+      "first_lines": [
+        "S15 \u2014 Retrospective empirical/engineering extension. Declared analysis protocol, task-",
+        "type counts and bindings, benchmark implementation and measured results, cyclic imple-",
+        "mentation, compatibility evidence, sealed confirmation protocol, dry-run receipt, and ver-"
+      ],
+      "words": 387,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 46,
+      "first_lines": [
+        "S19 \u2014 Three-trace generalisation study (16 September 2026). PROTOCOL.md,",
+        "TRACE_INVENTORY.json, ANALYSIS.json, CELL_RESULTS.csv, PAIRED_",
+        "EFFECTS.csv, FINAL_ANALYSIS_AUDIT.json. PR #144 remains open; this source"
+      ],
+      "words": 340,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 47,
+      "first_lines": [
+        "Appendix B. Audit coverage and diagnostic boundaries",
+        "The September audit independently identifies offers from active masks, V2I admission",
+        "from enqueue fields and non-V2I failures from rejection predicates, then reconciles flags,"
+      ],
+      "words": 436,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 48,
+      "first_lines": [
+        "Records",
+        "Available evidence / cov-",
+        "erage"
+      ],
+      "words": 438,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 49,
+      "first_lines": [
+        "interval; it is not fresh task-level validation. The archived E1 score contrast is statistically",
+        "inconclusive under the historical implementation. Its interpretation as admission-consistent",
+        "deadline attainment remains qualified by the unquantified scoring-mask exception. The in-"
+      ],
+      "words": 168,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 50,
+      "first_lines": [
+        "Appendix C. Exact-model result and numerical boundary",
+        "This appendix retains the retrospective exact-model argument, numerical boundary evi-",
+        "dence and adverse example. These are distinct from the sampled fleet contrasts. Sources"
+      ],
+      "words": 456,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 51,
+      "first_lines": [
+        "C.3",
+        "A deadline-count bound from eligibility",
+        "Let dr be the number of distinct deadline thresholds among eligible candidates at destina-"
+      ],
+      "words": 542,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 52,
+      "first_lines": [
+        "adds admitted services in scan order; floating-point associativity differs. Thus the exact",
+        "dependency and upper/lower arguments are not a proof of float32 equivalence or conver-",
+        "gence."
+      ],
+      "words": 466,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 53,
+      "first_lines": [
+        "11111111 \u219211111110 \u219211111111 \u219211111110 \u219211111111. The unchanged",
+        "production helper confirms the retained third mask, recomputed offsets and capacity-failure",
+        "count. Its causal float32 scan also rejects the last candidate, though via its own rounded"
+      ],
+      "words": 481,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 54,
+      "first_lines": [
+        "B preserves an empty RSU for substep 2. C spreads earlier work across both, making the",
+        "later 100 ms task finish at 112.929 ms: eight admissions produce seven successes. Current",
+        "workload omits future deadlines, and the gate omits own service; neither directly max-"
+      ],
+      "words": 319,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 55,
+      "first_lines": [
+        "queues nor a particular tie rule and concerns new assignments, rather than work already",
+        "present.",
+        "A recurring low-index prefix requires the additional conditions discussed in Section C.5:"
+      ],
+      "words": 441,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 56,
+      "first_lines": [
+        "Table C3: Retrospective type-level net additional successes, per-task minus ingress. Each type has",
+        "the stated offered population in every primary draw; full successes, admissions and failure counts",
+        "are supplied in Appendix D. Types are subgroups within a draw, not additional independent"
+      ],
+      "words": 181,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 57,
+      "first_lines": [
+        "Appendix D. Type aggregation and engineering evidence",
+        "Scheduler timing uses actual JAX helpers, including three-replacement prefixes; precom-",
+        "puted candidate work replaces only the service provider. Sixteen configurations combine"
+      ],
+      "words": 456,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 58,
+      "first_lines": [
+        "Seed / type",
+        "Arm",
+        "Offered"
+      ],
+      "words": 189,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 59,
+      "first_lines": [
+        "Appendix E. Joint-randomness study controls and execu-",
+        "tion",
+        "The execution-authorised seal preserves the disabled preparation package and binds its own"
+      ],
+      "words": 492,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 60,
+      "first_lines": [
+        "Other nonadmission categories are retained in CELL_RESULTS.csv and each validation",
+        "receipt.",
+        "Table E1: Full new-study counts. Offered populations match within blocks; attainment is"
+      ],
+      "words": 283,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 61,
+      "first_lines": [
+        "Table E2: All eight paired effects, percentage points. These blocks, not tasks or RSUs, are the new",
+        "replications.",
+        "Block"
+      ],
+      "words": 338,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 62,
+      "first_lines": [
+        "Appendix F. Latency, scoring and drain details",
+        "The same archived one-hot-17 checkpoint is used in the initial studies; Section 3.4 declares",
+        "the second-checkpoint condition. Its supplied Model C training used synthetic mobility,"
+      ],
+      "words": 534,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    },
+    {
+      "page": 63,
+      "first_lines": [
+        "Four ten-step forwarding probes qualify fixed-latency transformations of saved full",
+        "records: charges leave admission, queues and actions unchanged. No full positive-cost",
+        "simulation or network model is implied; penalty-equal ambiguity remains unresolved [S6]."
+      ],
+      "words": 250,
+      "unresolved_marker": false,
+      "replacement_glyph": false,
+      "off_page_text": []
+    }
+  ]
+}
