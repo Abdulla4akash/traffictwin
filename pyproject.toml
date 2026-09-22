@@ -90,6 +90,8 @@ extend-exclude = [
     "docs/evaluation/common_target_mechanism_audit_2026-09-07",
     "docs/evaluation/vec_followup_2026-09-07",
     "docs/research/three_traces_2026-09-16",
+    "docs/dissertation/examiner_revision_2026-09-11",
+    "docs/evaluation/e3a_csf3_2026-09-11",
 ]
 
 [tool.ruff.lint]

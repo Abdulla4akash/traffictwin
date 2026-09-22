@@ -1,21 +1,24 @@
 """Differential construct checks: no traffic campaign is executed here."""
 
 import importlib.util
-from pathlib import Path
 import sys
+from pathlib import Path
+from types import ModuleType
+from typing import Any
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
-
+from numpy.typing import ArrayLike, NDArray
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPERIMENTAL = ROOT / "docs/evaluation/e3a_csf3_2026-09-11/experimental"
 
 
-def load_module(name, path):
+def load_module(name: str, path: Path) -> ModuleType:
     spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
     spec.loader.exec_module(module)
@@ -26,7 +29,7 @@ p2c = load_module("e3a_p2c_test", EXPERIMENTAL / "p2c.py")
 reference = load_module("e3a_p2c_reference", EXPERIMENTAL / "vendor/preserved_e3_p2c_placement.py")
 
 
-def combined(limbs):
+def combined(limbs: tuple[Any, Any]) -> int:
     return int(limbs[0]) | (int(limbs[1]) << 32)
 
 
@@ -38,7 +41,9 @@ def combined(limbs):
         ((0, 2, 1234, 2, 5678), 0x350F2378AD774558, (2, 8)),
     ],
 )
-def test_normative_hash_vectors(fields, expected, pair):
+def test_normative_hash_vectors(
+    fields: tuple[int, ...], expected: int, pair: tuple[int, int]
+) -> None:
     limbs = tuple(p2c.u64(value) for value in fields)
     actual = jax.jit(p2c.mix_keys)(limbs)
     assert combined(actual) == expected
@@ -47,7 +52,7 @@ def test_normative_hash_vectors(fields, expected, pair):
     assert not jax.config.jax_enable_x64
 
 
-def test_uint64_overflow_and_full_key_range_differential():
+def test_uint64_overflow_and_full_key_range_differential() -> None:
     rng = np.random.default_rng(7701)
     values = [0, 1, 0xFFFFFFFF, 0x100000000, (1 << 63), (1 << 64) - 1]
     values += [int(value) for value in rng.integers(0, (1 << 64) - 1, 100, dtype=np.uint64)]
@@ -66,35 +71,35 @@ def test_uint64_overflow_and_full_key_range_differential():
 
 def run_case(
     *,
-    busy,
-    loads,
-    deadline,
-    work,
-    attempts=None,
-    radio=None,
-    cap=3,
-    seed=0,
-    fleet=1,
-    tick=5,
-    slot=0,
-    iterations=3,
-):
+    busy: ArrayLike,
+    loads: ArrayLike,
+    deadline: ArrayLike,
+    work: ArrayLike,
+    attempts: ArrayLike | None = None,
+    radio: ArrayLike | None = None,
+    cap: int = 3,
+    seed: int = 0,
+    fleet: int = 1,
+    tick: int = 5,
+    slot: int = 0,
+    iterations: int = 3,
+) -> Any:  # noqa: ANN401 -- dynamically loaded JAX result pytree
     work = np.asarray(work, dtype=np.float32)
     width = len(work)
-    args = dict(
-        attempts=jnp.asarray(np.ones(width, bool) if attempts is None else attempts),
-        ingress_radio_viable=jnp.asarray(np.ones(width, bool) if radio is None else radio),
-        deadlines_ms=jnp.asarray(np.broadcast_to(deadline, (width,)), dtype=jnp.float32),
-        service_work_ms_by_rsu=jnp.asarray(np.broadcast_to(work[:, None], (width, len(busy)))),
-        base_busy_ms=jnp.asarray(busy, dtype=jnp.float32),
-        base_load=jnp.asarray(loads, dtype=jnp.int32),
-        capacity=cap,
-        reconciliation_iterations=iterations,
-        evaluator_seed=seed,
-        fleet_seed=fleet,
-        outer_tick=jnp.int32(tick),
-        task_slot=jnp.int32(slot),
-    )
+    args: dict[str, Any] = {
+        "attempts": jnp.asarray(np.ones(width, bool) if attempts is None else attempts),
+        "ingress_radio_viable": jnp.asarray(np.ones(width, bool) if radio is None else radio),
+        "deadlines_ms": jnp.asarray(np.broadcast_to(deadline, (width,)), dtype=jnp.float32),
+        "service_work_ms_by_rsu": jnp.asarray(np.broadcast_to(work[:, None], (width, len(busy)))),
+        "base_busy_ms": jnp.asarray(busy, dtype=jnp.float32),
+        "base_load": jnp.asarray(loads, dtype=jnp.int32),
+        "capacity": cap,
+        "reconciliation_iterations": iterations,
+        "evaluator_seed": seed,
+        "fleet_seed": fleet,
+        "outer_tick": jnp.int32(tick),
+        "task_slot": jnp.int32(slot),
+    }
     result = jax.jit(
         p2c.p2c_sequential,
         static_argnames=("capacity", "reconciliation_iterations", "evaluator_seed", "fleet_seed"),
@@ -103,8 +108,19 @@ def run_case(
 
 
 def reference_pass(
-    *, busy, loads, deadline, work, attempts, radio, cap, seed=0, fleet=1, tick=5, slot=0
-):
+    *,
+    busy: ArrayLike,
+    loads: ArrayLike,
+    deadline: ArrayLike,
+    work: ArrayLike,
+    attempts: ArrayLike,
+    radio: ArrayLike,
+    cap: int,
+    seed: int = 0,
+    fleet: int = 1,
+    tick: int = 5,
+    slot: int = 0,
+) -> NDArray[Any]:
     busy = np.asarray(busy, dtype=np.float32).copy()
     loads = np.asarray(loads, dtype=np.int32).copy()
     output = []
@@ -151,8 +167,12 @@ def reference_pass(
     ],
 )
 def test_no_feasible_no_selection_no_reservation(
-    busy, loads, deadline, expected_gate, expected_cap
-):
+    busy: list[int],
+    loads: list[int],
+    deadline: int,
+    expected_gate: list[bool],
+    expected_cap: list[bool],
+) -> None:
     result = run_case(busy=busy, loads=loads, deadline=deadline, work=[7])
     np.testing.assert_array_equal(result.selected_rsu, [-1])
     np.testing.assert_array_equal(result.sampled_pair, [[-1, -1]])
@@ -163,7 +183,7 @@ def test_no_feasible_no_selection_no_reservation(
     np.testing.assert_array_equal(result.ranking_workload_inspections, [0])
 
 
-def test_sole_candidate_reservation_closes_gate_then_rejection():
+def test_sole_candidate_reservation_closes_gate_then_rejection() -> None:
     result = run_case(busy=[0, 30], loads=[0, 0], deadline=10, work=[12, 12])
     np.testing.assert_array_equal(result.selected_rsu, [0, -1])
     np.testing.assert_array_equal(result.sampled_pair, [[-1, -1], [-1, -1]])
@@ -173,7 +193,7 @@ def test_sole_candidate_reservation_closes_gate_then_rejection():
     np.testing.assert_array_equal(result.gate_rejected, [False, True])
 
 
-def test_pair_tie_uses_lower_rsu_and_never_global_min_outside_pair():
+def test_pair_tie_uses_lower_rsu_and_never_global_min_outside_pair() -> None:
     # Normative pair for this key is (1, 9); global min 0 is outside the pair.
     result = run_case(busy=[0] + [5] * 9, loads=[0] * 10, deadline=10, work=[1], fleet=0, tick=0)
     np.testing.assert_array_equal(result.sampled_pair, [[1, 9]])
@@ -183,7 +203,7 @@ def test_pair_tie_uses_lower_rsu_and_never_global_min_outside_pair():
     np.testing.assert_array_equal(result.unique_workload_values_observed, [10])
 
 
-def test_radio_unavailable_precedes_gate_and_does_not_reserve():
+def test_radio_unavailable_precedes_gate_and_does_not_reserve() -> None:
     result = run_case(
         busy=[10, 10],
         loads=[3, 3],
@@ -200,7 +220,7 @@ def test_radio_unavailable_precedes_gate_and_does_not_reserve():
     np.testing.assert_array_equal(result.effective_busy_ms, [10, 10])
 
 
-def test_dense_ordinal_survives_padding_actor_and_rejection_paths():
+def test_dense_ordinal_survives_padding_actor_and_rejection_paths() -> None:
     width = 7
     result = run_case(
         busy=[0] * 10,
@@ -218,21 +238,21 @@ def test_dense_ordinal_survives_padding_actor_and_rejection_paths():
     np.testing.assert_array_equal(result.selected_rsu[:4], [-1] * 4)
 
 
-def test_randomized_actual_decisions_match_preserved_selector_and_n0_contract():
+def test_randomized_actual_decisions_match_preserved_selector_and_n0_contract() -> None:
     rng = np.random.default_rng(3129)
     for _ in range(12):
         width, count = 24, 10
-        args = dict(
-            busy=rng.integers(0, 30, count).tolist(),
-            loads=rng.integers(0, 4, count).tolist(),
-            deadline=rng.integers(5, 35, width).astype(np.float32),
-            work=rng.uniform(0.1, 8, width).astype(np.float32),
-            attempts=rng.random(width) > 0.2,
-            radio=rng.random(width) > 0.2,
-            cap=4,
-            slot=int(rng.integers(0, 5)),
-            tick=int(rng.integers(0, 3600)),
-        )
+        args: dict[str, Any] = {
+            "busy": rng.integers(0, 30, count).tolist(),
+            "loads": rng.integers(0, 4, count).tolist(),
+            "deadline": rng.integers(5, 35, width).astype(np.float32),
+            "work": rng.uniform(0.1, 8, width).astype(np.float32),
+            "attempts": rng.random(width) > 0.2,
+            "radio": rng.random(width) > 0.2,
+            "cap": 4,
+            "slot": int(rng.integers(0, 5)),
+            "tick": int(rng.integers(0, 3600)),
+        }
         actual = run_case(**args)
         expected, busy, loads = reference_pass(**args)
         for index, (target, pair, count, gate, cap_rej, ordinal) in enumerate(expected):

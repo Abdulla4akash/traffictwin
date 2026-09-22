@@ -8,11 +8,12 @@ import subprocess
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, cast
 from unittest import mock
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 
 PACKAGE = Path(__file__).resolve().parents[2] / "docs/evaluation/e3a_csf3_2026-09-11"
 Json = dict[str, Any]
@@ -108,7 +109,7 @@ def test_first_smoke_failure_prevents_benchmarks_and_full_qualification(
     monkeypatch.setattr(campaign, "external_gates", lambda *_: "approved")
 
     def fail(*args: object) -> None:
-        config = args[2]
+        config = cast(Json, args[2])
         seen.append((config["phase"], config["steps"], config["arm"]))
         raise ValueError("deliberate accounting failure")
 
@@ -192,7 +193,7 @@ def scalar_pair(seed: int, fleet: int, tick: int, slot: int, ordinal: int, count
 def p2c_case() -> tuple[Json, Json, Json]:
     pair = scalar_pair(0, 1, 0, 0, 0, 4)
     selected = min(pair)
-    step = {
+    step: dict[str, NDArray[Any]] = {
         "rsu_start_busy_ms": np.zeros((1, 4), np.float32),
         "rsu_start_load": np.zeros((1, 4), np.int32),
         "veh_action": np.ones((1, 1), np.int8),
@@ -202,7 +203,7 @@ def p2c_case() -> tuple[Json, Json, Json]:
     }
     step["rsu_pre_drain_busy_ms"][0, selected] = 60
     step["rsu_pre_drain_load"][0, selected] = 1
-    task = {
+    task: dict[str, NDArray[Any]] = {
         "task_active": np.ones((1, 1, 1), bool),
         "task_type": np.zeros((1, 1, 1), np.int8),
         "task_outcome": np.ones((1, 1, 1), np.int8),
@@ -244,7 +245,7 @@ def test_another_feasible_pair_with_valid_ranking_still_fails_exact_key_binding(
 
 def empty_cell(tmp_path: Path) -> tuple[Json, Json, Json, Json]:
     t, n, r = 2, 3, 2
-    step = {
+    step: dict[str, NDArray[Any]] = {
         key: np.zeros((t,), np.float32)
         for key in ("arrivals", "done", "active", "n_local", "n_v2i", "n_v2v", "lat_sum")
     }
@@ -311,7 +312,7 @@ def empty_cell(tmp_path: Path) -> tuple[Json, Json, Json, Json]:
     step["veh_soc_before"][:] = step["veh_soc_after"][:] = 1
     step["active"][:] = n
     shape = (t, 5, n)
-    task = {
+    task: dict[str, NDArray[Any]] = {
         key: np.zeros(shape, bool)
         for key in (
             "task_active",
@@ -431,7 +432,7 @@ def test_no_enter_trace_uses_mask_only_queue_carry(tmp_path: Path) -> None:
     step["veh_pre_drain_busy_ms"][0, 0] = 1002
     step["veh_queue_ms"][0, 0] = 2
     step["veh_pre_drain_load"][0, 0] = step["veh_load"][0, 0] = 1
-    mask = np.ones((2, 3), bool)
+    mask: NDArray[np.bool_] = np.ones((2, 3), bool)
     mask[1, 0] = False
     step["active"][1] = 2
     np.savez(config["inputs"]["trace"], mask=mask, times=step["times"])
@@ -459,7 +460,7 @@ def test_real_evaluator_construct_records_pass_independent_validator(
     inputs = tmp_path / "inputs"
     inputs.mkdir()
     width, ticks, rsus = 8, 3, 4
-    mask = np.ones((ticks, width), bool)
+    mask: NDArray[np.bool_] = np.ones((ticks, width), bool)
     mask[0, 0] = False
     np.savez(
         inputs / "trace_inc_fullrsu.npz",
@@ -469,7 +470,7 @@ def test_real_evaluator_construct_records_pass_independent_validator(
         times=np.arange(ticks, dtype=np.float32),
         rsu_xy=np.array([[10, 10], [20, 20], [30, 30], [40, 40]], np.float32),
     )
-    actor = {}
+    actor: dict[str, NDArray[np.float32]] = {}
     for layer, (left, right) in enumerate(((17, 4), (4, 4), (4, 3))):
         actor[f"Dense_{layer}.kernel"] = np.zeros((left, right), np.float32)
         actor[f"Dense_{layer}.bias"] = np.zeros(right, np.float32)

@@ -2,14 +2,15 @@
 
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
-
+from numpy.typing import NDArray
 
 ROOT = Path(__file__).resolve().parents[2]
 NEW = ROOT / "docs/evaluation/e3a_csf3_2026-09-11/experimental/evaluator_v3.py"
@@ -17,14 +18,14 @@ OLD = ROOT / "docs/dissertation/joint_confirmation_2026-09-08/experimental/evalu
 
 
 @pytest.fixture(scope="module")
-def outputs(tmp_path_factory):
+def outputs(tmp_path_factory: pytest.TempPathFactory) -> dict[tuple[str, str], dict[str, Any]]:
     temporary = tmp_path_factory.mktemp("e3a_construct")
     # A flat deployment must not depend on the source repository's parents.
     standalone = temporary / "standalone_experimental"
     shutil.copytree(NEW.parent, standalone, ignore=shutil.ignore_patterns("__pycache__"))
     new_evaluator = standalone / "evaluator_v3.py"
     width, ticks = 8, 3
-    mask = np.ones((ticks, width), dtype=bool)
+    mask: NDArray[np.bool_] = np.ones((ticks, width), dtype=bool)
     mask[0, 0] = False
     np.savez(
         temporary / "trace.npz",
@@ -34,7 +35,7 @@ def outputs(tmp_path_factory):
         times=np.arange(ticks, dtype=np.float32),
         rsu_xy=np.array([[10, 10], [20, 20], [30, 30], [40, 40]], dtype=np.float32),
     )
-    actor = {}
+    actor: dict[str, NDArray[np.float32]] = {}
     for layer, (left, right) in enumerate(((17, 4), (4, 4), (4, 3))):
         actor[f"Dense_{layer}.kernel"] = np.zeros((left, right), dtype=np.float32)
         actor[f"Dense_{layer}.bias"] = np.zeros(right, dtype=np.float32)
@@ -82,7 +83,7 @@ def outputs(tmp_path_factory):
             "--out-json",
             f"{prefix}.json",
         ]
-        completed = subprocess.run(
+        completed = subprocess.run(  # noqa: S603 -- fixed evaluator and synthetic temporary inputs
             command, env=environment, capture_output=True, text=True, timeout=60
         )
         assert completed.returncode == 0, completed.stdout + completed.stderr
@@ -95,7 +96,9 @@ def outputs(tmp_path_factory):
 
 
 @pytest.mark.parametrize("arm", ["ingress_dla", "per_task_dla"])
-def test_old_comparators_preserve_every_numeric_artifact(outputs, arm):
+def test_old_comparators_preserve_every_numeric_artifact(
+    outputs: dict[tuple[str, str], dict[str, Any]], arm: str
+) -> None:
     old, new = outputs["old", arm], outputs["new", arm]
     for category in ("steps", "tasks"):
         assert old[category].keys() == new[category].keys()
@@ -107,7 +110,9 @@ def test_old_comparators_preserve_every_numeric_artifact(outputs, arm):
     assert new["summary"]["enter_reset"] is False
 
 
-def test_p2c_emitted_paths_keys_exogenous_and_conservation(outputs):
+def test_p2c_emitted_paths_keys_exogenous_and_conservation(
+    outputs: dict[tuple[str, str], dict[str, Any]],
+) -> None:
     actual = outputs["new", "p2c_dla"]
     tasks, steps = actual["tasks"], actual["steps"]
     reference = outputs["new", "per_task_dla"]
@@ -130,7 +135,7 @@ def test_p2c_emitted_paths_keys_exogenous_and_conservation(outputs):
     assert tasks["task_active"].sum() > 0
     assert admitted.sum() > 0
     assert np.isin(tasks["task_outcome"], (3, 4, 7)).sum() > 0
-    dense = np.arange(40, dtype=np.int32).reshape(5, 8)
+    dense: NDArray[np.int32] = np.arange(40, dtype=np.int32).reshape(5, 8)
     np.testing.assert_array_equal(
         tasks["task_p2c_sequential_ordinal"], np.broadcast_to(dense, (3, 5, 8))
     )
