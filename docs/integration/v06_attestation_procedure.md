@@ -4,7 +4,7 @@ This procedure records the ADR-058 operator clean-checkout attestation for a val
 registry so it can later be activated in a v0.7 workspace. **Running the commands is your
 statement** that the immutable `v0.6.0` release produced or re-verified the registry from a clean
 checkout; TrafficTwin cannot verify that human step and the attestation approves no migration by
-itself. See [ADR-058](decisions/ADR-058-v06-producer-attestation.md) and
+itself. See [ADR-058](../decisions/ADR-058-v06-producer-attestation.md) and
 [v0.7 workspace isolation](../v07_release_compatibility.md).
 
 ## Prerequisites

@@ -261,7 +261,7 @@ kind requires contract, ADR, schema, golden, CLI, UI-service, and compatibility 
 2. Add a label in [ui/labels.py](../src/traffictwin/ui/labels.py).
 3. Add routing in [ui/app.py](../src/traffictwin/ui/app.py).
 4. Put reusable display pieces under [ui/components/](../src/traffictwin/ui/components/).
-5. Call library services through [ui/services.py](../src/traffictwin/ui/services.py).
+5. Call library services through [ui/services/](../src/traffictwin/ui/services/).
 6. Add tests for service models, chart/table data, state, and page guards.
 
 Do not duplicate metric, validation, comparison, diagnostic, or provenance logic in Streamlit code.

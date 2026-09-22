@@ -7,6 +7,11 @@ asked, not a supervisor-endorsed document; nothing here claims supervisor approv
 scientific result referenced keeps its recorded `owner_approved_candidate` / exploratory
 ceiling.
 
+**Post-snapshot correction:** N1 was withdrawn on 28 July after source PBF and decoded XML
+identities were correctly separated; no Geofabrik mutation occurred. The historical line below is
+superseded by the correction in
+[the continuity audit](integration/manchester_workspace_continuity_20260727.md).
+
 Each item: what was asked → where it stands → the concrete next step and who can take it.
 
 ## 1. Learn and use SUMO as the realistic mobility engine

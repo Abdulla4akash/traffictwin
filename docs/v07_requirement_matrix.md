@@ -2,7 +2,8 @@
 
 A requirement-level audit of the normative MUST/SHALL/acceptance conditions in the
 [v0.7 design](traffictwin-design-v0_7.md), built independently of existing status claims and
-reconciled against code and tests at branch `claude/complete-v0.7`. State legend:
+reconciled on 3 August 2026 against `main` at
+`49be6a2db8a69409a1b92fb02e954db7cf1441f6`. State legend:
 
 - **IT** — implemented and tested (cited code + test).
 - **INA** — implemented but not accepted (works, gate/acceptance still open).
@@ -45,13 +46,13 @@ No row is marked `accepted`; all 15 capability rows remain `planned` under the c
 | MAN-06 | Randy bridge | INA | Permission-safe panel tested; full workflow acceptance open |
 | MAN-07 | Projection/freshness | INA/BX | Time-basis, freshness, spatial admission tested; DfT/WebTRIS canonical time **BX** (timezone) |
 | MAN-08 | Manchester Operations | INA | Modes, maps, source cards, stale fallback tested; broad acceptance + manual accessibility open |
-| MAN-09 | Observation-to-SUMO baseline | SM+BX | Map-matching, review demo, calibration evaluator, temporal profile all tested; real network **BX**, scientific contracts **BX** |
+| MAN-09 | Observation-to-SUMO baseline | INA/BX | Complete Greater Manchester network foundation, map-matching, exact-artifact one-row review, calibration evaluator and temporal profile are tested; 174 named-person decisions, nine no-candidate treatments, viable demand/run evidence and scientific contracts remain external/human work |
 | MAN-10 | Observed-vs-simulated comparison | BX | Engine + contract model tested; production contract registry empty pending supervisor decision |
 | MAN-11 | SUMO-to-VEC workflow | BX | Lineage graph tested; needs accepted baseline (downstream of MAN-09) |
 | UX-01 | Task navigation | INA | 34-page map, both routers, cross-page-state evidence (`test_cross_page_state.py`); manual + cutover open |
 | UX-02 | Map-led home | INA | Focused home tested; human usability acceptance open |
 | UX-03 | Responsive/accessible | INA/BX | Native theme, width migration, 140-snapshot audit; manual accessibility pass **BX** (human) |
-| REL-01 | v0.6/v0.7 isolation | INA | Workspace isolation, copy, ADR-058 attestation, attested activation/backup/rollback and coexistence tested; package/CITATION aligned at `0.7.0`; licence/publication, final tag and real-workspace reconciliation open |
+| REL-01 | v0.6/v0.7 isolation | INA | Workspace isolation, copy, ADR-058 attestation, attested activation/backup/rollback and coexistence tested; package/CITATION aligned and the owner-authorised final tag published at `0.7.0`; licence/publication, GitHub Release/package publication and real-workspace reconciliation remain open |
 
 ## §22 Testing/acceptance conditions (selected normative)
 
@@ -78,7 +79,8 @@ No row is marked `accepted`; all 15 capability rows remain `planned` under the c
 | Decision | Blocks | Prepared artifact |
 |---|---|---|
 | DfT/WebTRIS timezone, BODS identifier/privacy residual | MAN-02/03/05/07 canonical time, Gate B | `provider_enquiry_drafts.md` |
-| Manchester SUMO network + licence | MAN-09/11, Gate D/E | `manchester_network_decision_worksheet.md` |
+| Named-person review of 174 rows and treatment for nine no-candidate sites | MAN-09, Gate D | `integration/manchester_match_review.md`; `integration/manchester_gate_d_decision_support_20260802.md` |
+| Calibration, uncertainty, demand and baseline decisions | MAN-09/10/11, Gates D/E | `evaluation/supervisor_contract_decision_form.md`; `integration/manchester_gate_d_decision_support_20260802.md` |
 | Map-matching/calibration/comparison contracts | MAN-09/10 production registries | `supervisor_contract_decision_form.md` |
 | First real v0.6 attestation | REL-01 real activation | `v06_attestation_procedure.md` |
 | Manual accessibility + participant study | UX-03 / RQ16 | `manual_accessibility_checklist.md` |
@@ -98,6 +100,13 @@ An independent adversarial review of the 18 post-`v0.7.0-alpha.4` commits surfac
 | Side-by-side evidence booleans hardcoded; no process-liveness check | LOW | `1b2908b` |
 | `workspace_setup.md` still called activation/rollback unimplemented | LOW | `1b2908b` |
 | Attestation loader refusal branches untested | LOW | `888e35e` |
+
+The table above records the safe implementation gaps found and fixed at that audit checkpoint. A
+later housekeeping pass corrected release/document drift, two broken local links, the stale
+workspace-contract limitation and missing CI wheel-install/link gates; see the
+[3 August housekeeping record](quality/v07_housekeeping_completion_20260803.md). No known safe
+housekeeping item remains after that pass, but this is not a claim that the product-completion
+work or any formal acceptance gate is complete.
 
 Accepted (documented, not a defect within the trust model): attestation `attested_at` has no
 upper bound (operator-controlled statement, not cryptographic authenticity); a true power-loss

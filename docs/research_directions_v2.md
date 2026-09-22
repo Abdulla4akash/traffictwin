@@ -306,10 +306,11 @@ requires a distinct session or genuinely held-out temporal material.
 
 ## Tier C — platform and data directions (independent of the GPU track)
 
-### C1. Own-network experiments (unblocks with decisions N1 + E1–E5)
+### C1. Own-network experiments (unblocks with decisions E1–E5)
 
-- The Geofabrik mutation (N1) plus the predeclared demand rebuild (V0–V3, diagnosis
-  library ready) lead to the first evaluations on **our own** DfT-count-constrained
+- The withdrawn N1 investigation established an internal source/decoded-identity recording error,
+  not a Geofabrik mutation; the original network identity was reproduced. The predeclared demand
+  rebuild (V0–V3, diagnosis library ready) leads to the first evaluations on **our own** DfT-count-constrained
   Manchester network rather than the producer's district — the platform's "second city
   block" without leaving Manchester. Hours-scale CPU once signed.
 
@@ -323,8 +324,8 @@ requires a distinct session or genuinely held-out temporal material.
 
 ### C3. Multi-district / multi-city generalisation
 
-- Same instrument, different calibrated districts (subject to a new network pin
-  discipline that assumes provider mutability from day one — the N1 lesson). Research
+- Same instrument, different calibrated districts (subject to source/output identity separation,
+  local retention and fail-closed digest checks—the corrected N1 lesson). Research
   cost is dominated by demand calibration, not by the platform.
 
 ### C4. Separated agentic-analysis layer (deliberately outside the evidence path)
@@ -357,8 +358,8 @@ delivery by 4 September. The practical sequence is therefore:
    venue access, and data/code permission are all recorded. Benchmark one seed before
    releasing the remaining predeclared jobs.
 3. **B-BUS:** proceed only after the attended peak session, G1–G5 signing, derived-trace
-   viability, and the same training/evaluation governance. C1 still waits on N1/E
-   decisions.
+   viability, and the same training/evaluation governance. C1 still waits on E1–E5
+   decisions; N1 is withdrawn.
 4. **Standing rule:** no scientific direction executes without its own predeclaration and
    recorded approval; no cloud boundary is crossed without permission; every return
    passes local admission; and a null anywhere is publishable by construction.

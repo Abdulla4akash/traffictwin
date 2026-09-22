@@ -6,6 +6,10 @@ validation, supervisor approval, a causal claim, or permission to publish third-
 material. No communication, signature, branch fast-forward, or owner decision is recorded
 by this document.
 
+**Post-snapshot correction:** N1 was withdrawn on 28 July; the provider file did not mutate and
+the network was rebuilt to its original canonical identity. References to an N1 re-pin below are
+retained only as the queue state before that correction.
+
 ## 1. What changed since the Week-4 checklist
 
 | Workstream | Week-5 position | Remaining boundary |

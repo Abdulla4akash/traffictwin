@@ -4,6 +4,12 @@ This is the repository owner's plain-language handbook for the project as it sto
 2026. It explains the vocabulary, files, scientific workflow, governance, and current state; it
 does not replace the designs, decision records, or approval-bound study documents that it links.
 
+**Post-snapshot correction (3 August 2026):** N1 was withdrawn on 28 July. No Geofabrik provider
+mutation occurred; an internal record conflated compressed source bytes with decoded XML. The
+network chain was rebuilt to the original canonical identity. Current release/product status is in
+[current workflow](current_workflow_and_todo.md), and the correction evidence is in the
+[workspace continuity audit](integration/manchester_workspace_continuity_20260727.md).
+
 ## 1. What this project is
 
 TrafficTwin is Abdulla Al Mamun Akash's MSc dissertation project: a research-software instrument
@@ -140,8 +146,9 @@ licence to redistribute raw data or checkpoints. (`../external/vec_env/README.md
   Reinforcement Learning, PPO is Proximal Policy Optimisation, MAPPO its multi-agent form, and IPPO
   the independent-agent variant. (`docs/dissertation_appendices/abbreviations.md`)
 
-- **Decision codes.** `R1` is the upstream `tos-data` re-pin choice, `N1` the Manchester network
-  re-pin/recovery choice, `E1–E5` the demand-rebuild signing choices, and `G1–G5` the bus-study
+- **Decision codes.** `R1` is the upstream `tos-data` re-pin choice; `N1` was the Manchester
+  network re-pin/recovery question and is withdrawn after the 28 July identity correction;
+  `E1–E5` are the demand-rebuild signing choices, and `G1–G5` are the bus-study
   choices. `D1–D6` is overloaded between the capacity-pilot and stadium documents and must be
   qualified by file; the actor draft's `G6` reference is orphaned rather than a sixth bus choice.
   (`docs/owner_action_pack_20260727.md`; `docs/evaluation/demand_rebuild_predeclaration.md`;
@@ -277,8 +284,9 @@ licence to redistribute raw data or checkpoints. (`../external/vec_env/README.md
 
 - **netconvert.** SUMO's network-construction program. The Greater Manchester candidate fixed
   SUMO/netconvert 1.27.1 and reads projection information back from the output rather than assuming
-  it; the recovery chain later halted when its upstream dated Geofabrik identity could not be
-  reproduced. (`docs/decisions/ADR-059-greater-manchester-baseline-network.md`;
+  it. A later recovery initially failed because an internal record confused compressed-source and
+  decoded-XML identities; the correction reproduced the original canonical network and withdrew
+  the provider-mutation claim. (`docs/decisions/ADR-059-greater-manchester-baseline-network.md`;
   `docs/integration/manchester_workspace_continuity_20260727.md`)
 
 - **NOC.** National Operator Code, used as the only acceptable basis for the proposed Bee Network
@@ -309,9 +317,11 @@ licence to redistribute raw data or checkpoints. (`../external/vec_env/README.md
 
 - **OSM / Geofabrik / PBF.** OpenStreetMap is the geographic database; Geofabrik distributes
   regional OSM extracts, including compact Protocolbuffer Binary Format (PBF). The project chose a
-  dated Greater Manchester extract under ODbL, then later found that the supposedly dated upstream
-  file had mutated, so the recovery failed closed at N1.
-  (`docs/decisions/ADR-059-greater-manchester-baseline-network.md`; `CHANGELOG.md`)
+  dated Greater Manchester extract under ODbL. N1 initially misidentified the decoded XML digest
+  as the compressed source digest; re-examination proved no provider mutation and reproduced the
+  original network identity.
+  (`docs/decisions/ADR-059-greater-manchester-baseline-network.md`;
+  `docs/integration/manchester_workspace_continuity_20260727.md`)
 
 - **P50 / P95 / P99.** Deterministic sample percentiles; P99 is a high-tail descriptive statistic,
   not a maximum or confidence bound. (`docs/metrics_catalogue.md`)
@@ -635,8 +645,9 @@ The recorded owner decision queue is:
 4. Confirm and submit ethics values/materials; all current participant documents describe zero
    completed sessions. (`docs/evaluation/ethics_application_draft.md`;
    `docs/evaluation/user_evaluation_instrument_draft.md`)
-5. Resolve network recovery `N1` and demand choices `E1–E5`; the Geofabrik continuity failure is
-   evidence to report, not silently repair. (`docs/integration/manchester_workspace_continuity_20260727.md`;
+5. Resolve demand choices `E1–E5`. The former network-recovery question `N1` is withdrawn; the
+   internal source/decoded-identity error and its correction remain evidence to report.
+   (`docs/integration/manchester_workspace_continuity_20260727.md`;
    `docs/evaluation/demand_rebuild_predeclaration.md`)
 6. Resolve bus choices `G1–G5`, the actor-crossover checkpoint-method choice plus its remaining
    levels/seeds/cost/signing items, and the stadium file's context-local `D1–D6` choices.
@@ -647,13 +658,12 @@ The recorded owner decision queue is:
    Gate-C accessibility checklist. (`docs/evaluation/supervisor_contract_decision_form.md`;
    `docs/evaluation/manual_accessibility_checklist.md`)
 
-Some “current” documents are older snapshots: an earlier changelog slice and
-`current_workflow_and_todo.md` still say `ev` is refused, while the confirmatory protocol retains
-pre-pilot boilerplate even though its later annotation records completion and Candidate B's
-selection; route/test counts also differ by commit. For current trace
-admission use ADR-065/trace provenance; for current pilot science use the dated result/mechanism
-record; for capability truth use the canonical designs plus the beta/status qualifications.
-(`CHANGELOG.md`; `docs/current_workflow_and_todo.md`;
+Some documents linked by this 27 July handbook are historical snapshots. The current workflow and
+release records have since been reconciled; the confirmatory protocol still retains pre-pilot
+boilerplate because its later annotation records completion and Candidate B's selection. For
+current trace admission use ADR-065/trace provenance; for current pilot science use the dated
+result/mechanism record; for capability truth use the canonical design and current status records.
+(`docs/current_workflow_and_todo.md`;
 `docs/evaluation/capacity_confirmatory_protocol_draft.md`;
 `docs/decisions/ADR-065-ev-trace-allowlist-extension.md`;
 `docs/dissertation_appendices/trace_provenance.md`; `docs/implementation-status.md`)

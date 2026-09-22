@@ -7,7 +7,9 @@ observed-to-SUMO calibration, SUMO-to-VEC lineage, and a task-oriented product i
 because the design, public documentation, an API, or a local SUMO runtime exists.
 
 Current package line: `main` reports `0.7.0` after the repository-owner-authorised integration on
-3 August 2026. This version identity does not alter the evidence standing of any capability below.
+3 August 2026. The owner-authorised annotated `v0.7.0` tag resolves to the tested housekeeping
+head `e840be6c09ac4579e3604665110db2e3209fc7dd`. This version and tag identity does not alter the
+evidence standing of any capability below.
 
 Implemented reproducibility baseline: v0.6 is frozen by tag `v0.6.0` at commit
 `1c50a25246426128ac6e8530240eff362d16be02`. `VEC-01`–`VEC-12` are accepted with scoped scientific
@@ -306,6 +308,24 @@ contains no provider prose, credential, endpoint, path or row. Paid/bespoke term
 quotation decision and approved budget authority, but create no spending authority. Even a fully
 accepted private contract stops before an authorised probe or adapter. No provider response,
 schema/sample, credential, traffic measurement, capability acceptance or release was created.
+
+Post-Phase-198 release engineering completed bounded v0.7 housekeeping and published the
+owner-authorised annotated `v0.7.0` tag at `e840be6`. The exact target passed Python 3.11/3.12
+branch and draft-PR matrices. Its later tag-push workflow did not start a runner because GitHub
+reported an account payment/spending-limit block; this is an external CI-execution blocker, not
+test evidence. No GitHub Release, licence, package publication, deployment, product evidence or
+formal `MAN-*`/`UX-*`/`REL-01` acceptance follows from the tag. The complete done/partial/not-done
+meeting inventory is recorded in the
+[Meeting 1–3 live feature-gap audit](meeting_1_2_3_live_feature_gap_audit.md#meeting-13-completion-checklist).
+
+## Historical implementation chronology
+
+The phase notes below preserve earlier checkpoint evidence. Their local headings such as
+“Blocked”, “Not Started”, “Evidence Required Next” and “Quality Gates” describe the checkpoint in
+which they were written; they are not current status labels. Use the dated 3 August status above,
+the [current workflow](current_workflow_and_todo.md) and the
+[housekeeping completion record](quality/v07_housekeeping_completion_20260803.md) for current
+release and residual-work truth.
 
 Phase 0 status: approved and committed.
 
@@ -785,8 +805,9 @@ side-by-side check now installs the immutable `v0.6.0` tag from a clean detached
 its own lockfile and serves it beside the v0.7 checkout on separate ports and workspaces; the
 24 July 2026 run confirmed concurrent responses, distinct registries, and no cross-registry
 mutation before removing the temporary checkout. This is automated coexistence evidence, not
-release acceptance. Package/CITATION and `main` were aligned at `0.7.0` on 3 August 2026; licence,
-publication, final-tag and real-workspace reconciliation remain, so `REL-01` remains planned. The canonical
+release acceptance. Package/CITATION and `main` were aligned at `0.7.0` on 3 August 2026, and the
+owner-authorised final tag now exists; licence/publication, GitHub Release/package publication and
+real-workspace reconciliation remain, so `REL-01` remains planned. The canonical
 v0.7 specification defines these planned groups without changing current capability truth:
 
 - `MAN-01`–`MAN-07`: audited and immutable source snapshots, DfT historical road counts, WebTRIS
@@ -2395,7 +2416,10 @@ builds; dependency-lock validation; release smoke; 164-document and 1,199-local-
 and `git diff --check`. OPS-01 changes no Streamlit page; the existing desktop/mobile semantic
 audit remains green with zero findings.
 
-## Repository Assessment
+## Historical Repository Assessment
+
+This assessment records the repository state before the later v0.5–v0.7 increments. It is retained
+for provenance and must not be read as the current capability or quality-gate summary.
 
 Workspace root inspected: repository parent workspace
 
@@ -2753,7 +2777,7 @@ per-row causal weights.
 - Generated reference artifacts under `docs/reference/generated/`.
 - Cross-links added to data, validation, metrics, evidence, comparison, and diagnostic contract documents.
 
-## Quality Gates
+## Historical Phase 0–6 Quality Gates
 
 Commands run successfully:
 
@@ -2828,7 +2852,7 @@ Results:
 - JSON finite check: metric JSON contained no `NaN` or infinity.
 - Fixture raw-file hashes were unchanged after validation/import smoke checks.
 
-## Blocked
+## Historical Phase 6 Blockers
 
 - Full TOS/VEC canonical conversion remains blocked by absent physical-completion,
   persistent-identity, per-vehicle tier/target/link evidence, source raw SUMO/trip data, and
@@ -2840,14 +2864,14 @@ Results:
   v1.0 semantic contract. Drop-cause, queue-clearance, and capacity-normalised metrics remain
   blocked until source fields and units exist.
 
-## Not Started
+## Historical Phase 6 Not-Started Items
 
 - Additional external-source families, FCD mapping, VEC canonical conversion, and sensor adapters
   beyond the two reviewed OPS-05 reference contracts.
 - LLM rendering.
 - XAI.
 
-## Evidence Required Next
+## Historical Phase 6 Evidence Required Next
 
 - Definitions for `rsu_busy_ms`, `rsu_load`, and `rsu_max_concurrent`; confirmed trace units; and
   clarification of eventual completion remain required for canonical conversion.
@@ -2856,7 +2880,7 @@ Results:
 - Confirmation of supported scenario controls.
 - Environment invocation contract, if direct launch is expected.
 
-## Current File Tree Summary
+## Historical Phase 6 File Tree Summary
 
 ```text
 diss/

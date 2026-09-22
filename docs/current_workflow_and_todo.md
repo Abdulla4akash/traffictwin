@@ -1,190 +1,99 @@
 # Current workflow and to-do
 
-> **Release integration update — 3 August 2026:** The repository owner superseded the earlier
-> branch-preservation constraint and authorised fast-forward integration of
-> `claude/complete-v0.7` into `main` plus package/CITATION alignment at `0.7.0`. The dated alpha
-> workflow below remains historical context. Existing tags are still immutable and force-pushing
-> remains prohibited.
+**Last reconciled:** 3 August 2026
 
-- Last updated: 26 July 2026 (dated addendum below; full record reconciliation remains
-  `BETA-REC-01`, lead-owned)
-- Branch: `claude/complete-v0.7`
-- Working head at last update: the `v0.7.0-alpha.8` checkpoint commit
-- **Current task: experiment readiness → predeclared capacity pilot**
+**Repository baseline:** `main` at `49be6a2db8a69409a1b92fb02e954db7cf1441f6`, with the
+package, citation and release metadata aligned at `0.7.0`.
 
-## Addendum: 26 July 2026 — experiment-readiness slices (checkpoint `v0.7.0-alpha.8`)
+**Active release-engineering branch:** `housekeeping/v0.7-completion`.
 
-Owner-directed slices `066d0bf` and `f24edf4` closed the gap between controlled VEC execution
-and the statistical workflow; nothing below advances a gate or capability row:
+This is the short operational tracker. Formal capability truth remains in
+[implementation status](implementation-status.md), and the difference between the bounded product
+surface and the Meetings 1–3 live goal remains in the
+[live feature-gap audit](meeting_1_2_3_live_feature_gap_audit.md). Historical alpha plans and phase
+records are evidence of their own checkpoints, not current instructions.
 
-- **Fresh-run scientific admission** (`vec-fresh-run-scientific-admission-1.0`, ADR-061,
-  `owner_approved_candidate`): a completed VEC-07 execution's re-verified outputs become
-  registry metrics that pair in STA-01 under a declared study context. Reproduction stays
-  ungraded (`reproduction_graded: False`); smoke/unreviewed-trace requests refuse with typed
-  codes; the VEC-07/VEC-10 literals and the accepted VEC-09 artifact are untouched.
-- **`inc` trace admitted** (ADR-062) by reviewed allowlist extension after a measured
-  identity-reconciliation probe at the audited tos-data commit; `wd_am`, `wd_pm`, `ev`
-  remain refused. A real `inc` preflight returns `accepted`.
-- **Measured**: full 32,400-step `we` protocol run 225.7 s locally via one-click; its
-  published result admitted end-to-end in 5.4 s (3/3 real-artifact chain tests). The first
-  full `inc` execution is an in-flight timing measurement against the 7,200 s request
-  ceiling (historical source maximum 15,305.9 s).
-- **Next**: predeclare the capacity-squeeze pilot (capacities, seeds, primary endpoint,
-  pilot/held-out split) before any sweep; register its `Experiment` plan (Python API only —
-  no CLI exists to register an experiment); then the tiny pilot, then the frozen
-  confirmatory protocol.
+## Current objective
 
-The phase-state sections below this line predate the alpha.7 merge and the addendum above;
-their reconciliation is `BETA-REC-01` and stays with the lead.
+Close the safe v0.7 housekeeping track without converting incomplete product work into a release
+claim. The dated
+[housekeeping completion record](quality/v07_housekeeping_completion_20260803.md) contains the
+inventory, exact verification results and residual owner/input blockers.
 
-This is the working status document for the v0.7 integration effort. It records what is built,
-what is blocked and on whom, and what is being worked next. It is not a capability claim: capability
-status lives in [implementation-status.md](implementation-status.md) and
-[current_progress_v0_7.md](current_progress_v0_7.md), and nothing here advances a gate.
+The housekeeping track covers:
 
-## Research status, carried into everything below
+- version, citation, generated-reference and release-metadata agreement;
+- current-document reconciliation and local-link navigation;
+- locked dependency, formatting, lint, typing, test and fixture health;
+- source and wheel builds plus an isolated wheel-install smoke;
+- standalone synthetic-demo verification; and
+- CI coverage of generated references, documentation links, fixtures, package installation and
+  the existing Python 3.11/3.12 matrix, with feature branches covered once through pull-request CI
+  while `main` pushes and version-tag pushes retain their own runs.
 
-All map-matching, calibration, and comparison decisions are **`owner_approved_candidate`** — the
-repository owner authorised them so the workflow could be implemented and exercised. That is **not**
-supervisor approval. [The contract decision form](evaluation/supervisor_contract_decision_form.md)
-is unsigned and is not to be filled in by an agent. Permitted labels are
-`owner_approved_candidate`, `analyst_reviewed_candidate`, `descriptive_non_causal`, and
-`held_out_candidate_evaluation`; `scientifically_validated`, `ground_truth`,
-`publication_approved`, `causal`, and `production_deployment_ready` are forbidden.
+These checks establish technical repository hygiene only. The owner subsequently authorised the
+annotated `v0.7.0` tag at `e840be6`; neither those checks nor that tag accept `REL-01`, create a
+GitHub Release, choose a licence, publish a package, validate a real deployment or accept any
+`MAN-*`/`UX-*` capability.
 
-Where the owner's *written policy* accepted a row, that is `owner_policy_accepted_candidate`. **No
-analyst, human, or supervisor has reviewed any row**, and no downstream artifact may promote it.
+## Current capability posture
 
-## Phase status
+All 15 formal v0.7 capability rows remain `planned` under the design's complete-gate rule. The
+practical labels below describe tested bounded software, not formal acceptance.
 
-| # | Phase | State | Note |
+| Area | Practical state | Working boundary | Product-completion boundary |
 |---|---|---|---|
-| 1 | Real DfT acquisition | **done** | 342 count points, 39,072 raw counts, LA 85, join verified |
-| 2 | Observation-to-network map matching | **done** | policy v1.0 then v1.1; 131 accepted, 165 awaiting review, 9 no candidate |
-| 3 | Network review and connectivity | **done** | motor-access components, bounded route probes |
-| 4 | Temporal profile | **done** | 39,072 rows admitted, coverage 1.000000, frozen 80/20 site split |
-| 5 | Count-constrained candidate demand | **done** | 1,800 cells over 150 edges; 91.73% of counts achieved, zero overflow |
-| 6 | Calibration contract | **blocked** | needs `mapping_fingerprint` and `projection_report_fingerprint` for artifacts that do not exist yet |
-| 7 | Controlled SUMO execution | **boundary built; run blocked** | runner built and tested; demand gridlocks, see below |
-| 8 | Comparison contract | **built, not registered** | fingerprint `b1d31a1b122be3a5…`; registry lives in `comparison.py`, outside the agent grant |
-| 9 | SUMO-to-VEC chain | **to do** | depends on an accepted FCD/network pair |
-| 10 | CLI, service and thin UI integration | **done (CLI); UI pending** | 33 commands, seven families; remaining workflows are blocked, not unwritten |
-| 11 | Gate B, C and F closure | **done for automated work** | remaining items need a person or a provider reply |
-| 12 | Remaining UI presentation | **to do, last** | deliberately after the research chain |
-| 13 | Final verified alpha checkpoint | **proposed** | [handoff](v07_alpha7_checkpoint_handoff.md); tag not created |
+| Manchester source acquisition and operations | `working_bounded` | Source-specific adapters, immutable snapshots, explicit refresh, BODS/National Highways process-lifetime workers, stale fallback and read-only health views | Accepted populated real workspace, provider/privacy/retention decisions, broader measured-road access and sustained operational evidence |
+| Manchester observation-to-SUMO | `foundation_only` | Complete Greater Manchester network foundation, 305 mapping candidates, 174-row review workflow, DfT profile candidate and calibration/baseline contracts | Named-person decisions for all 174 rows, explicit treatment for nine no-candidate sites, signed science choices, viable demand/runs and a human baseline decision |
+| Observed-versus-simulated Manchester evaluation | `foundation_only` | Deterministic pairing, coverage, exclusions, lineage and error engines | Registered accepted contract, compatible real intervals/run, accepted comparison and evaluation evidence |
+| Manchester SUMO-to-VEC | `foundation_only` | Strict lineage and VEC admission/orchestration foundations | Accepted Manchester baseline, matching FCD/network, complete controlled VEC chain and admitted results |
+| What-if and controlled execution | `working_bounded` | Draft-only composer/surrogate workflow and fixed synthetic-square loopback SUMO transport | Approved generic Manchester scenario execution and accepted evidence; no action authority is currently available |
+| Capacity benchmark and decision audit | `working_bounded` | Unsigned job-pack contracts, 21-job synthetic worker and synthetic exact-binding/XAI-shaped integrity fixtures | Signed protocol, authorised actors/checkpoints/runtime/compute, real benchmark results and a validated attribution method |
+| Forecasting and journey views | `working_bounded` or offline-only | Bounded bus climatology/surrogate and imported-run journey analysis | Held-out accepted real validation and genuinely prospective Manchester traffic/journey/route advice |
+| UX and accessibility | `working_bounded` | Task routes, responsive native UI, automated semantics and bounded browser evidence | Human keyboard/screen-reader/zoom/contrast review and any ethics-approved participant evidence |
+| Release isolation and migration | `foundation_only` | Separate workspaces, byte-exact compatibility copy, attested same-schema activation, backup/rollback, coexistence, package alignment, technical build/install evidence and owner-authorised final tag | Real owner-selected workspace acceptance, cross-schema work only if schemas diverge, licence/publication decisions and separately authorised GitHub Release/package publication |
 
-## Open decisions, owner-only
+## Product-completion queue
 
-These block phases 6, 7 and 9. Nothing downstream can be honest until they are answered, and no
-agent may answer them.
+These items are deliberately outside housekeeping and must not be implemented or described as
+live without their required inputs and authorities:
 
-1. **The candidate demand gridlocks.** One simulated hour drove halting share from 49.8% to 88.8%
-   with teleports rising 113 → 21,669, reaching 35.7% of all inserted vehicles, while insertion rate
-   more than halved and only 8.1% of the demand entered the network. A full-window or peak-hour FCD
-   run would produce an unusable artifact. See
-   [the diagnostic](integration/evidence/manchester_demand_saturation_diagnostic_20260725.json).
-   The leading untested hypothesis is that the route pool, built with `--fringe-factor 5` and
-   `--min-distance 300`, is dominated by long cross-network trips, so each vehicle satisfies several
-   counting locations at once while occupying the network far longer than the per-edge counts imply.
-   Regenerating the pool with a realistic trip-length mix would change the demand's provenance, so it
-   is an owner decision.
-2. **The 165 map-match rows awaiting manual review.** Policy v1.1 disables automatic acceptance, so
-   these need a person. The 131 accepted rows were accepted by written policy, not by review.
-3. **Registering the comparison contract fingerprint**, which requires editing a module outside the
-   agent grant. Until then production goodness-of-fit correctly stays unavailable.
-4. **Whether GEH is an acceptance criterion**, and at what threshold. `routeSampler` reports GEH; no
-   threshold has been approved, so it is recorded as a tool diagnostic only.
+1. Populate and operate an accepted Manchester workspace using authorised provider credentials,
+   exact contracts and an approved retention/publication policy.
+2. Obtain DfT/WebTRIS time-basis answers and resolve the remaining BODS identifier/privacy,
+   retention and complete Bee-scope questions.
+3. Complete the 174-row named-person mapping review, resolve the nine no-candidate sites, approve
+   calibration/uncertainty/demand rules and replace the gridlocking demand candidate.
+4. Produce an accepted Manchester SUMO baseline, compatible observed/simulated comparison and
+   complete Manchester SUMO-to-VEC evidence chain.
+5. Decide whether generic what-if execution, route/infrastructure recommendations, capacity-aware
+   training and real explainability are in the accepted product scope; then supply the required
+   signed protocols, actors, data and scientific evidence.
+6. Perform the human accessibility and, if authorised, ethics-supported participant evaluation.
+7. Make the remaining owner-only licence, publication, package-upload, GitHub Release and
+   deployment decisions; the final Git tag is complete and must not move.
 
-## Current task: phases 9 to 13
+## Immediate next actions
 
-Phase 9 cannot start until an accepted FCD/network pair exists, which decision 1 gates. Phases 10 and
-11 are independent of every open decision and are where work proceeds now.
-
-### Phase 10 — CLI, service and thin UI integration
-
-**CLI complete.** A read-only `workflow_service` reports every phase and its blocker, and seven
-command families exist: `network`, `profile`, `workflow`, `observation`, `match`, `demand`, `run`,
-`evidence`. The thin UI wiring remains.
-
-Required workflows, from the brief:
-
-| Workflow | CLI today |
-|---|---|
-| inspect workflow status and blockers | `workflow status`, `workflow decisions` |
-| acquire DfT evidence | `observation acquire` (refuses without `--confirm`) |
-| inspect DfT snapshots | `observation snapshots` |
-| show the map-match policy | `match policy` |
-| measure matching ambiguity | `match ambiguity` |
-| generate map-match candidates | `match candidates` |
-| review matches | `match review` (read-only; cannot accept or reject) |
-| build temporal profiles | `profile build`, `profile inspect`, `profile policy` |
-| build candidate demand | `demand build` |
-| acquire and build the network | `network` family, nine commands |
-| check the SUMO toolchain | `run preflight` |
-| inspect lineage | `evidence lineage` |
-| export permission-safe evidence | `evidence export` |
-| run SUMO | **blocked** — runner built; decision 1 |
-| validate FCD and network | **blocked** — no FCD exists yet |
-| run calibration | **blocked** — contract needs artifacts that do not exist |
-| run held-out evaluation | **blocked** — same contract |
-| compare observed and simulated | **blocked** — contract unregistered (decision 3) |
-| execute eligible VEC stages | **blocked** — no FCD pair |
-
-**Phase 10 is complete for everything that can be exposed honestly**: 33 documented commands across
-seven families. The six remaining rows are blocked on a decision or on an artifact that does not
-exist, and a command that pretended otherwise would be worse than its absence.
-
-Constraints: no Streamlit page may compute a scientific metric, fetch implicitly, launch a process,
-mutate raw evidence, or hide an unavailable state. Manchester Operations and Guided Demo expose the
-workflow through thin service calls only.
-
-### Phase 11 — Gate B, C and F closure
-
-**Automated work complete.** What remains in each gate needs a person or a provider, not more code.
-
-- **Gate B.** Sources reconciled and the invariants each open blocker implies are pinned across
-  every source: only audited National Highways feeds may be near-live, WebTRIS is not near-live
-  eligible, DfT is historical only, only BODS may claim a live vehicle, TfGM signals offer nothing
-  beyond unavailable, and every source can express unavailability. The DfT hour is asserted never to
-  be converted. **Three blockers stay open and cannot be closed here** — `GA-DFT-1`, `GA-WT-1`, and
-  BODS retention/republication terms — because each needs a **provider reply**, and the recorded
-  documentation probe established that no official page answers them.
-- **Gate C.** All 34 pages are covered for control labelling and heading structure. A real defect was
-  found and is recorded as a strict expected failure: `home.py` renders two buttons both labelled
-  *Plan an Experiment*. Contrast, zoom, keyboard order and screen-reader announcement cannot be
-  established from the element tree; they are in
-  [the manual checklist](evaluation/manual_accessibility_checklist.md), shipping unticked.
-  **Remaining: a person to work that checklist, and someone with the UI grant to fix the label.**
-- **Gate F / REL-01.** Migration was already covered by 17 tests. Added: release reconciliation
-  (versions agree, documented commands exit cleanly, the package must not carry the final `v0.7.0`
-  version, no final tag may exist), a re-run clean-checkout side-by-side verification against the
-  current head, and a CI reconciliation run by execution rather than by reading. **Remaining: the
-  container build and demo smoke step, which need Docker.**
-
-No gate is accepted by any of this.
-
-### Phases 12 and 13
-
-Phase 12, the remaining TOS, Home, Scenario Studio, Search, Settings and Guided Demo presentation
-work, comes after the core chain is integrated. Phase 13 produces a proposed annotated alpha
-checkpoint name for lead review; it does not create the tag.
+- Review and merge the housekeeping draft PR only under explicit owner authority. The exact tagged
+  head passed both Python 3.11/3.12 matrices; post-tag documentation and CI-efficiency amendments
+  pass locally, while their hosted verification awaits restoration of the account's Actions
+  billing/spending availability.
+- Keep the owner-authorised final `v0.7.0` tag immutable. No GitHub Release, package publication or
+  deployment follows from the tag without separate owner authority and licence/publication review.
+- Choose the next product-completion item from the queue only after its named human, provider,
+  credential, dataset or scientific prerequisite is available.
+- Update the live feature-gap audit whenever operational evidence changes; code integration alone
+  is not evidence that a capability is live.
 
 ## Standing constraints
 
-- `main` is the v0.7 package line. The `v0.6.0` and alpha tags remain immutable; no force-push and
-  no moving an existing tag. Publication of a final `v0.7.0` tag is a separate owner action.
-- The user's `codex/traffictwin-v0.7` checkout, `supervisor questions2 Gemini/`, and `../external/`
-  are never touched.
-- Raw `.osm.pbf`, decoded `.osm.xml`, built `.net.xml`, route pools, demand files and acquired DfT
-  snapshots stay private workspace artifacts. Only bounded aggregate records are committed.
-- No private absolute path, credential, or raw identifier reaches a tracked file.
-- Every phase runs the focused tests, the Manchester suite, repository Ruff and format checks, strict
-  mypy, `uv lock --check`, the generated-reference drift check, and `git diff --check`.
-- A capability advances only to the status its evidence supports. Completing a candidate workflow
-  justifies at most `working_bounded`.
-
-## Coordination
-
-This branch was worked briefly by two agents in parallel, which produced a defective Phase 5 result
-that had to be corrected (see `cbda486`). One agent at a time on this branch. Before editing, check
-`git log` and `git status`; before an expensive build, check for a running one.
+- The immutable `v0.6.0` tag remains at
+  `1c50a25246426128ac6e8530240eff362d16be02` and must never move.
+- Synthetic fixtures stay labelled synthetic; source-specific transit/infrastructure evidence is
+  never relabelled as general road-flow evidence.
+- Raw/private evidence, credentials, identifiers and private absolute paths do not enter Git.
+- No agent may invent a provider fact, human review, licence, scientific acceptance, production
+  evidence, publication permission or deployment authority.
+- No direct merge to `main`, movement of the final tag, GitHub Release, package publication, branch
+  deletion or public deployment occurs without explicit owner authorisation.

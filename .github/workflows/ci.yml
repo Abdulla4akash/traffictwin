@@ -2,7 +2,13 @@ name: TrafficTwin CI
 
 on:
   push:
+    branches: [main]
+    tags: ["v*"]
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -12,10 +18,10 @@ jobs:
         python-version: ["3.11", "3.12"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -47,6 +53,9 @@ jobs:
           uv run python scripts/generate_reference_docs.py
           git diff --exit-code -- docs/reference/generated
 
+      - name: Documentation link consistency
+        run: uv run python scripts/check_markdown_links.py
+
       - name: Standalone demo smoke
         run: |
           uv run traffictwin demo initialise .ci-demo
@@ -61,6 +70,13 @@ jobs:
 
       - name: Build package
         run: uv run python -m build
+
+      - name: Clean wheel installation smoke
+        run: |
+          uv venv --python ${{ matrix.python-version }} .ci-wheel
+          uv pip install --python .ci-wheel/bin/python dist/traffictwin-0.7.0-py3-none-any.whl
+          .ci-wheel/bin/python -c "import traffictwin; assert traffictwin.__version__ == '0.7.0'"
+          .ci-wheel/bin/traffictwin synthetic presets
 
       - name: Build standalone Streamlit container
         if: matrix.python-version == '3.12'

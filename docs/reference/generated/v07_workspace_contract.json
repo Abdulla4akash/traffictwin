@@ -16,7 +16,7 @@
   ],
   "limitations": [
     "A registry does not encode enough evidence to prove its producing package version.",
-    "Side-by-side clean-checkout acceptance, package/release version alignment, and final release reconciliation remain pending REL-01 work.",
+    "Licence/publication decisions, GitHub Release and package-publication authorisation, real owner-workspace acceptance, and cross-schema migration if schemas diverge remain pending REL-01 work.",
     "A structural copy does not revalidate stored scientific payloads."
   ],
   "required_directories": [

@@ -4,7 +4,14 @@
 
 **Repository:** `Abdulla4akash/traffictwin`
 
-**Audited branch:** `claude/complete-v0.7` at `c3e2dc8`
+**Current repository baseline:** `main` at
+`49be6a2db8a69409a1b92fb02e954db7cf1441f6`; the original live-app inspection was performed over
+the integrated feature head `c3e2dc8` before its fast-forward into `main`.
+
+**Release-engineering context:** the owner-authorised annotated `v0.7.0` tag now resolves to
+`e840be6c09ac4579e3604665110db2e3209fc7dd`. The two commits after `main` contain bounded
+housekeeping and CI-runtime changes, not new Meeting 1–3 product evidence, so none of the live
+verdicts below changes.
 
 **Purpose:** Compare the product and research capabilities requested in supervisor
 Meetings 1, 2 and 3 with the repository and the locally running TrafficTwin app.
@@ -26,7 +33,7 @@ TrafficTwin has a substantial local research interface, import-first analysis
 workflow and evidence-governance backend. However, the complete Manchester
 digital-twin loop described in the meetings is not operationally live.
 
-At the time of inspection, port `8501` was serving a temporary demo workspace and
+During the 3 August live inspection, port `8501` was serving a temporary demo workspace and
 no service was listening on port `8502`. The app reported:
 
 - Manchester evidence unavailable;
@@ -37,9 +44,95 @@ no service was listening on port `8502`. The app reported:
 - no forecast aggregates; and
 - draft-only what-if composition with no execution.
 
-The audited feature branch was also nine commits ahead of the repository's
-default `main` branch. Therefore, some bounded interfaces visible locally were not
-yet present on default `main` at the time of this audit.
+Those nine feature commits are now integrated on default `main`, and the Python 3.11/3.12 CI run
+for `49be6a2` passed. Integration changes repository availability, not operational evidence: it did
+not populate a real workspace, activate a deployment, obtain a provider response, complete human
+review or accept a scientific gate. The live verdicts below therefore remain unchanged.
+
+## Meeting 1–3 completion checklist
+
+This checklist distinguishes software that works within a stated boundary from the complete
+meeting outcome. Under the strict v0.7 complete-gate rule, **zero of the 15 formal `MAN-*`, `UX-*`
+and `REL-01` capability rows are accepted**. Gate A is accepted; Gates B and C are
+`working_bounded`; Gates D, E and F remain `foundation_only`.
+
+### Done as bounded, tested engineering
+
+- [x] Task-oriented 34-page Streamlit navigation and a map-led research home.
+- [x] Synthetic scenario creation and the guided demonstration.
+- [x] Generic, SUMO and TOS result import and validation.
+- [x] Deterministic temporal, energy, fairness, infrastructure, journey and RSU metrics.
+- [x] Comparisons, statistical studies, diagnostics, provenance and report exports.
+- [x] Source-specific DfT, WebTRIS, TfGM, BODS and National Highways adapters/contracts, including
+      narrow real-source probes where recorded.
+- [x] Immutable snapshots, source-specific freshness, spatial admission, source separation,
+      credential redaction and offline replay.
+- [x] Historical TOS/RSU replay when an accepted package is imported.
+- [x] A controlled SUMO/TraCI engineering smoke over the pinned synthetic square.
+- [x] Draft what-if composition, bounded surrogate prediction and unsigned campaign generation.
+- [x] Separate v0.6/v0.7 workspaces, compatibility copy, same-schema activation, backup/rollback,
+      coexistence, package/build/install checks and the owner-authorised `v0.7.0` tag.
+- [x] Read-only evidence matrix, mechanism observatory and decision-safety presentation.
+
+### Partially complete, but not the live meeting outcome
+
+| Meeting item | Working foundation | Completion still missing |
+|---|---|---|
+| Manchester Operations | Source cards, maps, filters, modes and stale fallback | Populated, accepted real Manchester scene |
+| Continuous ingestion | BODS/National Highways workers and scheduling tools | Active sustained operation and OS-level schedule |
+| Historical traffic store | Aggregate SQLite, activation, backup/restore and analytics | Owner-selected populated real store and retention approval |
+| Traffic forecasting | Forecast route and bounded bus climatology | Validated one/two/three-hour general road-traffic forecast |
+| Journey analysis | Imported-run journey views | Prospective journey/wait/departure/alternative-route prediction |
+| What-if scenarios | Composer, surrogate and unsigned campaign draft | Generic Manchester SUMO execution and accepted evidence-producing run |
+| Observation-to-SUMO | Network, candidate matches, review UI, profile and calibration contracts | 174 human decisions, nine unmatched-site treatments, viable demand, admitted calibration and accepted baseline |
+| Accessibility | Automated semantics, responsive checks and 140-view visual regression | Human keyboard, screen-reader, contrast, zoom and participant acceptance |
+| Explainability | Synthetic replay and SHAP/Integrated-Gradients-shaped integrity fixtures | Authorised real actor/checkpoint and validated attribution method |
+
+### Not completed as requested meeting outcomes
+
+- [ ] A complete current view of real Manchester traffic.
+- [ ] Continuous city-road flow, speed, volume and congestion telemetry.
+- [ ] Operational fusion of authority, sensor, driver, pedestrian, mobile or social sources.
+- [ ] Validated one-, two- and three-hour traffic prediction.
+- [ ] Future journey-time, waiting-time, departure-time and alternative-route advice.
+- [ ] Executable Manchester incident, closure, signal and scheduled-event scenarios.
+- [ ] A calibrated, human-accepted Manchester SUMO baseline.
+- [ ] A real observed-versus-simulated Manchester comparison.
+- [ ] Complete Manchester SUMO-to-VEC execution, lineage and evaluation.
+- [ ] The signed 2,400-job multi-seed, multi-trace and multi-algorithm benchmark.
+- [ ] Capacity-aware reinforcement-learning training and admitted evaluation.
+- [ ] Real learned-policy inspection and validated explainable AI.
+- [ ] Live RSU and vehicle-resource monitoring.
+- [ ] Automated retraining or RSU-placement recommendations.
+- [ ] Authoritative traffic, route, signal or infrastructure recommendations.
+- [ ] Ethics-supported analyst, driver and end-user evaluation.
+- [ ] Public, mobile or production deployment.
+
+### Meeting 3 result that is complete within its evidence boundary
+
+- [x] The read-only capacity/latency investigation is available: reducing tested capacity was
+      associated with an approximately `-8,310.9 ms` mean paired latency change across five
+      held-out paired seeds while offloading actions were unchanged.
+
+Evidence boundary: the result is not a general causal diagnosis, an improvement experienced by an
+individual vehicle, a capacity-aware trained model or conventional significance claim; the exact
+two-sided sign-test floor remains `p = 0.0625`.
+
+### Inputs and decisions blocking completion
+
+- Provider contracts, credentials, schemas, time semantics, licensing, privacy, retention and
+  publication terms for the retained real-source scope.
+- A named reviewer for all 174 mapping decisions and an explicit treatment for nine no-candidate
+  sites.
+- Supervisor/owner choices for calibration, uncertainty, demand reconstruction, comparison
+  registration, baseline acceptance and any GEH use.
+- An owner-selected populated real v0.7 workspace and compatible observed/simulated/VEC artifacts.
+- Signed benchmark/training protocols, authorised actors/checkpoints/runtime/compute and compatible
+  real method evidence.
+- Human accessibility review, ethics/supervisor authority and participant inputs where applicable.
+- Repository licence, publication classes, GitHub Release, package publication, hosting,
+  authentication and deployment decisions. The final Git tag is complete; those other decisions
+  are not.
 
 ## Features that are not live
 
@@ -110,3 +203,7 @@ The interface and bounded research tooling are working. The meetings' intended
 real product—a populated, continuously updated and calibrated Manchester digital
 twin that forecasts traffic, executes user-authored scenarios and supports
 validated decisions—is **not yet live**.
+
+Release engineering and documentation hygiene are tracked separately in the
+[v0.7 housekeeping completion record](quality/v07_housekeeping_completion_20260803.md). Passing
+those technical gates does not change any live verdict in this audit.

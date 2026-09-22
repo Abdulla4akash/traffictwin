@@ -2,9 +2,12 @@
 
 **Snapshot date:** 3 August 2026
 
-**Current package line:** `main` at `0.7.0`; Phase 198 is the current bounded implementation
-increment after integration of `claude/complete-v0.7`. The immutable v0.6 baseline and historical
-checkpoint tags remain unchanged.
+**Current package line:** `main` at `49be6a2db8a69409a1b92fb02e954db7cf1441f6` and `0.7.0`;
+Phase 198 is the current bounded product increment. The immutable v0.6 baseline and historical
+checkpoint tags remain unchanged. The owner-authorised annotated `v0.7.0` tag resolves to the
+post-integration housekeeping head `e840be6c09ac4579e3604665110db2e3209fc7dd`; it changes no
+product capability standing. Safe post-integration release hygiene is tracked separately in the
+[housekeeping completion record](quality/v07_housekeeping_completion_20260803.md).
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
 data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–180 operational
@@ -72,12 +75,9 @@ Under the strict v0.7 completion rule, all 15 v0.7 capability rows remain formal
 This does not mean the release line is empty: substantial bounded source, live-operations, and UI
 workflows are already working.
 
-At `v0.7.0-alpha.4` (`4e95a5d`), the Guided Demo is an action-aware cross-page workflow
-candidate. It opens the first real task, keeps persistent progress and evidence boundaries
-visible, advances from typed successful actions where available, uses one explicit
-acknowledgement for review-only stages, and records skipped stages separately. The Phase 2B
-Tier 1 presentation harvest (seven pages plus its adversarial test file) is now lead-reviewed and
-integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `UX-*` row.
+The Guided Demo and the Phase-2B Tier-1 presentation harvest entered through historical alpha
+checkpoints and are now integrated on `main`. They remain bounded workflow/presentation software;
+neither their integration nor package version `0.7.0` accepts any `UX-*` row.
 
 ## 3. Current verified baseline
 
@@ -216,7 +216,7 @@ reliable engineering-time estimate.
 | Gate C | Manchester Operations, grouped navigation, home page, responsive visual system, and accessibility | `working_bounded` | Final cross-page state and cutover evidence; manual keyboard, screen-reader, contrast, zoom, and participant review where required | 2–4 working days, plus human evaluation time |
 | Gate D | Observation-to-SUMO mapping, calibration, accepted baseline, and observed-versus-simulated comparison | `foundation_only` | Integrated: the reviewed Greater Manchester network, owner-policy v1.1 candidate generation, exact 305-site reconciliation, sealed per-row review ledger, real DfT temporal-profile candidate, calibration/comparison engines, owner-candidate comparison contract, versioned baseline-candidate workflow, read-only complete-lineage UI, and both measured sensitivity populations. Remaining: 174 named-person decisions, an explicit treatment for nine unmatched sites, scientific calibration/uncertainty approval, replacement of the gridlocking demand, compatible runs, separate lead registration of production contracts, a human baseline decision, and a real comparison. | 7–14 working days after the remaining human/scientific decisions |
 | Gate E | Accepted Manchester SUMO output through FCD/network and VEC-06–VEC-12 | `foundation_only` | Run the accepted baseline, validate one-second FCD/network, execute the gated VEC chain, and assemble research/evaluation evidence | 4–8 working days after Gate D |
-| Gate F | v0.6/v0.7 isolation, migration, rollback, packaging, documentation, CI, and immutable release | `foundation_only` | Package/CITATION and `main` are reconciled at `0.7.0`; licence/publication decisions, final tag reconciliation and real-workspace acceptance remain | External/owner decisions plus any resulting engineering work |
+| Gate F | v0.6/v0.7 isolation, migration, rollback, packaging, documentation, CI, and immutable release | `foundation_only` | Package/CITATION and `main` are reconciled at `0.7.0`; safe housekeeping adds current documentation, link, generated-reference, build/install and CI evidence; the owner-authorised annotated final tag exists. Licence/publication decisions, GitHub Release/package-publication authority and real-workspace acceptance remain. | External/owner decisions plus any resulting engineering work |
 
 The critical dependency path is Gate D → Gate E → Gate F. Gate-B reconciliation, Gate-C manual
 acceptance, and parts of Gate-F migration tooling can progress in parallel.
@@ -239,7 +239,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Manual accessibility and final capability acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Human usability/participant and final capability acceptance remain |
 | `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), the Tier 2 harvest (Statistical Study tabs and per-seed chart, VEC Workbench staged workflow, Temporal Metrics reconciliation, Threshold Sensitivity response panels), the Tier 3 harvest (Diagnostics & Evidence grouped availability, Provenance Explorer structured dependency views, Operations View replay/active-filter/window panels, Triviality descriptive chart, Participant Evaluation readiness checklist, Manifest Inference preview/confirm separation), the Tier 4 analysis-evidence harvest (Energy coverage-first family dashboard and joule-comparison chart, Fairness eligible-group coverage and Exclusions & Limitations, Infrastructure canonical-vs-source provenance/window and native per-RSU charts, Journey-Time cohort-completion and distribution chart, Spatial & RSU coordinate-frame and target/coordinate reconciliation), the Tier 5 research-workflow harvest (Scenario Builder sequential authored-vs-generated flow, Scenario Mutations three-stage before/after, Experiment Planner define/validate/inspect/register run matrix, Parameter Sweep choose/define/preview/export with a preview chart, Reports peer-view tabs), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
-| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, a passing scripted v0.6.0 clean-checkout coexistence check, package/CITATION alignment at `0.7.0`, and a workspace setup/diagnostics guide | Cross-schema migration if schemas diverge, licence/publication decisions, final tag reconciliation and real-workspace acceptance remain |
+| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, a passing scripted v0.6.0 clean-checkout coexistence check, package/CITATION alignment at `0.7.0`, the owner-authorised final tag, and a workspace setup/diagnostics guide | Cross-schema migration if schemas diverge, licence/publication decisions, GitHub Release/package-publication authority and real-workspace acceptance remain |
 
 ## 6. Major work ready to build now
 
@@ -281,8 +281,9 @@ next section.
 4. Run v0.6 and v0.7 from separate clean checkouts, ports, and workspaces: automated by
    `scripts/side_by_side_check.py` with a passing 24 July 2026 evidence record; formal Gate-F
    acceptance still happens at release reconciliation.
-5. Reconcile CLI, generated schemas/references, capability manifest, documentation, package
-   version, CI, and final immutable tag.
+5. CLI, generated schemas/references, capability manifest, documentation, package version, CI and
+   the final immutable tag are technically reconciled; licence/publication and real-workspace
+   acceptance remain.
 
 ### 6.4 Post-v1 integration work that is buildable without new external evidence
 
@@ -365,7 +366,9 @@ created.
 ### 6.5 Phase-190 durable real-evidence programme design
 
 The canonical [v0.7 design](traffictwin-design-v0_7.md#27-post-phase-189-durable-real-evidence-programme)
-now defines eight separate next slices. None is implemented merely because its design exists:
+defined eight separate next slices at Phase 190. The list below is the design boundary; later
+Phases 191–198 implemented bounded portions of `NEXT-01`–`NEXT-08` without activating the real
+operational outcomes:
 
 1. preview-confirmed, new-only creation of a durable v0.7 workspace outside the repository;
 2. a secret-free preflight and foreground port-8502 run profile over the existing BODS and
@@ -574,8 +577,9 @@ WebTRIS remains a useful historical/latest-available source. It is explicitly re
 5. Execute the controlled SUMO-to-VEC chain and materialise complete lineage.
 6. In parallel, close eligible Gate-B source records, Gate-C manual acceptance, and Gate-F
    migration/rollback tooling.
-7. Reconcile project records, generated artifacts, security/licence evidence, capability truth,
-   package version, CI, documentation, and the final immutable release tag.
+7. Keep project records, generated artifacts, security/licence evidence, capability truth,
+   package version, CI, documentation and the now-published immutable release tag reconciled while
+   the remaining licence/publication and real-workspace decisions stay open.
 
 The Phase-190 operational track can proceed alongside that scientific path: implement `NEXT-01`
 then `NEXT-02`; freeze `NEXT-03` before `NEXT-04`/`NEXT-05`; build `NEXT-06` over their read-only
