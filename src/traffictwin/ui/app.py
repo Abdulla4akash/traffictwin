@@ -31,6 +31,23 @@ from traffictwin.ui.page_runtime import render_registered_page
 from traffictwin.ui.state import UiConfig, ensure_session_state, load_ui_config
 from traffictwin.ui.theme import apply_research_theme
 
+GROUPED_NAVIGATION_LOCK_ENV = "TRAFFICTWIN_GROUPED_NAVIGATION_LOCK"
+
+
+def _grouped_navigation_locked() -> bool:
+    """Keep supported user launches on the compact grouped navigation.
+
+    The legacy flat router remains available only for deliberate compatibility
+    runs that do not carry a supported-launch lock or an explicit workspace.
+    This prevents stale ``TRAFFICTWIN_V07_NAVIGATION=legacy`` shell state from
+    changing the UI of normal demo or real-workspace launches.
+    """
+
+    lock = os.getenv(GROUPED_NAVIGATION_LOCK_ENV, "").strip().lower()
+    if lock in {"1", "true", "yes", "on"}:
+        return True
+    return bool(os.getenv("TRAFFICTWIN_WORKSPACE_PATH", "").strip())
+
 
 def main() -> None:
     """Run the Streamlit application."""
@@ -56,7 +73,7 @@ def main() -> None:
     # supplies the one h1 that describes its own content.
     st.sidebar.markdown("**TrafficTwin**")
     st.sidebar.caption("Import-first research UI")
-    if v07_navigation_requested():
+    if _grouped_navigation_locked() or v07_navigation_requested():
         st.session_state["_v07_navigation_active"] = True
         navigation = st.navigation(v07_navigation_pages(), position="sidebar", expanded=False)
         navigation.run()

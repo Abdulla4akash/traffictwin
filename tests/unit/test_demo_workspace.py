@@ -107,6 +107,7 @@ def test_launch_plan_dry_run_binds_workspace_and_default_port(tmp_path: Path) ->
     assert plan.registry == workspace / "registry.sqlite"
     assert plan.environment["TRAFFICTWIN_WORKSPACE_PATH"] == str(workspace)
     assert plan.environment["TRAFFICTWIN_REGISTRY_PATH"] == str(workspace / "registry.sqlite")
+    assert plan.environment["TRAFFICTWIN_GROUPED_NAVIGATION_LOCK"] == "1"
     assert "--server.port" not in plan.command
 
 
